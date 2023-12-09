@@ -1,5 +1,6 @@
 package edu.byu.cs.server;
 
+import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.PhaseOneGrader;
 
 import java.io.IOException;
