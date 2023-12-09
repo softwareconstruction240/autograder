@@ -15,6 +15,8 @@ public class PhaseOneGrader extends Grader {
 
     @Override
     protected void compileTests() {
+        observer.update("Compiling tests...");
+
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -52,10 +54,14 @@ public class PhaseOneGrader extends Grader {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        observer.update("Successfully compiled tests");
     }
 
     @Override
     protected void runTests() {
+        observer.update("Running tests...");
+
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(phaseTests);
 
@@ -77,5 +83,7 @@ public class PhaseOneGrader extends Grader {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        observer.update("Successfully ran tests");
     }
 }

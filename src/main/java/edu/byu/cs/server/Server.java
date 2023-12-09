@@ -4,7 +4,7 @@ import edu.byu.cs.autograder.PhaseOneGrader;
 
 import java.io.IOException;
 
-public class Server {
+public class Server implements Grader.Observer {
     public static void main(String[] args) {
 
         PhaseOneGrader grader;

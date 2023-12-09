@@ -46,18 +46,25 @@ public abstract class Grader {
     }
 
     public void run() {
+        try {
+            removeDirectory();
+            fetchRepo(repoUrl);
+            runCustomTests();
+            packageRepo();
+            compileTests();
+            runTests();
+        } catch (Exception e) {
+            observer.notifyError(e.getMessage());
+        }
 
-        removeDirectory();
-        fetchRepo(repoUrl);
-        packageRepo();
-        compileTests();
-        runTests();
+        observer.notifySuccess();
     }
 
     /**
      * Removes the stage directory if it exists
      */
     private void removeDirectory() {
+        observer.update("Cleaning stage directory...");
 
         File file = new File(stagePath);
 
@@ -72,6 +79,8 @@ public abstract class Grader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        observer.update("Successfully cleaned stage directory");
     }
 
     /**
@@ -79,6 +88,8 @@ public abstract class Grader {
      * @param repoUrl the url of the student repo
      */
     private void fetchRepo(String repoUrl) {
+        observer.update("Fetching repo...");
+
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(new File(studentRepoPath));
@@ -88,15 +99,20 @@ public abstract class Grader {
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
+
+        observer.update("Successfully fetched repo");
     }
 
     /**
      * Packages the student repo into a jar
      */
     protected void packageRepo() {
+        observer.update("Packaging repo...");
+
         String[] commands = new String[]{"compile", "package"};
 
         for (String command : commands) {
+            observer.update("  Running maven " + command + " command");
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.directory(new File(studentRepoPath));
             processBuilder.command("mvn", command);
@@ -108,7 +124,11 @@ public abstract class Grader {
             } catch (IOException | InterruptedException ex) {
                 ex.printStackTrace();
             }
+
+            observer.update("  Successfully ran maven " + command + " command");
         }
+
+        observer.update("Successfully packaged repo");
     }
 
     /**
