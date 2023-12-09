@@ -9,6 +9,8 @@ phases/ - containes the test cases for each phase
   phase4/
   phase6/
   libs/ - contains libraries needed to run the test cases
+    junit-jupiter-api-x.y.z.jar
+    junit-platform-console-standalone-x.y.z.jar
   
 stage/ - a temporary directory created by the autograder to run the student's code
   repo/ - destination for the student's code
