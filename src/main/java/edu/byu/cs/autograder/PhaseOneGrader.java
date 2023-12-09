@@ -55,7 +55,7 @@ public class PhaseOneGrader extends Grader {
                                 "-d",
                                 stagePath + "/tests",
                                 "-cp",
-                                ".:" + chessJarWithDeps + ":junit-platform-console-standalone-1.10.1.jar:junit-jupiter-api-5.10.1.jar",
+                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath,
                                 "{}",
                                 ";")
                         .inheritIO();
@@ -85,8 +85,8 @@ public class PhaseOneGrader extends Grader {
         String chessJarWithDeps = new File(stageRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
         processBuilder.command("java",
                 "-jar",
-                "junit-platform-console-standalone-1.10.1.jar",
-                "--class-path", ".:" + chessJarWithDeps + ":junit-jupiter-api-5.10.1.jar",
+                standaloneJunitJarPath,
+                "--class-path", ".:" + chessJarWithDeps + ":"+junitJupiterApiJarPath,
                 "--scan-class-path");
         processBuilder.inheritIO();
 

@@ -17,14 +17,29 @@ import java.util.stream.Stream;
 public abstract class Grader {
 
     /**
-     * The url of the student repo
+     * The path where the official tests are stored
      */
-    private final String repoUrl;
+    protected final String phasesPath;
+
+    /**
+     * The path where JUnit jars are stored
+     */
+    protected final String libsDir;
+
+    protected final String standaloneJunitJarPath;
+
+    protected final String junitJupiterApiJarPath;
 
     /**
      * The path for the student repo to be put in and tested
      */
     protected final String stagePath;
+
+    /**
+     * The url of the student repo
+     */
+    private final String repoUrl;
+
 
     /**
      * The path for the student repo (child of stagePath)
@@ -39,9 +54,16 @@ public abstract class Grader {
      * @param stagePath the path for the student repo to be put in and tested
      */
     public Grader(String repoUrl, String stagePath, Observer observer) throws IOException {
+        this.phasesPath = new File("./phases").getCanonicalPath();
+        this.libsDir = new File(phasesPath, "libs").getCanonicalPath();
+        this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
+        this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
+
+        this.stagePath = new File("./stage").getCanonicalPath();
+
         this.repoUrl = repoUrl;
-        this.stagePath = new File(stagePath).getCanonicalPath();
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
+
         this.observer = observer;
     }
 
