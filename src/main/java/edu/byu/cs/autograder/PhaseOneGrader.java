@@ -49,8 +49,9 @@ public class PhaseOneGrader extends Grader {
 
         try {
             Process process = processBuilder.start();
-            int exitCode = process.waitFor();
-            assert exitCode == 0;
+            if (process.waitFor() != 0) {
+                throw new RuntimeException("exited with non-zero exit code");
+            }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

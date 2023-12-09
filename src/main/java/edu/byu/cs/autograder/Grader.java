@@ -77,7 +77,7 @@ public abstract class Grader {
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to delete stage directory: " + e.getMessage());
         }
 
         observer.update("Successfully cleaned stage directory");
@@ -97,7 +97,7 @@ public abstract class Grader {
         try (Git git = cloneCommand.call()) {
             System.out.println("Cloned repo to " + git.getRepository().getDirectory());
         } catch (GitAPIException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to clone repo: " + e.getMessage());
         }
 
         observer.update("Successfully fetched repo");
@@ -119,10 +119,11 @@ public abstract class Grader {
             try {
                 processBuilder.inheritIO();
                 Process process = processBuilder.start();
-                int exitCode = process.waitFor();
-                assert exitCode == 0;
+                if (process.waitFor() != 0) {
+                    throw new RuntimeException("exited with non-zero exit code");
+                }
             } catch (IOException | InterruptedException ex) {
-                ex.printStackTrace();
+                throw new RuntimeException("Failed to package repo: " + ex.getMessage());
             }
 
             observer.update("  Successfully ran maven " + command + " command");
