@@ -35,6 +35,8 @@ public class PhaseOneGrader extends Grader {
                                 "*.java",
                                 "-exec",
                                 "javac",
+                                "-d",
+                                stagePath + "/tests",
                                 "-cp",
                                 ".:" + chessJarWithDeps + ":junit-platform-console-standalone-1.10.1.jar:junit-jupiter-api-5.10.1.jar",
                                 "{}",
