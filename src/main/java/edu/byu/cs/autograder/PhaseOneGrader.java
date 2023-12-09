@@ -9,6 +9,8 @@ public class PhaseOneGrader extends Grader {
 
     public PhaseOneGrader(String repoUrl, String localPath) throws IOException {
         super(repoUrl, localPath);
+    public PhaseOneGrader(String repoUrl, String stagePath, Observer observer) throws IOException {
+        super(repoUrl, stagePath, observer);
     }
 
     @Override

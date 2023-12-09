@@ -31,15 +31,18 @@ public abstract class Grader {
      */
     protected final String studentRepoPath;
 
+    protected Observer observer;
+
     /**
      * Creates a new grader
      * @param repoUrl the url of the student repo
      * @param stagePath the path for the student repo to be put in and tested
      */
-    public Grader(String repoUrl, String stagePath) throws IOException {
+    public Grader(String repoUrl, String stagePath, Observer observer) throws IOException {
         this.repoUrl = repoUrl;
         this.stagePath = new File(stagePath).getCanonicalPath();
         this.studentRepoPath = new File(stagePath, "repo").getCanonicalPath();
+        this.observer = observer;
     }
 
     public void run() {
@@ -117,5 +120,11 @@ public abstract class Grader {
      * Runs the tests on the student code
      */
     protected abstract void runTests();
+
+    public interface Observer {
+        void update(String message);
+        void notifyError(String message);
+        void notifySuccess();
+    }
 
 }
