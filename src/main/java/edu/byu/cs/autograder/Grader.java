@@ -16,9 +16,19 @@ import java.util.stream.Stream;
  */
 public abstract class Grader {
 
+    /**
+     * The url of the student repo
+     */
     private final String repoUrl;
+
+    /**
+     * The path for the student repo to be put in and tested
+     */
     protected final String stagePath;
 
+    /**
+     * The path for the student repo (child of stagePath)
+     */
     protected final String studentRepoPath;
 
     /**
