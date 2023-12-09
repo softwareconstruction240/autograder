@@ -39,3 +39,4 @@ build/
 
 ### temp files ###
 *.class
+stage/
