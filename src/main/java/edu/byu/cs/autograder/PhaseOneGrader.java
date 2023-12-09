@@ -7,11 +7,11 @@ public class PhaseOneGrader extends Grader {
 
     private final File phaseTests = new File("./phases/phase1");
 
-    private final File tests;
+    private final File stageTestsPath;
 
     public PhaseOneGrader(String repoUrl, String stagePath, Observer observer) throws IOException {
         super(repoUrl, stagePath, observer);
-        this.tests = new File(stagePath + "/tests");
+        this.stageTestsPath = new File(stagePath + "/tests");
     }
 
     @Override
@@ -30,7 +30,7 @@ public class PhaseOneGrader extends Grader {
         // absolute path to student's chess jar
         String chessJarWithDeps;
         try {
-            chessJarWithDeps = new File(studentRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
+            chessJarWithDeps = new File(stageRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
                     .getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -70,12 +70,12 @@ public class PhaseOneGrader extends Grader {
         observer.update("Running tests...");
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(tests);
+        processBuilder.directory(stageTestsPath);
 
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
-        String chessJarWithDeps = new File(studentRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
+        String chessJarWithDeps = new File(stageRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
         processBuilder.command("java",
                 "-jar",
                 "junit-platform-console-standalone-1.10.1.jar",

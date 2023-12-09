@@ -29,7 +29,7 @@ public abstract class Grader {
     /**
      * The path for the student repo (child of stagePath)
      */
-    protected final String studentRepoPath;
+    protected final String stageRepoPath;
 
     protected Observer observer;
 
@@ -41,7 +41,7 @@ public abstract class Grader {
     public Grader(String repoUrl, String stagePath, Observer observer) throws IOException {
         this.repoUrl = repoUrl;
         this.stagePath = new File(stagePath).getCanonicalPath();
-        this.studentRepoPath = new File(stagePath, "repo").getCanonicalPath();
+        this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
         this.observer = observer;
     }
 
@@ -92,7 +92,7 @@ public abstract class Grader {
 
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(repoUrl)
-                .setDirectory(new File(studentRepoPath));
+                .setDirectory(new File(stageRepoPath));
 
         try (Git git = cloneCommand.call()) {
             System.out.println("Cloned repo to " + git.getRepository().getDirectory());
@@ -114,7 +114,7 @@ public abstract class Grader {
         for (String command : commands) {
             observer.update("  Running maven " + command + " command");
             ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.directory(new File(studentRepoPath));
+            processBuilder.directory(new File(stageRepoPath));
             processBuilder.command("mvn", command);
             try {
                 processBuilder.inheritIO();
