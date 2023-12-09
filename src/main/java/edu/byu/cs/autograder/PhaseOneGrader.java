@@ -5,8 +5,15 @@ import java.io.IOException;
 
 public class PhaseOneGrader extends Grader {
 
+
+    /**
+     * The path where the official tests are stored
+     */
     private final File phaseTests = new File("./phases/phase1");
 
+    /**
+     * The path where the compiled tests are stored (and ran)
+     */
     private final File stageTestsPath;
 
     public PhaseOneGrader(String repoUrl, String stagePath, Observer observer) throws IOException {
