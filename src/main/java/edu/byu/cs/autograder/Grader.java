@@ -51,6 +51,9 @@ public abstract class Grader {
         runTests();
     }
 
+    /**
+     * Removes the stage directory if it exists
+     */
     private void removeDirectory() {
 
         File file = new File(stagePath);
