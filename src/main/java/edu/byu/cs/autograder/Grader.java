@@ -133,6 +133,11 @@ public abstract class Grader {
     }
 
     /**
+     * Run the unit tests written by the student
+     */
+    protected abstract void runCustomTests();
+
+    /**
      * Compiles the test files with the student code
      */
     protected abstract void compileTests();

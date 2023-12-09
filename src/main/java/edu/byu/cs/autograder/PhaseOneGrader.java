@@ -7,10 +7,16 @@ public class PhaseOneGrader extends Grader {
 
     private final File phaseTests = new File("./phases/phase1");
 
-    public PhaseOneGrader(String repoUrl, String localPath) throws IOException {
-        super(repoUrl, localPath);
+    private final File tests;
+
     public PhaseOneGrader(String repoUrl, String stagePath, Observer observer) throws IOException {
         super(repoUrl, stagePath, observer);
+        this.tests = new File(stagePath + "/tests");
+    }
+
+    @Override
+    protected void runCustomTests() {
+        // no unit tests for this phase
     }
 
     @Override
@@ -64,7 +70,7 @@ public class PhaseOneGrader extends Grader {
         observer.update("Running tests...");
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(phaseTests);
+        processBuilder.directory(tests);
 
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
