@@ -14,7 +14,7 @@ public class PhaseOneGrader extends Grader {
     @Override
     protected void compileTests() {
         // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and use find
+        // so we need to only use absolute paths and find
         // to get the files
 
         // absolute path to student's chess jar
@@ -56,7 +56,7 @@ public class PhaseOneGrader extends Grader {
         processBuilder.directory(phaseTests);
 
         // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and use find
+        // so we need to only use absolute paths and find
         // to get the files
         String chessJarWithDeps = new File(studentRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
         processBuilder.command("java",
