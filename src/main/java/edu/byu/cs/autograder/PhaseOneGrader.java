@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class PhaseOneGrader extends Grader {
 
@@ -76,24 +75,28 @@ public class PhaseOneGrader extends Grader {
     protected void runTests() {
         observer.update("Running tests...");
 
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(stageTestsPath);
-
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
         String chessJarWithDeps = new File(stageRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
-        processBuilder.command("java",
-                "-jar",
-                standaloneJunitJarPath,
-                "--class-path", ".:" + chessJarWithDeps + ":"+junitJupiterApiJarPath,
-                "--scan-class-path");
-        processBuilder.inheritIO();
+
+        ProcessBuilder processBuilder = new ProcessBuilder()
+                .directory(stageTestsPath)
+//              .inheritIO() // TODO: implement better logging
+                .command("java",
+                        "-jar",
+                        standaloneJunitJarPath,
+                        "--class-path", ".:" + chessJarWithDeps + ":" + junitJupiterApiJarPath,
+                        "--scan-class-path",
+                        "--details=testfeed");
 
         try {
             Process process = processBuilder.start();
             int exitCode = process.waitFor();
             assert exitCode == 0;
+            if (process.waitFor() != 0) {
+//                throw new RuntimeException("exited with non-zero exit code");
+            }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
