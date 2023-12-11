@@ -26,8 +26,14 @@ public abstract class Grader {
      */
     protected final String libsDir;
 
+    /**
+     * The path to the standalone JUnit jar
+     */
     protected final String standaloneJunitJarPath;
 
+    /**
+     * The path to the JUnit Jupiter API jar
+     */
     protected final String junitJupiterApiJarPath;
 
     /**
