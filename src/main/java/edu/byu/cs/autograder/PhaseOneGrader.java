@@ -100,4 +100,23 @@ public class PhaseOneGrader extends Grader {
 
         observer.update("Successfully ran tests");
     }
+
+    private static String getOutputFromProcess(Process process) throws IOException {
+        String output;
+
+        InputStream is = process.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        {
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                sb.append('\n');
+            }
+
+            output = sb.toString();
+        }
+        return output;
+    }
 }
