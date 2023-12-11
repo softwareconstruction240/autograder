@@ -5,6 +5,8 @@ import java.util.Map;
 
 /**
  * Parses the output of the JUnit Console Runner
+ * <b>Important: this class is ONLY compatible with the testfeed details mode on the JUnit standalone client</b><br/>
+ * <i>e.g. --details=testfeed</i>
  */
 public class TestAnalyzer {
 
