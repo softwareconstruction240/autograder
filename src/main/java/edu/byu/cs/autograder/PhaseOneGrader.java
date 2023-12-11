@@ -96,6 +96,15 @@ public class PhaseOneGrader extends Grader {
             if (process.waitFor() != 0) {
 //                throw new RuntimeException("exited with non-zero exit code");
             }
+
+            String output = getOutputFromProcess(process);
+
+            TestAnalyzer testAnalyzer = new TestAnalyzer();
+            TestAnalyzer.TestNode results = testAnalyzer.parse(output.split("\n"));
+
+            System.out.println("Test results:");
+            System.out.println(results.toString());
+
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
