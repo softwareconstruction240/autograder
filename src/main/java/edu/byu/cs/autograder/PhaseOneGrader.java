@@ -46,6 +46,7 @@ public class PhaseOneGrader extends Grader {
         ProcessBuilder processBuilder =
                 new ProcessBuilder()
                         .directory(phaseTests)
+//                        .inheritIO() // TODO: implement better logging
                         .command("find",
                                 "passoffTests",
                                 "-name",
@@ -57,8 +58,7 @@ public class PhaseOneGrader extends Grader {
                                 "-cp",
                                 ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath,
                                 "{}",
-                                ";")
-                        .inheritIO();
+                                ";");
 
         try {
             Process process = processBuilder.start();
