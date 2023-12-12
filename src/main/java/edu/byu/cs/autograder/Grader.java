@@ -140,7 +140,7 @@ public abstract class Grader {
         String[] commands = new String[]{"compile", "package"};
 
         for (String command : commands) {
-            observer.update("  Running maven " + command + " command");
+            observer.update("  Running maven " + command + " command...");
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.directory(new File(stageRepoPath));
             processBuilder.command("mvn", command);
