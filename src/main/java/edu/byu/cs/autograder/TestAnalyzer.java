@@ -81,6 +81,11 @@ public class TestAnalyzer {
      */
     private TestNode lastFailingTest;
 
+    /**
+     * Parses the output of the JUnit Console Runner
+     * @param inputLines the lines of the output of the JUnit Console Runner
+     * @return the root of the test tree
+     */
     public TestNode parse(String[] inputLines) {
 
         for (String line : inputLines) {
