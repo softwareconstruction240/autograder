@@ -32,7 +32,7 @@ public class Server implements Grader.Observer {
     }
 
     @Override
-    public void notifySuccess() {
-        System.out.println("Tests passed!");
+    public void notifyDone(TestAnalyzer.TestNode results) {
+        System.out.println(results);
     }
 }
