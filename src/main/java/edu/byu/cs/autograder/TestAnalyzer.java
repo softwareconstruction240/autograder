@@ -16,6 +16,16 @@ public class TestAnalyzer {
         String errorMessage;
         Map<String, TestNode> children = new HashMap<>();
 
+        /**
+         * The number of tests that passed under this node
+         */
+        Integer numTestsPassed;
+
+        /**
+         * The number of tests that failed under this node
+         */
+        Integer numTestsFailed;
+
         @Override
         public String toString() {
             StringBuilder stringBuilder = new StringBuilder();
@@ -30,10 +40,33 @@ public class TestAnalyzer {
                 if (node.errorMessage != null && !node.errorMessage.isEmpty()) {
                     sb.append("\n").append(indent).append("   Error: ").append(node.errorMessage);
                 }
+            } else {
+                sb.append(" (").append(node.numTestsPassed).append(" passed, ").append(node.numTestsFailed).append(" failed").append(")");
             }
             sb.append("\n");
             for (TestNode child : node.children.values()) {
                 printNode(child, sb, indent + "  ");
+            }
+        }
+
+        public static void countTests(TestNode node) {
+            if (node.passed != null) {
+                if (node.passed) {
+                    node.numTestsPassed = 1;
+                    node.numTestsFailed = 0;
+                } else {
+                    node.numTestsPassed = 0;
+                    node.numTestsFailed = 1;
+                }
+            } else {
+                node.numTestsPassed = 0;
+                node.numTestsFailed = 0;
+            }
+
+            for (TestNode child : node.children.values()) {
+                countTests(child);
+                node.numTestsPassed += child.numTestsPassed;
+                node.numTestsFailed += child.numTestsFailed;
             }
         }
     }
@@ -79,6 +112,9 @@ public class TestAnalyzer {
             else // this line is an error message that relates to the last failing test
                 handleErrorMessage(line);
         }
+
+        if (root != null)
+            TestNode.countTests(root);
 
         return root;
     }
