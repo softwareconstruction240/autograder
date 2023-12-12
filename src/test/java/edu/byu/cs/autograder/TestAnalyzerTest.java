@@ -187,4 +187,54 @@ class TestAnalyzerTest {
             assertNull(child.errorMessage);
         }
     }
+
+    @Test
+    @DisplayName("Counts are correct")
+    void TestNode__counts_are_correct() {
+        String testsPassingInput =
+                """
+                JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
+                JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: SUCCESSFUL
+                JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: STARTED
+                JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
+                JUnit Jupiter > RookMoveTests > rookBlocked() :: STARTED
+                JUnit Jupiter > RookMoveTests > rookBlocked() :: FAILED
+                    java.lang.RuntimeException: Not implemented
+                        at chess.ChessBoard.addPiece(ChessBoard.java:22)
+                        at passoffTests.TestFactory.loadBoard(TestFactory.java:104)
+                        at passoffTests.TestFactory.validateMoves(TestFactory.java:70)
+                        at passoffTests.chessTests.chessPieceTests.RookMoveTests.rookBlocked(RookMoveTests.java:57)
+                        at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+                        at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+                        at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+                """;
+
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+
+        assertEquals(2, root.numTestsPassed);
+        assertEquals(1, root.numTestsFailed);
+
+        assertEquals(2, root.children.get("PawnMoveTests").numTestsPassed);
+        assertEquals(0, root.children.get("PawnMoveTests").numTestsFailed);
+
+        assertEquals(0, root.children.get("RookMoveTests").numTestsPassed);
+        assertEquals(1, root.children.get("RookMoveTests").numTestsFailed);
+    }
+
+    @Test
+    @DisplayName("Escape code are ignored")
+    void parse__escape_codes_are_ignored() {
+        String testsPassingInput =
+                """
+                Unit Jupiter > QueenMoveTests > queenMoveUntilEdge() :: STARTED
+                [32mJUnit Jupiter > QueenMoveTests > queenMoveUntilEdge() :: SUCCESSFUL[0m
+                JUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: STARTED
+                [32mJUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: SUCCESSFUL[0m
+                """;
+
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+
+        assertEquals("JUnit Jupiter", root.testName);
+        assertEquals(2, root.children.get("QueenMoveTests").children.size());
+    }
 }
