@@ -80,12 +80,12 @@ public abstract class Grader {
             runCustomTests();
             packageRepo();
             compileTests();
-            runTests();
+            TestAnalyzer.TestNode results = runTests();
+            observer.notifyDone(results);
+
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
         }
-
-        observer.notifySuccess();
     }
 
     /**
@@ -173,12 +173,12 @@ public abstract class Grader {
     /**
      * Runs the tests on the student code
      */
-    protected abstract void runTests();
+    protected abstract TestAnalyzer.TestNode runTests();
 
     public interface Observer {
         void update(String message);
         void notifyError(String message);
-        void notifySuccess();
+        void notifyDone(TestAnalyzer.TestNode results);
     }
 
 }
