@@ -79,7 +79,7 @@ public class PhaseOneGrader extends Grader {
     }
 
     @Override
-    protected void runTests() {
+    protected TestAnalyzer.TestNode runTests() {
         observer.update("Running tests...");
 
         // Process cannot handle relative paths or wildcards,
@@ -107,16 +107,12 @@ public class PhaseOneGrader extends Grader {
             String output = getOutputFromProcess(process);
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
-            TestAnalyzer.TestNode results = testAnalyzer.parse(output.split("\n"));
 
-            System.out.println("Test results:");
-            System.out.println(results.toString());
+            return testAnalyzer.parse(output.split("\n"));
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        observer.update("Successfully ran tests");
     }
 
     private static String getOutputFromProcess(Process process) throws IOException {
