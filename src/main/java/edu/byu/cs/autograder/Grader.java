@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 /**
  * A template for fetching, compiling, and running student code
  */
-public abstract class Grader {
+public abstract class Grader implements Runnable {
 
     /**
      * The path where the official tests are stored
