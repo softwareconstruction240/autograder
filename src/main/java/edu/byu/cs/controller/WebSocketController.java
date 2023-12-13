@@ -28,18 +28,17 @@ public class WebSocketController {
     }
 
     @OnWebSocketConnect
-    public void onConnect(Session session) {
-        System.out.println("WebSocket connected");
-    }
+    public void onConnect(Session session) { }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        System.out.println("WebSocket closed");
+        if (queue.remove(session))
+            broadcastQueueStatus();
     }
 
     @OnWebSocketError
     public void onError(Throwable t) {
-        System.out.println("WebSocket error");
+        System.out.println("WebSocket error: ");
         t.printStackTrace();
     }
 
