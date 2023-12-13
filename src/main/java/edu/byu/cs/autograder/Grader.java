@@ -79,7 +79,7 @@ public abstract class Grader implements Runnable {
         observer.notifyStarted();
 
         try {
-            fetchRepo(repoUrl);
+            fetchRepo();
             runCustomTests();
             packageRepo();
             compileTests();
@@ -118,9 +118,8 @@ public abstract class Grader implements Runnable {
 
     /**
      * Fetches the student repo and puts it in the given local path
-     * @param repoUrl the url of the student repo
      */
-    private void fetchRepo(String repoUrl) {
+    private void fetchRepo() {
         observer.update("Fetching repo...");
 
         CloneCommand cloneCommand = Git.cloneRepository()
