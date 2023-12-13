@@ -13,11 +13,16 @@ import org.eclipse.jetty.websocket.api.annotations.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static spark.Spark.webSocket;
 
 @WebSocket
 public class WebSocketController {
+
+    private static final ConcurrentLinkedQueue<Session> queue = new ConcurrentLinkedQueue<>();
+
+
 
     public static void registerRoute() {
         webSocket("/ws", WebSocketController.class);
@@ -60,6 +65,16 @@ public class WebSocketController {
             sendError(session, "Valid phases are 0, 1, 3, 4, or 6");
             return;
         }
+
+        queue.add(session);
+        send(
+                session,
+                "queueStatus",
+                new Gson().toJson(Map.of(
+                        "position", queue.size(),
+                        "total", queue.size()
+                ))
+        );
 
         try {
             Grader grader = getGrader(session, request);
@@ -139,5 +154,23 @@ public class WebSocketController {
      */
     private void sendError(Session session, String message) {
         send(session, "error", message);
+    }
+
+    /**
+     * Broadcasts the current queue status to all connected clients.
+     * Each client will be notified of their specific position in the queue.
+     */
+    private void broadcastQueueStatus() {
+        int i = 1;
+        for (Session session : queue) {
+            send(
+                    session,
+                    "queueStatus",
+                    new Gson().toJson(Map.of(
+                            "position", i,
+                            "total", queue.size()
+                    )));
+            i++;
+        }
     }
 }
