@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Git Repo Tester</title>
+
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
 
@@ -21,6 +27,12 @@
 
     <button type="button" onclick="submitForm()">Test Repo</button>
 </form>
+
+<!-- information about current spot on queue. Hidden until start button is pressed -->
+
+<div>
+    <p id="queuePosition"></p>
+</div>
 
 <div id="liveUpdates"></div>
 
@@ -60,6 +72,9 @@
         const repoUrl = document.getElementById('gitRepoUrl').value;
         const phase = document.querySelector('input[name="phase"]:checked').value;
         const resultContainer = document.getElementById('liveUpdates');
+        const queuePosition = document.getElementById('queuePosition');
+
+        resultContainer.innerHTML = '';
 
         const socket = new WebSocket('ws://localhost:8080/ws');
         socket.addEventListener('open', _ => {
@@ -73,13 +88,26 @@
         socket.addEventListener('message', event => {
             const messageData = JSON.parse(event.data);
 
-            if (messageData.type === "message") {
-                resultContainer.innerHTML += '<pre>' + messageData.message + '</pre>';
-                return;
+            switch (messageData.type) {
+                case "queueStatus":
+                    queuePosition.innerHTML = `You are currently ${messageData.position} in the queue out of ${messageData.total}`;
+                    return;
+                case "started":
+                    queuePosition.innerHTML = "";
+                    resultContainer.innerHTML += `<pre>Autograding has started</pre>`;
+                    return;
+                case "update":
+                    resultContainer.innerHTML += '<pre>' + messageData.message + '</pre>';
+                    return;
+                case "results":
+                    resultContainer.innerHTML += `<pre>${prettifyJSON(messageData.results)}</pre>`;
+                    socket.close();
+                    return;
+                case "error":
+                    resultContainer.innerHTML += `<pre class="error">${messageData.message}</pre>`;
+                    socket.close();
+                    return;
             }
-
-            const prettifiedMessage = prettifyJSON(messageData.message);
-            resultContainer.innerHTML += '<pre>' + prettifiedMessage + '</pre>';
         });
     }
 </script>
