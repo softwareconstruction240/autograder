@@ -46,7 +46,10 @@ public class WebSocketController {
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
-        System.out.println("WebSocket message: " + message);
+        if (queue.contains(session)) {
+            sendError(session, "You are already in the queue");
+            return;
+        }
 
         GradeRequest request;
         try {
