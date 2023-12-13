@@ -76,6 +76,8 @@ public abstract class Grader implements Runnable {
     }
 
     public void run() {
+        observer.notifyStarted();
+
         try {
             fetchRepo(repoUrl);
             runCustomTests();
@@ -179,6 +181,7 @@ public abstract class Grader implements Runnable {
     protected abstract TestAnalyzer.TestNode runTests();
 
     public interface Observer {
+        void notifyStarted();
         void update(String message);
         void notifyError(String message);
         void notifyDone(TestAnalyzer.TestNode results);

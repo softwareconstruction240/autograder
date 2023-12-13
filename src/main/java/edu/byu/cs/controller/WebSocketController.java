@@ -75,6 +75,7 @@ public class WebSocketController {
 
     /**
      * Creates a grader for the given request with an observer that sends messages to the given session
+     *
      * @param session the session to send messages to
      * @param request the request to create a grader for
      * @return the grader
@@ -82,6 +83,12 @@ public class WebSocketController {
      */
     private Grader getGrader(Session session, GradeRequest request) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
+            @Override
+            public void notifyStarted() {
+                queue.remove(session);
+                send(session, "started", "Autograding started");
+                broadcastQueueStatus();
+            }
             @Override
             public void update(String message) {
                 send(session, "message", message);
