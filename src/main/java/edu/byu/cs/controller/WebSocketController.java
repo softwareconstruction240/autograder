@@ -28,7 +28,8 @@ public class WebSocketController {
     }
 
     @OnWebSocketConnect
-    public void onConnect(Session session) { }
+    public void onConnect(Session session) {
+    }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
@@ -70,11 +71,11 @@ public class WebSocketController {
         queue.add(session);
         send(
                 session,
-                "queueStatus",
-                new Gson().toJson(Map.of(
+                Map.of(
+                        "type", "queueStatus",
                         "position", queue.size(),
                         "total", queue.size()
-                ))
+                )
         );
 
         try {
@@ -102,13 +103,22 @@ public class WebSocketController {
             @Override
             public void notifyStarted() {
                 queue.remove(session);
-                send(session, "started", "Autograding started");
+                send(
+                        session,
+                        Map.of(
+                                "type", "started"
+                        ));
                 broadcastQueueStatus();
             }
 
             @Override
             public void update(String message) {
-                send(session, "message", message);
+                send(
+                        session,
+                        Map.of(
+                                "type", "update",
+                                "message", message
+                        ));
             }
 
             @Override
@@ -118,7 +128,12 @@ public class WebSocketController {
 
             @Override
             public void notifyDone(TestAnalyzer.TestNode results) {
-                send(session, "results", new Gson().toJson(results));
+                send(
+                        session,
+                        Map.of(
+                                "type", "results",
+                                "results", new Gson().toJson(results)
+                        ));
             }
         };
 
@@ -136,15 +151,11 @@ public class WebSocketController {
      * Sends a message to the given session
      *
      * @param session the session to send the message to
-     * @param type    the type of message
      * @param message the message
      */
-    private void send(Session session, String type, String message) {
+    private void send(Session session, Map<String, Object> message) {
         try {
-            session.getRemote().sendString(new Gson().toJson(Map.of(
-                    "type", type,
-                    "message", message
-            )));
+            session.getRemote().sendString(new Gson().toJson(message));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -157,7 +168,12 @@ public class WebSocketController {
      * @param message the error message
      */
     private void sendError(Session session, String message) {
-        send(session, "error", message);
+        send(
+                session,
+                Map.of(
+                        "type", "error",
+                        "message", message
+                ));
     }
 
     /**
@@ -169,11 +185,11 @@ public class WebSocketController {
         for (Session session : queue) {
             send(
                     session,
-                    "queueStatus",
-                    new Gson().toJson(Map.of(
+                    Map.of(
+                            "type", "queueStatus",
                             "position", i,
                             "total", queue.size()
-                    )));
+                    ));
             i++;
         }
     }

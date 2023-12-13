@@ -34,21 +34,21 @@ src/ - you know what this is for 😉
     ```json
     {
       "type": "queueStatus",
-      "message": "{\"position\": 3, \"total\": 4}"
-   }
+      "position": 3,
+      "total": 4
+    }
    ```
 4. When the position in the queue changes, new `queueStatus` messages are sent
 5. When the client's submission starts to be processed, the server sends a `started` message:
     ```json
     {
-      "type": "started",
-      "message": "Autograding started"
+      "type": "started"
     }
     ```
 6. As the autograder runs, the server sends `message` messages:
     ```json
     {
-      "type": "message",
+      "type": "update",
       "message": "Step x is starting"
     }
     ```
@@ -56,6 +56,13 @@ src/ - you know what this is for 😉
     ```json
     {
       "type": "results",
-      "message": "{...}"
+      "results": "{...}"
+    }
+    ```
+8. If an error occurs, the server sends an `error` message:
+    ```json
+    {
+      "type": "error",
+      "message": "Something went wrong"
     }
     ```
