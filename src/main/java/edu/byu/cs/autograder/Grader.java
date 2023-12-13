@@ -148,7 +148,7 @@ public abstract class Grader implements Runnable {
                 processBuilder.inheritIO();
                 Process process = processBuilder.start();
                 if (process.waitFor() != 0) {
-                    throw new RuntimeException("exited with non-zero exit code");
+                    throw new RuntimeException("Unable to " + command + " repo");
                 }
             } catch (IOException | InterruptedException ex) {
                 throw new RuntimeException("Failed to package repo: " + ex.getMessage());
