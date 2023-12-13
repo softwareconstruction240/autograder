@@ -62,30 +62,45 @@ public class WebSocketController {
         }
 
         try {
-        TrafficController.getInstance().addGrader(
-                new PhaseOneGrader(request.repoUrl(), "./stage", new Grader.Observer() {
-                    @Override
-                    public void update(String message) {
-                        send(session, "message", message);
-                    }
+            Grader grader = getGrader(session, request);
 
-                    @Override
-                    public void notifyError(String message) {
-                        sendError(session, message);
-                    }
+            TrafficController.getInstance().addGrader(grader);
 
-                    @Override
-                    public void notifyDone(TestAnalyzer.TestNode results) {
-                        send(session, "results", new Gson().toJson(results));
-                    }
-                }));
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             sendError(session, "Something went wrong");
         }
 
 
     }
+
+    private Grader getGrader(Session session, GradeRequest request) throws IOException {
+        Grader.Observer observer = new Grader.Observer() {
+            @Override
+            public void update(String message) {
+                send(session, "message", message);
+            }
+
+            @Override
+            public void notifyError(String message) {
+                sendError(session, message);
+            }
+
+            @Override
+            public void notifyDone(TestAnalyzer.TestNode results) {
+                send(session, "results", new Gson().toJson(results));
+            }
+        };
+
+        return switch (request.phase()) {
+            case 0 -> null;
+            case 1 -> new PhaseOneGrader(request.repoUrl(), "./stage", observer);
+            case 3 -> null;
+            case 4 -> null;
+            case 6 -> null;
+            default -> throw new IllegalStateException("Unexpected value: " + request.phase());
+        };
+    }
+
     private void send(Session session, String type, String message) {
         try {
             session.getRemote().sendString(new Gson().toJson(Map.of(
