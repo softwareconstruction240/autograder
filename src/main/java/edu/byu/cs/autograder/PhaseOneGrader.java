@@ -18,12 +18,11 @@ public class PhaseOneGrader extends Grader {
     /**
      * Creates a new grader for phase 1
      * @param repoUrl the url of the student repo
-     * @param stagePath the path for the student repo to be put in and tested
      * @param observer the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
-    public PhaseOneGrader(String repoUrl, String stagePath, Observer observer) throws IOException {
-        super(repoUrl, stagePath, observer);
+    public PhaseOneGrader(String repoUrl, Observer observer) throws IOException {
+        super(repoUrl, observer);
         this.stageTestsPath = new File(stagePath + "/tests");
     }
 

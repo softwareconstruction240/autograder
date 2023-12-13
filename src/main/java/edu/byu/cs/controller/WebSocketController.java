@@ -93,7 +93,7 @@ public class WebSocketController {
 
         return switch (request.phase()) {
             case 0 -> null;
-            case 1 -> new PhaseOneGrader(request.repoUrl(), "./stage", observer);
+            case 1 -> new PhaseOneGrader(request.repoUrl(), observer);
             case 3 -> null;
             case 4 -> null;
             case 6 -> null;

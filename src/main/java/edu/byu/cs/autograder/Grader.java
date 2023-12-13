@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -56,16 +57,17 @@ public abstract class Grader implements Runnable {
 
     /**
      * Creates a new grader
+     *
      * @param repoUrl the url of the student repo
-     * @param stagePath the path for the student repo to be put in and tested
+     * @param observer the observer to notify of updates
      */
-    public Grader(String repoUrl, String stagePath, Observer observer) throws IOException {
+    public Grader(String repoUrl, Observer observer) throws IOException {
         this.phasesPath = new File("./phases").getCanonicalPath();
         this.libsDir = new File(phasesPath, "libs").getCanonicalPath();
         this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
         this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
 
-        this.stagePath = new File("./stage").getCanonicalPath();
+        this.stagePath = new File("./tmp-" + repoUrl.hashCode()  + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
 
         this.repoUrl = repoUrl;
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
@@ -75,7 +77,6 @@ public abstract class Grader implements Runnable {
 
     public void run() {
         try {
-            removeDirectory();
             fetchRepo(repoUrl);
             runCustomTests();
             packageRepo();
@@ -85,13 +86,15 @@ public abstract class Grader implements Runnable {
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
+        } finally {
+            removeStage();
         }
     }
 
     /**
      * Removes the stage directory if it exists
      */
-    private void removeDirectory() {
+    private void removeStage() {
         observer.update("Cleaning stage directory...");
 
         File file = new File(stagePath);
@@ -145,7 +148,7 @@ public abstract class Grader implements Runnable {
             processBuilder.directory(new File(stageRepoPath));
             processBuilder.command("mvn", command);
             try {
-                processBuilder.inheritIO();
+//                processBuilder.inheritIO();
                 Process process = processBuilder.start();
                 if (process.waitFor() != 0) {
                     throw new RuntimeException("Unable to " + command + " repo");
