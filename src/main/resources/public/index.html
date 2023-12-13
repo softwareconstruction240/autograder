@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Repo Tester</title>
+</head>
+<body>
+
+<h1>Git Repo Tester</h1>
+
+<form id="gitRepoForm">
+    <label for="gitRepoUrl">Git Repo URL:</label>
+    <input type="text" id="gitRepoUrl" name="gitRepoUrl" required>
+
+    <p>Choose Phase:</p>
+    <label>
+        <input type="radio" name="phase" value="1"> Phase 1
+    </label>
+
+
+    <button type="button" onclick="submitForm()">Test Repo</button>
+</form>
+
+<div id="liveUpdates"></div>
+
+<script>
+    function printNode(node, indent) {
+        let result = indent + node.testName;
+
+        if (node.passed !== undefined) {
+            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
+            if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
+                result += "\n" + indent + "   Error: " + node.errorMessage;
+            }
+        } else {
+            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
+        }
+        result += "\n";
+
+        for (const key in node.children) {
+            if (node.children.hasOwnProperty(key)) {
+                result += printNode(node.children[key], indent + "  ");
+            }
+        }
+
+        return result;
+    }
+
+    function prettifyJSON(jsonString) {
+        try {
+            const parsedJson = JSON.parse(jsonString);
+            return printNode(parsedJson, "");
+        } catch (error) {
+            return "Invalid JSON";
+        }
+    }
+
+    function submitForm() {
+        const repoUrl = document.getElementById('gitRepoUrl').value;
+        const phase = document.querySelector('input[name="phase"]:checked').value;
+        const resultContainer = document.getElementById('liveUpdates');
+
+        const socket = new WebSocket('ws://localhost:8080/ws');
+        socket.addEventListener('open', _ => {
+            const message = {
+                "phase": parseInt(phase),
+                "repoUrl": repoUrl
+            };
+            socket.send(JSON.stringify(message));
+        });
+
+        socket.addEventListener('message', event => {
+            const messageData = JSON.parse(event.data);
+
+            if (messageData.type === "message") {
+                resultContainer.innerHTML += '<pre>' + messageData.message + '</pre>';
+                return;
+            }
+
+            const prettifiedMessage = prettifyJSON(messageData.message);
+            resultContainer.innerHTML += '<pre>' + prettifiedMessage + '</pre>';
+        });
+    }
+</script>
+
+</body>
+</html>
