@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class Server implements Grader.Observer {
 
-    private static final String ALL_PASS_REPO = "https://github.com/leesjensen/chess.git";
+    private static final String ALL_PASS_REPO = "https://github.com/pawlh/chess-passing.git";
     private static final String ALL_FAIL_REPO = "https://github.com/softwareconstruction240/chess.git";
     public static void main(String[] args) {
 
