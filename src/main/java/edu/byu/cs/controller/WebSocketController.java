@@ -23,7 +23,6 @@ public class WebSocketController {
     private static final ConcurrentLinkedQueue<Session> queue = new ConcurrentLinkedQueue<>();
 
 
-
     public static void registerRoute() {
         webSocket("/ws", WebSocketController.class);
     }
@@ -107,6 +106,7 @@ public class WebSocketController {
                 send(session, "started", "Autograding started");
                 broadcastQueueStatus();
             }
+
             @Override
             public void update(String message) {
                 send(session, "message", message);
@@ -135,8 +135,9 @@ public class WebSocketController {
 
     /**
      * Sends a message to the given session
+     *
      * @param session the session to send the message to
-     * @param type the type of message
+     * @param type    the type of message
      * @param message the message
      */
     private void send(Session session, String type, String message) {
@@ -152,6 +153,7 @@ public class WebSocketController {
 
     /**
      * Sends an error message to the given session
+     *
      * @param session the session to send the message to
      * @param message the error message
      */
