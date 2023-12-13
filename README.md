@@ -19,3 +19,43 @@ tmp-<hash of repo>-<timestamp>/ - a temporary directory created by the autograde
   
 src/ - you know what this is for 😉
 ```
+
+## Websocket Commands
+
+1. Client connects via /ws
+2. Client sends a message with the following format:
+    ```json
+    {
+      "repoUrl": "https://github.com/cosmo/chess.git",
+      "phase": 3
+    }
+    ```
+3. Server responds with a message with the following format:
+    ```json
+    {
+      "type": "queueStatus",
+      "message": "{\"position\": 3, \"total\": 4}"
+   }
+   ```
+4. When the position in the queue changes, new `queueStatus` messages are sent
+5. When the client's submission starts to be processed, the server sends a `started` message:
+    ```json
+    {
+      "type": "started",
+      "message": "Autograding started"
+    }
+    ```
+6. As the autograder runs, the server sends `message` messages:
+    ```json
+    {
+      "type": "message",
+      "message": "Step x is starting"
+    }
+    ```
+7. When the autograder is done, the server sends a `results` message, containing the results of the autograder:
+    ```json
+    {
+      "type": "results",
+      "message": "{...}"
+    }
+    ```
