@@ -73,6 +73,13 @@ public class WebSocketController {
 
     }
 
+    /**
+     * Creates a grader for the given request with an observer that sends messages to the given session
+     * @param session the session to send messages to
+     * @param request the request to create a grader for
+     * @return the grader
+     * @throws IOException if there is an error creating the grader
+     */
     private Grader getGrader(Session session, GradeRequest request) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
@@ -101,6 +108,12 @@ public class WebSocketController {
         };
     }
 
+    /**
+     * Sends a message to the given session
+     * @param session the session to send the message to
+     * @param type the type of message
+     * @param message the message
+     */
     private void send(Session session, String type, String message) {
         try {
             session.getRemote().sendString(new Gson().toJson(Map.of(
@@ -112,6 +125,11 @@ public class WebSocketController {
         }
     }
 
+    /**
+     * Sends an error message to the given session
+     * @param session the session to send the message to
+     * @param message the error message
+     */
     private void sendError(Session session, String message) {
         send(session, "error", message);
     }
