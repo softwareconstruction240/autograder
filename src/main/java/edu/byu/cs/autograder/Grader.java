@@ -97,8 +97,6 @@ public abstract class Grader implements Runnable {
      * Removes the stage directory if it exists
      */
     private void removeStage() {
-        observer.update("Cleaning stage directory...");
-
         File file = new File(stagePath);
 
         if (!file.exists()) {
@@ -112,8 +110,6 @@ public abstract class Grader implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete stage directory: " + e.getMessage());
         }
-
-        observer.update("Successfully cleaned stage directory");
     }
 
     /**
