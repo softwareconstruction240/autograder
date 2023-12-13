@@ -1,9 +1,12 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.PhaseOneGrader;
+import edu.byu.cs.autograder.TestAnalyzer;
+import edu.byu.cs.controller.RestController;
+import edu.byu.cs.controller.WebSocketController;
 
-import java.io.IOException;
+import static spark.Spark.init;
+import static spark.Spark.port;
 
 public class Server implements Grader.Observer {
 
@@ -11,14 +14,10 @@ public class Server implements Grader.Observer {
     private static final String ALL_FAIL_REPO = "https://github.com/softwareconstruction240/chess.git";
     public static void main(String[] args) {
 
-        PhaseOneGrader grader;
-        try {
-            grader = new PhaseOneGrader(ALL_FAIL_REPO, "./stage", new Server());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        grader.run();
+        port(8080);
+        WebSocketController.registerRoute();
+        RestController.registerRoutes();
+        init();
     }
 
     @Override
