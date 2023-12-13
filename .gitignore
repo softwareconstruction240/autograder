@@ -40,5 +40,4 @@ build/
 
 ### temp files ###
 *.class
-stage/
 ./tmp-*
