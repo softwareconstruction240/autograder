@@ -17,7 +17,6 @@ public class RestController {
 
     public static void registerRoutes() {
 
-        //serve static files from resources /public. this is the official resources folder in java
         staticFiles.location("/public");
 
         get("/callback", (req, res) -> {
