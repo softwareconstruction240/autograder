@@ -24,14 +24,6 @@ public class RestController {
                     halt(401);
                 }
             });
-
-            post("/logout", (req, res) -> {
-                res.removeCookie("token");
-                res.status(200);
-                return "You are logged out.";
-            });
-
-
         });
 
     }

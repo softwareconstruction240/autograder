@@ -8,8 +8,7 @@ import java.net.URI;
 import java.util.Map;
 
 import static edu.byu.cs.controller.security.JwtUtils.generateToken;
-import static spark.Spark.get;
-import static spark.Spark.halt;
+import static spark.Spark.*;
 
 public class CasController {
 
@@ -43,6 +42,12 @@ public class CasController {
             }
             res.redirect(CAS_SERVER_URL + "/login?service=" + APP_URL + "/callback");
             return null;
+        });
+
+        get("/logout", (req, res) -> {
+            res.removeCookie("token");
+            res.status(200);
+            return "You are logged out.";
         });
     }
 
