@@ -70,10 +70,10 @@ public class CasController {
         try {
             String body = new String(connection.getInputStream().readAllBytes());
 
-            Map casServiceResponse = XmlMapper
+            Map<?,?> casServiceResponse = XmlMapper
                     .builder()
                     .build().readValue(body, Map.class);
-            return (String) ((Map) casServiceResponse.get("authenticationSuccess")).get("user");
+            return (String) ((Map<?,?>) casServiceResponse.get("authenticationSuccess")).get("user");
 
         } catch (Exception e) {
             System.err.println("Error with response from CAS server:");
