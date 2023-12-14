@@ -45,7 +45,7 @@ src/ - you know what this is for 😉
       "type": "started"
     }
     ```
-6. As the autograder runs, the server sends `message` messages:
+6. As the autograder runs, the server sends `update` messages:
     ```json
     {
       "type": "update",
