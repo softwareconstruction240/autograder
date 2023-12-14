@@ -52,11 +52,11 @@ public class RestController {
     }
 
     /**
-     * Validates a CAS ticket and returns the netId of the user if valid
-     * https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works
-     * @param ticket
-     * @return
-     * @throws IOException
+     * Validates a CAS ticket and returns the netId of the user if valid <br/>
+     * <a href="https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works">Berkeley CAS docs</a>
+     * @param ticket the ticket to validate
+     * @return the netId of the user if valid, null otherwise
+     * @throws IOException if there is an error with the CAS server response
      */
     private static String validateCasTicket(String ticket) throws IOException {
         String validationUrl = SERVICE_VALIDATE_ENDPOINT +
