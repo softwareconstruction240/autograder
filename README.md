@@ -1,4 +1,4 @@
-# Automatico
+# Autograder
 Autograder for [BYU CS 240 Chess project](https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/chess.md#readme)
 
 ## Important folders
