@@ -38,8 +38,10 @@ public class WebSocketController {
     }
 
     @OnWebSocketError
-    public void onError(Throwable t) {
+    public void onError(Session session, Throwable t) {
         System.out.println("WebSocket error: ");
+        if (session.isOpen() && queue.remove(session))
+            broadcastQueueStatus();
         t.printStackTrace();
     }
 
