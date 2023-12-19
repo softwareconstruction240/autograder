@@ -2,6 +2,7 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
 
+import static edu.byu.cs.controller.AuthController.verifyAuthenticatedMiddleware;
 import static edu.byu.cs.controller.security.JwtUtils.validateToken;
 import static spark.Spark.*;
 
@@ -18,13 +19,7 @@ public class Server{
         staticFiles.location("/public");
 
         path("/api", () -> {
-            before("/*", (req, res) -> {
-                String token = req.cookie("token");
-                if (token == null || !validateToken(token)) {
-                    res.redirect("/login", 302);
-                    halt(401);
-                }
-            });
+            before("/*", verifyAuthenticatedMiddleware);
         });
         init();
     }
