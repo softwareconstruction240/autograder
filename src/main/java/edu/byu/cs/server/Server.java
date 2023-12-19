@@ -3,7 +3,7 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 
 import static edu.byu.cs.controller.AuthController.verifyAuthenticatedMiddleware;
-import static edu.byu.cs.controller.security.JwtUtils.validateToken;
+import static edu.byu.cs.controller.security.CasController.*;
 import static spark.Spark.*;
 
 public class Server{
@@ -17,6 +17,10 @@ public class Server{
         webSocket("/ws", WebSocketController.class);
 
         staticFiles.location("/public");
+
+        get("/callback", callbackGet);
+        get("/login", loginGet);
+        get("/logout", logoutGet);
 
         path("/api", () -> {
             before("/*", verifyAuthenticatedMiddleware);
