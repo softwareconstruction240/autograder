@@ -1,5 +1,6 @@
 package edu.byu.cs.controller.security;
 
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
@@ -21,17 +22,22 @@ public class JwtUtils {
                 .compact();
     }
 
-    public static boolean validateToken(String token) {
+    /**
+     * Validates a JWT and returns the subject if valid (netID)
+     * @param token the JWT to validate
+     * @return the subject of the JWT if valid, null otherwise
+     */
+    public static String validateToken(String token) {
 
         try {
-            Jwts.parser()
-                    .verifyWith(key).
-                    build()
-                    .parse(token);
-            return true;
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
         } catch (JwtException e) {
-            e.printStackTrace();
-            return false;
+            return null;
         }
 
     }
