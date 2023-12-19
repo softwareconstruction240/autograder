@@ -11,19 +11,13 @@ public class AuthController {
      * If the request is valid, the netId is added to the session for later use.
      */
     public static Filter verifyAuthenticatedMiddleware = (req, res) -> {
-        String token = req.headers("Authorization");
+        String token = req.cookie("token");
+
         if (token == null) {
             halt(401);
             return;
         }
-
-        if (!token.startsWith("Bearer ")) {
-            halt(401);
-            return;
-        }
-
-        String jwt = token.substring(7);
-        String netId = validateToken(jwt);
+        String netId = validateToken(token);
 
         if (netId == null) {
             halt(401);
