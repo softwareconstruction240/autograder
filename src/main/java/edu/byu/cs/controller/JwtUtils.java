@@ -1,8 +1,8 @@
 package edu.byu.cs.controller;
 
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -11,8 +11,9 @@ import java.util.Date;
 
 public class JwtUtils {
 
-    //FIXME: move key to external config
-    private static final SecretKey key = Jwts.SIG.HS256.key().build();
+    // FIXME: move key to external config
+    private static final String SECRET_KEY = "this_will_be_replaced_with_something_that_is_a_better_secret";
+    private static final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     public static String generateToken(String netId) {
         return Jwts.builder()
@@ -37,6 +38,7 @@ public class JwtUtils {
                     .getPayload()
                     .getSubject();
         } catch (JwtException e) {
+            e.printStackTrace();
             return null;
         }
 
