@@ -22,14 +22,8 @@ public class WebSocketController {
 
     private static final ConcurrentLinkedQueue<Session> queue = new ConcurrentLinkedQueue<>();
 
-
-    public static void registerRoute() {
-        webSocket("/ws", WebSocketController.class);
-    }
-
     @OnWebSocketConnect
-    public void onConnect(Session session) {
-    }
+    public void onConnect(Session session) { }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {

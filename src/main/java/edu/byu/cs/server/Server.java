@@ -12,8 +12,9 @@ public class Server{
     public static void main(String[] args) {
 
         port(8080);
-        WebSocketController.registerRoute();
+
         webSocket("/ws", WebSocketController.class);
+
         staticFiles.location("/public");
 
         path("/api", () -> {
