@@ -1,6 +1,7 @@
 package edu.byu.cs.controller.security;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import edu.byu.cs.properties.ConfigManager;
 import spark.Route;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -9,13 +10,9 @@ import java.net.URI;
 import java.util.Map;
 
 import static edu.byu.cs.controller.security.JwtUtils.generateToken;
-import static spark.Spark.*;
+import static spark.Spark.halt;
 
 public class CasController {
-
-    private static final String CAS_SERVER_URL = "https://cas.byu.edu/cas";
-    private static final String APP_URL = "http://localhost:8080";
-    private static final String SERVICE_VALIDATE_ENDPOINT = CAS_SERVER_URL + "/serviceValidate";
 
     public static Route callbackGet = (req, res) -> {
         String ticket = req.queryParams("ticket");
@@ -38,7 +35,9 @@ public class CasController {
             res.redirect("/", 302);
             return null;
         }
-        res.redirect(CAS_SERVER_URL + "/login?service=" + APP_URL + "/callback");
+        res.redirect(
+                ConfigManager.casServerUrl() + "/login?service="
+                        + ConfigManager.appUrl() + "/callback");
         return null;
     };
 
@@ -57,9 +56,9 @@ public class CasController {
      * @throws IOException if there is an error with the CAS server response
      */
     private static String validateCasTicket(String ticket) throws IOException {
-        String validationUrl = SERVICE_VALIDATE_ENDPOINT +
+        String validationUrl = ConfigManager.casServerUrl() + ConfigManager.casServerServiceValidateEndpoint() +
                 "?ticket=" + ticket +
-                "&service=" + APP_URL + "/callback";
+                "&service=" + ConfigManager.appUrl() + "/callback";
 
         URI uri = URI.create(validationUrl);
         HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
