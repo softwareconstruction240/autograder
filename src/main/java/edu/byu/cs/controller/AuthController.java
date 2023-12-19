@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import spark.Filter;
+import spark.Route;
 
 import static edu.byu.cs.controller.JwtUtils.validateToken;
 import static spark.Spark.halt;
@@ -26,5 +27,7 @@ public class AuthController {
 
         req.session().attribute("netId", netId);
     };
+
+    public static Route meGet = (req, res) -> req.session().<String>attribute("netId");
 
 }
