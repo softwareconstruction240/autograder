@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.security;
+package edu.byu.cs.controller;
 
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;

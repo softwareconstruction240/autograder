@@ -2,7 +2,7 @@ package edu.byu.cs.controller;
 
 import spark.Filter;
 
-import static edu.byu.cs.controller.security.JwtUtils.validateToken;
+import static edu.byu.cs.controller.JwtUtils.validateToken;
 import static spark.Spark.halt;
 
 public class AuthController {

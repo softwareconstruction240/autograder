@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.security;
+package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.properties.ConfigManager;
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
-import static edu.byu.cs.controller.security.JwtUtils.generateToken;
+import static edu.byu.cs.controller.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {

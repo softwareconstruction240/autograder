@@ -3,7 +3,7 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 
 import static edu.byu.cs.controller.AuthController.verifyAuthenticatedMiddleware;
-import static edu.byu.cs.controller.security.CasController.*;
+import static edu.byu.cs.controller.CasController.*;
 import static spark.Spark.*;
 
 public class Server{
