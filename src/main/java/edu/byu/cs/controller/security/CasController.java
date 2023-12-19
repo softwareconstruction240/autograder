@@ -1,6 +1,7 @@
 package edu.byu.cs.controller.security;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import spark.Route;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -16,40 +17,36 @@ public class CasController {
     private static final String APP_URL = "http://localhost:8080";
     private static final String SERVICE_VALIDATE_ENDPOINT = CAS_SERVER_URL + "/serviceValidate";
 
+    public static Route callbackGet = (req, res) -> {
+        String ticket = req.queryParams("ticket");
 
+        String netId = validateCasTicket(ticket);
 
-    public static void registerRoutes() {
-        get("/callback", (req, res) -> {
-            String ticket = req.queryParams("ticket");
+        if (netId == null) {
+            halt(400, "Ticket validation failed");
+            return null;
+        }
 
-            String netId = validateCasTicket(ticket);
+        res.cookie("token", generateToken(netId), 14400, true, true);
+        res.redirect("/", 302);
+        return null;
+    };
 
-            if (netId == null) {
-                halt(400, "Ticket validation failed");
-                return null;
-            }
-
-            res.cookie("token", generateToken(netId), 14400, true, true);
+    public static Route loginGet = (req, res) -> {
+        // check if already logged in
+        if (req.cookie("token") != null) {
             res.redirect("/", 302);
             return null;
-        });
+        }
+        res.redirect(CAS_SERVER_URL + "/login?service=" + APP_URL + "/callback");
+        return null;
+    };
 
-        get("/login", (req, res) -> {
-            // check if already logged in
-            if (req.cookie("token") != null) {
-                res.redirect("/", 302);
-                return null;
-            }
-            res.redirect(CAS_SERVER_URL + "/login?service=" + APP_URL + "/callback");
-            return null;
-        });
-
-        get("/logout", (req, res) -> {
-            res.removeCookie("token");
-            res.status(200);
-            return "You are logged out.";
-        });
-    }
+    public static Route logoutGet = (req, res) -> {
+        res.removeCookie("token");
+        res.status(200);
+        return "You are logged out.";
+    };
 
     /**
      * Validates a CAS ticket and returns the netId of the user if valid <br/>
