@@ -6,20 +6,20 @@ import edu.byu.cs.model.Submission;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SubmissionMemoryDao implements SubmissionDao {
 
-    private static final ConcurrentHashMap<String, Submission> submissions = new ConcurrentHashMap<>();
+    private static final ConcurrentLinkedQueue<Submission> submissions = new ConcurrentLinkedQueue<>();
 
     @Override
     public void insertSubmission(Submission submission) {
-        submissions.put(submission.netId(), submission);
+        submissions.add(submission);
     }
 
     @Override
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
         return submissions
-                .values()
                 .stream()
                 .filter(submission ->
                         submission.netId().equals(netId) && submission.phase().equals(phase))
@@ -30,7 +30,6 @@ public class SubmissionMemoryDao implements SubmissionDao {
     @Override
     public Collection<Submission> getSubmissionsForUser(String netId) {
         return submissions
-                .values()
                 .stream()
                 .filter(submission ->
                         submission.netId().equals(netId))
