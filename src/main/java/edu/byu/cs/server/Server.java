@@ -4,6 +4,7 @@ import edu.byu.cs.controller.WebSocketController;
 
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
+import static edu.byu.cs.controller.SubmissionController.submissionXGet;
 import static spark.Spark.*;
 
 public class Server{
@@ -30,6 +31,8 @@ public class Server{
 
         path("/api", () -> {
             before("/*", verifyAuthenticatedMiddleware);
+
+            get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
         });
