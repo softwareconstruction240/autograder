@@ -4,11 +4,11 @@ import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
 import edu.byu.cs.dataAccess.memory.UserMemoryDao;
 
 public class DaoService {
-    public UserDao getUserDao() {
+    public static UserDao getUserDao() {
         return new UserMemoryDao();
     }
 
-    public SubmissionDao getSubmissionDao() {
+    public static SubmissionDao getSubmissionDao() {
         return new SubmissionMemoryDao();
     }
 }
