@@ -3,114 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Git Repo Tester</title>
-
-    <style>
-        .error {
-            color: red;
-        }
-    </style>
+    <title>CS 240 Autograder</title>
 </head>
 <body>
 
-<h1>Git Repo Tester</h1>
-
-<form id="gitRepoForm">
-    <label for="gitRepoUrl">Git Repo URL:</label>
-    <input type="text" id="gitRepoUrl" name="gitRepoUrl" required>
-
-    <p>Choose Phase:</p>
-    <label>
-        <input type="radio" name="phase" value="1"> Phase 1
-    </label>
+<h1 id="welcome"></h1>
 
 
-    <button type="button" onclick="submitForm()">Test Repo</button>
-</form>
+<script type="module">
+    import {verifyLogin} from './auth.js';
+    import storage from "./storage.js";
 
-<!-- information about current spot on queue. Hidden until start button is pressed -->
+    await verifyLogin();
 
-<div>
-    <p id="queuePosition"></p>
-</div>
+    const welcome = document.getElementById('welcome');
+    welcome.innerText = storage.user.firstName + ' ' + storage.user.lastName + ' (' + storage.user.netId + ')'
 
-<div id="liveUpdates"></div>
-
-<script>
-    function printNode(node, indent) {
-        let result = indent + node.testName;
-
-        if (node.passed !== undefined) {
-            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
-            if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-                result += "\n" + indent + "   Error: " + node.errorMessage;
-            }
-        } else {
-            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
-        }
-        result += "\n";
-
-        for (const key in node.children) {
-            if (node.children.hasOwnProperty(key)) {
-                result += printNode(node.children[key], indent + "  ");
-            }
-        }
-
-        return result;
-    }
-
-    function prettifyJSON(jsonString) {
-        try {
-            const parsedJson = JSON.parse(jsonString);
-            return printNode(parsedJson, "");
-        } catch (error) {
-            return "Invalid JSON";
-        }
-    }
-
-    function submitForm() {
-        const repoUrl = document.getElementById('gitRepoUrl').value;
-        const phase = document.querySelector('input[name="phase"]:checked').value;
-        const resultContainer = document.getElementById('liveUpdates');
-        const queuePosition = document.getElementById('queuePosition');
-
-        resultContainer.innerHTML = '';
-
-        const socket = new WebSocket('ws://localhost:8080/ws');
-        socket.addEventListener('open', _ => {
-            const message = {
-                "phase": parseInt(phase),
-                "repoUrl": repoUrl
-            };
-            socket.send(JSON.stringify(message));
-        });
-
-        socket.addEventListener('message', event => {
-            const messageData = JSON.parse(event.data);
-
-            switch (messageData.type) {
-                case "queueStatus":
-                    queuePosition.innerHTML = `You are currently ${messageData.position} in the queue out of ${messageData.total}`;
-                    return;
-                case "started":
-                    queuePosition.innerHTML = "";
-                    resultContainer.innerHTML += `<pre>Autograding has started</pre>`;
-                    return;
-                case "update":
-                    resultContainer.innerHTML += '<pre>' + messageData.message + '</pre>';
-                    return;
-                case "results":
-                    resultContainer.innerHTML += `<pre>${prettifyJSON(messageData.results)}</pre>`;
-                    socket.close();
-                    return;
-                case "error":
-                    resultContainer.innerHTML += `<pre class="error">${messageData.message}</pre>`;
-                    socket.close();
-                    return;
-            }
-        });
-    }
 </script>
-
 </body>
 </html>
