@@ -24,7 +24,7 @@ public class CasController {
             return null;
         }
 
-        res.cookie("token", generateToken(netId), 14400, true, true);
+        res.cookie("/", "token", generateToken(netId), 14400, false, true);
         res.redirect("/", 302);
         return null;
     };
@@ -49,7 +49,7 @@ public class CasController {
 
 
         // TODO: call cas logout endpoint with ticket
-        res.removeCookie("token");
+        res.removeCookie("/", "token");
         res.status(200);
         return "You are logged out.";
     };
