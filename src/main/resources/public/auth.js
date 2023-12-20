@@ -10,7 +10,14 @@ export const verifyLogin = async () => {
     try {
         storage.user = await fetcher.verifyLoggedIn();
     } catch (e) {
-        window.location.href = '/login.html';
+        switch (e.message) {
+            case 'Not logged in':
+                window.location.href = '/login.html';
+                break;
+            case 'Not registered':
+                window.location.href = '/register.html';
+                break;
+        }
     }
 }
 
