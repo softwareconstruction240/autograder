@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 240 Autograder - Register</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #register-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #register-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        label {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #register-btn {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        #register-btn:hover {
+            background-color: #2980b9;
+        }
+
+        #register-btn:disabled {
+            background-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .required {
+            border: 1px solid red
+        }
+
+        input[type="text"] {
+            max-width: 300px;
+        }
+
+        input[type="url"] {
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="register-container">
+    <h1>Create an account for the autograder</h1>
+    <p>It looks like this is your first time logging in. Fill in the information below to create a profile. Don't worry, you will be able to change this later.</p>
+    <div id="register-form">
+        <label for="first-name">First Name:</label>
+        <input type="text" id="first-name" name="first-name" class="required">
+
+        <label for="last-name">Last Name:</label>
+        <input type="text" id="last-name" name="last-name" class="required">
+
+        <label for="repo-url">Repository URL:</label>
+        <input type="url" id="repo-url" name="repo-url" class="required" placeholder="https://github.com/cosmo/chess.git">
+
+        <button id="register-btn" disabled>Register</button>
+    </div>
+</div>
+
+<script type="module">
+    import {register as doRegister} from './auth.js';
+
+    const register = async () => {
+        await doRegister(
+            document.getElementById('first-name').value,
+            document.getElementById('last-name').value,
+            document.getElementById('repo-url').value
+        );
+    }
+
+    const updateButtonState = () => {
+        const firstName = document.getElementById('first-name');
+        const lastName = document.getElementById('last-name');
+        const repoUrl = document.getElementById('repo-url');
+        const registerBtn = document.getElementById('register-btn');
+
+        const isValid = firstName.value.trim() !== '' &&
+            lastName.value.trim() !== '' &&
+            repoUrl.value.trim() !== '';
+
+        registerBtn.disabled = !isValid;
+
+        if (firstName.value.trim() === '')
+            firstName.classList.add('required');
+        else
+            firstName.classList.remove('required');
+
+
+        if (lastName.value.trim() === '')
+            lastName.classList.add('required');
+        else
+            lastName.classList.remove('required');
+
+
+        if (repoUrl.value.trim() === '')
+            repoUrl.classList.add('required');
+        else
+            repoUrl.classList.remove('required');
+    }
+
+    document.getElementById('first-name').addEventListener('input', updateButtonState);
+    document.getElementById('last-name').addEventListener('input', updateButtonState);
+    document.getElementById('repo-url').addEventListener('input', updateButtonState);
+    document.getElementById('first-name').addEventListener('change', updateButtonState);
+    document.getElementById('last-name').addEventListener('change', updateButtonState);
+    document.getElementById('repo-url').addEventListener('change', updateButtonState);
+
+    document.getElementById("register-btn").addEventListener("click", register);
+</script>
+
+</body>
+</html>
