@@ -42,6 +42,13 @@ public class CasController {
     };
 
     public static Route logoutGet = (req, res) -> {
+        if (req.cookie("token") == null) {
+            res.status(401);
+            return "You are not logged in.";
+        }
+
+
+        // TODO: call cas logout endpoint with ticket
         res.removeCookie("token");
         res.status(200);
         return "You are logged out.";
