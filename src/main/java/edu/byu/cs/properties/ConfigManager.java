@@ -33,6 +33,10 @@ public class ConfigManager {
         return INSTANCE.props.getProperty("cas_server.url");
     }
 
+    public static String casServerLoginEndpoint() {
+        return INSTANCE.props.getProperty("cas_server.login_endpoint");
+    }
+
     public static String casServerServiceValidateEndpoint() {
         return INSTANCE.props.getProperty("cas_server.service_validate_endpoint");
     }
