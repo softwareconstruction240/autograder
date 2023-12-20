@@ -2,8 +2,7 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
 
-import static edu.byu.cs.controller.AuthController.meGet;
-import static edu.byu.cs.controller.AuthController.verifyAuthenticatedMiddleware;
+import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static spark.Spark.*;
 
@@ -21,6 +20,7 @@ public class Server{
 
         get("/callback", callbackGet);
         get("/login", loginGet);
+        post("/register", registerPost);
         get("/logout", logoutGet);
 
         path("/api", () -> {
