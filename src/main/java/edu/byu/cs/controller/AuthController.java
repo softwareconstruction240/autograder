@@ -1,5 +1,8 @@
 package edu.byu.cs.controller;
 
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.model.User;
 import spark.Filter;
 import spark.Route;
 
@@ -25,7 +28,15 @@ public class AuthController {
             return;
         }
 
-        req.session().attribute("netId", netId);
+        UserDao userDao = DaoService.getUserDao();
+        User user = userDao.getUser(netId);
+
+        if (user == null) {
+            halt(401, "You must register first.");
+            return;
+        }
+
+        req.session().attribute("user", user);
     };
 
     public static Route meGet = (req, res) -> req.session().<String>attribute("netId");
