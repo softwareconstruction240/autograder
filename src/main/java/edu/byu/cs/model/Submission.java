@@ -6,7 +6,7 @@ public record Submission(
         String netId,
         String repoUrl,
         String headHash,
-        Double score,
+        Float score,
         TestAnalyzer.TestNode testResults
 ) {
 }
