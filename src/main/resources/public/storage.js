@@ -5,7 +5,12 @@
  * @property {User} user
  */
 const storage = {
-    user: null
+    user: {
+        netId: null,
+        firstName: null,
+        lastName: null,
+        repoUrl: null,
+    }
 };
 
 export default storage;
