@@ -20,10 +20,14 @@ public class Server{
 
         get("/callback", callbackGet);
         get("/login", loginGet);
+        path("/auth", () -> {
+            get("/callback", callbackGet);
+            get("/login", loginGet);
 
-        // all routes after this point require authentication
-        post("/register", registerPost);
-        get("/logout", logoutGet);
+            // all routes after this point require authentication
+            post("/register", registerPost);
+            get("/logout", logoutGet);
+        });
 
         path("/api", () -> {
             before("/*", verifyAuthenticatedMiddleware);
