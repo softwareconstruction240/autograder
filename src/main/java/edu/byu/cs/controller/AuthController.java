@@ -34,7 +34,7 @@ public class AuthController {
         User user = userDao.getUser(netId);
 
         if (user == null) {
-            halt(401, "You must register first.");
+            halt(403, "You must register first.");
             return;
         }
 
