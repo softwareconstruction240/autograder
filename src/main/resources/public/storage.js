@@ -2,9 +2,10 @@
 
 /**
  * @typedef {Object} Storage
- * @property {User | null} user
- * @type {{}}
+ * @property {User} user
  */
 const storage = {
     user: null
-}
+};
+
+export default storage;
