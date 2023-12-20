@@ -11,9 +11,8 @@ public interface UserDao {
     /**
      * Inserts a new user into the database
      * @param user the user to insert
-     * @return the repoUrl of the user inserted
      */
-    String insertUser(User user);
+    void insertUser(User user);
 
     /**
      * Gets the user with the given netId
