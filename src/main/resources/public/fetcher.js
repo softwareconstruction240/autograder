@@ -4,8 +4,12 @@ const fetcher = {
      */
     verifyLoggedIn: async () => {
         const res = await fetch('/api/me');
-        if (res.status !== 200)
-            throw Error('Unauthorized');
+        switch (res.status) {
+            case 401:
+                throw Error('Not logged in');
+            case 403:
+                throw Error('Not registered');
+        }
         return await res.json();
 
     },
@@ -19,7 +23,7 @@ const fetcher = {
             body: urlParams
         });
 
-        if (res.status !== 200)
+        if (!res.ok)
             throw Error('Registration failed: ' + res.body);
     },
     logout: async () => {
