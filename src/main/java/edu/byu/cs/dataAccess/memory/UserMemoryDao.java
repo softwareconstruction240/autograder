@@ -27,7 +27,7 @@ public class UserMemoryDao implements UserDao {
             throw new IllegalArgumentException("User does not exist");
 
         User oldUser = users.get(netId);
-        User newUser = new User(oldUser.netId(), repoUrl, oldUser.role());
+        User newUser = new User(oldUser.netId(), oldUser.firstName(), oldUser.lastName(), repoUrl, oldUser.role());
 
         users.put(netId, newUser);
     }
@@ -38,7 +38,7 @@ public class UserMemoryDao implements UserDao {
             throw new IllegalArgumentException("User does not exist");
 
         User oldUser = users.get(netId);
-        User newUser = new User(oldUser.netId(), oldUser.repoUrl(), role);
+        User newUser = new User(oldUser.netId(), oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), role);
 
         users.put(netId, newUser);
     }
