@@ -18,8 +18,6 @@ public class Server{
 
         staticFiles.location("/public");
 
-        // log each request
-        before((req, res) -> System.out.println("Received api call: " + req.requestMethod() + " " + req.pathInfo()));
 
         path("/auth", () -> {
             get("/callback", callbackGet);
