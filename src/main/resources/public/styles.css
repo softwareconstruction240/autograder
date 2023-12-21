@@ -85,3 +85,7 @@ label {
 .required {
     border: 1px solid #e74c3c;
 }
+
+.hidden {
+    display: none;
+}
