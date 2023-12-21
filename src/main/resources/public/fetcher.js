@@ -31,7 +31,17 @@ const fetcher = {
         const res = await fetch('/auth/logout', {method: 'POST'});
         if (res.status !== 200)
             throw Error('Logout failed: ' + res.body);
-    }
+    },
+    /**
+     * @param {number} phase the phase to retrieve submissions for
+     * @returns {Promise<Submission[]>} the submissions for the given phase
+     */
+    pastSubmissions: async (phase) => {
+        const res = await fetch('/api/submission/' + phase);
+        if (!res.ok)
+            throw Error('Failed to get submissions: ' + res.body);
+        return await res.json();
+    },
 };
 
 export default fetcher;
