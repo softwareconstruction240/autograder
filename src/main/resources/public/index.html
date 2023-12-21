@@ -330,7 +330,7 @@
         let result = indent + node.testName;
 
         if (node.passed !== undefined) {
-            result += node.passed ? " : ✓" : " : ✗";
+            result += node.passed ? ` <span class="success">✓</span>` : ` <span class="failure">✗</span>`;
             if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
                 result += "<br/>" + indent + "   Error: " + node.errorMessage;
             }
