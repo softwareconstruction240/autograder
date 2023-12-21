@@ -313,7 +313,7 @@
                         currentStage.innerHTML = '<pre>' + messageData.message + '</pre>';
                         return;
                     case "results":
-                        // currentStage.innerHTML = `<pre>${prettifyJSON(messageData.results)}</pre>`;
+                        currentStage.innerHTML = `<pre>Finished!</pre>`;
                         socket.close();
                         return;
                     case "error":
