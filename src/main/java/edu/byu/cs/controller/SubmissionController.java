@@ -1,14 +1,14 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import spark.Route;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Map;
 
 public class SubmissionController {
 
@@ -34,10 +34,9 @@ public class SubmissionController {
 
         res.status(200);
         res.type("application/json");
-        return new Gson().toJson(
-                Map.of(
-                "submissions", submissions
-                )
-        );
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submissions);
     };
 }
