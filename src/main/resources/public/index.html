@@ -148,11 +148,6 @@
      */
     let selectedPhase = 0;
 
-    function handleLiveUpdates(messageData) {
-        // liveUpdates.innerHTML += `<p>${messageData.message}</p>`;
-        // liveUpdates.scrollTop = liveUpdates.scrollHeight; // Auto-scroll to the bottom
-    }
-
     function displayResults(results) {
         resultsBox.innerHTML = `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Passed: ${results.passed}</p>`;
         resultsBox.innerHTML += `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Failed: ${results.failed}</p>`;
