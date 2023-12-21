@@ -64,6 +64,15 @@
             text-align: start;
         }
 
+        /* show results box as slightly sunken with slightly darker background */
+        #results {
+            background-color: #f7f7f7;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
     </style>
 </head>
 <body>
@@ -108,7 +117,8 @@
         </ul>
     </div>
 
-    <div id="results" class="result-box"></div>
+    <br />
+    <div id="results" class="result-box">Results will display here when available</div>
 
 </div>
 
@@ -152,7 +162,7 @@
         resultsBox.innerHTML = `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Passed: ${results.passed}</p>`;
         resultsBox.innerHTML += `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Failed: ${results.failed}</p>`;
 
-        resultsBox.innerHTML += `<p>${prettifyJSON(results.testResults)}}</p>`;
+        resultsBox.innerHTML += `<p>${prettifyResults(results.testResults)}}</p>`;
     }
 
     /****************************/
@@ -196,7 +206,7 @@
 
         // clear the current view
         currentPhase.innerText = '';
-        resultsBox.innerHTML = '';
+        resultsBox.innerHTML = 'Results will display here when available';
         pastResults.innerHTML = '';
 
         currentPhase.innerText = descriptions[selectedPhase].title;
@@ -222,6 +232,10 @@
                 document.getElementById('submit-repo-tab').classList.remove('selected');
                 break;
         }
+
+        currentStage.innerHTML = '';
+        resultsBox.innerHTML = 'Results will display here when available';
+
     }
 
     /******************************/
@@ -274,6 +288,8 @@
                         return;
                     case "results":
                         currentStage.innerHTML = `<pre>Finished!</pre>`;
+                        const prettyPrintedResults =  prettifyResults(JSON.parse(messageData.results), "")
+                        resultsBox.innerHTML = prettyPrintedResults;
                         socket.close();
                         return;
                     case "error":
@@ -305,35 +321,31 @@
         });
     }
 
-    function printNode(node, indent) {
+    /**
+     * Accept a TestResult node and return a pretty-printed HTML string
+     * @param {TestResult} node the node to pretty-print
+     * @param {string} indent the current indentation level
+     */
+    function prettifyResults(node, indent) {
         let result = indent + node.testName;
 
         if (node.passed !== undefined) {
-            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
+            result += node.passed ? " : ✓" : " : ✗";
             if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
                 result += "<br/>" + indent + "   Error: " + node.errorMessage;
             }
         } else {
-            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
+            result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
         }
         result += "<br/>";
 
         for (const key in node.children) {
             if (node.children.hasOwnProperty(key)) {
-                result += printNode(node.children[key], indent + "&nbsp;&nbsp;");
+                result += prettifyResults(node.children[key], indent + "&nbsp;&nbsp;&nbsp;&nbsp;");
             }
         }
 
         return result;
-    }
-
-    function prettifyJSON(node) {
-        try {
-            return printNode(node, "");
-        } catch (error) {
-            console.error(error);
-            return "Invalid JSON";
-        }
     }
 
 </script>
