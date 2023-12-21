@@ -27,3 +27,7 @@
  * @property {number} score - The score of the submission
  * @property {TestResult} testResults - The test results of the submission
  */
+
+/**
+ * @typedef {0 | 1 | 3 | 4 | 6} Phase
+ */
