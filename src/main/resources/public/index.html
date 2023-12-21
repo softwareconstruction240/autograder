@@ -155,37 +155,6 @@
         resultsBox.innerHTML += `<p>${prettifyJSON(results.testResults)}}</p>`;
     }
 
-    function printNode(node, indent) {
-        let result = indent + node.testName;
-
-        if (node.passed !== undefined) {
-            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
-            if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-                result += "<br/>" + indent + "   Error: " + node.errorMessage;
-            }
-        } else {
-            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
-        }
-        result += "<br/>";
-
-        for (const key in node.children) {
-            if (node.children.hasOwnProperty(key)) {
-                result += printNode(node.children[key], indent + "&nbsp;&nbsp;");
-            }
-        }
-
-        return result;
-    }
-
-    function prettifyJSON(node) {
-        try {
-            return printNode(node, "");
-        } catch (error) {
-            console.error(error);
-            return "Invalid JSON";
-        }
-    }
-
     /****************************/
     /* Register Event Listeners */
     /****************************/
@@ -334,6 +303,37 @@
             minute: 'numeric',
             hour12: true
         });
+    }
+
+    function printNode(node, indent) {
+        let result = indent + node.testName;
+
+        if (node.passed !== undefined) {
+            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
+            if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
+                result += "<br/>" + indent + "   Error: " + node.errorMessage;
+            }
+        } else {
+            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
+        }
+        result += "<br/>";
+
+        for (const key in node.children) {
+            if (node.children.hasOwnProperty(key)) {
+                result += printNode(node.children[key], indent + "&nbsp;&nbsp;");
+            }
+        }
+
+        return result;
+    }
+
+    function prettifyJSON(node) {
+        try {
+            return printNode(node, "");
+        } catch (error) {
+            console.error(error);
+            return "Invalid JSON";
+        }
     }
 
 </script>
