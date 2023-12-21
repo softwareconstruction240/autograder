@@ -4,21 +4,230 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS 240 Autograder</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tabs {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .tab:not(:first-child) {
+            border-left: 1px solid #ccc;
+        }
+
+        .selected {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .tab:hover {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        #phase-info {
+            /*display: grid;*/
+            /*grid-template-columns: 1fr 1fr;*/
+        }
+
+        #phase-info > * {
+            padding: 10px;
+            /*border-bottom: 1px solid #ccc;*/
+        }
+
+        #phase-description {
+        }
+
+        #phase-results {
+            /*border-left: 1px solid #ccc;*/
+
+            text-align: start;
+        }
+
+        .submission-result-item {
+            cursor: pointer;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #results {
+            text-align: start;
+        }
+
+    </style>
 </head>
 <body>
+<!-- Welcome and user info -->
+<div class="container">
+    <h1>Welcome to the CS 240 Autograder</h1>
+    <p id="welcome"></p>
+    <p id="repo-url"></p>
+</div>
 
-<h1 id="welcome"></h1>
+<!-- Phase selection -->
+<h2>Select a phase below to see previous results or to submit</h2>
+<div class="tabs">
+    <div class="tab" id="phase-0-tab">Phase 0</div>
+    <div class="tab" id="phase-1-tab">Phase 1</div>
+    <div class="tab" id="phase-3-tab">Phase 3</div>
+    <div class="tab" id="phase-4-tab">Phase 4</div>
+    <div class="tab" id="phase-6-tab">Phase 6</div>
+</div>
 
+<!-- Selected phase info -->
+<div class="container">
+    <h2 id="current-phase"></h2>
+    <p id="phase-description"></p>
+    <div id="phase-info">
+
+        <div id="phase-results">
+            <h3>Past Results</h3>
+            <p>Click a previous submission to see more details</p>
+            <ul id="past-results">
+            </ul>
+        </div>
+    </div>
+
+
+<!--    <div id="live-updates"></div>-->
+
+    <div id="results" class="result-box"></div>
+
+</div>
 
 <script type="module">
     import {verifyLogin} from './auth.js';
     import storage from "./storage.js";
+    import fetcher from "./fetcher.js";
+    import descriptions from "./descriptions.js";
 
     await verifyLogin();
 
     const welcome = document.getElementById('welcome');
-    welcome.innerText = storage.user.firstName + ' ' + storage.user.lastName + ' (' + storage.user.netId + ')'
+    welcome.innerText = `Welcome, ${storage.user.firstName} ${storage.user.lastName}!`;
+    const repoUrl = document.getElementById('repo-url');
+    repoUrl.innerText = `Repository URL: ${storage.user.repoUrl}`;
 
+    const currentPhase = document.getElementById('current-phase');
+    const phaseDescription = document.getElementById('phase-description');
+    const pastResults = document.getElementById('past-results');
+    const liveUpdates = document.getElementById('live-updates');
+    const resultsBox = document.getElementById('results');
+
+    // change view to the selected tab
+    async function changeTab(phase) {
+        const tabs = document.getElementsByClassName('tab');
+        for (let i = 0; i < tabs.length; i++)
+            tabs[i].classList.remove('selected');
+
+        const tab = document.getElementById(`phase-${phase}-tab`);
+        tab.classList.add('selected');
+
+        // clear the view
+        currentPhase.innerText = '';
+        // liveUpdates.innerHTML = '';
+        resultsBox.innerHTML = '';
+        pastResults.innerHTML = '';
+
+        currentPhase.innerText = descriptions[phase].title;
+        phaseDescription.innerText = descriptions[phase].description;
+
+
+        const submissions = await fetcher.pastSubmissions(phase);
+
+        for (let i = 0; i < submissions.length; i++) {
+            const submission = submissions[i];
+            const li = document.createElement('li');
+            li.innerText = `#${i + 1}: ${submission.score}%, ${formatDateString(submission.timestamp)}`;
+            li.classList.add('submission-result-item');
+            li.addEventListener('click', () => {
+                displayResults(submission);
+            });
+            pastResults.appendChild(li);
+        }
+
+    }
+
+    /**
+     * Accept a date string and return a formatted date string
+     * @param dateString date string in the format of "2023-12-20T22:30:19.484202981Z
+     * @returns {string} formatted date string in the format of "Dec 20, 2023, 10:30 PM"
+     */
+    function formatDateString(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true
+        });
+    }
+
+    function handleLiveUpdates(messageData) {
+        // liveUpdates.innerHTML += `<p>${messageData.message}</p>`;
+        // liveUpdates.scrollTop = liveUpdates.scrollHeight; // Auto-scroll to the bottom
+    }
+
+    function displayResults(results) {
+        resultsBox.innerHTML = `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Passed: ${results.passed}</p>`;
+        resultsBox.innerHTML += `<p class="${results.failed === 0 ? 'success' : 'failure'}">Total Failed: ${results.failed}</p>`;
+
+        resultsBox.innerHTML += `<p>${prettifyJSON(results.testResults)}}</p>`;
+    }
+
+    function printNode(node, indent) {
+        let result = indent + node.testName;
+
+        if (node.passed !== undefined) {
+            result += node.passed ? " : SUCCESSFUL" : " : FAILED";
+            if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
+                result += "<br/>" + indent + "   Error: " + node.errorMessage;
+            }
+        } else {
+            result += " (" + node.numTestsPassed + " passed, " + node.numTestsFailed + " failed)";
+        }
+        result += "<br/>";
+
+        for (const key in node.children) {
+            if (node.children.hasOwnProperty(key)) {
+                result += printNode(node.children[key], indent + "&nbsp;&nbsp;");
+            }
+        }
+
+        return result;
+    }
+
+    function prettifyJSON(node) {
+        try {
+            return printNode(node, "");
+        } catch (error) {
+            console.error(error);
+            return "Invalid JSON";
+        }
+    }
+
+    document.getElementById('phase-0-tab').addEventListener('click', () => changeTab(0));
+    document.getElementById('phase-1-tab').addEventListener('click', () => changeTab(1));
+    document.getElementById('phase-3-tab').addEventListener('click', () => changeTab(3));
+    document.getElementById('phase-4-tab').addEventListener('click', () => changeTab(4));
+    document.getElementById('phase-6-tab').addEventListener('click', () => changeTab(6));
+
+    // Set the default tab to phase 0
+    changeTab(0);
 </script>
+
 </body>
 </html>
