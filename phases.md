@@ -122,7 +122,7 @@ phases/
 └── phase6/
     ├── passoffTests/
     │   └── serverTests/
-    │       └── WebSocketsTests.java
+    │       └── WebSocketTests.java
     └── resources/
         └── db.properties
 ```
