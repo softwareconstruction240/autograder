@@ -7,8 +7,11 @@ import edu.byu.cs.autograder.PhaseOneGrader;
 import edu.byu.cs.autograder.TestAnalyzer;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.controller.netmodel.GradeRequest;
+import edu.byu.cs.server.Server;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -19,7 +22,7 @@ import static spark.Spark.webSocket;
 
 @WebSocket
 public class WebSocketController {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
     private static final ConcurrentLinkedQueue<Session> queue = new ConcurrentLinkedQueue<>();
 
     @OnWebSocketConnect
@@ -41,6 +44,7 @@ public class WebSocketController {
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
+        LOGGER.info("received: " + message);
         if (queue.contains(session)) {
             sendError(session, "You are already in the queue");
             return;

@@ -1,6 +1,8 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
@@ -11,6 +13,9 @@ public class Server{
 
     private static final String ALL_PASS_REPO = "https://github.com/pawlh/chess-passing.git";
     private static final String ALL_FAIL_REPO = "https://github.com/softwareconstruction240/chess.git";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+
     public static void main(String[] args) {
 
         port(8080);
