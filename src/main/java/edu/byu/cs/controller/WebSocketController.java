@@ -7,7 +7,6 @@ import edu.byu.cs.autograder.PhaseOneGrader;
 import edu.byu.cs.autograder.TestAnalyzer;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.controller.netmodel.GradeRequest;
-import edu.byu.cs.server.Server;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.slf4j.Logger;
