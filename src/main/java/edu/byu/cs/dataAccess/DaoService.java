@@ -1,14 +1,14 @@
 package edu.byu.cs.dataAccess;
 
-import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
-import edu.byu.cs.dataAccess.memory.UserMemoryDao;
+import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
+import edu.byu.cs.dataAccess.sql.UserSqlDao;
 
 public class DaoService {
     public static UserDao getUserDao() {
-        return new UserMemoryDao();
+        return new UserSqlDao();
     }
 
     public static SubmissionDao getSubmissionDao() {
-        return new SubmissionMemoryDao();
+        return new SubmissionSqlDao();
     }
 }
