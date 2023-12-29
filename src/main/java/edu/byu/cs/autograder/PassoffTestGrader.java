@@ -2,7 +2,7 @@ package edu.byu.cs.autograder;
 
 import java.io.*;
 
-public class PhaseOneGrader extends Grader {
+public class PassoffTestGrader extends Grader {
 
 
     /**
@@ -21,7 +21,7 @@ public class PhaseOneGrader extends Grader {
      * @param observer the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
-    public PhaseOneGrader(String repoUrl, Observer observer) throws IOException {
+    public PassoffTestGrader(String repoUrl, Observer observer) throws IOException {
         super(repoUrl, observer);
         this.stageTestsPath = new File(stagePath + "/tests");
     }
