@@ -2,13 +2,13 @@ package edu.byu.cs.autograder;
 
 import java.io.*;
 
-public class PassoffTestGrader extends Grader {
+public abstract class PassoffTestGrader extends Grader {
 
 
     /**
      * The path where the official tests are stored
      */
-    private final File phaseTests = new File("./phases/phase1");
+    private final File phaseTests;
 
     /**
      * The path where the compiled tests are stored (and ran)
@@ -17,13 +17,15 @@ public class PassoffTestGrader extends Grader {
 
     /**
      * Creates a new grader for phase 1
+     * @param phaseResources the path to the phase resources
      * @param repoUrl the url of the student repo
      * @param observer the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
-    public PassoffTestGrader(String repoUrl, Observer observer) throws IOException {
+    public PassoffTestGrader(String phaseResources, String repoUrl, Observer observer) throws IOException {
         super(repoUrl, observer);
         this.stageTestsPath = new File(stagePath + "/tests");
+        this.phaseTests = new File(phaseResources);
     }
 
     @Override
