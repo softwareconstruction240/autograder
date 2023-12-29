@@ -36,5 +36,9 @@ public class DbProperties {
         return INSTANCE.props.getProperty("db.password");
     }
 
+    public static String dbDriver() {
+        return INSTANCE.props.getProperty("db.driver");
+    }
+
 
 }
