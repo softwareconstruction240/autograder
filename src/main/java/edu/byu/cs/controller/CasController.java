@@ -1,7 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import edu.byu.cs.properties.ConfigManager;
+import edu.byu.cs.properties.ConfigProperties;
 import spark.Route;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -36,8 +36,8 @@ public class CasController {
             return null;
         }
         res.redirect(
-                ConfigManager.casServerUrl() + ConfigManager.casServerLoginEndpoint() + "?service="
-                        + ConfigManager.appUrl() + "/auth/callback");
+                ConfigProperties.casServerUrl() + ConfigProperties.casServerLoginEndpoint() + "?service="
+                        + ConfigProperties.appUrl() + "/auth/callback");
         return null;
     };
 
@@ -63,9 +63,9 @@ public class CasController {
      * @throws IOException if there is an error with the CAS server response
      */
     private static String validateCasTicket(String ticket) throws IOException {
-        String validationUrl = ConfigManager.casServerUrl() + ConfigManager.casServerServiceValidateEndpoint() +
+        String validationUrl = ConfigProperties.casServerUrl() + ConfigProperties.casServerServiceValidateEndpoint() +
                 "?ticket=" + ticket +
-                "&service=" + ConfigManager.appUrl() + "/auth/callback";
+                "&service=" + ConfigProperties.appUrl() + "/auth/callback";
 
         URI uri = URI.create(validationUrl);
         HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
