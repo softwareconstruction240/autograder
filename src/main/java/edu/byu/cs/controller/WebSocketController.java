@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static spark.Spark.webSocket;
-
 @WebSocket
 public class WebSocketController {
 
