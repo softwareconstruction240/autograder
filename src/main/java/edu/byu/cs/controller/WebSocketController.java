@@ -2,10 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.PhaseOneGrader;
-import edu.byu.cs.autograder.TestAnalyzer;
-import edu.byu.cs.autograder.TrafficController;
+import edu.byu.cs.autograder.*;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
@@ -132,7 +129,7 @@ public class WebSocketController {
         };
 
         return switch (request.phase()) {
-            case 0 -> null;
+            case 0 -> new PhaseZeroGrader(request.repoUrl(), observer);
             case 1 -> new PhaseOneGrader(request.repoUrl(), observer);
             case 3 -> null;
             case 4 -> null;
