@@ -41,6 +41,7 @@ public class SqlDb {
                         `id` INT NOT NULL AUTO_INCREMENT,
                         `net_id` VARCHAR(20) NOT NULL,
                         `repo_url` VARCHAR(20) NOT NULL,
+                        `head_hash` VARCHAR(40) NOT NULL,
                         `timestamp` DATETIME NOT NULL,
                         `phase` FLOAT NOT NULL,
                         `score` FLOAT NOT NULL,
