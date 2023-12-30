@@ -38,7 +38,7 @@ public class SqlDb {
 
             connection.createStatement().executeUpdate(
                     """
-                    CREATE TABLE IF NOT EXISTS `submissions` (
+                    CREATE TABLE IF NOT EXISTS `submission` (
                         `id` INT NOT NULL AUTO_INCREMENT,
                         `net_id` VARCHAR(20) NOT NULL,
                         `repo_url` VARCHAR(20) NOT NULL,

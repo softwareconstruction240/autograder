@@ -21,7 +21,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO submissions (net_id, repo_url, timestamp, phase, score, head_hash, results)
+                    INSERT INTO submission (net_id, repo_url, timestamp, phase, score, head_hash, results)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """);
             statement.setString(1, submission.netId());
@@ -43,7 +43,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             PreparedStatement statement = connection.prepareStatement(
                     """
                     SELECT net_id, repo_url, timestamp, phase, score, head_hash, results
-                    FROM submissions
+                    FROM submission
                     WHERE net_id = ? AND phase = ?
                     """);
             statement.setString(1, netId);
@@ -61,7 +61,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             PreparedStatement statement = connection.prepareStatement(
                     """
                     SELECT net_id, repo_url, timestamp, phase, score, head_hash, results
-                    FROM submissions
+                    FROM submission
                     WHERE net_id = ?
                     """);
             statement.setString(1, netId);
