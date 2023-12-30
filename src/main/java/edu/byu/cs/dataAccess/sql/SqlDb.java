@@ -45,6 +45,7 @@ public class SqlDb {
                         `timestamp` DATETIME NOT NULL,
                         `phase` VARCHAR(4) NOT NULL,
                         `score` FLOAT NOT NULL,
+                        `results` JSON,
                         PRIMARY KEY (`id`),
                         CONSTRAINT `net_id`
                             FOREIGN KEY (`net_id`)
