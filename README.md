@@ -27,7 +27,7 @@ There is a docker compose file in the root of the project that will start a MySQ
 docker compose up -d
 ```
 
-Alternatively, you can run the database locally. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
+Alternatively, you can run the database locally with your own MySQL server. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
 
 ## Websocket Commands
 
