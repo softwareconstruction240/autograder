@@ -43,7 +43,7 @@ public class SqlDb {
                         `repo_url` VARCHAR(20) NOT NULL,
                         `head_hash` VARCHAR(40) NOT NULL,
                         `timestamp` DATETIME NOT NULL,
-                        `phase` FLOAT NOT NULL,
+                        `phase` VARCHAR(4) NOT NULL,
                         `score` FLOAT NOT NULL,
                         PRIMARY KEY (`id`),
                         CONSTRAINT `net_id`
