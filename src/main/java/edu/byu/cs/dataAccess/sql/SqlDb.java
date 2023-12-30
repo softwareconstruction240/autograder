@@ -30,6 +30,7 @@ public class SqlDb {
                       `net_id` varchar(20) NOT NULL,
                       `first_name` varchar(50) NOT NULL,
                       `last_name` varchar(50) NOT NULL,
+                      `repo_url` varchar(50) NOT NULL,
                       `role` varchar(15) NOT NULL,
                       PRIMARY KEY (`net_id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
