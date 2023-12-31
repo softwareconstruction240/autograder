@@ -3,11 +3,14 @@ package edu.byu.cs.dataAccess.sql;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 public class UserSqlDao implements UserDao {
     @Override
     public void insertUser(User user) {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement(
+            PreparedStatement statement = connection.prepareStatement(
                     """
                     INSERT INTO user (net_id, first_name, last_name, repo_url, role)
                     VALUES (?, ?, ?, ?, ?)
@@ -26,14 +29,14 @@ public class UserSqlDao implements UserDao {
     @Override
     public User getUser(String netId) {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement(
+            PreparedStatement statement = connection.prepareStatement(
                     """
                     SELECT net_id, first_name, last_name, repo_url, role
                     FROM user
                     WHERE net_id = ?
                     """);
             statement.setString(1, netId);
-            var results = statement.executeQuery();
+            ResultSet results = statement.executeQuery();
             if (results.next()) {
                 return new User(
                         results.getString("net_id"),
@@ -53,7 +56,7 @@ public class UserSqlDao implements UserDao {
     @Override
     public void setRepoUrl(String netId, String repoUrl) {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement(
+            PreparedStatement statement = connection.prepareStatement(
                     """
                     UPDATE user
                     SET repo_url = ?
@@ -70,7 +73,7 @@ public class UserSqlDao implements UserDao {
     @Override
     public void setRole(String netId, User.Role role) {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement(
+            PreparedStatement statement = connection.prepareStatement(
                     """
                     UPDATE user
                     SET role = ?
