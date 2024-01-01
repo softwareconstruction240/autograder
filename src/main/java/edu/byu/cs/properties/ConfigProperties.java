@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class ConfigManager {
-    private static final ConfigManager INSTANCE = new ConfigManager();
+public class ConfigProperties {
+    private static final ConfigProperties INSTANCE = new ConfigProperties();
     private final Properties props;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
 
-    private ConfigManager() {
+    private ConfigProperties() {
         props = new Properties();
         createInstance();
     }
