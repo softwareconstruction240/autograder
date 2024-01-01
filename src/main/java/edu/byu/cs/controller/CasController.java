@@ -2,6 +2,8 @@ package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.properties.ConfigManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -13,6 +15,7 @@ import static edu.byu.cs.controller.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CasController.class);
 
     public static Route callbackGet = (req, res) -> {
         String ticket = req.queryParams("ticket");
@@ -79,8 +82,7 @@ public class CasController {
             return (String) ((Map<?, ?>) casServiceResponse.get("authenticationSuccess")).get("user");
 
         } catch (Exception e) {
-            System.err.println("Error with response from CAS server:");
-            e.printStackTrace();
+            LOGGER.error("Error with response from CAS server:", e);
             throw e;
         } finally {
             connection.disconnect();

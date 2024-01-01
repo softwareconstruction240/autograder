@@ -25,20 +25,23 @@ public class WebSocketController {
     private static final ConcurrentLinkedQueue<Session> queue = new ConcurrentLinkedQueue<>();
 
     @OnWebSocketConnect
-    public void onConnect(Session session) { }
+    public void onConnect(Session session) {
+        LOGGER.info("Connected to " + session.getRemoteAddress());
+    }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
         if (queue.remove(session))
             broadcastQueueStatus();
+
+        LOGGER.info("Disconnected from " + session.getRemoteAddress() + ": " + reason);
     }
 
     @OnWebSocketError
     public void onError(Session session, Throwable t) {
-        System.out.println("WebSocket error: ");
         if (session.isOpen() && queue.remove(session))
             broadcastQueueStatus();
-        t.printStackTrace();
+        LOGGER.warn("WebSocket error: ", t);
     }
 
     @OnWebSocketMessage
@@ -153,10 +156,12 @@ public class WebSocketController {
      * @param message the message
      */
     private void send(Session session, Map<String, Object> message) {
+        String jsonMessage = new Gson().toJson(message);
+        LOGGER.info("Sending to " + session.getRemoteAddress() + ":\n" + jsonMessage);
         try {
-            session.getRemote().sendString(new Gson().toJson(message));
+            session.getRemote().sendString(jsonMessage);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn("Exception thrown while sending: ", e);
         }
     }
 

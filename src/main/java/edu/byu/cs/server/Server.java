@@ -3,6 +3,9 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Filter;
+import spark.Request;
+import spark.Response;
 
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
@@ -40,6 +43,12 @@ public class Server{
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
+        });
+        before((request, response) -> {
+            LOGGER.info("Received from " + request.ip() + ":\n" + request.body());
+        });
+        afterAfter((request, response) -> {
+            LOGGER.info("Sent to " + request.ip() + ":\n" + response.body());
         });
         init();
     }

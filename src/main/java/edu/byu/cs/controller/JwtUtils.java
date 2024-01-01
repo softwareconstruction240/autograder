@@ -3,6 +3,8 @@ package edu.byu.cs.controller;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -14,6 +16,8 @@ public class JwtUtils {
     // FIXME: move key to external config
     private static final String SECRET_KEY = "this_will_be_replaced_with_something_that_is_a_better_secret";
     private static final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
     public static String generateToken(String netId) {
         return Jwts.builder()
@@ -38,7 +42,7 @@ public class JwtUtils {
                     .getPayload()
                     .getSubject();
         } catch (JwtException e) {
-            e.printStackTrace();
+            LOGGER.error("Error while validating token ", e);
             return null;
         }
 
