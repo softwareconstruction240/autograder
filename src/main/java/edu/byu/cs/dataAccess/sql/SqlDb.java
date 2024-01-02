@@ -2,6 +2,8 @@ package edu.byu.cs.dataAccess.sql;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.DbProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,6 +18,8 @@ public class SqlDb {
     private static final String DB_NAME = DbProperties.dbName();
 
     private static final String CONNECTION_STRING = "jdbc:mysql://" + DB_URL ;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqlDb.class);
 
     static {
         try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD)) {
@@ -57,9 +61,7 @@ public class SqlDb {
                     """);
 
         } catch (SQLException e) {
-            System.err.println("Error connecting to database");
-            e.printStackTrace();
-
+            LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);
         }
     }
@@ -70,8 +72,7 @@ public class SqlDb {
             connection.setCatalog(DB_NAME);
             return connection;
         } catch (SQLException e) {
-            System.err.println("Error connecting to database");
-            e.printStackTrace();
+            LOGGER.error("Error connecting to database", e);
 
             throw new DataAccessException("Error connecting to database", e);
         }

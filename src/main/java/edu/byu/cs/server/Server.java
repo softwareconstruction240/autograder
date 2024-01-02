@@ -1,6 +1,11 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import spark.Filter;
+import spark.Request;
+import spark.Response;
 
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
@@ -11,6 +16,9 @@ public class Server{
 
     private static final String ALL_PASS_REPO = "https://github.com/pawlh/chess-passing.git";
     private static final String ALL_FAIL_REPO = "https://github.com/softwareconstruction240/chess.git";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+
     public static void main(String[] args) {
 
         port(8080);
@@ -35,6 +43,12 @@ public class Server{
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
+        });
+        before((request, response) -> {
+            LOGGER.info("Received from " + request.ip() + ":\n" + request.body());
+        });
+        afterAfter((request, response) -> {
+            LOGGER.info("Sent to " + request.ip() + ":\n" + response.body());
         });
         init();
     }

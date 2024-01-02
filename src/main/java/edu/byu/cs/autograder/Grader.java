@@ -3,6 +3,8 @@ package edu.byu.cs.autograder;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.util.stream.Stream;
  * A template for fetching, compiling, and running student code
  */
 public abstract class Grader implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
 
     /**
      * The path where the official tests are stored
@@ -88,6 +91,9 @@ public abstract class Grader implements Runnable {
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
+
+            //TODO: add user context to error message
+            LOGGER.error("Error running grader for "+ repoUrl, e);
         } finally {
             removeStage();
         }
@@ -123,7 +129,7 @@ public abstract class Grader implements Runnable {
                 .setDirectory(new File(stageRepoPath));
 
         try (Git git = cloneCommand.call()) {
-            System.out.println("Cloned repo to " + git.getRepository().getDirectory());
+            LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
         } catch (GitAPIException e) {
             throw new RuntimeException("Failed to clone repo: " + e.getMessage());
         }

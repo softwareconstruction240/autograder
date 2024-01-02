@@ -1,5 +1,8 @@
 package edu.byu.cs.properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -7,6 +10,7 @@ import java.util.Properties;
 public class ConfigProperties {
     private static final ConfigProperties INSTANCE = new ConfigProperties();
     private final Properties props;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
 
     private ConfigProperties() {
         props = new Properties();
@@ -19,8 +23,7 @@ public class ConfigProperties {
             props.load(input);
 
         } catch (IOException ex) {
-            System.err.println("Error loading properties file");
-            ex.printStackTrace();
+            LOGGER.error("Error loading properties file", ex);
             System.exit(1);
         }
     }

@@ -1,5 +1,8 @@
 package edu.byu.cs.properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -7,6 +10,7 @@ import java.util.Properties;
 public class DbProperties {
     private static final DbProperties INSTANCE = new DbProperties();
     private final Properties props;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DbProperties.class);
 
     private DbProperties() {
         props = new Properties();
@@ -18,8 +22,7 @@ public class DbProperties {
             props.load(input);
 
         } catch (IOException ex) {
-            System.err.println("Error loading properties file");
-            ex.printStackTrace();
+            LOGGER.error("Error loading properties file", ex);
             System.exit(1);
         }
     }
