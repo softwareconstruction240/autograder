@@ -10,7 +10,7 @@ import static edu.byu.cs.controller.SubmissionController.submissionXGet;
 import static edu.byu.cs.controller.SubmissionController.submitPost;
 import static spark.Spark.*;
 
-public class Server{
+public class Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 

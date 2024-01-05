@@ -83,6 +83,7 @@ public class TestAnalyzer {
 
     /**
      * Parses the output of the JUnit Console Runner
+     *
      * @param inputLines the lines of the output of the JUnit Console Runner
      * @return the root of the test tree
      */
@@ -130,6 +131,7 @@ public class TestAnalyzer {
      * <i>EnPassantTests > White En Passant Left :: SUCCESSFUL</i><br/>
      * <i>Game Loads :: SUCCESSFUL</i><br/>
      * <i>MoveTests > Pawn > Pawn can move two spaces forward :: FAILED</i>
+     *
      * @param line a test result
      */
     private void handleTestLine(String line) {
@@ -158,6 +160,7 @@ public class TestAnalyzer {
 
     /**
      * Handles a line that is an error message and adds it to the last failing test
+     *
      * @param line an error message from a failed test
      */
     private void handleErrorMessage(String line) {

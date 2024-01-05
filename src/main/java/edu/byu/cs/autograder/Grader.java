@@ -78,7 +78,7 @@ public abstract class Grader implements Runnable {
      * @param repoUrl  the url of the student repo
      * @param netId    the netId of the student
      * @param observer the observer to notify of updates
-     * @param phase   the phase to grade
+     * @param phase    the phase to grade
      */
     public Grader(String repoUrl, String netId, Observer observer, Phase phase) throws IOException {
         this.netId = netId;
@@ -88,7 +88,7 @@ public abstract class Grader implements Runnable {
         this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
         this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
 
-        this.stagePath = new File("./tmp-" + repoUrl.hashCode()  + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
+        this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
 
         this.repoUrl = repoUrl;
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
@@ -112,7 +112,7 @@ public abstract class Grader implements Runnable {
             observer.notifyError(e.getMessage());
 
             //TODO: add user context to error message
-            LOGGER.error("Error running grader for "+ repoUrl, e);
+            LOGGER.error("Error running grader for " + repoUrl, e);
         } finally {
             removeStage();
         }
@@ -224,14 +224,18 @@ public abstract class Grader implements Runnable {
 
     /**
      * Gets the score for the phase
+     *
      * @return the score
      */
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
     public interface Observer {
         void notifyStarted();
+
         void update(String message);
+
         void notifyError(String message);
+
         void notifyDone(TestAnalyzer.TestNode results);
     }
 

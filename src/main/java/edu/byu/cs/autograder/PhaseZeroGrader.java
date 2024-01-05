@@ -8,9 +8,9 @@ public class PhaseZeroGrader extends PassoffTestGrader {
     /**
      * Creates a new grader for phase 1
      *
-     * @param netId          the netId of the student
-     * @param repoUrl        the url of the student repo
-     * @param observer       the observer to notify of updates
+     * @param netId    the netId of the student
+     * @param repoUrl  the url of the student repo
+     * @param observer the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
     public PhaseZeroGrader(String netId, String repoUrl, Observer observer) throws IOException {

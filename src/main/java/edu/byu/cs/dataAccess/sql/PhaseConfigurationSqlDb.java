@@ -16,10 +16,10 @@ public class PhaseConfigurationSqlDb implements PhaseConfigurationDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    UPDATE phase_configuration
-                    SET due_date_mountain_time = ?
-                    WHERE phase = ?
-                    """);
+                            UPDATE phase_configuration
+                            SET due_date_mountain_time = ?
+                            WHERE phase = ?
+                            """);
             statement.setObject(1, dueDate);
             statement.setString(2, phase.toString());
             statement.executeUpdate();
@@ -33,10 +33,10 @@ public class PhaseConfigurationSqlDb implements PhaseConfigurationDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT phase, due_date_mountain_time
-                    FROM phase_configuration
-                    WHERE phase = ?
-                    """);
+                            SELECT phase, due_date_mountain_time
+                            FROM phase_configuration
+                            WHERE phase = ?
+                            """);
             statement.setString(1, phase.toString());
             ResultSet results = statement.executeQuery();
             if (results.next()) {

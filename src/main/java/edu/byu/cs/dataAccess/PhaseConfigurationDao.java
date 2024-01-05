@@ -8,13 +8,15 @@ import java.time.ZonedDateTime;
 public interface PhaseConfigurationDao {
     /**
      * Sets the due date for a phase
-     * @param phase the phase to set the due date for
+     *
+     * @param phase   the phase to set the due date for
      * @param dueDate the due date to set
      */
     void modifyDueDate(Phase phase, ZonedDateTime dueDate);
 
     /**
      * Returns the configuration for a phase
+     *
      * @param phase the phase to get the configuration for
      * @return the configuration for the phase
      */

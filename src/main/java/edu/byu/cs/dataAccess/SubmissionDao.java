@@ -9,12 +9,14 @@ public interface SubmissionDao {
 
     /**
      * Inserts a new submission into the database
+     *
      * @param submission the submission to insert
      */
     void insertSubmission(Submission submission);
 
     /**
      * Gets all submissions for the given netId and phase
+     *
      * @param netId the netId to get submissions for
      * @param phase the phase to get submissions for
      * @return all submissions for the given netId and phase
@@ -23,6 +25,7 @@ public interface SubmissionDao {
 
     /**
      * Gets all submissions for the given netId
+     *
      * @param netId the netId to get submissions for
      * @return all submissions for the given netId
      */

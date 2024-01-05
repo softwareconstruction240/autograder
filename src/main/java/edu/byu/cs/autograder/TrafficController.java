@@ -36,6 +36,7 @@ public class TrafficController {
 
     /**
      * Adds a grader to the queue. The grader will be run when there is an available thread
+     *
      * @param grader the grader to add
      */
     public void addGrader(Grader grader) {
