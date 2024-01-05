@@ -29,22 +29,16 @@ public class JwtUtils {
 
     /**
      * Validates a JWT and returns the subject if valid (netID)
+     *
      * @param token the JWT to validate
      * @return the subject of the JWT if valid, null otherwise
      */
     public static String validateToken(String token) {
-
-        try {
-            return Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject();
-        } catch (JwtException e) {
-            LOGGER.error("Error while validating token ", e);
-            return null;
-        }
-
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 }
