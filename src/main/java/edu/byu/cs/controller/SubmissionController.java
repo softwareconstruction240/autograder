@@ -150,8 +150,8 @@ public class SubmissionController {
         };
 
         return switch (request.phase()) {
-            case 0 -> new PhaseZeroGrader(request.repoUrl(), observer);
-            case 1 -> new PhaseOneGrader(request.repoUrl(), observer);
+            case 0 -> new PhaseZeroGrader(netId, request.repoUrl(), observer);
+            case 1 -> new PhaseOneGrader(netId, request.repoUrl(), observer);
             case 3 -> null;
             case 4 -> null;
             case 6 -> null;
