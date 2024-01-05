@@ -30,14 +30,11 @@ docker compose up -d
 Alternatively, you can run the database locally with your own MySQL server. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
 
 ## Websocket Commands
-
+0. Client joins submit queue by sending a POST to /api/submit
 1. Client connects via /ws
-2. Client sends a message with the following format:
-    ```json
-    {
-      "repoUrl": "https://github.com/cosmo/chess.git",
-      "phase": 3
-    }
+2. Client sends a message with their auth token
+    ```jwt
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlBhdWwgaXMgYSBjb29sIGR1ZGUiLCJpYXQiOjE1MTYyMzkwMjJ9.5L4Fjs4D8R1RGDERzyPdSeltqQ_u-n1EeRlBTRspaEI
     ```
 3. Server responds with a message with the following format:
     ```json
