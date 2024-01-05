@@ -42,6 +42,21 @@ const fetcher = {
             throw Error('Failed to get submissions: ' + res.body);
         return await res.json();
     },
+    /**
+     * @param {number} phase the phase to submit
+     * @param {string} repoUrl the url of the repo to submit
+     * @returns {Promise<void>}
+     */
+    submit: async (phase, repoUrl) => {
+        const res = await fetch('/api/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({phase, repoUrl})
+        });
+
+        if (!res.ok)
+            throw Error('Submission failed: ' + res.body);
+    },
 };
 
 export default fetcher;
