@@ -112,50 +112,37 @@ public class SubmissionController {
             public void notifyStarted() {
                 TrafficController.queue.removeIf(queueNetId -> queueNetId.equals(netId));
 
-                TrafficController.sessions.get(netId).stream()
-                        .filter(Session::isOpen)
-                        .forEach(session -> WebSocketController.send(
-                                session,
-                                Map.of(
-                                        "type", "started"
-                                )));
+                TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                        "type", "started"
+                ));
+
                 broadcastQueueStatus();
             }
 
             @Override
             public void update(String message) {
-                TrafficController.sessions.get(netId).stream()
-                        .filter(Session::isOpen)
-                        .forEach(session -> WebSocketController.send(
-                                session,
-                                Map.of(
-                                        "type", "update",
-                                        "message", message
-                                )));
+                TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                        "type", "update",
+                        "message", message
+                ));
             }
 
             @Override
             public void notifyError(String message) {
-                TrafficController.sessions.get(netId).stream()
-                        .filter(Session::isOpen)
-                        .forEach(session -> sendError(
-                                session,
-                                message));
+                TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                        "type", "error",
+                        "message", message
+                ));
 
                 TrafficController.sessions.remove(netId);
             }
 
             @Override
             public void notifyDone(TestAnalyzer.TestNode results) {
-                TrafficController.sessions.get(netId).stream()
-                        .filter(Session::isOpen)
-                        .forEach(session ->
-                                WebSocketController.send(
-                                        session,
-                                        Map.of(
-                                                "type", "results",
-                                                "results", new Gson().toJson(results)
-                                        )));
+                TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                        "type", "results",
+                        "results", new Gson().toJson(results)
+                ));
 
                 TrafficController.sessions.remove(netId);
             }
