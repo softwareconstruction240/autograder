@@ -196,6 +196,12 @@ public abstract class Grader implements Runnable {
      */
     protected abstract TestAnalyzer.TestNode runTests();
 
+    /**
+     * Gets the score for the phase
+     * @return the score
+     */
+    protected abstract float getScore(TestAnalyzer.TestNode results);
+
     public interface Observer {
         void notifyStarted();
         void update(String message);

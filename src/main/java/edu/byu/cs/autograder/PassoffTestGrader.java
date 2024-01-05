@@ -138,4 +138,17 @@ public abstract class PassoffTestGrader extends Grader {
         }
         return output;
     }
+
+    @Override
+    protected float getScore(TestAnalyzer.TestNode results) {
+        if (results == null)
+            return 0;
+
+        int totalTests = results.numTestsFailed + results.numTestsPassed;
+
+        if (totalTests == 0)
+            return 0;
+
+        return (float) results.numTestsPassed / totalTests;
+    }
 }
