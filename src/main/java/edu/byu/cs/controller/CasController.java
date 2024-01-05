@@ -27,7 +27,8 @@ public class CasController {
             return null;
         }
 
-        res.cookie("/", "token", generateToken(netId), 14400, false, true);
+        // FIXME: secure cookie with httpOnly
+        res.cookie("/", "token", generateToken(netId), 14400, false, false);
         res.redirect("/", 302);
         return null;
     };

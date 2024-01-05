@@ -267,13 +267,14 @@
      * @returns {Promise<void>}
      */
     async function submitPhaseForGrading() {
+
+        await fetcher.submit(selectedPhase, storage.user.repoUrl)
+
+        const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
+
         const socket = new WebSocket('ws://localhost:8080/ws');
         socket.addEventListener('open', _ => {
-            const message = {
-                "phase": selectedPhase,
-                "repoUrl": storage.user.repoUrl
-            };
-            socket.send(JSON.stringify(message));
+            socket.send(token);
             socket.addEventListener('message', event => {
                 const messageData = JSON.parse(event.data);
 
