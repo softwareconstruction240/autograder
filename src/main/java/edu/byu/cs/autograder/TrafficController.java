@@ -1,8 +1,11 @@
 package edu.byu.cs.autograder;
 
+import com.google.gson.Gson;
+import edu.byu.cs.controller.WebSocketController;
 import org.eclipse.jetty.websocket.api.Session;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -38,5 +41,11 @@ public class TrafficController {
      */
     public void addGrader(Grader grader) {
         executorService.submit(grader);
+    }
+
+    public void notifySubscribers(String netId, Map<String, Object> message) {
+        sessions.get(netId).stream()
+                .filter(Session::isOpen)
+                .forEach(session -> WebSocketController.send(session, message));
     }
 }
