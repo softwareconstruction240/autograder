@@ -45,10 +45,10 @@ public class SqlDb {
                     CREATE TABLE IF NOT EXISTS `submission` (
                         `id` INT NOT NULL AUTO_INCREMENT,
                         `net_id` VARCHAR(20) NOT NULL,
-                        `repo_url` VARCHAR(20) NOT NULL,
+                        `repo_url` VARCHAR(100) NOT NULL,
                         `head_hash` VARCHAR(40) NOT NULL,
                         `timestamp` DATETIME NOT NULL,
-                        `phase` VARCHAR(4) NOT NULL,
+                        `phase` VARCHAR(9) NOT NULL,
                         `score` FLOAT NOT NULL,
                         `results` JSON,
                         PRIMARY KEY (`id`),
