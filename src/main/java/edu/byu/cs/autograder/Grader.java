@@ -1,6 +1,9 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Submission;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -102,6 +105,7 @@ public abstract class Grader implements Runnable {
             packageRepo();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
+            saveResults(results);
             observer.notifyDone(results);
 
         } catch (Exception e) {
@@ -112,6 +116,28 @@ public abstract class Grader implements Runnable {
         } finally {
             removeStage();
         }
+    }
+
+    private void saveResults(TestAnalyzer.TestNode results) {
+        String headHash;
+        try (Git git = Git.open(new File(stageRepoPath))) {
+            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to get head hash: " + e.getMessage());
+        }
+
+
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Submission submission = new Submission(
+                netId,
+                repoUrl,
+                headHash,
+                Instant.now(),
+                phase,
+                getScore(results),
+                results
+        );
+        submissionDao.insertSubmission(submission);
     }
 
     /**
