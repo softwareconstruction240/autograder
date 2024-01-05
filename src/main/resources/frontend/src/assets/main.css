@@ -1,0 +1,6 @@
+@import './base.css';
+
+#app {
+    width: 100vw;
+    overflow-x: hidden;
+}
