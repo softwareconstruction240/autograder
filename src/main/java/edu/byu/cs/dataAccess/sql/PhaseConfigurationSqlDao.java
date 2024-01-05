@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.ZonedDateTime;
 
-public class PhaseConfigurationSqlDb implements PhaseConfigurationDao {
+public class PhaseConfigurationSqlDao implements PhaseConfigurationDao {
 
     @Override
     public void modifyDueDate(Phase phase, ZonedDateTime dueDate) {
