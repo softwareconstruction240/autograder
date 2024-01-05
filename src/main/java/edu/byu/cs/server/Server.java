@@ -3,13 +3,11 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Filter;
-import spark.Request;
-import spark.Response;
 
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.SubmissionController.submissionXGet;
+import static edu.byu.cs.controller.SubmissionController.submitPost;
 import static spark.Spark.*;
 
 public class Server{
@@ -39,6 +37,8 @@ public class Server{
 
         path("/api", () -> {
             before("/*", verifyAuthenticatedMiddleware);
+
+            post("/submit", submitPost);
 
             get("/submission/:phase", submissionXGet);
 
