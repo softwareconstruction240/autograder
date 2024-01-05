@@ -165,15 +165,11 @@ public class SubmissionController {
     private static void broadcastQueueStatus() {
         int i = 1;
         for (String netId : TrafficController.queue) {
-            for (Session session : TrafficController.sessions.get(netId)) {
-                WebSocketController.send(
-                        session,
-                        Map.of(
-                                "type", "queueStatus",
-                                "position", i,
-                                "total", TrafficController.queue.size()
-                        ));
-            }
+            TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                    "type", "queueStatus",
+                    "position", i,
+                    "total", TrafficController.queue.size()
+            ));
             i++;
         }
     }
