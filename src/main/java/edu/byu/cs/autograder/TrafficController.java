@@ -1,6 +1,5 @@
 package edu.byu.cs.autograder;
 
-import com.google.gson.Gson;
 import edu.byu.cs.controller.WebSocketController;
 import org.eclipse.jetty.websocket.api.Session;
 
