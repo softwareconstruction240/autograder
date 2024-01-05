@@ -29,8 +29,6 @@ public class WebSocketController {
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
-        LOGGER.info("received: " + message);
-
         String netId = null;
         try {
             netId = JwtUtils.validateToken(message);
