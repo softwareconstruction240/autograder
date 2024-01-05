@@ -15,30 +15,18 @@ import spark.Route;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static edu.byu.cs.controller.WebSocketController.sendError;
 import static spark.Spark.halt;
 
 public class SubmissionController {
 
-    /**
-     * A queue of netIds that are waiting to be graded
-     */
-    static final ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
-
-    /**
-     * A map of netIds to sessions that are subscribed to updates for that netId
-     */
-    static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
-
     public static Route submitPost = (req, res) -> {
 
         User user = req.session().attribute("user");
         String netId = user.netId();
 
-        if (queue.stream().anyMatch(netId::equals)) {
+        if (TrafficController.queue.stream().anyMatch(netId::equals)) {
             halt(400, "You are already in the queue");
             return null;
         }
@@ -66,8 +54,8 @@ public class SubmissionController {
             return null;
         }
 
-        queue.add(netId);
-        sessions.put(netId, new ArrayList<>());
+        TrafficController.queue.add(netId);
+        TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
             Grader grader = getGrader(netId, request);
@@ -122,9 +110,9 @@ public class SubmissionController {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
-                queue.removeIf(queueNetId -> queueNetId.equals(netId));
+                TrafficController.queue.removeIf(queueNetId -> queueNetId.equals(netId));
 
-                sessions.get(netId).stream()
+                TrafficController.sessions.get(netId).stream()
                         .filter(Session::isOpen)
                         .forEach(session -> WebSocketController.send(
                                 session,
@@ -136,7 +124,7 @@ public class SubmissionController {
 
             @Override
             public void update(String message) {
-                sessions.get(netId).stream()
+                TrafficController.sessions.get(netId).stream()
                         .filter(Session::isOpen)
                         .forEach(session -> WebSocketController.send(
                                 session,
@@ -148,18 +136,18 @@ public class SubmissionController {
 
             @Override
             public void notifyError(String message) {
-                sessions.get(netId).stream()
+                TrafficController.sessions.get(netId).stream()
                         .filter(Session::isOpen)
                         .forEach(session -> sendError(
                                 session,
                                 message));
 
-                sessions.remove(netId);
+                TrafficController.sessions.remove(netId);
             }
 
             @Override
             public void notifyDone(TestAnalyzer.TestNode results) {
-                sessions.get(netId).stream()
+                TrafficController.sessions.get(netId).stream()
                         .filter(Session::isOpen)
                         .forEach(session ->
                                 WebSocketController.send(
@@ -169,7 +157,7 @@ public class SubmissionController {
                                                 "results", new Gson().toJson(results)
                                         )));
 
-                sessions.remove(netId);
+                TrafficController.sessions.remove(netId);
             }
         };
 
@@ -189,14 +177,14 @@ public class SubmissionController {
      */
     private static void broadcastQueueStatus() {
         int i = 1;
-        for (String netId : queue) {
-            for (Session session : sessions.get(netId)) {
+        for (String netId : TrafficController.queue) {
+            for (Session session : TrafficController.sessions.get(netId)) {
                 WebSocketController.send(
                         session,
                         Map.of(
                                 "type", "queueStatus",
                                 "position", i,
-                                "total", SubmissionController.queue.size()
+                                "total", TrafficController.queue.size()
                         ));
             }
             i++;

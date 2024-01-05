@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
+import edu.byu.cs.autograder.TrafficController;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.slf4j.Logger;
@@ -41,16 +42,16 @@ public class WebSocketController {
             return;
         }
 
-        if (!SubmissionController.sessions.containsKey(netId)) {
+        if (!TrafficController.sessions.containsKey(netId)) {
             sendError(session, "You are not in the queue");
             session.close();
             return;
         }
 
-        if (SubmissionController.sessions.get(netId).contains(session))
+        if (TrafficController.sessions.get(netId).contains(session))
             return;
 
-        SubmissionController.sessions.get(netId).add(session);
+        TrafficController.sessions.get(netId).add(session);
     }
 
     /**
