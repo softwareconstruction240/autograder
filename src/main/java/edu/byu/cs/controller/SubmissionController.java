@@ -9,14 +9,15 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
-import org.eclipse.jetty.websocket.api.Session;
 import spark.Route;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
-import static edu.byu.cs.controller.WebSocketController.sendError;
 import static spark.Spark.halt;
 
 public class SubmissionController {
