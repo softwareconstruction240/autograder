@@ -60,6 +60,25 @@ public class SqlDb {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                     """);
 
+            connection.createStatement().executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `phase_configuration` (
+                        `phase` VARCHAR(9) NOT NULL,
+                        `due_date_mountain_time` DATETIME NOT NULL,
+                        PRIMARY KEY (`phase`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                    """);
+
+            connection.createStatement().executeUpdate(
+                    """
+                    INSERT IGNORE INTO `phase_configuration` (`phase`, `due_date_mountain_time`) VALUES
+                        ('Phase0', '2006-01-02 15:04:05'),
+                        ('Phase1', '2006-01-02 15:04:05'),
+                        ('Phase3', '2006-01-02 15:04:05'),
+                        ('Phase4', '2006-01-02 15:04:05'),
+                        ('Phase6', '2006-01-02 15:04:05')
+                    """);
+
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);
