@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.model.Phase;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -19,6 +20,16 @@ import java.util.stream.Stream;
  */
 public abstract class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
+
+    /**
+     * The netId of the student
+     */
+    protected final String netId;
+
+    /**
+     * The phase to grade
+     */
+    protected final Phase phase;
 
     /**
      * The path where the official tests are stored
@@ -61,10 +72,14 @@ public abstract class Grader implements Runnable {
     /**
      * Creates a new grader
      *
-     * @param repoUrl the url of the student repo
+     * @param repoUrl  the url of the student repo
+     * @param netId    the netId of the student
      * @param observer the observer to notify of updates
+     * @param phase   the phase to grade
      */
-    public Grader(String repoUrl, Observer observer) throws IOException {
+    public Grader(String repoUrl, String netId, Observer observer, Phase phase) throws IOException {
+        this.netId = netId;
+        this.phase = phase;
         this.phasesPath = new File("./phases").getCanonicalPath();
         this.libsDir = new File(phasesPath, "libs").getCanonicalPath();
         this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
