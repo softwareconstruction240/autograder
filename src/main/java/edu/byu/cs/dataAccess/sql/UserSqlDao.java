@@ -12,9 +12,9 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO user (net_id, first_name, last_name, repo_url, role)
-                    VALUES (?, ?, ?, ?, ?)
-                    """);
+                            INSERT INTO user (net_id, first_name, last_name, repo_url, role)
+                            VALUES (?, ?, ?, ?, ?)
+                            """);
             statement.setString(1, user.netId());
             statement.setString(2, user.firstName());
             statement.setString(3, user.lastName());
@@ -31,10 +31,10 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT net_id, first_name, last_name, repo_url, role
-                    FROM user
-                    WHERE net_id = ?
-                    """);
+                            SELECT net_id, first_name, last_name, repo_url, role
+                            FROM user
+                            WHERE net_id = ?
+                            """);
             statement.setString(1, netId);
             ResultSet results = statement.executeQuery();
             if (results.next()) {
@@ -58,10 +58,10 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    UPDATE user
-                    SET repo_url = ?
-                    WHERE net_id = ?
-                    """);
+                            UPDATE user
+                            SET repo_url = ?
+                            WHERE net_id = ?
+                            """);
             statement.setString(1, repoUrl);
             statement.setString(2, netId);
             statement.executeUpdate();
@@ -75,10 +75,10 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    UPDATE user
-                    SET role = ?
-                    WHERE net_id = ?
-                    """);
+                            UPDATE user
+                            SET role = ?
+                            WHERE net_id = ?
+                            """);
             statement.setString(1, role.toString());
             statement.setString(2, netId);
             statement.executeUpdate();
