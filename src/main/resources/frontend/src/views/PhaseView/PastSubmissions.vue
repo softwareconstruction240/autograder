@@ -23,7 +23,7 @@ const passFail = (submission: Submission) => {
 <template>
   <ul
       id="past-submissions"
-      v-if="useSubmissionStore().submissionsByPhase[props.phase].length > 0">
+      v-if="useSubmissionStore().submissionsByPhase[props.phase]?.length > 0">
     <li
         v-for="submission in useSubmissionStore().submissionsByPhase[props.phase]"
         :key="`${submission.headHash}-${submission.timestamp}`"
