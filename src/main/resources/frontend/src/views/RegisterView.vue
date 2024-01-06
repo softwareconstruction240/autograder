@@ -1,8 +1,21 @@
 <script setup lang="ts">
 
-import {ref} from "vue";
-import {registerPost} from "@/services/authService";
+import {onBeforeMount, ref} from "vue";
+import {meGet, registerPost} from "@/services/authService";
 import router from "@/router";
+
+onBeforeMount(async () => {
+  const loggedInUser = await meGet()
+  if (loggedInUser === 403)
+    return;
+
+  if (loggedInUser === null) {
+    await router.push({name: 'login'});
+    return;
+  }
+
+  await router.push({name: 'home'});
+})
 
 const firstName = ref('');
 const lastName = ref('');
@@ -55,7 +68,7 @@ async function register() {
       <button
           id="register-btn"
           :disabled="firstName.length == 0 || lastName.length == 0 || repoUrl.length == 0"
-          @click="">
+          @click="register">
         Register
       </button>
     </div>
