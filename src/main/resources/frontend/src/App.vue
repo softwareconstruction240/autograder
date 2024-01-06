@@ -42,8 +42,10 @@ h1 {
 main {
   background-color: var(--color--surface--background);
   color: var(--color--surface--text);
-  padding: 10px;
+  padding: 20px;
   border-radius: 3px;
+
+  width: 66vw;
 
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
 }
