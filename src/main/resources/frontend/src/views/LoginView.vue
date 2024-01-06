@@ -20,10 +20,23 @@ const login = () => {
 </script>
 
 <template>
-  <h2>You must log in before continuing</h2>
-  <p>After selecting Log In, you will be redirected to BYU's authentication page.</p>
-  <button @click="login">Log In</button>
+  <div id="login-content">
+    <h2>You must log in before continuing</h2>
+    <p>After selecting Log In, you will be redirected to BYU's authentication page.</p>
+    <button @click="login">Log In</button>
+  </div>
 </template>
 
 <style scoped>
+#login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+button {
+  margin-top: 1rem;
+}
 </style>
