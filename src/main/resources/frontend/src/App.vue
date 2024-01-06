@@ -1,10 +1,20 @@
 <script setup lang="ts">
+
+import {computed} from "vue";
+import {useAuthStore} from "@/stores/auth";
+
+const greeting = computed(() => {
+  if (useAuthStore().isLoggedIn) {
+    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()})`
+  }
+});
 </script>
 
 <template>
   <header>
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
+    <p>{{ greeting }}</p>
   </header>
   <main>
     <router-view/>
