@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
+import edu.byu.cs.controller.netmodel.RegisterRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
@@ -55,25 +56,23 @@ public class AuthController {
             return null;
         }
 
-        String firstName = req.queryParams("firstName");
-        String lastName = req.queryParams("lastName");
-        String repoUrl = req.queryParams("repoUrl");
+        RegisterRequest registerRequest = new Gson().fromJson(req.body(), RegisterRequest.class);
 
-        if (firstName == null) {
+        if (registerRequest.firstName() == null) {
             halt(400, "missing param `firstName`");
             return null;
         }
-        if (lastName == null) {
+        if (registerRequest.lastName() == null) {
             halt(400, "missing param `lastName`");
             return null;
         }
-        if (repoUrl == null) {
+        if (registerRequest.repoUrl() == null) {
             halt(400, "missing param `repoUrl`");
             return null;
         }
 
         UserDao userDao = DaoService.getUserDao();
-        User newUser = new User(netId, firstName, lastName, repoUrl, STUDENT);
+        User newUser = new User(netId, registerRequest.firstName(), registerRequest.lastName(), registerRequest.repoUrl(), STUDENT);
         try {
             userDao.insertUser(newUser);
         } catch (Exception e) {
