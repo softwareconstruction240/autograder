@@ -14,7 +14,10 @@ export const meGet = async () => {
             credentials: 'include'
         });
 
-        return await response.json() as MeResponse | null;
+        if (response.status === 403)
+            return 403;
+
+        return await response.json() as MeResponse | 403 | null;
     } catch (e) {
         return null;
     }
