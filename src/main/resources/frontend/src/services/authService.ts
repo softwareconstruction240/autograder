@@ -21,7 +21,7 @@ export const meGet = async () => {
 }
 
 export const registerPost = async (firstName: string, lastName: string, repoUrl: string) => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/register', {
+    const response = await fetch(useAppConfigStore().backendUrl + '/auth/register', {
         method: 'POST',
         credentials: 'include',
         headers: {
