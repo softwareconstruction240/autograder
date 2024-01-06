@@ -32,13 +32,15 @@
     --color--secondary--background: #2E3439;
     --color--secondary--text: var(--vt-c-white);
 
-    --color-accent: #EB9854;
+    --color--accent: #EB9854;
 
     --color-border: var(--vt-c-divider-light-2);
     --color-border-hover: var(--vt-c-divider-light-1);
 
     --color-heading: var(--vt-c-text-light-1);
     --color-text: var(--vt-c-text-light-1);
+
+    --color--text--error: #ff5151;
 
     --section-gap: 160px;
 }
@@ -122,4 +124,9 @@ button {
 button:hover {
     filter: brightness(1.1);
     cursor: pointer;
+}
+
+button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
