@@ -8,12 +8,16 @@ type MeResponse = {
     role: 'STUDENT' | 'ADMIN'
 }
 export const meGet = async () => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/me', {
-        method: 'GET',
-        credentials: 'include'
-    });
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/me', {
+            method: 'GET',
+            credentials: 'include'
+        });
 
-    return await response.json() as MeResponse | null;
+        return await response.json() as MeResponse | null;
+    } catch (e) {
+        return null;
+    }
 }
 
 export const registerPost = async (firstName: string, lastName: string, repoUrl: string) => {
