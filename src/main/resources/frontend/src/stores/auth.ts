@@ -6,6 +6,7 @@ type User = {
     netId: string
     firstName: string
     lastName: string
+    role: 'STUDENT' | 'ADMIN'
 }
 
 export const useAuthStore = defineStore('auth', () => {
