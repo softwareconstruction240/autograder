@@ -1,17 +1,31 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
+import {registerPost} from "@/services/authService";
+import router from "@/router";
 
 const firstName = ref('');
 const lastName = ref('');
 const repoUrl = ref('');
+
+async function register() {
+  const success = await registerPost(firstName.value, lastName.value, repoUrl.value);
+
+  if (success) {
+    await router.push('/');
+    return;
+  }
+
+  alert('Registration failed. Please try again.');
+}
 
 </script>
 
 <template>
   <div id="register-content">
     <h1>Create an account for the autograder</h1>
-    <p>It looks like this is your first time logging in. Fill in the information below to create a profile. Don't worry, you will be able to change this later.</p>
+    <p>It looks like this is your first time logging in. Fill in the information below to create a profile. Don't worry,
+      you will be able to change this later.</p>
     <div class="form">
       <label for="first-name">First Name:</label>
       <input
@@ -38,7 +52,12 @@ const repoUrl = ref('');
           :class="{required: repoUrl.length == 0 }"
           placeholder="https://github.com/cosmo/chess.git">
 
-      <button id="register-btn" :disabled="firstName.length == 0 || lastName.length == 0 || repoUrl.length == 0">Register</button>
+      <button
+          id="register-btn"
+          :disabled="firstName.length == 0 || lastName.length == 0 || repoUrl.length == 0"
+          @click="">
+        Register
+      </button>
     </div>
   </div>
 </template>
