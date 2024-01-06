@@ -32,7 +32,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(6, submission.headHash());
             statement.setString(7, new Gson().toJson(submission.testResults()));
             statement.executeUpdate();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
         }
     }
@@ -50,7 +50,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(2, phase.toString());
             return getSubmissionsFromQuery(statement);
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new DataAccessException("Error getting submissions", e);
         }
     }
@@ -67,7 +67,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(1, netId);
             return getSubmissionsFromQuery(statement);
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new DataAccessException("Error getting submissions", e);
         }
     }
