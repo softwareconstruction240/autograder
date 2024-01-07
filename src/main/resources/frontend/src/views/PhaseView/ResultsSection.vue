@@ -54,5 +54,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
   border-radius: 5px;
   padding: 10px;
   margin: 10px;
+
+  box-shadow: inset 0 0 2px #000000;
 }
 </style>
