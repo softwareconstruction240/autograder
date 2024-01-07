@@ -65,7 +65,7 @@ const handleGradingDone = async () => {
       </div>
       <div id="results">
         <!-- FIXME: for the life of me I can't force this thing to only take up 50% of the space. this hack should be temporary -->
-        <div style="width: 40vw;">
+        <div style="width: 40vw; height: 100%;">
           <ResultsSection v-if="selectedResults && !currentlyGrading" :submission="selectedResults"/>
           <LiveStatus v-else-if="currentlyGrading" @show-results="handleGradingDone" />
         </div>
