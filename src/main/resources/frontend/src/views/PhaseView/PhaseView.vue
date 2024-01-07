@@ -103,6 +103,13 @@ const handleGradingDone = async () => {
   gap: 40px;
 }
 
-#results { grid-area: results; }
+#results {
+  grid-area: results;
+
+  border-left: 1px solid #c6c6c6;
+
+  padding-left: 20px;
+
+}
 
 </style>
