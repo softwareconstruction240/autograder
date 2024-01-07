@@ -1,6 +1,7 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.properties.ConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +21,19 @@ public class Server {
 
         webSocket("/ws", WebSocketController.class);
 
-        staticFiles.location("/public");
+        staticFiles.location("/frontend/dist");
 
+        notFound((req, res) -> {
+            res.redirect("/");
+            return null;
+        });
+
+        before((request, response) -> {
+            response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+            response.header("Access-Control-Allow-Credentials", "true");
+            response.header("Access-Control-Allow-Origin", ConfigProperties.frontendAppUrl());
+        });
 
         path("/auth", () -> {
             get("/callback", callbackGet);
@@ -33,7 +45,10 @@ public class Server {
         });
 
         path("/api", () -> {
-            before("/*", verifyAuthenticatedMiddleware);
+            before("/*", (req, res) -> {
+                if (!req.requestMethod().equals("OPTIONS"))
+                    verifyAuthenticatedMiddleware.handle(req, res);
+            });
 
             post("/submit", submitPost);
 

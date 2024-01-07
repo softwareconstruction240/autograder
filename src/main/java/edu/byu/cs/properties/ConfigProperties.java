@@ -28,8 +28,12 @@ public class ConfigProperties {
         }
     }
 
-    public static String appUrl() {
-        return INSTANCE.props.getProperty("app.url");
+    public static String frontendAppUrl() {
+        return INSTANCE.props.getProperty("frontend_app.url");
+    }
+
+    public static String backendAppUrl() {
+        return INSTANCE.props.getProperty("backend_app.url");
     }
 
     public static String casServerUrl() {
