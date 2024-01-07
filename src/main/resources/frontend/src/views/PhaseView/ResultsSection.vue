@@ -14,7 +14,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
   if (node.passed !== undefined) {
     result += node.passed ? ` <span class="success">✓</span>` : ` <span class="failure">✗</span>`;
     if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-      result += "<br/>" + indent + "   Error: " + node.errorMessage;
+      result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
     }
   } else {
     result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
