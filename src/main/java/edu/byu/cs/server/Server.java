@@ -30,7 +30,6 @@ public class Server {
             response.header("Access-Control-Allow-Origin", ConfigProperties.frontendAppUrl());
         });
 
-
         path("/auth", () -> {
             get("/callback", callbackGet);
             get("/login", loginGet);
@@ -41,7 +40,10 @@ public class Server {
         });
 
         path("/api", () -> {
-            before("/*", verifyAuthenticatedMiddleware);
+            before("/*", (req, res) -> {
+                if (!req.requestMethod().equals("OPTIONS"))
+                    verifyAuthenticatedMiddleware.handle(req, res);
+            });
 
             post("/submit", submitPost);
 
