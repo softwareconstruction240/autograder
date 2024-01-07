@@ -29,7 +29,7 @@ const passFail = (submission: Submission) => {
         :key="`${submission.headHash}-${submission.timestamp}`"
         @click="$emit('show-results', submission)">
       {{ readableTimestamp(new Date(submission.timestamp)) }} -
-      {{ submission.score }}% {{ isPassFail ? `(${passFail(submission)})` : ''}}
+      {{ (submission.score * 100).toPrecision(4) }}% {{ isPassFail ? `(${passFail(submission)})` : ''}}
     </li>
   </ul>
   <p v-else>No previous results to show</p>
