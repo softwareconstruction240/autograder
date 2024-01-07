@@ -23,6 +23,7 @@ const passFail = (submission: Submission) => {
 const submissionsByPhaseDesc = computed(() => {
   const submissions = useSubmissionStore().submissionsByPhase[props.phase];
   if (!submissions) return [];
+  // @ts-ignore
   return submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 });
 </script>
