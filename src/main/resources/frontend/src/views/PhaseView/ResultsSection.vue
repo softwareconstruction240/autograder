@@ -2,7 +2,7 @@
 import {readableTimestamp} from "@/utils/utils";
 import type {Submission, TestResult} from "@/types/types";
 
-const props = defineProps<{
+defineProps<{
   submission: Submission;
 }>();
 
