@@ -100,7 +100,6 @@ const handleGradingDone = async () => {
 
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
   gap: 40px;
 }
 
