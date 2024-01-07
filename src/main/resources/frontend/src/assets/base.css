@@ -23,7 +23,7 @@
 
 /* semantic color variables for this project */
 :root {
-    --color-background: #B2A39D;
+    --color-background: #d7d7d7;
 
     --color--surface--background: #F6F6F5;
     --color--surface--text: var(--vt-c-black);
