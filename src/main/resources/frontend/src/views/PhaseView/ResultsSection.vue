@@ -37,6 +37,9 @@ const prettifyResults = (node: TestResult, indent: string) => {
     <div id="submission-title">
       <h2>Results for {{ readableTimestamp(new Date(submission.timestamp)) }}</h2>
     </div>
+    <div id="submission-score">
+      <h3>Score: {{ submission.score * 100 }}%</h3>
+    </div>
     <div id="submission-notes">
       some notes here
     </div>
@@ -48,7 +51,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
 </template>
 
 <style scoped>
-#submission-title, #submission-notes {
+#submission-title, #submission-score, #submission-notes {
   text-align: center;
 }
 
