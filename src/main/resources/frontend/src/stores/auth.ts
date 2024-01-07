@@ -12,6 +12,8 @@ type User = {
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
 
+    const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1] || '';
+
   const isLoggedIn = computed(() => user.value !== null)
-  return { user, isLoggedIn }
+  return { user, token, isLoggedIn }
 })
