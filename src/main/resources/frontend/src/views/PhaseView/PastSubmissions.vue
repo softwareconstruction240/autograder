@@ -2,6 +2,7 @@
 import type {Phase, Submission} from "@/types/types";
 import {useSubmissionStore} from "@/stores/submissions";
 import {readableTimestamp} from "@/utils/utils";
+import {computed} from "vue";
 
 defineEmits<{
   'show-results': [submission: Submission]
@@ -18,14 +19,20 @@ const isPassFail = props.phase !== '6';
 const passFail = (submission: Submission) => {
   return submission.score === 100 ? 'Pass' : 'Fail';
 }
+
+const submissionsByPhaseDesc = computed(() => {
+  const submissions = useSubmissionStore().submissionsByPhase[props.phase];
+  if (!submissions) return [];
+  return submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+});
 </script>
 
 <template>
   <ul
       id="past-submissions"
-      v-if="useSubmissionStore().submissionsByPhase[props.phase]?.length > 0">
+      v-if="useSubmissionStore().submissionsByPhase[phase]?.length > 0">
     <li
-        v-for="submission in useSubmissionStore().submissionsByPhase[props.phase]"
+        v-for="submission in submissionsByPhaseDesc"
         :key="`${submission.headHash}-${submission.timestamp}`"
         @click="$emit('show-results', submission)">
       {{ readableTimestamp(new Date(submission.timestamp)) }} -
