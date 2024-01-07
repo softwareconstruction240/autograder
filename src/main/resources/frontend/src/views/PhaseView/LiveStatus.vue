@@ -37,7 +37,7 @@ onMounted(() => {
 
 <template>
 <div class="container">
-  <span>{{ status }}</span>
+  <span id="status">{{ status }}</span>
 </div>
 </template>
 
@@ -47,5 +47,10 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+#status {
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 </style>
