@@ -48,6 +48,10 @@ const prettifyResults = (node: TestResult, indent: string) => {
 </template>
 
 <style scoped>
+#submission-title, #submission-notes {
+  text-align: center;
+}
+
 #submission-results-container {
   /* sunken 3d */
   border: 1px solid #ccc;
