@@ -21,7 +21,12 @@ public class Server {
 
         webSocket("/ws", WebSocketController.class);
 
-        staticFiles.location("/public");
+        staticFiles.location("/frontend/dist");
+
+        notFound((req, res) -> {
+            res.redirect("/");
+            return null;
+        });
 
         before((request, response) -> {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
