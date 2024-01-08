@@ -3,12 +3,20 @@ version: '3.9'
 services:
   db:
     image: mysql:latest
+    profiles:
+      - with-db
     environment:
       MYSQL_ROOT_PASSWORD: "root"
     volumes:
       - db-data:/var/lib/mysql
     ports:
       - "3306:3306"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
 
 volumes:
     db-data:
