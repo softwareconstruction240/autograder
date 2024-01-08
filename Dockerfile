@@ -15,12 +15,6 @@ RUN apt-get update && \
 
 RUN mvn clean package
 
-FROM eclipse-temurin:21-jre
-
-WORKDIR /app
-
-COPY --from=builder /app/target/automatico-1.0-SNAPSHOT.jar /app/automatico.jar
-
 EXPOSE 8080
 
-CMD ["java", "-jar", "automatico.jar"]
+CMD ["java", "-jar", "/app/target/automatico-1.0-SNAPSHOT.jar"]
