@@ -20,11 +20,27 @@ tmp-<hash of repo>-<timestamp>/ - a temporary directory created by the autograde
 src/ - you know what this is for 😉
 ```
 
+## Deployment
+Before running the server, three configuration files need to be modified to match your environment:
+1. `src/main/resources/db.properties` - contains the database url, username, and password
+2. `src/main/resources/config.properties` - contains the frontend and backend urls
+3. `src/main/resources/frontend/.env.prod` - contains the url of the backend
+
+### Docker
+For a docker deployment, run one of the following commands:
+```bash
+# For a deployment with a MySQL database included
+docker compose --profile with-db up -d
+
+# For a deployment requiring an external MySQL database
+docker compose up -d
+```
+
 ## Development
 ### Running the database
 There is a docker compose file in the root of the project that will start a MySQL database. To start the database, run the following command (you will need docker installed):
 ```bash
-docker compose up -d
+docker compose db up -d
 ```
 
 Alternatively, you can run the database locally with your own MySQL server. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
