@@ -9,6 +9,14 @@ services:
       - db-data:/var/lib/mysql
     ports:
       - "3306:3306"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
 
 volumes:
     db-data:
