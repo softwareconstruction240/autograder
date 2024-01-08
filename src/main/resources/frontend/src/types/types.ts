@@ -17,5 +17,6 @@ export type Submission = {
     timestamp: string,
     phase: Phase,
     score: number,
+    notes: string,
     testResults: TestResult,
 }

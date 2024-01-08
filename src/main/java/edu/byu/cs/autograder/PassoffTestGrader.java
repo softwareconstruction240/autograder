@@ -152,4 +152,18 @@ public abstract class PassoffTestGrader extends Grader {
 
         return (float) results.numTestsPassed / totalTests;
     }
+
+    @Override
+    protected String getNotes(TestAnalyzer.TestNode results) {
+        if (results == null)
+            return "No tests were run";
+
+        if (results.numTestsFailed == 0)
+            return "All tests passed";
+
+        if (getScore(results) != 1)
+            return "Some tests failed. You must pass all tests to pass off this phase";
+
+        return results.toString();
+    }
 }

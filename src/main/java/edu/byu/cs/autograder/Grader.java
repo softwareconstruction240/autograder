@@ -135,6 +135,7 @@ public abstract class Grader implements Runnable {
                 Instant.now(),
                 phase,
                 getScore(results),
+                getNotes(results),
                 results
         );
         submissionDao.insertSubmission(submission);
@@ -228,6 +229,8 @@ public abstract class Grader implements Runnable {
      * @return the score
      */
     protected abstract float getScore(TestAnalyzer.TestNode results);
+
+    protected abstract String getNotes(TestAnalyzer.TestNode results);
 
     public interface Observer {
         void notifyStarted();

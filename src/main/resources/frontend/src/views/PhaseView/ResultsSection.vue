@@ -41,7 +41,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
       <h3>Score: {{ submission.score * 100 }}%</h3>
     </div>
     <div id="submission-notes">
-      some notes here
+      {{ submission.notes }}
     </div>
     <div
         id="submission-results-container"
