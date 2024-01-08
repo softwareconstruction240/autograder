@@ -36,6 +36,8 @@ docker compose --profile with-db up -d
 docker compose up -d
 ```
 
+Note, if you are using the docker MySQL database, ensure that in `src/main/resources/db.properties` the property `db.url` is set to `db:3306`
+
 ## Development
 ### Running the database
 There is a docker compose file in the root of the project that will start a MySQL database. To start the database, run the following command (you will need docker installed):
