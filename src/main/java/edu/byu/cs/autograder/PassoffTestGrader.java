@@ -1,11 +1,14 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Phase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
 public abstract class PassoffTestGrader extends Grader {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
      * The path where the official tests are stored
@@ -75,6 +78,8 @@ public abstract class PassoffTestGrader extends Grader {
         try {
             Process process = processBuilder.start();
             if (process.waitFor() != 0) {
+                observer.notifyError("exited with non-zero exit code");
+                LOGGER.error("exited with non-zero exit code");
                 throw new RuntimeException("exited with non-zero exit code");
             }
         } catch (IOException | InterruptedException e) {

@@ -156,6 +156,7 @@ public abstract class Grader implements Runnable {
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
+            LOGGER.error("Failed to delete stage directory", e);
             throw new RuntimeException("Failed to delete stage directory: " + e.getMessage());
         }
     }
@@ -173,6 +174,8 @@ public abstract class Grader implements Runnable {
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
         } catch (GitAPIException e) {
+            observer.notifyError("Failed to clone repo: " + e.getMessage());
+            LOGGER.error("Failed to clone repo", e);
             throw new RuntimeException("Failed to clone repo: " + e.getMessage());
         }
 
@@ -196,10 +199,14 @@ public abstract class Grader implements Runnable {
 //                processBuilder.inheritIO();
                 Process process = processBuilder.start();
                 if (process.waitFor() != 0) {
-                    throw new RuntimeException("Unable to " + command + " repo");
+                    observer.notifyError("Failed to " + command + " repo");
+                    LOGGER.error("Failed to " + command + " repo");
+                    throw new RuntimeException("Failed to " + command + " repo");
                 }
             } catch (IOException | InterruptedException ex) {
-                throw new RuntimeException("Failed to package repo: " + ex.getMessage());
+                observer.notifyError("Failed to " + command + " repo: " + ex.getMessage());
+                LOGGER.error("Failed to " + command + " repo", ex);
+                throw new RuntimeException("Failed to " + command + " repo", ex);
             }
 
             observer.update("  Successfully ran maven " + command + " command");
