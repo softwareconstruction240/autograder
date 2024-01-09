@@ -15,6 +15,7 @@ public record Submission(
         Instant timestamp,
         Phase phase,
         Float score,
+        String notes,
         TestAnalyzer.TestNode testResults
 ) {
     public static class InstantAdapter extends TypeAdapter<Instant> {

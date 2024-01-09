@@ -50,6 +50,7 @@ public class SqlDb {
                                 `timestamp` DATETIME NOT NULL,
                                 `phase` VARCHAR(9) NOT NULL,
                                 `score` FLOAT NOT NULL,
+                                `notes` TEXT,
                                 `results` JSON,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
