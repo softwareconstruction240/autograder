@@ -42,7 +42,7 @@ Note, if you are using the docker MySQL database, ensure that in `src/main/resou
 ### Running the database
 There is a docker compose file in the root of the project that will start a MySQL database. To start the database, run the following command (you will need docker installed):
 ```bash
-docker compose db up -d
+docker compose up db -d
 ```
 
 Alternatively, you can run the database locally with your own MySQL server. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
