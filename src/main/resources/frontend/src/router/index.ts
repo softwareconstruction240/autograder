@@ -15,6 +15,8 @@ const router = createRouter({
             beforeEnter: (to, from) => {
                 if (!useAuthStore().isLoggedIn)
                     return '/login'
+                if (useAuthStore().user?.role === 'ADMIN')
+                    return '/admin'
             }
         },
         {
