@@ -69,7 +69,9 @@ public class CasController {
     private static String validateCasTicket(String ticket) throws IOException {
         String validationUrl = ConfigProperties.casServerUrl() + ConfigProperties.casServerServiceValidateEndpoint() +
                 "?ticket=" + ticket +
-                "&service=" + ConfigProperties.backendAppUrl() + "/auth/callback";
+//                "&service=" + ConfigProperties.backendAppUrl() + "/auth/callback";
+                "&service=" + ConfigProperties.casCallback();
+
 
         URI uri = URI.create(validationUrl);
         HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
