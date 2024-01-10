@@ -42,7 +42,7 @@ public class CasController {
         res.redirect(
                 ConfigProperties.casServerUrl() + ConfigProperties.casServerLoginEndpoint()
 //                        + ConfigProperties.backendAppUrl() + "/auth/callback");
-        + "&service=" + ConfigProperties.casCallback());
+        + "?service=" + ConfigProperties.casCallback());
         return null;
     };
 
