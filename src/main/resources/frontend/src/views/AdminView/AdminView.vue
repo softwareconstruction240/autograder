@@ -2,21 +2,25 @@
 
 import Tabs from "@/components/tabs/Tabs.vue";
 import Tab from "@/components/tabs/Tab.vue";
+import SubmissionsView from "@/views/AdminView/Submissions.vue";
+import Exceptions from "@/views/AdminView/Exceptions.vue";
+import AssignmentOptions from "@/views/AdminView/AssignmentOptions.vue";
+import Admins from "@/views/AdminView/Admins.vue";
 </script>
 
 <template>
   <Tabs>
     <Tab title="Submissions">
-      //view and manage student submissions
+      <SubmissionsView />
     </Tab>
     <Tab title="Exceptions">
-      //view and manage student exceptions such as late submissions, insufficient commits, etc.
+      <Exceptions />
     </Tab>
     <Tab title="Assignment Options">
-      //view and manage assignment options such as due dates, late penalties, etc.
+      <AssignmentOptions />
     </Tab>
     <Tab title="Admins">
-      //view and manage admins for the course
+      <Admins />
     </Tab>
   </Tabs>
 </template>
