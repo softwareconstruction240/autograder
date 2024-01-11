@@ -5,6 +5,7 @@ import edu.byu.cs.properties.ConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static edu.byu.cs.controller.AdminController.usersGet;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.SubmissionController.submissionXGet;
@@ -61,6 +62,8 @@ public class Server {
                     if (!req.requestMethod().equals("OPTIONS"))
                         verifyAdminMiddleware.handle(req, res);
                 });
+
+                get("/users", usersGet);
             });
         });
 
