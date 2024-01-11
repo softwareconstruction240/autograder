@@ -5,6 +5,8 @@ import edu.byu.cs.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class UserSqlDao implements UserDao {
     @Override
@@ -84,6 +86,33 @@ public class UserSqlDao implements UserDao {
             statement.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException("Error setting role", e);
+        }
+    }
+
+    @Override
+    public Collection<User> getUsers() {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT net_id, first_name, last_name, repo_url, role
+                            FROM user
+                            """);
+            ResultSet results = statement.executeQuery();
+
+            ArrayList<User> users = new ArrayList<>();
+            while (results.next()) {
+                users.add(new User(
+                        results.getString("net_id"),
+                        results.getString("first_name"),
+                        results.getString("last_name"),
+                        results.getString("repo_url"),
+                        User.Role.valueOf(results.getString("role"))
+                ));
+            }
+
+            return users;
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting users", e);
         }
     }
 }

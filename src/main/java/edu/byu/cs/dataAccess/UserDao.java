@@ -2,6 +2,8 @@ package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.model.User;
 
+import java.util.Collection;
+
 /**
  * A data access object for users.
  * This data source holds information about students and admins
@@ -38,4 +40,11 @@ public interface UserDao {
      * @param role  the role to set for the given netId
      */
     void setRole(String netId, User.Role role);
+
+    /**
+     * Gets all users
+     *
+     * @return all users
+     */
+    Collection<User> getUsers();
 }

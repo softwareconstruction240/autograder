@@ -3,6 +3,7 @@ package edu.byu.cs.dataAccess.memory;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserMemoryDao implements UserDao {
@@ -41,5 +42,10 @@ public class UserMemoryDao implements UserDao {
         User newUser = new User(oldUser.netId(), oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), role);
 
         users.put(netId, newUser);
+    }
+
+    @Override
+    public Collection<User> getUsers() {
+        return users.values();
     }
 }
