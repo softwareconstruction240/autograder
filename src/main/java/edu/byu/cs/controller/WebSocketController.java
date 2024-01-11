@@ -14,9 +14,7 @@ public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
 
     @OnWebSocketConnect
-    public void onConnect(Session session) {
-        LOGGER.info("Connected to " + session.getRemoteAddress());
-    }
+    public void onConnect(Session session) {}
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
@@ -24,7 +22,7 @@ public class WebSocketController {
 
     @OnWebSocketError
     public void onError(Session session, Throwable t) {
-        LOGGER.warn("WebSocket error: ", t);
+        LOGGER.error("WebSocket error: ", t);
     }
 
     @OnWebSocketMessage
@@ -60,7 +58,6 @@ public class WebSocketController {
      */
     public static void send(Session session, Map<String, Object> message) {
         String jsonMessage = new Gson().toJson(message);
-        LOGGER.info("Sending to " + session.getRemoteAddress() + ":\n" + jsonMessage);
         try {
             session.getRemote().sendString(jsonMessage);
         } catch (Exception e) {

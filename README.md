@@ -90,3 +90,12 @@ Alternatively, you can run the database locally with your own MySQL server. Be s
       "message": "Something went wrong"
     }
     ```
+
+
+## Enabling Logging
+
+To enable logging, add arguments `-Dlog4j2.configurationFile=log4j.properties -Dlog4j2.debug=false` as vm options.
+
+In IntelliJ, Go into the run configuration you want to use -> `Modify Options` -> `Add VM options`. This will reveal an additional box inside of the edit menu. Paste the arguments into the box.
+
+If running from the command line, add the arguments immediately after the `java` command.

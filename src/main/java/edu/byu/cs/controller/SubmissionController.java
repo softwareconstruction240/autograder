@@ -9,6 +9,8 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.io.IOException;
@@ -21,6 +23,8 @@ import java.util.Map;
 import static spark.Spark.halt;
 
 public class SubmissionController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
     public static Route submitPost = (req, res) -> {
 
@@ -55,6 +59,8 @@ public class SubmissionController {
             return null;
         }
 
+        LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
+
         TrafficController.queue.add(netId);
         TrafficController.sessions.put(netId, new ArrayList<>());
 
@@ -64,6 +70,7 @@ public class SubmissionController {
             TrafficController.getInstance().addGrader(grader);
 
         } catch (Exception e) {
+            LOGGER.error("Something went wrong submitting", e);
             halt(500, "Something went wrong");
         }
 
