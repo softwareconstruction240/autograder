@@ -111,8 +111,7 @@ public abstract class Grader implements Runnable {
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
 
-            //TODO: add user context to error message
-            LOGGER.error("Error running grader for " + repoUrl, e);
+            LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             removeStage();
         }
@@ -188,7 +187,7 @@ public abstract class Grader implements Runnable {
     protected void packageRepo() {
         observer.update("Packaging repo...");
 
-        String[] commands = new String[]{"compile", "package"};
+        String[] commands = new String[]{"package"};
 
         for (String command : commands) {
             observer.update("  Running maven " + command + " command...");

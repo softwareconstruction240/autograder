@@ -27,6 +27,7 @@ public class CasController {
             return null;
         }
 
+        LOGGER.info(netId + " logged in");
         // FIXME: secure cookie with httpOnly
         res.cookie("/", "token", generateToken(netId), 14400, false, false);
         res.redirect(ConfigProperties.frontendAppUrl(), 302);

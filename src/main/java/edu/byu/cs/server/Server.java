@@ -13,7 +13,6 @@ import static spark.Spark.*;
 
 public class Server {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) {
 
@@ -55,12 +54,6 @@ public class Server {
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
-        });
-        before((request, response) -> {
-            LOGGER.info("Received from " + request.ip() + ":\n" + request.body());
-        });
-        afterAfter((request, response) -> {
-            LOGGER.info("Sent to " + request.ip() + ":\n" + response.body());
         });
         init();
     }
