@@ -11,16 +11,21 @@ import Admins from "@/views/AdminView/Admins.vue";
 <template>
   <Tabs>
     <Tab title="Submissions">
-      <SubmissionsView />
+      <SubmissionsView/>
     </Tab>
     <Tab title="Exceptions">
-      <Exceptions />
+      <Exceptions/>
     </Tab>
     <Tab title="Assignment Options">
-      <AssignmentOptions />
+      <AssignmentOptions/>
     </Tab>
     <Tab title="Admins">
-      <Admins />
+      <Suspense>
+        <Admins/>
+        <template #fallback>
+          <div>Loading...</div>
+        </template>
+      </Suspense>
     </Tab>
   </Tabs>
 </template>
