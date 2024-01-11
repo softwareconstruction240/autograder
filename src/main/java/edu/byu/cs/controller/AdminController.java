@@ -14,6 +14,7 @@ public class AdminController {
 
         Collection<User> users = userDao.getUsers();
 
+        res.type("application/json");
         res.status(200);
 
         return new Gson().toJson(users);
