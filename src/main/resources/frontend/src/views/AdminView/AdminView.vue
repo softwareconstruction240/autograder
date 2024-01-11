@@ -5,7 +5,7 @@ import Tab from "@/components/tabs/Tab.vue";
 import SubmissionsView from "@/views/AdminView/Submissions.vue";
 import Exceptions from "@/views/AdminView/Exceptions.vue";
 import AssignmentOptions from "@/views/AdminView/AssignmentOptions.vue";
-import Admins from "@/views/AdminView/Admins.vue";
+import Admins from "@/views/AdminView/Admins/Admins.vue";
 </script>
 
 <template>
