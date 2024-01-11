@@ -55,7 +55,15 @@ public class Server {
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
+
+            path("/admin", () -> {
+                before("/*", (req, res) -> {
+                    if (!req.requestMethod().equals("OPTIONS"))
+                        verifyAdminMiddleware.handle(req, res);
+                });
+            });
         });
+
         before((request, response) -> {
             LOGGER.info("Received from " + request.ip() + ":\n" + request.body());
         });

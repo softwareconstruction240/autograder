@@ -42,6 +42,14 @@ public class AuthController {
         req.session().attribute("user", user);
     };
 
+    public static Filter verifyAdminMiddleware = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        if (user.role() != User.Role.ADMIN) {
+            halt(403);
+        }
+    };
+
     public static Route registerPost = (req, res) -> {
         String token = req.cookie("token");
 
