@@ -18,7 +18,7 @@ const itemSelected = (item: ItemType) => {
   <div id="container">
     <div>
       <SearchableList
-          :items="useAdminStore().students.map(student => ({label: student.netId}))"
+          :items="useAdminStore().students.map(student => ({label: `${student.firstName} ${student.lastName} - ${student.netId}`}))"
           @itemSelected="itemSelected"
       />
     </div>
