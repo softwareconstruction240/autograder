@@ -14,6 +14,14 @@ const makeAdmin = async (user: User) => {
   await useAdminStore().updateUsers();
 }
 
+const removeAdmin = async (user: User) => {
+  await userPatch({
+    netId: user.netId,
+    role: 'STUDENT'
+  })
+  await useAdminStore().updateUsers();
+}
+
 
 </script>
 
@@ -31,10 +39,14 @@ const makeAdmin = async (user: User) => {
       />
     </div>
     <div>
+      <h3>Admins</h3>
       <ul>
         <li v-for="admin in useAdminStore().admins.sort(
             (user1, user2) => user1.firstName < user2.firstName ? -1 : 1)"
             :key="admin.netId">
+          <i class="remove"
+             @click="() => removeAdmin(admin)">
+            X</i>
           {{ admin.firstName }} {{ admin.lastName }} ({{ admin.netId }})
         </li>
       </ul>
@@ -57,5 +69,19 @@ const makeAdmin = async (user: User) => {
   font-weight: bold;
 
   text-align: start;
+}
+
+.remove {
+  color: red;
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: darkred;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 5px;
 }
 </style>
