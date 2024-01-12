@@ -1,5 +1,6 @@
 package edu.byu.cs.dataAccess.sql;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
@@ -24,7 +25,7 @@ public class UserSqlDao implements UserDao {
             statement.setString(5, user.role().toString());
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error inserting user", e);
+            throw new DataAccessException("Error inserting user", e);
         }
     }
 
@@ -51,7 +52,41 @@ public class UserSqlDao implements UserDao {
                 return null;
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error getting user", e);
+            throw new DataAccessException("Error getting user", e);
+        }
+    }
+
+    @Override
+    public void setFirstName(String netId, String firstName) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            UPDATE user
+                            SET first_name = ?
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, firstName);
+            statement.setString(2, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error setting first name", e);
+        }
+    }
+
+    @Override
+    public void setLastName(String netId, String lastName) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            UPDATE user
+                            SET last_name = ?
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, lastName);
+            statement.setString(2, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error setting last name", e);
         }
     }
 
@@ -68,7 +103,7 @@ public class UserSqlDao implements UserDao {
             statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error setting repo url", e);
+            throw new DataAccessException("Error setting repo url", e);
         }
     }
 
@@ -85,7 +120,7 @@ public class UserSqlDao implements UserDao {
             statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error setting role", e);
+            throw new DataAccessException("Error setting role", e);
         }
     }
 
@@ -112,7 +147,7 @@ public class UserSqlDao implements UserDao {
 
             return users;
         } catch (Exception e) {
-            throw new RuntimeException("Error getting users", e);
+            throw new DataAccessException("Error getting users", e);
         }
     }
 }

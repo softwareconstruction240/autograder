@@ -26,6 +26,22 @@ public interface UserDao {
     User getUser(String netId);
 
     /**
+     * Sets the first name for the given netId
+     *
+     * @param netId
+     * @param firstName
+     */
+    void setFirstName(String netId, String firstName);
+
+    /**
+     * Sets the last name for the given netId
+     *
+     * @param netId
+     * @param lastName
+     */
+    void setLastName(String netId, String lastName);
+
+    /**
      * Sets the repoUrl for the given netId
      *
      * @param netId   the netId to set the repoUrl for
