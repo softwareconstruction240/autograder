@@ -24,13 +24,10 @@ public class AdminController {
     };
 
     public static Route userPatch = (req, res) -> {
-        if (req.queryParams(":netId") == null) {
-            halt(400, "netId is required");
-            return null;
-        }
+        String netId = req.params(":netId");
 
         UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(req.params(":netId"));
+        User user = userDao.getUser(netId);
         if (user == null) {
             halt(404, "user not found");
             return null;
@@ -60,6 +57,6 @@ public class AdminController {
 
         res.status(204);
 
-        return null;
+        return "";
     };
 }
