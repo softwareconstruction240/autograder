@@ -23,6 +23,28 @@ public class UserMemoryDao implements UserDao {
     }
 
     @Override
+    public void setFirstName(String netId, String firstName) {
+        if (!users.containsKey(netId))
+            throw new IllegalArgumentException("User does not exist");
+
+        User oldUser = users.get(netId);
+        User newUser = new User(oldUser.netId(), firstName, oldUser.lastName(), oldUser.repoUrl(), oldUser.role());
+
+        users.put(netId, newUser);
+    }
+
+    @Override
+    public void setLastName(String netId, String lastName) {
+        if (!users.containsKey(netId))
+            throw new IllegalArgumentException("User does not exist");
+
+        User oldUser = users.get(netId);
+        User newUser = new User(oldUser.netId(), oldUser.firstName(), lastName, oldUser.repoUrl(), oldUser.role());
+
+        users.put(netId, newUser);
+    }
+
+    @Override
     public void setRepoUrl(String netId, String repoUrl) {
         if (!users.containsKey(netId))
             throw new IllegalArgumentException("User does not exist");
