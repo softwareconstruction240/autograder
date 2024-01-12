@@ -47,4 +47,8 @@ public class ConfigProperties {
     public static String casServerServiceValidateEndpoint() {
         return INSTANCE.props.getProperty("cas_server.service_validate_endpoint");
     }
+
+    public static String casCallback() {
+        return INSTANCE.props.getProperty("backend_app.cas_callback_url");
+    }
 }

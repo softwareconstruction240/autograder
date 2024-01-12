@@ -27,6 +27,7 @@ public class CasController {
             return null;
         }
 
+        LOGGER.info(netId + " logged in");
         // FIXME: secure cookie with httpOnly
         res.cookie("/", "token", generateToken(netId), 14400, false, false);
         res.redirect(ConfigProperties.frontendAppUrl(), 302);
@@ -40,8 +41,8 @@ public class CasController {
             return null;
         }
         res.redirect(
-                ConfigProperties.casServerUrl() + ConfigProperties.casServerLoginEndpoint() + "?service="
-                        + ConfigProperties.backendAppUrl() + "/auth/callback");
+                ConfigProperties.casServerUrl() + ConfigProperties.casServerLoginEndpoint()
+                        + "?service=" + ConfigProperties.casCallback());
         return null;
     };
 
@@ -69,7 +70,8 @@ public class CasController {
     private static String validateCasTicket(String ticket) throws IOException {
         String validationUrl = ConfigProperties.casServerUrl() + ConfigProperties.casServerServiceValidateEndpoint() +
                 "?ticket=" + ticket +
-                "&service=" + ConfigProperties.backendAppUrl() + "/auth/callback";
+                "&service=" + ConfigProperties.casCallback();
+
 
         URI uri = URI.create(validationUrl);
         HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();

@@ -5,6 +5,8 @@ import edu.byu.cs.controller.netmodel.RegisterRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Route;
 
@@ -13,6 +15,8 @@ import static edu.byu.cs.model.User.Role.STUDENT;
 import static spark.Spark.halt;
 
 public class AuthController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+
     /**
      * A filter that verifies that the request has a valid JWT in the Authorization header.
      * If the request is valid, the netId is added to the session for later use.
@@ -88,6 +92,7 @@ public class AuthController {
             return null;
         }
 
+        LOGGER.info("Registered " + newUser);
         res.status(200);
         return "";
     };
