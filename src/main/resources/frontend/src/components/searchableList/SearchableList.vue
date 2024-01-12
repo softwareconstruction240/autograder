@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  itemSelected: [item: ItemType]
+  itemSelected: [item: any]
 }>();
 
 const filterText = ref('')
@@ -35,7 +35,7 @@ const isInputFocused = ref(false);
         <li
             v-for="item in filteredItems"
             :key="item.label"
-            @click="$emit('itemSelected', item)">
+            @click="$emit('itemSelected', item.item)">
           {{ item.label }}
         </li>
       </ul>
