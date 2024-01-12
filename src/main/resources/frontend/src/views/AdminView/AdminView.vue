@@ -9,26 +9,31 @@ import Admins from "@/views/AdminView/Admins/Admins.vue";
 </script>
 
 <template>
-  <Tabs>
-    <Tab title="Submissions">
-      <SubmissionsView/>
-    </Tab>
-    <Tab title="Exceptions">
-      <Exceptions/>
-    </Tab>
-    <Tab title="Assignment Options">
-      <AssignmentOptions/>
-    </Tab>
-    <Tab title="Admins">
-      <Suspense>
-        <Admins/>
-        <template #fallback>
-          <div>Loading...</div>
-        </template>
-      </Suspense>
-    </Tab>
-  </Tabs>
+  <div class="container">
+    <Tabs>
+      <Tab title="Submissions">
+        <SubmissionsView/>
+      </Tab>
+      <Tab title="Exceptions">
+        <Exceptions/>
+      </Tab>
+      <Tab title="Assignment Options">
+        <AssignmentOptions/>
+      </Tab>
+      <Tab title="Admins">
+        <Suspense>
+          <Admins/>
+          <template #fallback>
+            <div>Loading...</div>
+          </template>
+        </Suspense>
+      </Tab>
+    </Tabs>
+  </div>
 </template>
 
 <style scoped>
+.container {
+  min-height: 50vh;
+}
 </style>
