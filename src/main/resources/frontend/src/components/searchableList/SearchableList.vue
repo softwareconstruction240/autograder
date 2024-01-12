@@ -18,6 +18,7 @@ const filteredItems = computed(() => {
 });
 
 const isInputFocused = ref(false);
+const isHoverOverList = ref(false);
 </script>
 
 <template>
@@ -26,12 +27,14 @@ const isInputFocused = ref(false);
         v-model="filterText"
         type="text" placeholder="Search..."
         @focus="() => isInputFocused = true"
-        @blur="() => isInputFocused = false"/>
+        @blur="() => isInputFocused = false"
+    />
     <div
         class="suggestions-container"
-        :class="{hidden: !isInputFocused}"
+        :class="{hidden: !isInputFocused && !isHoverOverList}"
     >
-      <ul>
+      <ul @mouseenter="() => isHoverOverList = true"
+          @mouseleave="() => isHoverOverList = false">
         <li
             v-for="item in filteredItems"
             :key="item.label"
