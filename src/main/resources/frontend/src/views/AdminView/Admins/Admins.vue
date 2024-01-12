@@ -1,31 +1,39 @@
 <script setup lang="ts">
-import {usersGet} from "@/services/adminService";
+import {userPatch} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import SearchableList from "@/components/searchableList/SearchableList.vue";
-import type {ItemType} from "@/components/searchableList/ItemType";
+import type {User} from "@/types/types";
 
-usersGet().then((users) => {
-  useAdminStore().users = users;
-});
+useAdminStore().updateUsers();
 
-const itemSelected = (item: ItemType) => {
+const makeAdmin = async (user: User) => {
+  await userPatch({
+    netId: user.netId,
+    role: 'ADMIN'
+  })
+  await useAdminStore().updateUsers();
 }
 
 
 </script>
 
 <template>
-  <div id="container">
+  <div class="container">
     <div>
+      <p class="search-label-text">Selecting a user from the list will make them an admin.</p>
       <SearchableList
-          :items="useAdminStore().students.map(student => ({label: `${student.firstName} ${student.lastName} - ${student.netId}`}))"
-          @itemSelected="itemSelected"
+          :items="useAdminStore().students.map(student => (
+              {
+                label: `${student.firstName} ${student.lastName} - ${student.netId}`,
+                item: student
+              }))"
+          @itemSelected="makeAdmin"
       />
     </div>
     <div>
       <ul>
-        <li v-for="admin in useAdminStore().admins" :key="admin.netId" >
-<!--          {{ admin.firstName }} {{ admin.lastName }}-->
+        <li v-for="admin in useAdminStore().admins" :key="admin.netId">
+          {{ admin.firstName }} {{ admin.lastName }}
         </li>
       </ul>
     </div>
@@ -34,9 +42,18 @@ const itemSelected = (item: ItemType) => {
 
 <style scoped>
 /* two columns */
-#container {
+.container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 10px;
+
+  padding: 5px;
+}
+
+.search-label-text {
+  font-size: 1rem;
+  font-weight: bold;
+
+  text-align: start;
 }
 </style>
