@@ -32,7 +32,7 @@ public class Server {
 
         before((request, response) -> {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
             response.header("Access-Control-Allow-Credentials", "true");
             response.header("Access-Control-Allow-Origin", ConfigProperties.frontendAppUrl());
         });
