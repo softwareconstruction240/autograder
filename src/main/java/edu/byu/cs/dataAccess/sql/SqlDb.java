@@ -49,6 +49,7 @@ public class SqlDb {
                                 `head_hash` VARCHAR(40) NOT NULL,
                                 `timestamp` DATETIME NOT NULL,
                                 `phase` VARCHAR(9) NOT NULL,
+                                `passed` BOOL NOT NULL,
                                 `score` FLOAT NOT NULL,
                                 `notes` TEXT,
                                 `results` JSON,

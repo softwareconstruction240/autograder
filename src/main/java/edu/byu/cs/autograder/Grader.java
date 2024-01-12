@@ -128,6 +128,7 @@ public abstract class Grader implements Runnable {
                 headHash,
                 Instant.now(),
                 phase,
+                results.numTestsFailed == 0,
                 getScore(results),
                 getNotes(results),
                 results
@@ -213,7 +214,7 @@ public abstract class Grader implements Runnable {
             processBuilder.directory(new File(stageRepoPath));
             processBuilder.command("mvn", command);
             try {
-//                processBuilder.inheritIO();
+                processBuilder.inheritIO();
                 Process process = processBuilder.start();
                 if (process.waitFor() != 0) {
                     observer.notifyError("Failed to " + command + " repo");

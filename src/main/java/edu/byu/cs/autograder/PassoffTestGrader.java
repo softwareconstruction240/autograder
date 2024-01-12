@@ -21,7 +21,7 @@ public abstract class PassoffTestGrader extends Grader {
     private final File stageTestsPath;
 
     /**
-     * Creates a new grader for phase 1
+     * Creates a new grader for phase X
      *
      * @param phaseResources the path to the phase resources
      * @param netId          the netId of the student
@@ -61,7 +61,7 @@ public abstract class PassoffTestGrader extends Grader {
         ProcessBuilder processBuilder =
                 new ProcessBuilder()
                         .directory(phaseTests)
-//                        .inheritIO() // TODO: implement better logging
+                        .inheritIO() // TODO: implement better logging
                         .command("find",
                                 "passoffTests",
                                 "-name",

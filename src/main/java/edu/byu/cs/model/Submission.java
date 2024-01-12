@@ -14,6 +14,7 @@ public record Submission(
         String headHash,
         Instant timestamp,
         Phase phase,
+        Boolean passed,
         Float score,
         String notes,
         TestAnalyzer.TestNode testResults
