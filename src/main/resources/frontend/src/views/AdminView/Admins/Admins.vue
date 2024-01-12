@@ -32,8 +32,10 @@ const makeAdmin = async (user: User) => {
     </div>
     <div>
       <ul>
-        <li v-for="admin in useAdminStore().admins" :key="admin.netId">
-          {{ admin.firstName }} {{ admin.lastName }}
+        <li v-for="admin in useAdminStore().admins.sort(
+            (user1, user2) => user1.firstName < user2.firstName ? -1 : 1)"
+            :key="admin.netId">
+          {{ admin.firstName }} {{ admin.lastName }} ({{ admin.netId }})
         </li>
       </ul>
     </div>
