@@ -3,6 +3,7 @@ package edu.byu.cs.dataAccess.memory;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserMemoryDao implements UserDao {
@@ -19,6 +20,28 @@ public class UserMemoryDao implements UserDao {
     @Override
     public User getUser(String netId) {
         return users.get(netId);
+    }
+
+    @Override
+    public void setFirstName(String netId, String firstName) {
+        if (!users.containsKey(netId))
+            throw new IllegalArgumentException("User does not exist");
+
+        User oldUser = users.get(netId);
+        User newUser = new User(oldUser.netId(), firstName, oldUser.lastName(), oldUser.repoUrl(), oldUser.role());
+
+        users.put(netId, newUser);
+    }
+
+    @Override
+    public void setLastName(String netId, String lastName) {
+        if (!users.containsKey(netId))
+            throw new IllegalArgumentException("User does not exist");
+
+        User oldUser = users.get(netId);
+        User newUser = new User(oldUser.netId(), oldUser.firstName(), lastName, oldUser.repoUrl(), oldUser.role());
+
+        users.put(netId, newUser);
     }
 
     @Override
@@ -41,5 +64,10 @@ public class UserMemoryDao implements UserDao {
         User newUser = new User(oldUser.netId(), oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), role);
 
         users.put(netId, newUser);
+    }
+
+    @Override
+    public Collection<User> getUsers() {
+        return users.values();
     }
 }

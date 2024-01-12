@@ -1,5 +1,5 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import {ref, computed} from 'vue'
+import {defineStore} from 'pinia'
 
 type User = {
     repoUrl: string
@@ -10,10 +10,10 @@ type User = {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
+    const user = ref<User | null>(null)
 
     const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1] || '';
 
-  const isLoggedIn = computed(() => user.value !== null)
-  return { user, token, isLoggedIn }
+    const isLoggedIn = computed(() => user.value !== null)
+    return {user, token, isLoggedIn}
 })

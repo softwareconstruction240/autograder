@@ -5,6 +5,8 @@ import edu.byu.cs.properties.ConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static edu.byu.cs.controller.AdminController.userPatch;
+import static edu.byu.cs.controller.AdminController.usersGet;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.SubmissionController.submissionXGet;
@@ -29,7 +31,7 @@ public class Server {
 
         before((request, response) -> {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
             response.header("Access-Control-Allow-Credentials", "true");
             response.header("Access-Control-Allow-Origin", ConfigProperties.frontendAppUrl());
         });
@@ -54,6 +56,17 @@ public class Server {
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
+
+            path("/admin", () -> {
+                before("/*", (req, res) -> {
+                    if (!req.requestMethod().equals("OPTIONS"))
+                        verifyAdminMiddleware.handle(req, res);
+                });
+
+                get("/users", usersGet);
+
+                patch("/user/:netId", userPatch);
+            });
         });
         init();
     }

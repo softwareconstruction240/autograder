@@ -20,3 +20,11 @@ export type Submission = {
     notes: string,
     testResults: TestResult,
 }
+
+export type User = {
+    netId: string,
+    firstName: string,
+    lastName: string,
+    repoUrl: string,
+    role: 'STUDENT' | 'ADMIN'
+}

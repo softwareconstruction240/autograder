@@ -1,10 +1,13 @@
 package edu.byu.cs.dataAccess.sql;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class UserSqlDao implements UserDao {
     @Override
@@ -22,7 +25,7 @@ public class UserSqlDao implements UserDao {
             statement.setString(5, user.role().toString());
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error inserting user", e);
+            throw new DataAccessException("Error inserting user", e);
         }
     }
 
@@ -49,7 +52,41 @@ public class UserSqlDao implements UserDao {
                 return null;
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error getting user", e);
+            throw new DataAccessException("Error getting user", e);
+        }
+    }
+
+    @Override
+    public void setFirstName(String netId, String firstName) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            UPDATE user
+                            SET first_name = ?
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, firstName);
+            statement.setString(2, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error setting first name", e);
+        }
+    }
+
+    @Override
+    public void setLastName(String netId, String lastName) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            UPDATE user
+                            SET last_name = ?
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, lastName);
+            statement.setString(2, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error setting last name", e);
         }
     }
 
@@ -66,7 +103,7 @@ public class UserSqlDao implements UserDao {
             statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error setting repo url", e);
+            throw new DataAccessException("Error setting repo url", e);
         }
     }
 
@@ -83,7 +120,34 @@ public class UserSqlDao implements UserDao {
             statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException("Error setting role", e);
+            throw new DataAccessException("Error setting role", e);
+        }
+    }
+
+    @Override
+    public Collection<User> getUsers() {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT net_id, first_name, last_name, repo_url, role
+                            FROM user
+                            """);
+            ResultSet results = statement.executeQuery();
+
+            ArrayList<User> users = new ArrayList<>();
+            while (results.next()) {
+                users.add(new User(
+                        results.getString("net_id"),
+                        results.getString("first_name"),
+                        results.getString("last_name"),
+                        results.getString("repo_url"),
+                        User.Role.valueOf(results.getString("role"))
+                ));
+            }
+
+            return users;
+        } catch (Exception e) {
+            throw new DataAccessException("Error getting users", e);
         }
     }
 }
