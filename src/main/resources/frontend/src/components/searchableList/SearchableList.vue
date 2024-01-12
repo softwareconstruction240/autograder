@@ -14,7 +14,7 @@ defineEmits<{
 const filterText = ref('')
 
 const filteredItems = computed(() => {
-  return props.items.filter(item => item.label.includes(filterText.value))
+  return props.items.filter(item => item.label.toLowerCase().includes(filterText.value.toLowerCase()))
 });
 
 const isInputFocused = ref(false);
