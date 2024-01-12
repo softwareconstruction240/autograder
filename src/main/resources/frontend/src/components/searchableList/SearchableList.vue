@@ -16,14 +16,21 @@ const filterText = ref('')
 const filteredItems = computed(() => {
   return props.items.filter(item => item.label.includes(filterText.value))
 });
+
+const isInputFocused = ref(false);
 </script>
 
 <template>
   <div class="container">
-    <div class="search-container">
-      <input v-model="filterText" type="text" placeholder="Search..."/>
-    </div>
-    <div>
+    <input
+        v-model="filterText"
+        type="text" placeholder="Search..."
+        @focus="() => isInputFocused = true"
+        @blur="() => isInputFocused = false"/>
+    <div
+        class="suggestions-container"
+        :class="{hidden: !isInputFocused}"
+    >
       <ul>
         <li
             v-for="item in filteredItems"
@@ -37,16 +44,24 @@ const filteredItems = computed(() => {
 </template>
 
 <style scoped>
+
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  position: relative;
 }
 
-.search-container {
-  /* center */
-  display: flex;
-  justify-content: center;
+.suggestions-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  z-index: 1;
+}
+
+.hidden {
+  display: none;
 }
 
 input[type="text"] {
@@ -61,8 +76,8 @@ ul {
 
 li {
   cursor: pointer;
-  background-color: white;
-  text-align: center;
+  padding: 2px;
+
 }
 
 li:not(:first-child) {
@@ -72,4 +87,5 @@ li:not(:first-child) {
 li:hover {
   background-color: #eee;
 }
+
 </style>
