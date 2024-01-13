@@ -21,10 +21,17 @@ src/ - you know what this is for 😉
 ```
 
 ## Deployment
-Before running the server, three configuration files need to be modified to match your environment:
-1. `src/main/resources/db.properties` - contains the database url, username, and password
-2. `src/main/resources/config.properties` - contains the frontend and backend urls
-3. `src/main/resources/frontend/.env.prod` - contains the url of the backend
+Before running the server, two configuration files need to be modified to match your environment:
+1. `src/main/resources/config.properties` - contains the frontend and backend urls
+2. `src/main/resources/frontend/.env.prod` - contains the url of the backend
+
+In addition to these config files, the following environment variables must be set:
+```
+DB_URL=<host>:<port>
+DB_USER=<user>
+DB_PASSWORD=<password>
+DB_NAME=autograder
+```
 
 ### Docker
 For a docker deployment, run one of the following commands:
