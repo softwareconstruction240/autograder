@@ -8,39 +8,39 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class DbProperties {
-    private static final DbProperties INSTANCE = new DbProperties();
-    private final Properties props;
     private static final Logger LOGGER = LoggerFactory.getLogger(DbProperties.class);
 
-    private DbProperties() {
-        props = new Properties();
-        createInstance();
-    }
+    private static final String DB_URL;
+    private static final String DB_USER;
+    private static final String DB_PASSWORD;
+    private static final String DB_NAME;
 
-    private void createInstance() {
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("db.properties")) {
-            props.load(input);
+    static {
+        DB_URL = System.getenv("DB_URL");
+        DB_USER = System.getenv("DB_USER");
+        DB_PASSWORD = System.getenv("DB_PASSWORD");
+        DB_NAME = System.getenv("DB_NAME");
 
-        } catch (IOException ex) {
-            LOGGER.error("Error loading properties file", ex);
+        if (DB_URL == null || DB_USER == null || DB_PASSWORD == null || DB_NAME == null) {
+            LOGGER.error("DB_URL, DB_USER, DB_PASSWORD, and DB_NAME must be set as environment variables.");
             System.exit(1);
         }
     }
 
     public static String dbUrl() {
-        return INSTANCE.props.getProperty("db.url");
+        return DB_URL;
     }
 
     public static String dbUser() {
-        return INSTANCE.props.getProperty("db.user");
+        return DB_USER;
     }
 
     public static String dbPassword() {
-        return INSTANCE.props.getProperty("db.password");
+        return DB_PASSWORD;
     }
 
     public static String dbName() {
-        return INSTANCE.props.getProperty("db.name");
+        return DB_NAME;
     }
 
 
