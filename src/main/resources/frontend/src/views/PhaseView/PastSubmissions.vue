@@ -17,7 +17,7 @@ useSubmissionStore().getSubmissions(props.phase);
 const isPassFail = props.phase !== '6';
 
 const passFail = (submission: Submission) => {
-  return submission.score === 1 ? 'Pass' : 'Fail';
+  return submission.score >= 1 ? 'Pass' : 'Fail';
 }
 
 const submissionsByPhaseDesc = computed(() => {

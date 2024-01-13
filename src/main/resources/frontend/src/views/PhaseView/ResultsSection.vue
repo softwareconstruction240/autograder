@@ -17,7 +17,11 @@ const prettifyResults = (node: TestResult, indent: string) => {
       result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
     }
   } else {
-    result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
+    if (node.ecCategory !== undefined) {
+      result += ` (${node.numExtraCreditPassed} passed, ${node.numExtraCreditFailed} failed)`
+    } else {
+      result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
+    }
   }
   result += "<br/>";
 
