@@ -84,7 +84,7 @@ public class AuthController {
         }
 
         UserDao userDao = DaoService.getUserDao();
-        User newUser = new User(netId, registerRequest.firstName(), registerRequest.lastName(), registerRequest.repoUrl(), STUDENT);
+        User newUser = new User(netId, 0, registerRequest.firstName(), registerRequest.lastName(), registerRequest.repoUrl(), STUDENT);
         try {
             userDao.insertUser(newUser);
         } catch (Exception e) {

@@ -149,7 +149,7 @@ public abstract class Grader implements Runnable {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
-        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 129390; //Test Student
+        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130042; //Test Student
 
         //FIXME
         int assignmentNum = switch (phase) {
