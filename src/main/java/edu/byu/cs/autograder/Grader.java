@@ -118,12 +118,7 @@ public abstract class Grader implements Runnable {
     }
 
     private void saveResults(TestAnalyzer.TestNode results) {
-        String headHash;
-        try (Git git = Git.open(new File(stageRepoPath))) {
-            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to get head hash: " + e.getMessage());
-        }
+        String headHash = getHeadHash();
 
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
@@ -138,6 +133,16 @@ public abstract class Grader implements Runnable {
                 results
         );
         submissionDao.insertSubmission(submission);
+    }
+
+    private String getHeadHash() {
+        String headHash;
+        try (Git git = Git.open(new File(stageRepoPath))) {
+            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to get head hash: " + e.getMessage());
+        }
+        return headHash;
     }
 
     /**
@@ -176,6 +181,19 @@ public abstract class Grader implements Runnable {
             observer.notifyError("Failed to clone repo: " + e.getMessage());
             LOGGER.error("Failed to clone repo", e);
             throw new RuntimeException("Failed to clone repo: " + e.getMessage());
+        }
+
+        // check if the commit hash is different from the last time we graded this repo
+        String headHash = getHeadHash();
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Submission submission = submissionDao.getSubmissionsForPhase(netId, phase).stream()
+                .filter(s -> s.headHash().equals(headHash))
+                .findFirst()
+                .orElse(null);
+        if (submission != null) {
+            observer.notifyError("No change made since last submission. Aborting grading.");
+            LOGGER.error("No change made since last submission. Aborting grading. Hash: " + headHash);
+            throw new RuntimeException("No change made since last submission. Aborting grading.");
         }
 
         observer.update("Successfully fetched repo");
