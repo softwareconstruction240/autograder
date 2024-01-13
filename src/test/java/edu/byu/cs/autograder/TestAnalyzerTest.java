@@ -1,11 +1,21 @@
 package edu.byu.cs.autograder;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TestAnalyzerTest {
+
+    private Set<String> extraCreditTests;
+
+    @BeforeEach
+    void setup() {
+        extraCreditTests = new HashSet<>();
+    }
 
     @Test
     @DisplayName("All tests pass")
@@ -18,7 +28,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -56,7 +66,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -107,7 +117,7 @@ class TestAnalyzerTest {
 
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(3, root.children.get("PawnMoveTests").children.size());
@@ -141,7 +151,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -177,7 +187,7 @@ class TestAnalyzerTest {
                 [        47 tests failed          ]
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -209,7 +219,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals(2, root.numTestsPassed);
         assertEquals(1, root.numTestsFailed);
@@ -232,9 +242,47 @@ class TestAnalyzerTest {
                 [32mJUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: SUCCESSFUL[0m
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"));
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("QueenMoveTests").children.size());
+    }
+
+    @Test
+    @DisplayName("Extra credit all successful")
+    void parse__ec_all_success() {
+        String testsPassingInput =
+                """
+                JUnit Jupiter > CastlingTests > Cannot Castle in Check :: STARTED
+                JUnit Jupiter > CastlingTests > Cannot Castle in Check :: SUCCESSFUL
+                JUnit Jupiter > CastlingTests > Black Team Castle :: STARTED
+                JUnit Jupiter > CastlingTests > Black Team Castle :: SUCCESSFUL
+                JUnit Jupiter > CastlingTests > White Team Castle :: STARTED
+                JUnit Jupiter > CastlingTests > White Team Castle :: SUCCESSFUL
+                JUnit Jupiter > EnPassantTests > Black En Passant Left :: STARTED
+                JUnit Jupiter > EnPassantTests > Black En Passant Left :: SUCCESSFUL
+                JUnit Jupiter > EnPassantTests > White En Passant Right :: STARTED
+                JUnit Jupiter > EnPassantTests > White En Passant Right :: SUCCESSFUL
+                JUnit Jupiter > EnPassantTests > White En Passant Left :: STARTED
+                JUnit Jupiter > EnPassantTests > White En Passant Left :: SUCCESSFUL
+                JUnit Jupiter > ChessGameTests > Black in Check :: STARTED
+                JUnit Jupiter > ChessGameTests > Black in Check :: SUCCESSFUL
+                JUnit Jupiter > ChessGameTests > White in Checkmate :: STARTED
+                JUnit Jupiter > ChessGameTests > White in Checkmate :: SUCCESSFUL
+                JUnit Jupiter > ChessGameTests > Normal Make Move :: STARTED
+                JUnit Jupiter > ChessGameTests > Normal Make Move :: SUCCESSFUL
+                JUnit Jupiter > ChessGameTests > White in Check :: STARTED
+                JUnit Jupiter > ChessGameTests > White in Check :: SUCCESSFUL
+                """;
+        extraCreditTests.add("CastlingTests");
+        extraCreditTests.add("EnPassantTests");
+
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests);
+        assertEquals("JUnit Jupiter", root.testName);
+        assertEquals(4, root.numTestsPassed);
+        assertEquals(6, root.numExtraCreditPassed);
+        assertEquals("CastlingTests", root.children.get("CastlingTests").ecCategory);
+        assertEquals("EnPassantTests", root.children.get("EnPassantTests").ecCategory);
+        assertNull(root.children.get("ChessGameTests").ecCategory);
     }
 }
