@@ -24,10 +24,12 @@ onMounted(() => {
       case 'update':
         status.value =  messageData.message;
         return;
-      case 'results' || 'error':
+      case 'results':
         status.value = `Finished!`;
         emit("show-results", JSON.parse(messageData.results));
-
+        return;
+      case 'error':
+        status.value = `Error: ${messageData.message}`;
         return;
     }
   });
