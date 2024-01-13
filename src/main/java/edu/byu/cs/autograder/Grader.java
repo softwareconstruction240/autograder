@@ -212,7 +212,7 @@ public abstract class Grader implements Runnable {
             observer.update("  Running maven " + command + " command...");
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.directory(new File(stageRepoPath));
-            processBuilder.command("mvn", command);
+            processBuilder.command("mvn", command, "-Dmaven.test.skip");
             try {
                 processBuilder.inheritIO();
                 Process process = processBuilder.start();
