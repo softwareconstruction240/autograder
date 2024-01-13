@@ -3,6 +3,7 @@ import {userPatch} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import SearchableList from "@/components/searchableList/SearchableList.vue";
 import type {User} from "@/types/types";
+import {useAuthStore} from "@/stores/auth";
 
 useAdminStore().updateUsers();
 
@@ -15,6 +16,11 @@ const makeAdmin = async (user: User) => {
 }
 
 const removeAdmin = async (user: User) => {
+  if (user.netId === useAuthStore().user?.netId) {
+    alert('You cannot remove yourself as an admin.');
+    return;
+  }
+
   await userPatch({
     netId: user.netId,
     role: 'STUDENT'
