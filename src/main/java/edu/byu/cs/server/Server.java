@@ -2,8 +2,6 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static edu.byu.cs.controller.AdminController.userPatch;
 import static edu.byu.cs.controller.AdminController.usersGet;
@@ -21,6 +19,7 @@ public class Server {
         port(8080);
 
         webSocket("/ws", WebSocketController.class);
+        webSocketIdleTimeoutMillis(300000);
 
         staticFiles.location("/frontend/dist");
 
