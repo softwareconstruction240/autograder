@@ -1,7 +1,9 @@
 package edu.byu.cs.autograder;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Parses the output of the JUnit Console Runner
@@ -10,21 +12,32 @@ import java.util.Map;
  */
 public class TestAnalyzer {
 
-    public static class TestNode {
+    public static class TestNode implements Comparable {
         String testName;
         Boolean passed;
+        String ecCategory;
         String errorMessage;
         Map<String, TestNode> children = new HashMap<>();
 
         /**
-         * The number of tests that passed under this node
+         * The number of tests that passed under this node (excluding extra credit)
          */
         Integer numTestsPassed;
 
         /**
-         * The number of tests that failed under this node
+         * The number of tests that failed under this node (excluding extra credit)
          */
         Integer numTestsFailed;
+
+        /**
+         * The number of extra credit tests that passed under this node
+         */
+        Integer numExtraCreditPassed;
+
+        /**
+         * The number of extra credit tests that failed under this node
+         */
+        Integer numExtraCreditFailed;
 
         @Override
         public String toString() {
@@ -35,6 +48,7 @@ public class TestAnalyzer {
 
         private void printNode(TestNode node, StringBuilder sb, String indent) {
             sb.append(indent).append(node.testName);
+            if (node.ecCategory != null) sb.append(" (Extra Credit)");
             if (node.passed != null) {
                 sb.append(node.passed ? " : SUCCESSFUL" : " : FAILED");
                 if (node.errorMessage != null && !node.errorMessage.isEmpty()) {
@@ -52,22 +66,46 @@ public class TestAnalyzer {
         public static void countTests(TestNode node) {
             if (node.passed != null) {
                 if (node.passed) {
-                    node.numTestsPassed = 1;
+                    if (node.ecCategory != null) {
+                        node.numExtraCreditPassed = 1;
+                        node.numTestsPassed = 0;
+                    } else {
+                        node.numExtraCreditPassed = 0;
+                        node.numTestsPassed = 1;
+                    }
                     node.numTestsFailed = 0;
+                    node.numExtraCreditFailed = 0;
                 } else {
+                    if (node.ecCategory != null) {
+                        node.numTestsFailed = 0;
+                        node.numExtraCreditFailed = 1;
+                    } else {
+                        node.numTestsFailed = 1;
+                        node.numExtraCreditFailed = 0;
+                    }
                     node.numTestsPassed = 0;
-                    node.numTestsFailed = 1;
+                    node.numExtraCreditPassed = 0;
                 }
             } else {
                 node.numTestsPassed = 0;
                 node.numTestsFailed = 0;
+                node.numExtraCreditPassed = 0;
+                node.numExtraCreditFailed = 0;
             }
 
             for (TestNode child : node.children.values()) {
                 countTests(child);
                 node.numTestsPassed += child.numTestsPassed;
                 node.numTestsFailed += child.numTestsFailed;
+                node.numExtraCreditPassed += child.numExtraCreditPassed;
+                node.numExtraCreditFailed += child.numExtraCreditFailed;
             }
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            TestNode other = (TestNode) o;
+            return this.testName.compareTo(other.testName);
         }
     }
 
@@ -82,12 +120,18 @@ public class TestAnalyzer {
     private TestNode lastFailingTest;
 
     /**
+     * The names of the test files (excluding .java) worth bonus points
+     */
+    private Set<String> ecCategories;
+
+    /**
      * Parses the output of the JUnit Console Runner
      *
      * @param inputLines the lines of the output of the JUnit Console Runner
      * @return the root of the test tree
      */
-    public TestNode parse(String[] inputLines) {
+    public TestNode parse(String[] inputLines, Set<String> extraCreditTests) {
+        this.ecCategories = extraCreditTests;
 
         for (String line : inputLines) {
             line = line.replaceAll("\u001B\\[[;\\d]*m", ""); //strip off color codes
@@ -141,12 +185,16 @@ public class TestAnalyzer {
                 .replace(" :: FAILED", "")
                 .split(" > ");
         TestNode currentNode = root;
+        String ec = null;
         for (String part : parts) {
             if (!currentNode.children.containsKey(part)) {
                 TestNode newNode = new TestNode();
                 newNode.testName = part;
                 currentNode.children.put(part, newNode);
             }
+
+            if (ecCategories.contains(part)) ec = part;
+            if (ec != null) currentNode.children.get(part).ecCategory = part;
 
             currentNode = currentNode.children.get(part);
         }

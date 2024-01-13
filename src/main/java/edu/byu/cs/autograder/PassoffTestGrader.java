@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.*;
 
 public abstract class PassoffTestGrader extends Grader {
 
@@ -19,6 +20,16 @@ public abstract class PassoffTestGrader extends Grader {
      * The path where the compiled tests are stored (and ran)
      */
     private final File stageTestsPath;
+
+    /**
+     * The names of the test files with extra credit tests (excluding .java)
+     */
+    protected Set<String> extraCreditTests = new HashSet<>();
+
+    /**
+     * The value (in percentage) of each extra credit category
+     */
+    protected float extraCreditValue = 0;
 
     /**
      * Creates a new grader for phase X
@@ -61,7 +72,7 @@ public abstract class PassoffTestGrader extends Grader {
         ProcessBuilder processBuilder =
                 new ProcessBuilder()
                         .directory(phaseTests)
-                        .inheritIO() // TODO: implement better logging
+//                        .inheritIO() // TODO: implement better logging
                         .command("find",
                                 "passoffTests",
                                 "-name",
@@ -119,7 +130,8 @@ public abstract class PassoffTestGrader extends Grader {
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
 
-            return testAnalyzer.parse(output.split("\n"));
+            System.out.println(output);
+            return testAnalyzer.parse(output.split("\n"), extraCreditTests);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -150,12 +162,45 @@ public abstract class PassoffTestGrader extends Grader {
         if (results == null)
             return 0;
 
-        int totalTests = results.numTestsFailed + results.numTestsPassed;
+        int totalStandardTests = results.numTestsFailed + results.numTestsPassed;
+        int totalECTests = results.numExtraCreditPassed + results.numExtraCreditFailed;
 
-        if (totalTests == 0)
+        if (totalStandardTests == 0)
             return 0;
 
-        return (float) results.numTestsPassed / totalTests;
+        float score = (float) results.numTestsPassed / totalStandardTests;
+        if (totalECTests == 0) return score;
+
+        // extra credit calculation
+        if (score < 1f) return score;
+        Map<String, Float> ecScores = getECScores(results);
+        for (String category : extraCreditTests) {
+            if (ecScores.get(category) == 1f) {
+                score += extraCreditValue;
+            }
+        }
+
+        return score;
+    }
+
+    private Map<String, Float> getECScores(TestAnalyzer.TestNode results) {
+        Map<String, Float> scores = new HashMap<>();
+
+        Queue<TestAnalyzer.TestNode> unchecked = new PriorityQueue<>();
+        unchecked.add(results);
+
+        while (!unchecked.isEmpty()) {
+            TestAnalyzer.TestNode node = unchecked.remove();
+            for (TestAnalyzer.TestNode child : node.children.values()) {
+                if (child.ecCategory != null) {
+                    scores.put(child.ecCategory, (float) child.numExtraCreditPassed /
+                            (child.numExtraCreditPassed + child.numExtraCreditFailed));
+                    unchecked.remove(child);
+                } else unchecked.add(child);
+            }
+        }
+
+        return scores;
     }
 
     @Override

@@ -15,5 +15,8 @@ public class PhaseOneGrader extends PassoffTestGrader {
      */
     public PhaseOneGrader(String netId, String repoUrl, Observer observer) throws IOException {
         super("./phases/phase1", netId, repoUrl, observer, Phase.Phase1);
+        extraCreditTests.add("CastlingTests");
+        extraCreditTests.add("EnPassantTests");
+        extraCreditValue = .04f;
     }
 }
