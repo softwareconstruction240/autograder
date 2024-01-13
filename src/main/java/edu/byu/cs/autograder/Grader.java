@@ -1,9 +1,13 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -133,7 +137,42 @@ public abstract class Grader implements Runnable {
                 getNotes(results),
                 results
         );
+
+        if(submission.score() > 0.9999f) {
+            sendToCanvas(submission);
+        }
+
         submissionDao.insertSubmission(submission);
+    }
+
+    private void sendToCanvas(Submission submission) {
+        UserDao userDao = DaoService.getUserDao();
+        User user = userDao.getUser(netId);
+
+        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 129390; //Test Student
+
+        //FIXME
+        int assignmentNum = switch (phase) {
+            case Phase0 -> 880445;
+            case Phase1 -> 880446;
+            case Phase3 -> 880448;
+            case Phase4 -> 880449;
+            case Phase6 -> 880451;
+        };
+
+        //FIXME
+        float score = submission.score() * switch(phase) {
+            case Phase0, Phase1, Phase4 -> 125.0F;
+            case Phase3 -> 180.0F;
+            case Phase6 -> 155.0F;
+        };
+
+        try {
+            CanvasIntegration.submitGrade(userId, assignmentNum, score);
+        } catch (CanvasException e) {
+            LOGGER.error("Error submitting score for user " + submission.netId(), e);
+        }
+
     }
 
     private String getHeadHash() {

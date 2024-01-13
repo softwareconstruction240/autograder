@@ -51,4 +51,8 @@ public class ConfigProperties {
     public static String casCallback() {
         return INSTANCE.props.getProperty("backend_app.cas_callback_url");
     }
+
+    public static String canvasAuthorizationHeader() {
+        return INSTANCE.props.getProperty("canvas_authorization_header");
+    }
 }

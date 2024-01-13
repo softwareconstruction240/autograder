@@ -1,6 +1,11 @@
 package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +32,24 @@ public class CasController {
             return null;
         }
 
-        LOGGER.info(netId + " logged in");
+        UserDao userDao = DaoService.getUserDao();
+
+        User user = userDao.getUser(netId);
+
+        if(user == null) {
+            try {
+                user = CanvasIntegration.getUser(netId);
+            }
+            catch (CanvasException e) {
+                LOGGER.error("Couldn't find user in canvas", e);
+                halt(500, "Couldn't find user in canvas");
+                return null;
+            }
+
+            userDao.insertUser(user);
+            LOGGER.info("Registered " + user);
+        }
+
         // FIXME: secure cookie with httpOnly
         res.cookie("/", "token", generateToken(netId), 14400, false, false);
         res.redirect(ConfigProperties.frontendAppUrl(), 302);
