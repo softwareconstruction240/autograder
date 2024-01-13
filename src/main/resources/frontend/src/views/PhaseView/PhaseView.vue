@@ -28,8 +28,12 @@ const showResults = (submission: Submission) => {
 }
 
 const submitPhase = async () => {
-  await submissionPost(props.phase, useAuthStore().user!.repoUrl);
-  currentlyGrading.value = true;
+  try {
+    await submissionPost(props.phase, useAuthStore().user!.repoUrl);
+    currentlyGrading.value = true;
+  } catch (e) {
+    alert(e)
+  }
 }
 
 const handleGradingDone = async () => {

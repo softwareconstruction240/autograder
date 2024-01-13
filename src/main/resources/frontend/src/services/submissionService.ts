@@ -30,5 +30,6 @@ export const submissionPost = async (phase: Phase, repoUrl: string): Promise<voi
 
     if (!response.ok) {
         console.error(response);
+        throw new Error(await response.text());
     }
 }

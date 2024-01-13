@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
@@ -56,6 +57,17 @@ public class SubmissionController {
 //        }
         if (!Arrays.asList(0, 1, 3, 4, 6).contains(request.phase())) {
             halt(400, "Valid phases are 0, 1, 3, 4, or 6");
+            return null;
+        }
+
+        String headHash = getRemoteHeadHash(request.repoUrl());
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), Phase.Phase0).stream()
+                .filter(s -> s.headHash().equals(headHash))
+                .findFirst()
+                .orElse(null);
+        if (submission != null) {
+            halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
             return null;
         }
 
@@ -179,6 +191,21 @@ public class SubmissionController {
                     "total", TrafficController.queue.size()
             ));
             i++;
+        }
+    }
+
+    private static String getRemoteHeadHash(String repoUrl) {
+        //git ls-remote <repoUrl>> HEAD
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
+        try {
+            Process process = processBuilder.start();
+            if (process.waitFor() != 0) {
+                throw new RuntimeException("exited with non-zero exit code");
+            }
+            String output = new String(process.getInputStream().readAllBytes());
+            return output.split("\\s+")[0];
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }
