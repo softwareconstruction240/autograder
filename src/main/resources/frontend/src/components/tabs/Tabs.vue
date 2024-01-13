@@ -13,6 +13,11 @@ provide(addTabKey, (tab) => {
   }
 });
 provide(activeTabHashKey, activeTabHash);
+
+const setActiveTabHash = (tab: TabType) => {
+  if (!tab.disabled)
+    activeTabHash.value = tab.hash;
+};
 </script>
 
 <template>
@@ -21,8 +26,8 @@ provide(activeTabHashKey, activeTabHash);
       <li
           v-for="tab in tabs"
           :key="tab.title"
-          @click="activeTabHash = tab.hash"
-          :class="{active: tab.hash === activeTabHash}">
+          @click="setActiveTabHash(tab)"
+          :class="{active: tab.hash === activeTabHash, disabled: tab.disabled}">
         {{ tab.title }}
       </li>
     </ul>
@@ -62,5 +67,10 @@ li.active {
   border-left: 1px solid var(--color--accent);
   border-right: 1px solid var(--color--accent);
   border-top: 1px solid var(--color--accent);
+}
+
+.disabled {
+  color: #dadada;
+  cursor: not-allowed;
 }
 </style>
