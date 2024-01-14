@@ -151,7 +151,7 @@ public class CanvasIntegration {
 
             https.connect();
 
-            if (https.getResponseCode() % 100 != 2) {
+            if (https.getResponseCode() < 200 || https.getResponseCode() >= 300) {
                 throw new CanvasException("Response from canvas wasn't 2xx, was " + https.getResponseCode());
             }
 
