@@ -115,15 +115,18 @@ public class CanvasIntegration {
     }
 
 
-    private static enum EnrollmentType {
+    private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
     }
 
-    private static record Enrollment(EnrollmentType type) {}
+    private record Enrollment(EnrollmentType type) {
+    }
 
-    private static record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {}
+    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
+    }
 
-    private static record CanvasSubmission(String url) {}
+    private record CanvasSubmission(String url) {
+    }
 
 
     private static String readString(InputStream is) throws IOException {
