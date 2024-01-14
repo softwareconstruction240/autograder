@@ -97,24 +97,6 @@ public class CanvasIntegration {
     }
 
 
-    private static String getResponse(URL url, String requestMethod)
-            throws IOException, CanvasException, URISyntaxException {
-        HttpURLConnection https = (HttpURLConnection) url.openConnection();
-        https.setRequestMethod(requestMethod);
-        https.setDoOutput(false);
-        https.addRequestProperty("Accept", "*/*");
-        https.addRequestProperty("Accept-Encoding", "deflate");
-        https.addRequestProperty("Authorization", AUTHORIZATION_HEADER);
-        https.connect();
-
-        if (https.getResponseCode() != 200) {
-            throw new CanvasException("Response from canvas wasn't 200, was " + https.getResponseCode());
-        }
-
-        return readString(https.getInputStream());
-    }
-
-
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
     }
@@ -128,17 +110,69 @@ public class CanvasIntegration {
     private record CanvasSubmission(String url) {
     }
 
+    /**
+     * Sends a request to canvas and returns the requested response
+     *
+     * @param method        The request method to use (e.g. "GET", "PUT", etc.)
+     * @param path          The path to the endpoint to use (e.g. "/courses/12345")
+     * @param request       The request body to send (or null if there is no request body)
+     * @param responseClass The class of the response to return (or null if there is no response body)
+     * @param <T>           The type of the response to return
+     * @return The response from canvas
+     * @throws CanvasException If there is an error while contacting canvas
+     */
+    private <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+        try {
+            URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
+            HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
+            https.setRequestMethod(method);
+            https.addRequestProperty("Accept", "*/*");
+            https.addRequestProperty("Accept-Encoding", "deflate");
+            https.addRequestProperty("Authorization", AUTHORIZATION_HEADER);
 
-    private static String readString(InputStream is) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try (InputStreamReader sr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-            char[] buf = new char[1024];
-            int len;
-            while ((len = sr.read(buf)) > 0) {
-                sb.append(buf, 0, len);
+            if (method.equals("POST") || method.equals("PUT"))
+                https.setDoOutput(true);
+
+            if (request != null) {
+                https.addRequestProperty("Content-Type", "application/json");
+                String reqData = new Gson().toJson(request);
+                try (OutputStream reqBody = https.getOutputStream()) {
+                    reqBody.write(reqData.getBytes());
+                }
             }
-            return sb.toString();
+
+            https.connect();
+
+            if (https.getResponseCode() % 100 != 2) {
+                throw new CanvasException("Response from canvas wasn't 2xx, was " + https.getResponseCode());
+            }
+
+            return readBody(https, responseClass);
+        } catch (Exception ex) {
+            throw new CanvasException("Exception while contacting canvas", ex);
         }
+    }
+
+    /**
+     * Reads the body of the response from canvas
+     *
+     * @param https         The connection to read the body from
+     * @param responseClass The class of the response to return
+     * @param <T>           The type of the response to return
+     * @return The response from canvas
+     * @throws IOException If there is an error reading the response from canvas
+     */
+    private static <T> T readBody(HttpsURLConnection https, Class<T> responseClass) throws IOException {
+        T response = null;
+        if (https.getContentLength() < 0) {
+            try (InputStream respBody = https.getInputStream()) {
+                InputStreamReader reader = new InputStreamReader(respBody);
+                if (responseClass != null) {
+                    response = new Gson().fromJson(reader, responseClass);
+                }
+            }
+        }
+        return response;
     }
 
 }
