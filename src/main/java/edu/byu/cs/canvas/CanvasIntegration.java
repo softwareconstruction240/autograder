@@ -99,7 +99,8 @@ public class CanvasIntegration {
 
         if (submission.url() == null)
             throw new CanvasException(
-                    "Please turn in the GitHub repository assignment on canvas before accessing the autograder");
+                    "The Github Repository assignment submission on Canvas must be submitted before accessing the autograder"
+            );
 
         return submission.url();
     }
