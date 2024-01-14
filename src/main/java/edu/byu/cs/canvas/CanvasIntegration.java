@@ -4,14 +4,13 @@ import com.google.gson.Gson;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public class CanvasIntegration {
 
@@ -24,76 +23,83 @@ public class CanvasIntegration {
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
 
+    /**
+     * Queries canvas for the user with the given netId
+     *
+     * @param netId The netId of the user to query for
+     * @return The user with the given netId, or null if no such user exists
+     * @throws CanvasException If there is an error with Canvas' response
+     */
     public static User getUser(String netId) throws CanvasException {
-        try {
-            URL url = new URI(CANVAS_HOST + "/api/v1/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId +
-                    "&include[]=enrollments").toURL();
+        CanvasUser[] users = makeCanvasRequest(
+                "GET",
+                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
+                null,
+                CanvasUser[].class);
 
-            String resp = getResponse(url, "GET");
+        for (CanvasUser user : users) {
+            if (user.login_id().equalsIgnoreCase(netId)) {
+                User.Role role;
+                if (user.enrollments.length == 0) role = null;
+                else role = switch (user.enrollments[0].type()) {
+                    case StudentEnrollment -> User.Role.STUDENT;
+                    case TeacherEnrollment, TaEnrollment -> User.Role.ADMIN;
+                    case DesignerEnrollment, ObserverEnrollment ->
+                            throw new CanvasException("Unsupported role: " + user.enrollments[0]);
+                };
 
-            CanvasUser[] users = new Gson().fromJson(resp, CanvasUser[].class);
-            for (CanvasUser user : users) {
-                if (user.login_id().equalsIgnoreCase(netId)) {
-                    User.Role role;
-                    if (user.enrollments.length == 0) role = null;
-                    else role = switch (user.enrollments[0].type()) {
-                        case StudentEnrollment -> User.Role.STUDENT;
-                        case TeacherEnrollment, TaEnrollment -> User.Role.ADMIN;
-                        case DesignerEnrollment, ObserverEnrollment ->
-                                throw new CanvasException("Unsupported role: " + user.enrollments[0]);
-                    };
+                String[] names = user.sortable_name().split(",");
+                String firstName = ((names.length >= 2) ? names[1] : "").trim();
+                String lastName = ((names.length >= 1) ? names[0] : "").trim();
 
-                    String[] names = user.sortable_name().split(",");
-                    String firstName = ((names.length >= 2) ? names[1] : "").trim();
-                    String lastName = ((names.length >= 1) ? names[0] : "").trim();
+                String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
 
-                    String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
-
-                    return new User(netId, user.id(), firstName, lastName, repoUrl, role);
-                }
+                return new User(netId, user.id(), firstName, lastName, repoUrl, role);
             }
-
-            throw new CanvasException("Couldn't find user matching netID " + netId);
-
-        } catch (IOException | URISyntaxException e) {
-            throw new CanvasException("Exception while contacting canvas for getting user information", e);
         }
+
+        return null;
     }
 
-
+    /**
+     * Submits the given grade for the given assignment for the given user
+     *
+     * @param userId        The canvas user id of the user to submit the grade for
+     * @param assignmentNum The assignment number to submit the grade for
+     * @param grade         The grade to submit (this is the total points earned, not a percentage)
+     * @throws CanvasException If there is an error with Canvas
+     */
     public static void submitGrade(int userId, int assignmentNum, float grade) throws CanvasException {
-        try {
-            URL url = new URI(CANVAS_HOST + "/api/v1/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum +
-                    "/submissions/" + userId + "?submission[posted_grade]=" + grade).toURL();
-
-            String resp = getResponse(url, "PUT");
-
-        } catch (IOException | URISyntaxException e) {
-            throw new CanvasException("Exception while contacting canvas for submitting grade", e);
-        }
+        makeCanvasRequest(
+                "PUT",
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?submission[posted_grade]=" + grade,
+                null,
+                null);
     }
 
-
+    /**
+     * Gets the git repository url for the given user from their GitHub Repository assignment submission on canvas
+     *
+     * @param userId The canvas user id of the user to get the git repository url for
+     * @return The git repository url for the given user
+     * @throws CanvasException If there is an error with Canvas
+     */
     private static String getGitRepo(int userId) throws CanvasException {
-        try {
-            URL url = new URI(CANVAS_HOST + "/api/v1/courses/" + COURSE_NUMBER + "/assignments/" +
-                    GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId).toURL();
+        CanvasSubmission submission = makeCanvasRequest(
+                "GET",
+                "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
+                null,
+                CanvasSubmission.class
+        );
 
-            String resp = getResponse(url, "GET");
+        if (submission == null)
+            throw new CanvasException("Error while accessing GitHub Repository assignment submission on canvas");
 
-            CanvasSubmission submission = new Gson().fromJson(resp, CanvasSubmission.class);
-            if (submission == null) {
-                throw new CanvasException("Error while accessing GitHub Repository assignment submission on canvas");
-            }
-            if (submission.url() == null) {
-                throw new CanvasException(
-                        "Please turn in the GitHub repository assignment on canvas before accessing the autograder");
-            }
-            return submission.url();
+        if (submission.url() == null)
+            throw new CanvasException(
+                    "Please turn in the GitHub repository assignment on canvas before accessing the autograder");
 
-        } catch (IOException | URISyntaxException e) {
-            throw new CanvasException("Exception while contacting canvas for getting git repo", e);
-        }
+        return submission.url();
     }
 
 
@@ -121,7 +127,7 @@ public class CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+    private static <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
