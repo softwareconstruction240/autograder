@@ -62,7 +62,7 @@ public class SubmissionController {
 
         String headHash = getRemoteHeadHash(request.repoUrl());
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), Phase.Phase0).stream()
+        Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
                 .filter(s -> s.headHash().equals(headHash))
                 .findFirst()
                 .orElse(null);
