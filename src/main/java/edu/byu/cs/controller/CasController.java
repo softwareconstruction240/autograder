@@ -14,6 +14,8 @@ import spark.Route;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static edu.byu.cs.controller.JwtUtils.generateToken;
@@ -42,6 +44,9 @@ public class CasController {
             }
             catch (CanvasException e) {
                 LOGGER.error("Couldn't find user in canvas", e);
+
+                String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+                res.redirect(ConfigProperties.frontendAppUrl() + "/login?error=" + errorUrlParam, 302);
                 halt(500, "Couldn't find user in canvas");
                 return null;
             }
