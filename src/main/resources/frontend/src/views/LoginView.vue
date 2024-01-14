@@ -10,11 +10,6 @@ onBeforeMount(async () => {
   if (loggedInUser == null)
     return;
 
-  if (loggedInUser === 403) {
-    await router.push({name: 'register'});
-    return;
-  }
-
   useAuthStore().user = loggedInUser;
   await router.push({name: 'home'});
 })
