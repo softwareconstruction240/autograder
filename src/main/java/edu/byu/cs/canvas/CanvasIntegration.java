@@ -89,7 +89,7 @@ public class CanvasIntegration {
     private static String getGitRepo(int userId) throws CanvasException {
         CanvasSubmission submission = makeCanvasRequest(
                 "GET",
-                "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
+                "/courses/" + COURSE_NUMBER + "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
                 null,
                 CanvasSubmission.class
         );
