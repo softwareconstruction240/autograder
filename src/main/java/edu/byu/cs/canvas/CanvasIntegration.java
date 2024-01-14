@@ -18,8 +18,10 @@ public class CanvasIntegration {
 
     private static final String AUTHORIZATION_HEADER = ConfigProperties.canvasAuthorizationHeader();
 
+    // FIXME: set this dynamically or pull from config
     private static final int COURSE_NUMBER = 24410;
 
+    // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
 
