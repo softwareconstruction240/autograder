@@ -47,9 +47,7 @@ public class CanvasIntegration {
                     String firstName = ((names.length >= 2) ? names[1] : "").trim();
                     String lastName = ((names.length >= 1) ? names[0] : "").trim();
 
-
-                    String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) :
-                            "https://github.com/19mdavenport/Winter2024Chess.git";
+                    String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
 
                     return new User(netId, user.id(), firstName, lastName, repoUrl, role);
                 }
