@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class PhaseZeroGrader extends PassoffTestGrader {
     /**
-     * Creates a new grader for phase 1
+     * Creates a new grader for phase 0
      *
      * @param netId    the netId of the student
      * @param repoUrl  the url of the student repo
