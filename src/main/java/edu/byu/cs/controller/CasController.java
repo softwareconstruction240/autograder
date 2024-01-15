@@ -38,16 +38,24 @@ public class CasController {
 
         User user = userDao.getUser(netId);
 
-        if(user == null) {
+        if (user == null) {
             try {
                 user = CanvasIntegration.getUser(netId);
-            }
-            catch (CanvasException e) {
-                LOGGER.error("Couldn't find user in canvas", e);
+            } catch (CanvasException e) {
+                LOGGER.error("Couldn't create user from Canvas", e);
 
                 String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
                 res.redirect(ConfigProperties.frontendAppUrl() + "/login?error=" + errorUrlParam, 302);
-                halt(500, "Couldn't find user in canvas");
+                halt(500, "Couldn't create user from Canvas");
+                return null;
+            }
+
+            if (userDao.repoUrlClaimed(user.repoUrl())) {
+                LOGGER.error("Repo URL already claimed: " + user.repoUrl());
+
+                String errorUrlParam = URLEncoder.encode("Repo URL already claimed. Meet with a TA for help resolving this.", StandardCharsets.UTF_8);
+                res.redirect(ConfigProperties.frontendAppUrl() + "/login?error=" + errorUrlParam, 302);
+                halt(400, "Repo URL already claimed");
                 return null;
             }
 

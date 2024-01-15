@@ -70,4 +70,14 @@ public class UserMemoryDao implements UserDao {
     public Collection<User> getUsers() {
         return users.values();
     }
+
+    @Override
+    public boolean repoUrlClaimed(String repoUrl) {
+        for (User user : users.values()) {
+            if (user.repoUrl() != null && user.repoUrl().equalsIgnoreCase(repoUrl))
+                return true;
+        }
+
+        return false;
+    }
 }

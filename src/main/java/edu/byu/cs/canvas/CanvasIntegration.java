@@ -60,7 +60,7 @@ public class CanvasIntegration {
             }
         }
 
-        return null;
+        throw new CanvasException("User not found in Canvas: " + netId);
     }
 
     /**

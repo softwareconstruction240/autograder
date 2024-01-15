@@ -63,4 +63,12 @@ public interface UserDao {
      * @return all users
      */
     Collection<User> getUsers();
+
+    /**
+     * Checks if the given repoUrl is claimed by a user
+     *
+     * @param repoUrl the repoUrl to check
+     * @return true if the repoUrl is claimed by a user, false otherwise
+     */
+    boolean repoUrlClaimed(String repoUrl);
 }
