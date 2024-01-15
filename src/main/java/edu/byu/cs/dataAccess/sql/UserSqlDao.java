@@ -153,4 +153,23 @@ public class UserSqlDao implements UserDao {
             throw new DataAccessException("Error getting users", e);
         }
     }
+
+    @Override
+    public boolean repoUrlClaimed(String repoUrl) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT net_id
+                            FROM user
+                            WHERE repo_url = ?
+                            """);
+            statement.setString(1, repoUrl);
+            ResultSet results = statement.executeQuery();
+            return results.next();
+        } catch (Exception e) {
+            throw new DataAccessException("Error checking if repo url is claimed", e);
+        }
+    }
+
+
 }
