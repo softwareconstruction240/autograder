@@ -15,14 +15,15 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            INSERT INTO user (net_id, first_name, last_name, repo_url, role)
-                            VALUES (?, ?, ?, ?, ?)
+                            INSERT INTO user (net_id, canvas_user_id, first_name, last_name, repo_url, role)
+                            VALUES (?, ?, ?, ?, ?, ?)
                             """);
             statement.setString(1, user.netId());
-            statement.setString(2, user.firstName());
-            statement.setString(3, user.lastName());
-            statement.setString(4, user.repoUrl());
-            statement.setString(5, user.role().toString());
+            statement.setInt(2, user.canvasUserId());
+            statement.setString(3, user.firstName());
+            statement.setString(4, user.lastName());
+            statement.setString(5, user.repoUrl());
+            statement.setString(6, user.role().toString());
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting user", e);
@@ -34,7 +35,7 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            SELECT net_id, first_name, last_name, repo_url, role
+                            SELECT net_id, canvas_user_id, first_name, last_name, repo_url, role
                             FROM user
                             WHERE net_id = ?
                             """);
@@ -43,6 +44,7 @@ public class UserSqlDao implements UserDao {
             if (results.next()) {
                 return new User(
                         results.getString("net_id"),
+                        results.getInt("canvas_user_id"),
                         results.getString("first_name"),
                         results.getString("last_name"),
                         results.getString("repo_url"),
@@ -129,7 +131,7 @@ public class UserSqlDao implements UserDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            SELECT net_id, first_name, last_name, repo_url, role
+                            SELECT net_id, canvas_user_id, first_name, last_name, repo_url, role
                             FROM user
                             """);
             ResultSet results = statement.executeQuery();
@@ -138,6 +140,7 @@ public class UserSqlDao implements UserDao {
             while (results.next()) {
                 users.add(new User(
                         results.getString("net_id"),
+                        results.getInt("canvas_user_id"),
                         results.getString("first_name"),
                         results.getString("last_name"),
                         results.getString("repo_url"),

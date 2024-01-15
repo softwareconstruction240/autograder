@@ -12,6 +12,17 @@ public class ConfigProperties {
     private final Properties props;
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
 
+    private static final String CANVAS_AUTHORIZATION_KEY;
+
+    static {
+        CANVAS_AUTHORIZATION_KEY = System.getenv("CANVAS_AUTHORIZATION_KEY");
+
+        if (CANVAS_AUTHORIZATION_KEY == null) {
+            LOGGER.error("CANVAS_AUTHORIZATION_KEY must be set as an environment variable.");
+            System.exit(1);
+        }
+    }
+
     private ConfigProperties() {
         props = new Properties();
         createInstance();
@@ -50,5 +61,9 @@ public class ConfigProperties {
 
     public static String casCallback() {
         return INSTANCE.props.getProperty("backend_app.cas_callback_url");
+    }
+
+    public static String canvasAuthorizationHeader() {
+        return "Bearer " + CANVAS_AUTHORIZATION_KEY;
     }
 }

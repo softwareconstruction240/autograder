@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useAppConfigStore} from "@/stores/appConfig";
-import {onBeforeMount} from 'vue';
+import {onBeforeMount, onMounted} from 'vue';
 import {meGet} from "@/services/authService";
 import {useAuthStore} from "@/stores/auth";
 import router from "@/router";
@@ -10,11 +10,6 @@ onBeforeMount(async () => {
   if (loggedInUser == null)
     return;
 
-  if (loggedInUser === 403) {
-    await router.push({name: 'register'});
-    return;
-  }
-
   useAuthStore().user = loggedInUser;
   await router.push({name: 'home'});
 })
@@ -22,6 +17,15 @@ onBeforeMount(async () => {
 const login = () => {
   window.location.href = useAppConfigStore().backendUrl + '/auth/login';
 }
+
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  // clear the url params
+  window.history.replaceState({}, document.title, window.location.pathname);
+  if (error != null)
+    alert(error);
+});
 </script>
 
 <template>
