@@ -13,7 +13,8 @@ const router = createRouter({
             component: HomeView,
             beforeEnter: (to, from) => {
                 if (!useAuthStore().isLoggedIn)
-                    return '/login'
+                    // query must be included for login error messages to work correctly
+                    return {name: 'login', query: to.query}
                 if (useAuthStore().user?.role === 'ADMIN')
                     return '/admin'
             }
