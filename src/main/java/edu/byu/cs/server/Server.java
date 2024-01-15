@@ -23,11 +23,6 @@ public class Server {
 
         staticFiles.location("/frontend/dist");
 
-        notFound((req, res) -> {
-            res.redirect("/");
-            return null;
-        });
-
         before((request, response) -> {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
             response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
@@ -66,6 +61,14 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
             });
+        });
+
+        // spark's notFound method does not work
+        get("/*", (req, res) -> {
+            String urlParms = req.queryString();
+            urlParms = urlParms == null ? "" : "?" + urlParms;
+            res.redirect("/" + urlParms, 302);
+            return null;
         });
         init();
     }
