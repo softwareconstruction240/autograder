@@ -90,6 +90,19 @@ public class SubmissionController {
         return "";
     };
 
+    public static Route submitGet = (req, res) -> {
+        User user = req.session().attribute("user");
+        String netId = user.netId();
+
+        boolean inQueue = TrafficController.queue.stream().anyMatch(netId::equals);
+
+        res.status(200);
+
+        return new Gson().toJson(Map.of(
+                "inQueue", inQueue
+        ));
+    };
+
     public static Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
         Phase phaseEnum = switch (phase) {

@@ -7,8 +7,7 @@ import static edu.byu.cs.controller.AdminController.userPatch;
 import static edu.byu.cs.controller.AdminController.usersGet;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
-import static edu.byu.cs.controller.SubmissionController.submissionXGet;
-import static edu.byu.cs.controller.SubmissionController.submitPost;
+import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
 public class Server {
@@ -45,6 +44,7 @@ public class Server {
                     verifyAuthenticatedMiddleware.handle(req, res);
             });
 
+            get("/submit", submitGet);
             post("/submit", submitPost);
 
             get("/submission/:phase", submissionXGet);
