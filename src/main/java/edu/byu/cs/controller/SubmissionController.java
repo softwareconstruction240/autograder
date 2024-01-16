@@ -60,7 +60,12 @@ public class SubmissionController {
             return null;
         }
 
-        String headHash = getRemoteHeadHash(request.repoUrl());
+        if (user.repoUrl() == null) {
+            halt(400, "You must provide a repo url");
+            return null;
+        }
+
+        String headHash = getRemoteHeadHash(user.repoUrl());
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
                 .filter(s -> s.headHash().equals(headHash))
@@ -77,7 +82,7 @@ public class SubmissionController {
         TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
-            Grader grader = getGrader(netId, request);
+            Grader grader = getGrader(netId, request, user.repoUrl());
 
             TrafficController.getInstance().addGrader(grader);
 
@@ -150,7 +155,7 @@ public class SubmissionController {
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, GradeRequest request) throws IOException {
+    private static Grader getGrader(String netId, GradeRequest request, String repoUrl) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -193,9 +198,9 @@ public class SubmissionController {
         };
 
         return switch (request.phase()) {
-            case 0 -> new PhaseZeroGrader(netId, request.repoUrl(), observer);
-            case 1 -> new PhaseOneGrader(netId, request.repoUrl(), observer);
-            case 3 -> new PhaseThreeGrader(netId, request.repoUrl(), observer);
+            case 0 -> new PhaseZeroGrader(netId, repoUrl, observer);
+            case 1 -> new PhaseOneGrader(netId, repoUrl, observer);
+            case 3 -> new PhaseThreeGrader(netId, repoUrl, observer);
             case 4 -> null;
             case 6 -> null;
             default -> throw new IllegalStateException("Unexpected value: " + request.phase());
