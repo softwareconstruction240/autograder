@@ -22,6 +22,11 @@ public abstract class PassoffTestGrader extends Grader {
     private final File stageTestsPath;
 
     /**
+     * The module to compile during this test
+     */
+    private final String module;
+
+    /**
      * The names of the test files with extra credit tests (excluding .java)
      */
     protected Set<String> extraCreditTests = new HashSet<>();
@@ -45,6 +50,11 @@ public abstract class PassoffTestGrader extends Grader {
         super(repoUrl, netId, observer, phase);
         this.stageTestsPath = new File(stagePath + "/tests");
         this.phaseTests = new File(phaseResources);
+        this.module = switch (phase) {
+            case Phase0, Phase1 -> "shared";
+            case Phase3, Phase4 -> "server";
+            case Phase6 -> "client";
+        };
     }
 
     @Override
@@ -63,7 +73,7 @@ public abstract class PassoffTestGrader extends Grader {
         // absolute path to student's chess jar
         String chessJarWithDeps;
         try {
-            chessJarWithDeps = new File(stageRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
+            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module +"-jar-with-dependencies.jar")
                     .getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -82,7 +92,8 @@ public abstract class PassoffTestGrader extends Grader {
                                 "-d",
                                 stagePath + "/tests",
                                 "-cp",
-                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath,
+                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" +
+                                        junitJupiterApiJarPath + ":" + passoffDependenciesPath,
                                 "{}",
                                 ";");
 
@@ -107,15 +118,15 @@ public abstract class PassoffTestGrader extends Grader {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
-        String chessJarWithDeps = new File(stageRepoPath, "shared/target/shared-jar-with-dependencies.jar").getAbsolutePath();
+        String chessJarWithDeps = new File(stageRepoPath, module + "/target/" + module + "-jar-with-dependencies.jar").getAbsolutePath();
 
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .directory(stageTestsPath)
-//              .inheritIO() // TODO: implement better logging
                 .command("java",
                         "-jar",
                         standaloneJunitJarPath,
-                        "--class-path", ".:" + chessJarWithDeps + ":" + junitJupiterApiJarPath,
+                        "--class-path",
+                        ".:" + chessJarWithDeps + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath,
                         "--scan-class-path",
                         "--details=testfeed");
 
@@ -130,7 +141,6 @@ public abstract class PassoffTestGrader extends Grader {
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
 
-            System.out.println(output);
             return testAnalyzer.parse(output.split("\n"), extraCreditTests);
 
         } catch (IOException | InterruptedException e) {

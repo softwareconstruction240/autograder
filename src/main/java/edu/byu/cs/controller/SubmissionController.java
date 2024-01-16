@@ -171,7 +171,7 @@ public class SubmissionController {
         return switch (request.phase()) {
             case 0 -> new PhaseZeroGrader(netId, request.repoUrl(), observer);
             case 1 -> new PhaseOneGrader(netId, request.repoUrl(), observer);
-            case 3 -> null;
+            case 3 -> new PhaseThreeGrader(netId, request.repoUrl(), observer);
             case 4 -> null;
             case 6 -> null;
             default -> throw new IllegalStateException("Unexpected value: " + request.phase());

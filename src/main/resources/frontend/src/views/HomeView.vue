@@ -14,9 +14,11 @@ import PhaseView from "@/views/PhaseView/PhaseView.vue";
       <PhaseView phase-title="Phase 0: Chess piece move rules" phaseDescription="For this phase you must pass all of the provided automated tests." phase="0" />
     </Tab>
     <Tab title="Phase 1">
-      <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." phase="1"/>
+      <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." phase="1" />
     </Tab>
-    <Tab title="Phase 3" disabled>Phase 3 content</Tab>
+    <Tab disabled title="Phase 3">
+      <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests." phase="3" />
+    </Tab>
     <Tab title="Phase 4" disabled>Phase 4 content</Tab>
     <Tab title="Phase 6" disabled>Phase 6 content</Tab>
   </Tabs>

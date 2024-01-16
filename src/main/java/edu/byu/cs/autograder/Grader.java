@@ -59,6 +59,11 @@ public abstract class Grader implements Runnable {
     protected final String junitJupiterApiJarPath;
 
     /**
+     * The path to the passoff dependencies jar
+     */
+    protected final String passoffDependenciesPath;
+
+    /**
      * The path for the student repo to be put in and tested
      */
     protected final String stagePath;
@@ -91,6 +96,7 @@ public abstract class Grader implements Runnable {
         this.libsDir = new File(phasesPath, "libs").getCanonicalPath();
         this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
         this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
+        this.passoffDependenciesPath = new File(libsDir, "passoff-dependencies.jar").getCanonicalPath();
 
         this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
 
@@ -138,7 +144,7 @@ public abstract class Grader implements Runnable {
                 results
         );
 
-        if(submission.score() > 0.9999f) {
+        if (submission.passed()) {
             sendToCanvas(submission);
         }
 
@@ -149,7 +155,8 @@ public abstract class Grader implements Runnable {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
-        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130042; //Test Student
+        // FIXME: dynamically retrieve test student id
+        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130055; //Test Student
 
         //FIXME
         int assignmentNum = switch (phase) {
