@@ -3,6 +3,17 @@
 import Tabs from "@/components/tabs/Tabs.vue";
 import Tab from "@/components/tabs/Tab.vue";
 import PhaseView from "@/views/PhaseView/PhaseView.vue";
+import {onMounted} from "vue";
+import {useSubmissionStore} from "@/stores/submissions";
+
+// periodically check if grading is happening
+onMounted(async () => {
+  setInterval(async () => {
+    if (!useSubmissionStore().currentlyGrading)
+      await useSubmissionStore().checkGrading();
+  }, 5000);
+})
+
 </script>
 
 <template>
