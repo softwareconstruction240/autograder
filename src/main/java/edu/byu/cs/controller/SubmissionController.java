@@ -131,6 +131,17 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
+    public static Route latestSubmissionsGet = (req, res) -> {
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions();
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submissions);
+    };
+
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *

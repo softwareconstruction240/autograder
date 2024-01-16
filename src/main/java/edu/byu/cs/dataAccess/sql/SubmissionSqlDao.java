@@ -74,6 +74,26 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
+    @Override
+    public Collection<Submission> getAllLatestSubmissions() {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, notes, results
+                            FROM submission
+                            WHERE timestamp IN (
+                                SELECT MAX(timestamp)
+                                FROM submission
+                                GROUP BY net_id, phase
+                            )
+                            """);
+            return getSubmissionsFromQuery(statement);
+
+        } catch (Exception e) {
+            throw new DataAccessException("Error getting submissions", e);
+        }
+    }
+
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
         ResultSet rows = statement.executeQuery();
 

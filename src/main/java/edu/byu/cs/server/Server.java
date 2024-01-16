@@ -60,6 +60,8 @@ public class Server {
                 get("/users", usersGet);
 
                 patch("/user/:netId", userPatch);
+
+                get("/submissions/latest", latestSubmissionsGet);
             });
         });
 

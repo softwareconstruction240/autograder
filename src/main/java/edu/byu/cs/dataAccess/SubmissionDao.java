@@ -30,4 +30,11 @@ public interface SubmissionDao {
      * @return all submissions for the given netId
      */
     Collection<Submission> getSubmissionsForUser(String netId);
+
+    /**
+     * Gets all submissions for the given phase
+     *
+     * @return all submissions for the given phase
+     */
+    Collection<Submission> getAllLatestSubmissions();
 }
