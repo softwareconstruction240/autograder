@@ -15,7 +15,7 @@ export const submissionsGet = async (phase: Phase): Promise<Submission[]> => {
     return await response.json() as Submission[];
 };
 
-export const submissionPost = async (phase: Phase, repoUrl: string): Promise<void> => {
+export const submissionPost = async (phase: Phase): Promise<void> => {
     const response = await fetch(useAppConfigStore().backendUrl + '/api/submit', {
         method: 'POST',
         credentials: 'include',
@@ -24,7 +24,6 @@ export const submissionPost = async (phase: Phase, repoUrl: string): Promise<voi
         },
         body: JSON.stringify({
             phase,
-            repoUrl
         })
     });
 

@@ -3,7 +3,6 @@ import type {Phase, Submission} from "@/types/types";
 import PastSubmissions from "@/views/PhaseView/PastSubmissions.vue";
 import {ref} from "vue";
 import {submissionPost} from "@/services/submissionService";
-import {useAuthStore} from "@/stores/auth";
 import ResultsSection from "@/views/PhaseView/ResultsSection.vue";
 import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
 import {useSubmissionStore} from "@/stores/submissions";
@@ -27,7 +26,7 @@ const showResults = (submission: Submission) => {
 
 const submitPhase = async () => {
   try {
-    await submissionPost(props.phase, useAuthStore().user!.repoUrl);
+    await submissionPost(props.phase);
     useSubmissionStore().currentlyGrading = true;
   } catch (e) {
     alert(e)
