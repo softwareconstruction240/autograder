@@ -35,4 +35,20 @@ public class SubmissionMemoryDao implements SubmissionDao {
                         submission.netId().equals(netId))
                 .toList();
     }
+
+    @Override
+    public Collection<Submission> getAllLatestSubmissions() {
+        ConcurrentHashMap<String, Submission> latestSubmissions = new ConcurrentHashMap<>();
+        submissions.forEach(submission -> {
+            String key = submission.netId() + submission.phase();
+            latestSubmissions.compute(key, (k, v) -> {
+                if (v == null || submission.timestamp().isAfter(v.timestamp())) {
+                    return submission;
+                } else {
+                    return v;
+                }
+            });
+        });
+        return latestSubmissions.values();
+    }
 }
