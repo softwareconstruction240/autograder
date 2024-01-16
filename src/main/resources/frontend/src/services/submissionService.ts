@@ -33,3 +33,22 @@ export const submissionPost = async (phase: Phase, repoUrl: string): Promise<voi
         throw new Error(await response.text());
     }
 }
+
+type SubmitGetResponse = {
+    inQueue: boolean,
+}
+export const submitGet = async (): Promise<boolean> => {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/submit', {
+        method: 'GET',
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        console.error(response);
+        throw new Error(await response.text());
+    }
+
+    const body = await response.json() as SubmitGetResponse;
+
+    return body.inQueue;
+}
