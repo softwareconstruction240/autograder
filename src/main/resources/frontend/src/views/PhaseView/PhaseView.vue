@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type {Phase, Submission} from "@/types/types";
 import PastSubmissions from "@/views/PhaseView/PastSubmissions.vue";
-import {onMounted, ref} from "vue";
-import {submissionPost, submitGet} from "@/services/submissionService";
+import {ref} from "vue";
+import {submissionPost} from "@/services/submissionService";
 import {useAuthStore} from "@/stores/auth";
 import ResultsSection from "@/views/PhaseView/ResultsSection.vue";
 import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
@@ -16,27 +16,19 @@ const props = defineProps<{
 
 const selectedResults = ref<Submission | null>(null);
 
-const currentlyGrading = ref<boolean>(false);
-
-onMounted(async () => {
-  if (await submitGet()) {
-    currentlyGrading.value = true;
-  }
-});
-
 const showResults = (submission: Submission) => {
   if (selectedResults.value === submission) {
     selectedResults.value = null;
     return;
   }
   selectedResults.value = submission;
-  currentlyGrading.value = false;
+  useSubmissionStore().currentlyGrading = false;
 }
 
 const submitPhase = async () => {
   try {
     await submissionPost(props.phase, useAuthStore().user!.repoUrl);
-    currentlyGrading.value = true;
+    useSubmissionStore().currentlyGrading = true;
   } catch (e) {
     alert(e)
   }
@@ -45,7 +37,7 @@ const submitPhase = async () => {
 const handleGradingDone = async () => {
   await useSubmissionStore().getSubmissions(props.phase);
   selectedResults.value = useSubmissionStore().submissionsByPhase[props.phase][0];
-  currentlyGrading.value = false;
+  useSubmissionStore().currentlyGrading = false;
 }
 
 </script>
@@ -62,7 +54,7 @@ const handleGradingDone = async () => {
         <div>
           <h3>Submit Phase</h3>
           <p>Click the button below to submit your phase</p>
-          <button :disabled="currentlyGrading" @click="submitPhase">Submit Phase</button>
+          <button :disabled="useSubmissionStore().currentlyGrading" @click="submitPhase">Submit Phase</button>
         </div>
         <div>
           <h3>Past Submissions</h3>
@@ -76,8 +68,9 @@ const handleGradingDone = async () => {
       <div id="results">
         <!-- FIXME: for the life of me I can't force this thing to only take up 50% of the space. this hack should be temporary -->
         <div style="width: 40vw; height: 100%;">
-          <ResultsSection v-if="selectedResults && !currentlyGrading" :submission="selectedResults"/>
-          <LiveStatus v-else-if="currentlyGrading" @show-results="handleGradingDone" />
+          <ResultsSection v-if="selectedResults && !useSubmissionStore().currentlyGrading"
+                          :submission="selectedResults"/>
+          <LiveStatus v-else-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
         </div>
       </div>
     </div>
@@ -96,7 +89,8 @@ const handleGradingDone = async () => {
   width: 100%;
 }
 
-#submission-options {  display: grid;
+#submission-options {
+  display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr;
   gap: 0 0;
