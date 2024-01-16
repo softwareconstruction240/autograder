@@ -131,7 +131,6 @@ public abstract class PassoffTestGrader extends Grader {
                         "--details=testfeed");
 
         try {
-            System.out.println("Compiled command: " + String.join(" ", processBuilder.command().toArray(new String[0])));
             Process process = processBuilder.start();
 
             if (process.waitFor() != 0) {
