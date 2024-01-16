@@ -35,6 +35,22 @@ public class TrafficController {
     }
 
     /**
+     * Broadcasts the current queue status to all connected clients.
+     * Each client will be notified of their specific position in the queue.
+     */
+    public static void broadcastQueueStatus() {
+        int i = 1;
+        for (String netId : queue) {
+            getInstance().notifySubscribers(netId, Map.of(
+                    "type", "queueStatus",
+                    "position", i,
+                    "total", queue.size()
+            ));
+            i++;
+        }
+    }
+
+    /**
      * Adds a grader to the queue. The grader will be run when there is an available thread
      *
      * @param grader the grader to add
