@@ -4,14 +4,14 @@ WORKDIR /app
 
 COPY . /app
 
-# RUN apt-get update && \
-#    apt-get install -y curl && \
-#    curl -sL https://deb.nodesource.com/setup_21.x | bash - && \
-#    apt-get install -y nodejs && \
-#    npm install -g yarn && \
-#    cd src/main/resources/frontend && \
-#    yarn && \
-#    yarn build
+RUN apt-get update && \
+   apt-get install -y curl && \
+   curl -sL https://deb.nodesource.com/setup_21.x | bash - && \
+   apt-get install -y nodejs && \
+   npm install -g yarn && \
+   cd src/main/resources/frontend && \
+   yarn && \
+   yarn build
 
 RUN mvn clean package
 
