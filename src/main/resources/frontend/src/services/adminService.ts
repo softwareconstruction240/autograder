@@ -1,5 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
-import type {User} from "@/types/types";
+import type {Submission, User} from "@/types/types";
 
 export const usersGet = async (): Promise<User[]> => {
     try {
@@ -49,5 +49,18 @@ export const userPatch = async (user: UserPatch)=> {
 
     } catch (e) {
         console.error('Failed to update user: ', e);
+    }
+}
+
+export const submissionsLatestGet = async (): Promise<Submission[]> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/latest', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return await response.json();
+    } catch (e) {
+        return [];
     }
 }
