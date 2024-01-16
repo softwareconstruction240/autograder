@@ -144,7 +144,7 @@ public abstract class Grader implements Runnable {
                 results
         );
 
-        if(submission.score() > 0.9999f) {
+        if (submission.passed()) {
             sendToCanvas(submission);
         }
 
@@ -155,7 +155,8 @@ public abstract class Grader implements Runnable {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
-        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130042; //Test Student
+        // FIXME: dynamically retrieve test student id
+        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130055; //Test Student
 
         //FIXME
         int assignmentNum = switch (phase) {
