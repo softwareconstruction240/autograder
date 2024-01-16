@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type {Phase, Submission} from "@/types/types";
 import PastSubmissions from "@/views/PhaseView/PastSubmissions.vue";
-import {ref} from "vue";
-import {submissionPost} from "@/services/submissionService";
+import {onMounted, ref} from "vue";
+import {submissionPost, submitGet} from "@/services/submissionService";
 import {useAuthStore} from "@/stores/auth";
 import ResultsSection from "@/views/PhaseView/ResultsSection.vue";
 import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
@@ -17,6 +17,12 @@ const props = defineProps<{
 const selectedResults = ref<Submission | null>(null);
 
 const currentlyGrading = ref<boolean>(false);
+
+onMounted(async () => {
+  if (await submitGet()) {
+    currentlyGrading.value = true;
+  }
+});
 
 const showResults = (submission: Submission) => {
   if (selectedResults.value === submission) {
@@ -56,7 +62,7 @@ const handleGradingDone = async () => {
         <div>
           <h3>Submit Phase</h3>
           <p>Click the button below to submit your phase</p>
-          <button @click="submitPhase">Submit Phase</button>
+          <button :disabled="currentlyGrading" @click="submitPhase">Submit Phase</button>
         </div>
         <div>
           <h3>Past Submissions</h3>
