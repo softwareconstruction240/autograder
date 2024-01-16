@@ -3,18 +3,26 @@ import {onMounted, ref} from "vue";
 import type {Submission} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {readableTimestamp} from "@/utils/utils";
+import {useAdminStore} from "@/stores/admin";
 
 const latestSubmissions = ref<Submission[]>([])
 
 onMounted(async () => {
   latestSubmissions.value = await submissionsLatestGet();
 })
+
+const getNameFromSubmission = (submission: Submission) => {
+  const user = useAdminStore().users.filter(user => user.netId == submission.netId)[0]
+  return `${user.firstName} ${user.lastName}`
+}
+
 </script>
 
 <template>
   <table>
     <thead>
     <tr>
+      <th>Name</th>
       <th>NetId</th>
       <th>Phase</th>
       <th>Timestamp</th>
@@ -24,6 +32,7 @@ onMounted(async () => {
     </thead>
     <tbody>
     <tr v-for="submission in latestSubmissions" :key="`${submission.netId}-${submission.phase}`">
+      <td>{{ getNameFromSubmission(submission) }}</td>
       <td>{{ submission.netId }}</td>
       <td>{{ submission.phase }}</td>
       <td>{{ readableTimestamp(new Date(submission.timestamp)) }}</td>
