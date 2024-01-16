@@ -16,7 +16,7 @@ onMounted(() => {
 
     switch (messageData.type) {
       case 'queueStatus':
-        status.value = `You are currently ${messageData.position} in the queue out of ${messageData.total}`;
+        status.value = `You are currently #${messageData.position} in line`;
         return;
       case 'started':
         status.value = `Autograding has started`;
