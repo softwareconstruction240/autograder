@@ -65,6 +65,9 @@ public class Server {
 
         // spark's notFound method does not work
         get("/*", (req, res) -> {
+            if (req.pathInfo().equals("/ws"))
+                return null;
+
             String urlParms = req.queryString();
             urlParms = urlParms == null ? "" : "?" + urlParms;
             res.redirect("/" + urlParms, 302);
