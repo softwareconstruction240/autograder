@@ -48,6 +48,7 @@ public class WebSocketController {
             return;
 
         TrafficController.sessions.get(netId).add(session);
+        TrafficController.broadcastQueueStatus();
     }
 
     /**

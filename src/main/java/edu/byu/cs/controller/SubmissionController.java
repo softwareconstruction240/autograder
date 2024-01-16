@@ -136,7 +136,7 @@ public class SubmissionController {
                         "type", "started"
                 ));
 
-                broadcastQueueStatus();
+                TrafficController.broadcastQueueStatus();
             }
 
             @Override
@@ -178,24 +178,7 @@ public class SubmissionController {
         };
     }
 
-    /**
-     * Broadcasts the current queue status to all connected clients.
-     * Each client will be notified of their specific position in the queue.
-     */
-    private static void broadcastQueueStatus() {
-        int i = 1;
-        for (String netId : TrafficController.queue) {
-            TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                    "type", "queueStatus",
-                    "position", i,
-                    "total", TrafficController.queue.size()
-            ));
-            i++;
-        }
-    }
-
     private static String getRemoteHeadHash(String repoUrl) {
-        //git ls-remote <repoUrl>> HEAD
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
             Process process = processBuilder.start();
