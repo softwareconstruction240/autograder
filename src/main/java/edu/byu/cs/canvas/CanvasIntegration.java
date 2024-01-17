@@ -106,17 +106,48 @@ public class CanvasIntegration {
     }
 
 
+    public static User getTestStudent() throws CanvasException {
+        String testStudentName = "Test%20Student";
+
+        CanvasUser[] users = makeCanvasRequest(
+                "GET",
+                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
+                null,
+                CanvasUser[].class);
+
+        if (users.length == 0)
+            throw new CanvasException("Test Student not found in Canvas");
+
+        String repoUrl = getGitRepo(users[0].id());
+
+        if (repoUrl == null)
+            throw new CanvasException("Test Student has not submitted the GitHub Repository assignment on Canvas");
+
+        return new User(
+                "test",
+                users[0].id(),
+                "Test",
+                "Student",
+                repoUrl,
+                User.Role.STUDENT
+        );
+    }
+
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
+
     }
 
     private record Enrollment(EnrollmentType type) {
+
     }
 
     private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
+
     }
 
     private record CanvasSubmission(String url) {
+
     }
 
     /**
