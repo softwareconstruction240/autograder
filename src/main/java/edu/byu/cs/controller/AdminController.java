@@ -5,7 +5,6 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ConfigProperties;
 import spark.Route;
 
 import java.util.Collection;
@@ -78,7 +77,8 @@ public class AdminController {
         }
 
         res.cookie("/", "token", generateToken(user.netId()), 14400, false, false);
-        res.redirect(ConfigProperties.frontendAppUrl(), 302);
+
+        res.status(200);
 
         return null;
     };
