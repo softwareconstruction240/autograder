@@ -111,6 +111,7 @@ public abstract class Grader implements Runnable {
 
         try {
             fetchRepo();
+            verifyProjectStructure();
             runCustomTests();
             packageRepo();
             compileTests();
@@ -124,6 +125,14 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             removeStage();
+        }
+    }
+
+    private void verifyProjectStructure() {
+        File pomFile = new File(stageRepoPath, "pom.xml");
+        if (!pomFile.exists()) {
+            observer.notifyError("Project is not structured correctly. Your project should be at the top level of your git repository.");
+            throw new RuntimeException("No pom.xml file found");
         }
     }
 
