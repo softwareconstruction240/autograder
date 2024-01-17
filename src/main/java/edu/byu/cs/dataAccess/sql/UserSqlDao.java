@@ -127,6 +127,23 @@ public class UserSqlDao implements UserDao {
     }
 
     @Override
+    public void setCanvasUserId(String netId, int canvasUserId) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            UPDATE user
+                            SET canvas_user_id = ?
+                            WHERE net_id = ?
+                            """);
+            statement.setInt(1, canvasUserId);
+            statement.setString(2, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error setting canvas user id", e);
+        }
+    }
+
+    @Override
     public Collection<User> getUsers() {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
