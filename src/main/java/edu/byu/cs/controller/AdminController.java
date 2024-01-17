@@ -76,6 +76,8 @@ public class AdminController {
             userDao.setCanvasUserId(user.netId(), latestTestStudent.canvasUserId());
         }
 
+        DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId());
+
         res.cookie("/", "token", generateToken(user.netId()), 14400, false, false);
 
         res.status(200);
