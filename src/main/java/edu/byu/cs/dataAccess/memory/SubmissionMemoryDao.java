@@ -51,4 +51,9 @@ public class SubmissionMemoryDao implements SubmissionDao {
         });
         return latestSubmissions.values();
     }
+
+    @Override
+    public void removeSubmissionsByNetId(String netId) {
+        submissions.removeIf(submission -> submission.netId().equals(netId));
+    }
 }
