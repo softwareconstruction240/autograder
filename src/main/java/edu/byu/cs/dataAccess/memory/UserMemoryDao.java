@@ -67,6 +67,17 @@ public class UserMemoryDao implements UserDao {
     }
 
     @Override
+    public void setCanvasUserId(String netId, int canvasUserId) {
+        if (!users.containsKey(netId))
+            throw new IllegalArgumentException("User does not exist");
+
+        User oldUser = users.get(netId);
+        User newUser = new User(oldUser.netId(), canvasUserId, oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), oldUser.role());
+
+        users.put(netId, newUser);
+    }
+
+    @Override
     public Collection<User> getUsers() {
         return users.values();
     }

@@ -94,6 +94,22 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
+    @Override
+    public void removeSubmissionsByNetId(String netId) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            DELETE FROM submission
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, netId);
+            statement.executeUpdate();
+
+        } catch (Exception e) {
+            throw new DataAccessException("Error removing submissions", e);
+        }
+    }
+
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
         ResultSet rows = statement.executeQuery();
 

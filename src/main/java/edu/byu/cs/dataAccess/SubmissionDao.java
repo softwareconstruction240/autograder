@@ -37,4 +37,12 @@ public interface SubmissionDao {
      * @return all submissions for the given phase
      */
     Collection<Submission> getAllLatestSubmissions();
+
+    /**
+     * Removes all submissions for the given netId
+     * <br/><strong>Note: this will likely only be used for the test student</strong>
+     *
+     * @param netId the netId to remove submissions for
+     */
+    void removeSubmissionsByNetId(String netId);
 }

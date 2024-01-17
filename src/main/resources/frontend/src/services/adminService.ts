@@ -64,3 +64,17 @@ export const submissionsLatestGet = async (): Promise<Submission[]> => {
         return [];
     }
 }
+
+export const testStudentModeGet = async (): Promise<null> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/test_mode', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return null;
+    } catch (e) {
+        console.error('Failed to activate test mode: ', e);
+        return null;
+    }
+}

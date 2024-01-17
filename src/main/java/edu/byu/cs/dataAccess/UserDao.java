@@ -58,6 +58,15 @@ public interface UserDao {
     void setRole(String netId, User.Role role);
 
     /**
+     * Sets the canvas user id for the given netId.
+     * <br/><strong>Note: this will likely only be used for the test student</strong>
+     *
+     * @param netId        the netId to set the canvas user id for
+     * @param canvasUserId the canvas user id to set for the given netId
+     */
+    void setCanvasUserId(String netId, int canvasUserId);
+
+    /**
      * Gets all users
      *
      * @return all users
