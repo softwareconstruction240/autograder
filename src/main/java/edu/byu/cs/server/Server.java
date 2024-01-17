@@ -3,8 +3,7 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
 
-import static edu.byu.cs.controller.AdminController.userPatch;
-import static edu.byu.cs.controller.AdminController.usersGet;
+import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.SubmissionController.*;
@@ -62,6 +61,8 @@ public class Server {
                 patch("/user/:netId", userPatch);
 
                 get("/submissions/latest", latestSubmissionsGet);
+
+                get("/test_mode", testModeGet);
             });
         });
 
