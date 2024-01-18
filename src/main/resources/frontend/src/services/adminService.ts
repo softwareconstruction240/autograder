@@ -78,3 +78,24 @@ export const testStudentModeGet = async (): Promise<null> => {
         return null;
     }
 }
+
+type QueueStatusResponse = {
+    currentlyGrading: string[],
+    inQueue: string[]
+}
+export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/active', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return await response.json();
+    } catch (e) {
+        console.error('Failed to get queue status: ', e);
+        return {
+            currentlyGrading: [],
+            inQueue: []
+        };
+    }
+}

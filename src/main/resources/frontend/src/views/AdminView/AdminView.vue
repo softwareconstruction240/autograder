@@ -4,9 +4,9 @@ import Tabs from "@/components/tabs/Tabs.vue";
 import Tab from "@/components/tabs/Tab.vue";
 import SubmissionsView from "@/views/AdminView/Submissions.vue";
 import Exceptions from "@/views/AdminView/Exceptions.vue";
-import AssignmentOptions from "@/views/AdminView/AssignmentOptions.vue";
 import Admins from "@/views/AdminView/Admins/Admins.vue";
 import {testStudentModeGet} from "@/services/adminService";
+import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -17,19 +17,22 @@ const activateTestStudentMode = async () => {
 <template>
   <div class="container">
     <div class="test-student-mode-container">
-      <p>Click here to become the test student. Note, you will need to log out and back in again to return to admin
-        mode.</p>
+      <p>Click on the button below to become the test student</p>
+      <p>- you will need to log out and back in again to return to admin
+        mode</p>
+      <p>- you will not be able to enter student mode unless the Test Student has a submission for the GitHub Repository
+        assignment on Canvas</p>
       <button @click="activateTestStudentMode">Test Student Mode</button>
     </div>
     <Tabs>
       <Tab title="Submissions">
         <SubmissionsView/>
       </Tab>
-      <Tab title="Exceptions">
+      <Tab disabled title="Exceptions">
         <Exceptions/>
       </Tab>
-      <Tab title="Assignment Options">
-        <AssignmentOptions/>
+      <Tab title="Queue Status">
+        <QueueStatus/>
       </Tab>
       <Tab title="Admins">
         <Suspense>
