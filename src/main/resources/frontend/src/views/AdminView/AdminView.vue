@@ -17,15 +17,18 @@ const activateTestStudentMode = async () => {
 <template>
   <div class="container">
     <div class="test-student-mode-container">
-      <p>Click here to become the test student. Note, you will need to log out and back in again to return to admin
-        mode.</p>
+      <p>Click on the button below to become the test student</p>
+      <p>- you will need to log out and back in again to return to admin
+        mode</p>
+      <p>- you will not be able to enter student mode unless the Test Student has a submission for the GitHub Repository
+        assignment on Canvas</p>
       <button @click="activateTestStudentMode">Test Student Mode</button>
     </div>
     <Tabs>
       <Tab title="Submissions">
         <SubmissionsView/>
       </Tab>
-      <Tab title="Exceptions">
+      <Tab disabled title="Exceptions">
         <Exceptions/>
       </Tab>
       <Tab title="Queue Status">
