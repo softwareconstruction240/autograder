@@ -147,6 +147,22 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
+    public static Route submissionsActiveGet = (req, res) -> {
+        Collection<String> currentlyGrading = TrafficController.sessions.keySet();
+        Collection<String> inQueue = TrafficController.queue.stream()
+                .filter(netId -> !currentlyGrading.contains(netId))
+                .toList();
+
+
+        res.status(200);
+        res.type("application/json");
+
+        return new Gson().toJson(Map.of(
+                "currentlyGrading", currentlyGrading,
+                "inQueue", inQueue
+        ));
+    };
+
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *
