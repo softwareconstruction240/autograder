@@ -4,9 +4,9 @@ import Tabs from "@/components/tabs/Tabs.vue";
 import Tab from "@/components/tabs/Tab.vue";
 import SubmissionsView from "@/views/AdminView/Submissions.vue";
 import Exceptions from "@/views/AdminView/Exceptions.vue";
-import AssignmentOptions from "@/views/AdminView/AssignmentOptions.vue";
 import Admins from "@/views/AdminView/Admins/Admins.vue";
 import {testStudentModeGet} from "@/services/adminService";
+import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -28,8 +28,8 @@ const activateTestStudentMode = async () => {
       <Tab title="Exceptions">
         <Exceptions/>
       </Tab>
-      <Tab title="Assignment Options">
-        <AssignmentOptions/>
+      <Tab title="Queue Status">
+        <QueueStatus/>
       </Tab>
       <Tab title="Admins">
         <Suspense>
