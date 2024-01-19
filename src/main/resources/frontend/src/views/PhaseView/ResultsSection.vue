@@ -39,7 +39,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
 <template>
   <div class="container" v-if="submission !== undefined && submission !== null">
     <div id="submission-title">
-      <h2>Results for {{ readableTimestamp(new Date(submission.timestamp)) }}</h2>
+      <h2>Results from {{ readableTimestamp(new Date(submission.timestamp)) }}</h2>
     </div>
     <div id="submission-score">
       <h3>Score: {{ submission.score * 100 }}%</h3>
