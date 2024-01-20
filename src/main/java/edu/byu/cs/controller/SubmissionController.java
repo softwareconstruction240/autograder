@@ -65,7 +65,13 @@ public class SubmissionController {
             return null;
         }
 
-        String headHash = getRemoteHeadHash(user.repoUrl());
+        String headHash;
+        try {
+            headHash = getRemoteHeadHash(user.repoUrl());
+        } catch (Exception e) {
+            halt(400, "Invalid repo url");
+            return null;
+        }
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
                 .filter(s -> s.headHash().equals(headHash))
