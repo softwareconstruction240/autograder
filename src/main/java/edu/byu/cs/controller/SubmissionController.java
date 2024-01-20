@@ -229,7 +229,7 @@ public class SubmissionController {
         };
     }
 
-    private static String getRemoteHeadHash(String repoUrl) {
+    public static String getRemoteHeadHash(String repoUrl) {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
             Process process = processBuilder.start();

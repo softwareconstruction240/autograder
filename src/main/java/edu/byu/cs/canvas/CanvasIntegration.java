@@ -1,6 +1,7 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 
@@ -55,6 +56,12 @@ public class CanvasIntegration {
                 String lastName = ((names.length >= 1) ? names[0] : "").trim();
 
                 String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
+
+                try {
+                    SubmissionController.getRemoteHeadHash(repoUrl);
+                } catch (RuntimeException e) {
+                    throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
+                }
 
                 return new User(netId, user.id(), firstName, lastName, repoUrl, role);
             }
