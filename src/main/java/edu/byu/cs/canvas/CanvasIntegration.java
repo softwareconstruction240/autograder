@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
+import java.time.ZonedDateTime;
 
 public class CanvasIntegration {
 
@@ -142,6 +143,20 @@ public class CanvasIntegration {
         );
     }
 
+    public static ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
+        CanvasAssignment assignment = makeCanvasRequest(
+                "GET",
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentId + "/submissions/" + userId,
+                null,
+                CanvasAssignment.class
+        );
+
+        if (assignment == null || assignment.due_at() == null)
+            throw new CanvasException("Unable to get due date for assignment");
+
+        return assignment.due_at();
+    }
+
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
 
@@ -156,6 +171,10 @@ public class CanvasIntegration {
     }
 
     private record CanvasSubmission(String url) {
+
+    }
+
+    private record CanvasAssignment(ZonedDateTime due_at) {
 
     }
 
