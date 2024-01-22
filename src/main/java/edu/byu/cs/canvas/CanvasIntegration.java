@@ -57,10 +57,12 @@ public class CanvasIntegration {
 
                 String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
 
-                try {
-                    SubmissionController.getRemoteHeadHash(repoUrl);
-                } catch (RuntimeException e) {
-                    throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
+                if (role == User.Role.STUDENT) {
+                    try {
+                        SubmissionController.getRemoteHeadHash(repoUrl);
+                    } catch (RuntimeException e) {
+                        throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
+                    }
                 }
 
                 return new User(netId, user.id(), firstName, lastName, repoUrl, role);
