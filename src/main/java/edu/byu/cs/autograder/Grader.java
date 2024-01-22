@@ -3,9 +3,11 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.PhaseConfigurationDao;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.PhaseConfiguration;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
@@ -19,7 +21,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -136,9 +141,18 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    /**
+     * Saves the results of the grading to the database and to Canvas if the submission passed
+     *
+     * @param results the results of the grading
+     */
     private void saveResults(TestAnalyzer.TestNode results) {
         String headHash = getHeadHash();
 
+        PhaseConfigurationDao phaseConfigurationDao = DaoService.getPhaseConfigurationDao();
+        PhaseConfiguration phaseConfiguration = phaseConfigurationDao.getPhaseConfiguration(phase);
+        float score = getScore(results);
+        score -= getNumDaysLate(phaseConfiguration.dueDate()) * 0.1F;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -148,7 +162,7 @@ public abstract class Grader implements Runnable {
                 Instant.now(),
                 phase,
                 results.numTestsFailed == 0,
-                getScore(results),
+                score,
                 getNotes(results),
                 results
         );
@@ -297,6 +311,43 @@ public abstract class Grader implements Runnable {
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
     protected abstract String getNotes(TestAnalyzer.TestNode results);
+
+    /**
+     * Gets the number of days late the submission is. This excludes weekends and public holidays
+     *
+     * @param dueDate the due date of the phase
+     * @return the number of days late or 0 if the submission is not late
+     */
+    private int getNumDaysLate(ZonedDateTime dueDate) {
+        ZonedDateTime now = ZonedDateTime.now();
+        int daysLate = 0;
+
+        while (now.isAfter(dueDate)) {
+            if (now.getDayOfWeek().getValue() < 6 && !isPublicHoliday(now)) {
+                daysLate++;
+            }
+            now = now.minusDays(1);
+        }
+
+        return daysLate;
+    }
+
+    /**
+     * Checks if the given date is a public holiday
+     *
+     * @param zonedDateTime the date to check
+     * @return true if the date is a public holiday, false otherwise
+     */
+    private boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
+        Date date = Date.from(zonedDateTime.toInstant());
+        // TODO: use non-hardcoded list of public holidays
+        Set<Date> publicHolidays = Set.of(
+                Date.from(ZonedDateTime.parse("2023-02-19T00:00:00.000Z").toInstant()),
+                Date.from(ZonedDateTime.parse("2023-03-15T00:00:00.000Z").toInstant())
+        );
+
+        return publicHolidays.contains(date);
+    }
 
     public interface Observer {
         void notifyStarted();
