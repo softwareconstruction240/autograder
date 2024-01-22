@@ -86,6 +86,13 @@ public abstract class Grader implements Runnable {
 
     protected Observer observer;
 
+    // FIXME: dynamically get assignment numbers
+    private final int PHASE0_ASSIGNMENT_NUMBER = 880445;
+    private final int PHASE1_ASSIGNMENT_NUMBER = 880446;
+    private final int PHASE3_ASSIGNMENT_NUMBER = 880448;
+    private final int PHASE4_ASSIGNMENT_NUMBER = 880449;
+    private final int PHASE6_ASSIGNMENT_NUMBER = 880451;
+
     /**
      * Creates a new grader
      *
@@ -149,10 +156,24 @@ public abstract class Grader implements Runnable {
     private void saveResults(TestAnalyzer.TestNode results) {
         String headHash = getHeadHash();
 
-        PhaseConfigurationDao phaseConfigurationDao = DaoService.getPhaseConfigurationDao();
-        PhaseConfiguration phaseConfiguration = phaseConfigurationDao.getPhaseConfiguration(phase);
+        int assignmentNum = switch (phase) {
+            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
+            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
+        };
+
+        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+
+        ZonedDateTime dueDate;
+        try {
+            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+        } catch (CanvasException e) {
+            throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+        }
         float score = getScore(results);
-        score -= getNumDaysLate(phaseConfiguration.dueDate()) * 0.1F;
+        score -= getNumDaysLate(dueDate) * 0.1F;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -180,13 +201,12 @@ public abstract class Grader implements Runnable {
 
         int userId = user.canvasUserId();
 
-        //FIXME
         int assignmentNum = switch (phase) {
-            case Phase0 -> 880445;
-            case Phase1 -> 880446;
-            case Phase3 -> 880448;
-            case Phase4 -> 880449;
-            case Phase6 -> 880451;
+            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
+            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER ;
         };
 
         //FIXME
