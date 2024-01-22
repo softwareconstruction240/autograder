@@ -96,7 +96,7 @@ public class CanvasIntegration {
      * @return The git repository url for the given user
      * @throws CanvasException If there is an error with Canvas
      */
-    private static String getGitRepo(int userId) throws CanvasException {
+    public static String getGitRepo(int userId) throws CanvasException {
         CanvasSubmission submission = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
