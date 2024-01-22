@@ -212,16 +212,15 @@ public class CanvasIntegration {
      * @throws IOException If there is an error reading the response from canvas
      */
     private static <T> T readBody(HttpsURLConnection https, Class<T> responseClass) throws IOException {
-        T response = null;
         if (https.getContentLength() < 0) {
             try (InputStream respBody = https.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if (responseClass != null) {
-                    response = new Gson().fromJson(reader, responseClass);
+                    return new CanvasDeserializer<T>().deserialize(reader, responseClass);
                 }
             }
         }
-        return response;
+        return null;
     }
 
 }
