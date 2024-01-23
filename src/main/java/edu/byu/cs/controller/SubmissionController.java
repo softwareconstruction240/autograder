@@ -97,10 +97,13 @@ public class SubmissionController {
         }
 
         try {
-            Grader grader = getGrader(netId, request, user.repoUrl());
+            Grader grader = getGrader(netId, Phase.valueOf("Phase"+request.phase()), user.repoUrl());
 
             TrafficController.getInstance().addGrader(grader);
 
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            halt(400, "Invalid phase");
         } catch (Exception e) {
             LOGGER.error("Something went wrong submitting", e);
             halt(500, "Something went wrong");
@@ -183,12 +186,12 @@ public class SubmissionController {
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *
-     * @param netId   the netId of the user
-     * @param request the request to create a grader for
+     * @param netId the netId of the user
+     * @param phase the phase to grade
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, GradeRequest request, String repoUrl) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -233,13 +236,12 @@ public class SubmissionController {
 
 
 
-        return switch (request.phase()) {
-            case 0 -> new PhaseZeroGrader(netId, repoUrl, observer);
-            case 1 -> new PhaseOneGrader(netId, repoUrl, observer);
-            case 3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case 4 -> null;
-            case 6 -> null;
-            default -> throw new IllegalStateException("Unexpected value: " + request.phase());
+        return switch (phase) {
+            case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
+            case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
+            case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
+            case Phase4 -> null;
+            case Phase6 -> null;
         };
     }
 
