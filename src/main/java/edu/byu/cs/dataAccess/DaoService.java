@@ -1,6 +1,7 @@
 package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.dataAccess.sql.PhaseConfigurationSqlDao;
+import edu.byu.cs.dataAccess.sql.QueueSqlDao;
 import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
 import edu.byu.cs.dataAccess.sql.UserSqlDao;
 
@@ -15,5 +16,9 @@ public class DaoService {
 
     public static PhaseConfigurationDao getPhaseConfigurationDao() {
         return new PhaseConfigurationSqlDao();
+    }
+
+    public static QueueDao getQueueDao() {
+        return new QueueSqlDao();
     }
 }
