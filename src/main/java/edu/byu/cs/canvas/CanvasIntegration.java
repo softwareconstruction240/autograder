@@ -1,6 +1,7 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.time.ZonedDateTime;
 
 public class CanvasIntegration {
 
@@ -58,6 +60,14 @@ public class CanvasIntegration {
                 String lastName = ((names.length >= 1) ? names[0] : "").trim();
 
                 String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
+
+                if (role == User.Role.STUDENT) {
+                    try {
+                        SubmissionController.getRemoteHeadHash(repoUrl);
+                    } catch (RuntimeException e) {
+                        throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
+                    }
+                }
 
                 return new User(netId, user.id(), firstName, lastName, repoUrl, role);
             }
@@ -126,7 +136,7 @@ public class CanvasIntegration {
      * @return The git repository url for the given user
      * @throws CanvasException If there is an error with Canvas
      */
-    private static String getGitRepo(int userId) throws CanvasException {
+    public static String getGitRepo(int userId) throws CanvasException {
         CanvasSubmission submission = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
@@ -173,6 +183,20 @@ public class CanvasIntegration {
         );
     }
 
+    public static ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
+        CanvasAssignment assignment = makeCanvasRequest(
+                "GET",
+                "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
+                null,
+                CanvasAssignment[].class
+        )[0];
+
+        if (assignment == null || assignment.due_at() == null)
+            throw new CanvasException("Unable to get due date for assignment");
+
+        return assignment.due_at();
+    }
+
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
 
@@ -191,6 +215,10 @@ public class CanvasIntegration {
     }
 
     private record CanvasSubmissionUser(String url, CanvasUser user) {
+
+    }
+
+    private record CanvasAssignment(ZonedDateTime due_at) {
 
     }
 
@@ -247,16 +275,15 @@ public class CanvasIntegration {
      * @throws IOException If there is an error reading the response from canvas
      */
     private static <T> T readBody(HttpsURLConnection https, Class<T> responseClass) throws IOException {
-        T response = null;
         if (https.getContentLength() < 0) {
             try (InputStream respBody = https.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if (responseClass != null) {
-                    response = new Gson().fromJson(reader, responseClass);
+                    return new CanvasDeserializer<T>().deserialize(reader, responseClass);
                 }
             }
         }
-        return response;
+        return null;
     }
 
 }

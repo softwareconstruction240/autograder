@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -65,7 +66,13 @@ public class SubmissionController {
             return null;
         }
 
-        String headHash = getRemoteHeadHash(user.repoUrl());
+        String headHash;
+        try {
+            headHash = getRemoteHeadHash(user.repoUrl());
+        } catch (Exception e) {
+            halt(400, "Invalid repo url");
+            return null;
+        }
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
                 .filter(s -> s.headHash().equals(headHash))
@@ -80,6 +87,14 @@ public class SubmissionController {
 
         TrafficController.queue.add(netId);
         TrafficController.sessions.put(netId, new ArrayList<>());
+
+        // check to make sure they haven't updated their git repo url
+        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
+        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
+            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
+            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
+            req.session().attribute("user",user);
+        }
 
         try {
             Grader grader = getGrader(netId, request, user.repoUrl());
@@ -213,6 +228,9 @@ public class SubmissionController {
             }
         };
 
+
+
+
         return switch (request.phase()) {
             case 0 -> new PhaseZeroGrader(netId, repoUrl, observer);
             case 1 -> new PhaseOneGrader(netId, repoUrl, observer);
@@ -223,7 +241,7 @@ public class SubmissionController {
         };
     }
 
-    private static String getRemoteHeadHash(String repoUrl) {
+    public static String getRemoteHeadHash(String repoUrl) {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
             Process process = processBuilder.start();
