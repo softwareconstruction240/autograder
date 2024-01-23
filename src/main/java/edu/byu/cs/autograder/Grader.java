@@ -342,6 +342,9 @@ public abstract class Grader implements Runnable {
      * @return the number of days late or 0 if the submission is not late
      */
     private int getNumDaysLate(ZonedDateTime dueDate) {
+        // end of day
+        dueDate = dueDate.withHour(23).withMinute(59).withSecond(59);
+
         ZonedDateTime now = ZonedDateTime.now();
         int daysLate = 0;
 
