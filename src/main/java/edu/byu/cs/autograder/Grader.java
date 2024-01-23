@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
@@ -11,6 +12,7 @@ import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +21,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.stream.Stream;
+
+import static edu.byu.cs.model.Phase.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -79,6 +85,11 @@ public abstract class Grader implements Runnable {
      */
     protected final String stageRepoPath;
 
+    /**
+     * The required number of commits (since the last phase) to be able to pass off
+     */
+    private final int requiredCommits;
+
     protected Observer observer;
 
     /**
@@ -103,6 +114,8 @@ public abstract class Grader implements Runnable {
         this.repoUrl = repoUrl;
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
 
+        this.requiredCommits = 100;
+
         this.observer = observer;
     }
 
@@ -111,6 +124,7 @@ public abstract class Grader implements Runnable {
 
         try {
             fetchRepo();
+            verifyRegularCommits();
             verifyProjectStructure();
             runCustomTests();
             packageRepo();
@@ -243,6 +257,29 @@ public abstract class Grader implements Runnable {
     }
 
     /**
+     * Counts the commits since the last passoff and halts progress if there are less than the required amount
+     */
+    private void verifyRegularCommits() {
+        observer.update("Verifying commits...");
+
+        try (Git git = Git.open(new File(stageRepoPath))) {
+            Iterable<RevCommit> commits = git.log().all().call();
+            long timestamp = getLastSubmissionTimestamp();
+            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp);
+            if (CommitAnalytics.getTotalCommits(commitHistory) < requiredCommits) {
+                observer.notifyError("Not enough commits to pass off. (" + CommitAnalytics.getTotalCommits(commitHistory) + "/" + requiredCommits + ")");
+                LOGGER.error("Insufficient commits to pass off.");
+                throw new RuntimeException("Not enough commits to pass off");
+            }
+        } catch (IOException | GitAPIException e) {
+            observer.notifyError("Failed to count commits: " + e.getMessage());
+            LOGGER.error("Failed to count commits", e);
+            throw new RuntimeException("Failed to count commits: " + e.getMessage());
+        }
+
+    }
+
+    /**
      * Packages the student repo into a jar
      */
     protected void packageRepo() {
@@ -298,6 +335,33 @@ public abstract class Grader implements Runnable {
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
     protected abstract String getNotes(TestAnalyzer.TestNode results);
+
+    /**
+     * Gets the timestamp of the first passing submission for the previous phase
+     *
+     * @return the timestamp (epoch seconds)
+     */
+    private long getLastSubmissionTimestamp() {
+        Phase prevPhase = switch (phase) {
+            case Phase0 -> null;
+            case Phase1 -> Phase0;
+            case Phase3 -> Phase1;
+            case Phase4 -> Phase3;
+            case Phase6 -> Phase4;
+        };
+        if (prevPhase == null) return 0;
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, prevPhase);
+        // find first passing submission for the previous phase
+        long timestamp = Long.MAX_VALUE;
+        for (Submission s : submissions) {
+            if (!s.passed()) continue;
+            if (s.timestamp().getEpochSecond() < timestamp) {
+                timestamp = s.timestamp().getEpochSecond();
+            }
+        }
+        if (timestamp == Long.MAX_VALUE) return 0L;
+        else return timestamp;
+    }
 
     public interface Observer {
         void notifyStarted();

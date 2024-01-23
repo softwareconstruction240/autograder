@@ -57,7 +57,7 @@ public class CommitAnalytics {
     /**
      * Compiles git commit analytics for every student
      *
-     * @return
+     * @return A map of netID to map of day (represented by a string yyyy-mm-dd) to integer
      */
     private Map<String, Map<String, Integer>> compile() {
 
@@ -80,7 +80,7 @@ public class CommitAnalytics {
 
             try (Git git = cloneCommand.call()) {
                 Iterable<RevCommit> commits = git.log().all().call();
-                Map<String, Integer> count = handleCommits(commits);
+                Map<String, Integer> count = handleCommits(commits, 0);
                 commitMap.put(student.netId(), count);
             } catch (GitAPIException | IOException e) {
                 invalidRepos.add(student);
@@ -92,10 +92,18 @@ public class CommitAnalytics {
         return commitMap;
     }
 
-    private Map<String, Integer> handleCommits(Iterable<RevCommit> commits) {
+    /**
+     * Given an iterable of commits and a timestamp, compiles stats since that timestamp
+     *
+     * @param commits the collection of commits
+     * @param seconds the lower bound timestamp in Unix seconds
+     * @return the map
+     */
+    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long seconds) {
         Map<String, Integer> days = new TreeMap<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         for (RevCommit rc : commits) {
+            if (rc.getCommitTime() < seconds) continue;
             Date date = new Date(rc.getCommitTime() * 1000L);
             String dayKey = dateFormat.format(date);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
@@ -103,18 +111,18 @@ public class CommitAnalytics {
         return days;
     }
 
-    private void removeTemp(File dir) {
-        if (!dir.exists()) {
-            return;
+    /**
+     * Counts the total commits in the given map
+     *
+     * @param days a map of day represented as "yyyy-mm-dd" to integer
+     * @return the total of the map's values
+     */
+    public static int getTotalCommits(Map<String, Integer> days) {
+        int total = 0;
+        for (Map.Entry<String, Integer> entry : days.entrySet()) {
+            total += entry.getValue();
         }
-
-        try (Stream<Path> paths = Files.walk(dir.toPath())) {
-            paths.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete directory: " + e.getMessage());
-        }
+        return total;
     }
 
     /**
@@ -157,6 +165,20 @@ public class CommitAnalytics {
         return sb.toString();
     }
 
+    private void removeTemp(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+
+        try (Stream<Path> paths = Files.walk(dir.toPath())) {
+            paths.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete directory: " + e.getMessage());
+        }
+    }
+
     private String printUserDetails(User user) {
         return user.netId() + " (" + user.firstName() + " " + user.lastName() + ") " + user.repoUrl();
     }
@@ -177,14 +199,6 @@ public class CommitAnalytics {
             total += entry.getValue().size();
         }
         return roundToDecimal((double) total / commitInfo.size(), 1);
-    }
-
-    private int getTotalCommits(Map<String, Integer> days) {
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : days.entrySet()) {
-            total += entry.getValue();
-        }
-        return total;
     }
 
     private double roundToDecimal(double value, int decimalPlaces) {
