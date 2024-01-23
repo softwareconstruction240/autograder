@@ -3,9 +3,11 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.PhaseConfigurationDao;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.PhaseConfiguration;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
@@ -19,7 +21,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -81,6 +86,13 @@ public abstract class Grader implements Runnable {
 
     protected Observer observer;
 
+    // FIXME: dynamically get assignment numbers
+    private final int PHASE0_ASSIGNMENT_NUMBER = 880445;
+    private final int PHASE1_ASSIGNMENT_NUMBER = 880446;
+    private final int PHASE3_ASSIGNMENT_NUMBER = 880448;
+    private final int PHASE4_ASSIGNMENT_NUMBER = 880449;
+    private final int PHASE6_ASSIGNMENT_NUMBER = 880451;
+
     /**
      * Creates a new grader
      *
@@ -136,9 +148,35 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    /**
+     * Saves the results of the grading to the database and to Canvas if the submission passed
+     *
+     * @param results the results of the grading
+     */
     private void saveResults(TestAnalyzer.TestNode results) {
         String headHash = getHeadHash();
 
+        int assignmentNum = switch (phase) {
+            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
+            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
+        };
+
+        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+
+        ZonedDateTime dueDate;
+        try {
+            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+        } catch (CanvasException e) {
+            throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+        }
+
+        // penalize at most 5 days
+        int numDaysLate = Math.min(getNumDaysLate(dueDate), 5);
+        float score = getScore(results);
+        score -= numDaysLate * 0.1F;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -148,7 +186,7 @@ public abstract class Grader implements Runnable {
                 Instant.now(),
                 phase,
                 results.numTestsFailed == 0,
-                getScore(results),
+                score,
                 getNotes(results),
                 results
         );
@@ -164,16 +202,14 @@ public abstract class Grader implements Runnable {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
-        // FIXME: dynamically retrieve test student id
-        int userId = user.role() == User.Role.STUDENT ? user.canvasUserId() : 130055; //Test Student
+        int userId = user.canvasUserId();
 
-        //FIXME
         int assignmentNum = switch (phase) {
-            case Phase0 -> 880445;
-            case Phase1 -> 880446;
-            case Phase3 -> 880448;
-            case Phase4 -> 880449;
-            case Phase6 -> 880451;
+            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
+            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER ;
         };
 
         //FIXME
@@ -298,6 +334,46 @@ public abstract class Grader implements Runnable {
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
     protected abstract String getNotes(TestAnalyzer.TestNode results);
+
+    /**
+     * Gets the number of days late the submission is. This excludes weekends and public holidays
+     *
+     * @param dueDate the due date of the phase
+     * @return the number of days late or 0 if the submission is not late
+     */
+    private int getNumDaysLate(ZonedDateTime dueDate) {
+        // end of day
+        dueDate = dueDate.withHour(23).withMinute(59).withSecond(59);
+
+        ZonedDateTime now = ZonedDateTime.now();
+        int daysLate = 0;
+
+        while (now.isAfter(dueDate)) {
+            if (now.getDayOfWeek().getValue() < 6 && !isPublicHoliday(now)) {
+                daysLate++;
+            }
+            now = now.minusDays(1);
+        }
+
+        return daysLate;
+    }
+
+    /**
+     * Checks if the given date is a public holiday
+     *
+     * @param zonedDateTime the date to check
+     * @return true if the date is a public holiday, false otherwise
+     */
+    private boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
+        Date date = Date.from(zonedDateTime.toInstant());
+        // TODO: use non-hardcoded list of public holidays
+        Set<Date> publicHolidays = Set.of(
+                Date.from(ZonedDateTime.parse("2023-02-19T00:00:00.000Z").toInstant()),
+                Date.from(ZonedDateTime.parse("2023-03-15T00:00:00.000Z").toInstant())
+        );
+
+        return publicHolidays.contains(date);
+    }
 
     public interface Observer {
         void notifyStarted();
