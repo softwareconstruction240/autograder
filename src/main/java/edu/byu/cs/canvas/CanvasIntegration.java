@@ -157,17 +157,6 @@ public class CanvasIntegration {
         return assignment.due_at();
     }
 
-    public static void main(String[] args) {
-        int userId = 130158;
-        int assignmentId = 880445;
-        try {
-            ZonedDateTime dueDate = getAssignmentDueDateForStudent(userId, assignmentId);
-            System.out.println(dueDate);
-        } catch (CanvasException e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
 
