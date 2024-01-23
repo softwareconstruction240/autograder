@@ -124,7 +124,7 @@ public abstract class Grader implements Runnable {
         this.repoUrl = repoUrl;
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
 
-        this.requiredCommits = 100;
+        this.requiredCommits = 10;
 
         this.observer = observer;
     }
