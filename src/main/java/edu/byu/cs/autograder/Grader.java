@@ -172,8 +172,11 @@ public abstract class Grader implements Runnable {
         } catch (CanvasException e) {
             throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
+
+        // penalize at most 5 days
+        int numDaysLate = Math.min(getNumDaysLate(dueDate), 5);
         float score = getScore(results);
-        score -= getNumDaysLate(dueDate) * 0.1F;
+        score -= numDaysLate * 0.1F;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
