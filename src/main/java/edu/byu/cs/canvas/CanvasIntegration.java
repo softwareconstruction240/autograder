@@ -146,7 +146,7 @@ public class CanvasIntegration {
     public static ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentId + "/submissions/" + userId,
+                "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
                 null,
                 CanvasAssignment.class
         );
