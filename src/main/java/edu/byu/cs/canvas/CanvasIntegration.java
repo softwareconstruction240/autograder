@@ -148,13 +148,24 @@ public class CanvasIntegration {
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
                 null,
-                CanvasAssignment.class
-        );
+                CanvasAssignment[].class
+        )[0];
 
         if (assignment == null || assignment.due_at() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
         return assignment.due_at();
+    }
+
+    public static void main(String[] args) {
+        int userId = 130158;
+        int assignmentId = 880445;
+        try {
+            ZonedDateTime dueDate = getAssignmentDueDateForStudent(userId, assignmentId);
+            System.out.println(dueDate);
+        } catch (CanvasException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     private enum EnrollmentType {
