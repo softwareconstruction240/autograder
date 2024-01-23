@@ -2,6 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.autograder.TrafficController;
+import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.slf4j.Logger;
@@ -22,7 +23,8 @@ public class WebSocketController {
 
     @OnWebSocketError
     public void onError(Session session, Throwable t) {
-        LOGGER.error("WebSocket error: ", t);
+        if (!(t instanceof CloseException))
+            LOGGER.error("WebSocket error: ", t);
     }
 
     @OnWebSocketMessage
