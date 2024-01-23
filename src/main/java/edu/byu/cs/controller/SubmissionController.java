@@ -88,7 +88,7 @@ public class SubmissionController {
         TrafficController.queue.add(netId);
         TrafficController.sessions.put(netId, new ArrayList<>());
 
-        // check to make sure they haven't updated their git repo url
+        // check for updated repoUrl
         String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
         if ( !newRepoUrl.equals( user.repoUrl() ) ) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
