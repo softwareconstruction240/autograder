@@ -66,6 +66,14 @@ public class SubmissionController {
             return null;
         }
 
+        // check for updated repoUrl
+        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
+        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
+            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
+            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
+            req.session().attribute("user",user);
+        }
+
         String headHash;
         try {
             headHash = getRemoteHeadHash(user.repoUrl());
