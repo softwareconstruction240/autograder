@@ -16,4 +16,11 @@ public interface QueueDao {
      * @return the next item in the queue
      */
     QueueItem pop();
+
+    /**
+     * Removes an item from the queue
+     *
+     * @param netId the netId of the item to remove
+     */
+    void remove(String netId);
 }

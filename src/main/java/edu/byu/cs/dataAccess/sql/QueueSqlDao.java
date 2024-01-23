@@ -50,4 +50,19 @@ public class QueueSqlDao implements QueueDao {
             throw new DataAccessException("Error popping item from queue", e);
         }
     }
+
+    @Override
+    public void remove(String netId) {
+        try (var connection = SqlDb.getConnection()) {
+            var statement = connection.prepareStatement(
+                    """
+                            DELETE FROM queue
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error removing item from queue", e);
+        }
+    }
 }
