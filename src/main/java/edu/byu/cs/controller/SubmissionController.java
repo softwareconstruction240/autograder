@@ -163,10 +163,12 @@ public class SubmissionController {
     };
 
     public static Route submissionsActiveGet = (req, res) -> {
-        Collection<String> currentlyGrading = TrafficController.sessions.keySet();
-        Collection<String> inQueue = TrafficController.queue.stream()
-                .filter(netId -> !currentlyGrading.contains(netId))
-                .toList();
+        Collection<String> inQueue = TrafficController.queue;
+
+        Collection<String> currentlyGrading = TrafficController.sessions.keySet()
+                .stream()
+            .filter(netId -> !inQueue.contains(netId)).toList();
+
 
 
         res.status(200);
