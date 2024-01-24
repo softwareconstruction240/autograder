@@ -214,12 +214,15 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestNode results) {
+    protected String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate) {
         if (results == null)
             return "No tests were run";
 
-        if (results.numTestsFailed == 0)
+        if (passed && numDaysLate == 0)
             return "All tests passed";
+
+        if (passed & numDaysLate > 0)
+            return "All tests passed, but " + numDaysLate + " day"+ (numDaysLate > 1 ? "s" : "") +" late. (-" + Math.min(50, numDaysLate * 10) + "%)";
 
         if (getScore(results) != 1)
             return "Some tests failed. You must pass all tests to pass off this phase";

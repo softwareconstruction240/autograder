@@ -187,7 +187,7 @@ public abstract class Grader implements Runnable {
                 phase,
                 results.numTestsFailed == 0,
                 score,
-                getNotes(results),
+                getNotes(results, results.numTestsFailed == 0, numDaysLate),
                 results
         );
 
@@ -333,7 +333,7 @@ public abstract class Grader implements Runnable {
      */
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
-    protected abstract String getNotes(TestAnalyzer.TestNode results);
+    protected abstract String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate);
 
     /**
      * Gets the number of days late the submission is. This excludes weekends and public holidays
