@@ -3,11 +3,9 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.PhaseConfigurationDao;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.PhaseConfiguration;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
@@ -21,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.Date;
@@ -174,7 +173,8 @@ public abstract class Grader implements Runnable {
         }
 
         // penalize at most 5 days
-        int numDaysLate = Math.min(getNumDaysLate(dueDate), 5);
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+        int numDaysLate = Math.min(getNumDaysLate(handInDate, dueDate), 5);
         float score = getScore(results);
         score -= numDaysLate * 0.1F;
 
@@ -209,11 +209,11 @@ public abstract class Grader implements Runnable {
             case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
             case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
             case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
-            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER ;
+            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
         };
 
         //FIXME
-        float score = submission.score() * switch(phase) {
+        float score = submission.score() * switch (phase) {
             case Phase0, Phase1, Phase4 -> 125.0F;
             case Phase3 -> 180.0F;
             case Phase6 -> 155.0F;
@@ -338,21 +338,21 @@ public abstract class Grader implements Runnable {
     /**
      * Gets the number of days late the submission is. This excludes weekends and public holidays
      *
-     * @param dueDate the due date of the phase
+     * @param handInDate the date the submission was handed in
+     * @param dueDate    the due date of the phase
      * @return the number of days late or 0 if the submission is not late
      */
-    private int getNumDaysLate(ZonedDateTime dueDate) {
+    private int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
         // end of day
         dueDate = dueDate.withHour(23).withMinute(59).withSecond(59);
 
-        ZonedDateTime now = ZonedDateTime.now();
         int daysLate = 0;
 
-        while (now.isAfter(dueDate)) {
-            if (now.getDayOfWeek().getValue() < 6 && !isPublicHoliday(now)) {
+        while (handInDate.isAfter(dueDate)) {
+            if (handInDate.getDayOfWeek().getValue() < 6 && !isPublicHoliday(handInDate)) {
                 daysLate++;
             }
-            now = now.minusDays(1);
+            handInDate = handInDate.minusDays(1);
         }
 
         return daysLate;
