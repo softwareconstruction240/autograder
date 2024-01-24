@@ -3,7 +3,7 @@ Autograder for [BYU CS 240 Chess project](https://github.com/softwareconstructio
 
 ## Important folders
 ```
-phases/ - containes the test cases for each phase
+phases/ - contains the test cases for each phase
   phase0/
   phase1/
   phase3/
