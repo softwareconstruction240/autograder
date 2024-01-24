@@ -6,7 +6,7 @@ public record QueueItem(
         String netId,
         Phase phase,
         Instant timeAdded,
-        Instant timeStarted
+        boolean started
 ) {
 
 }
