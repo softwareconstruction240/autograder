@@ -110,4 +110,20 @@ public class QueueSqlDao implements QueueDao {
             throw new DataAccessException("Error checking if item is in queue", e);
         }
     }
+
+    @Override
+    public void markStarted(String netId) {
+        try (var connection = SqlDb.getConnection()) {
+            var statement = connection.prepareStatement(
+                    """
+                            UPDATE queue
+                            SET started = true
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, netId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error marking item as started", e);
+        }
+    }
 }

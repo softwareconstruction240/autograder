@@ -40,4 +40,11 @@ public interface QueueDao {
      * @return true if the item is in the queue, false otherwise
      */
     boolean isAlreadyInQueue(String netId);
+
+    /**
+     * Marks an item as being started to be graded
+     *
+     * @param netId the netId of the item to mark
+     */
+    void markStarted(String netId);
 }
