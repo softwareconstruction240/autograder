@@ -45,7 +45,7 @@ public class QueueSqlDao implements QueueDao {
                         resultSet.getString("net_id"),
                         Phase.valueOf(resultSet.getString("phase")),
                         resultSet.getTimestamp("timestamp").toInstant(),
-                        resultSet.getTimestamp("time_started").toInstant()
+                        resultSet.getBoolean("started")
                 );
             } else {
                 return null;
@@ -85,7 +85,7 @@ public class QueueSqlDao implements QueueDao {
                         resultSet.getString("net_id"),
                         Phase.valueOf(resultSet.getString("phase")),
                         resultSet.getTimestamp("timestamp").toInstant(),
-                        resultSet.getTimestamp("time_started").toInstant()
+                        resultSet.getBoolean("started")
                 ));
             }
             return items;
