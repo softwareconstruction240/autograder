@@ -69,7 +69,7 @@ public class SqlDb {
                                 `net_id` VARCHAR(20) NOT NULL,
                                 `phase` VARCHAR(9) NOT NULL,
                                 `time_added` DATETIME NOT NULL,
-                                `time_started` DATETIME,
+                                `started` BOOL,
                                 PRIMARY KEY (`net_id`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                             """);
