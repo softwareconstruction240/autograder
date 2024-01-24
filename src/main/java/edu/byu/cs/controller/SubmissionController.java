@@ -229,6 +229,7 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
+                DaoService.getQueueDao().remove(netId);
             }
 
             @Override
@@ -239,6 +240,7 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
+                DaoService.getQueueDao().remove(netId);
             }
         };
 
