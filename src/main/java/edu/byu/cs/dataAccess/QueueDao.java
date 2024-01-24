@@ -47,4 +47,12 @@ public interface QueueDao {
      * @param netId the netId of the item to mark
      */
     void markStarted(String netId);
+
+    /**
+     * Gets an item from the queue
+     *
+     * @param netId the netId of the item to get
+     * @return the item with the given netId
+     */
+    QueueItem get(String netId);
 }
