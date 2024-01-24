@@ -9,6 +9,7 @@ import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class SubmissionController {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
-        if (TrafficController.queue.stream().anyMatch(netId::equals)) {
+        if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
             halt(400, "You are already in the queue");
             return null;
         }
@@ -93,7 +94,15 @@ public class SubmissionController {
 
         LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
 
-        TrafficController.queue.add(netId);
+        DaoService.getQueueDao().add(
+                new edu.byu.cs.model.QueueItem(
+                        netId,
+                        Phase.valueOf("Phase"+request.phase()),
+                        Instant.now(),
+                        false
+                )
+        );
+
         TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
@@ -117,7 +126,7 @@ public class SubmissionController {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
-        boolean inQueue = TrafficController.queue.stream().anyMatch(netId::equals);
+        boolean inQueue = DaoService.getQueueDao().isAlreadyInQueue(netId);
 
         res.status(200);
 
@@ -166,7 +175,7 @@ public class SubmissionController {
     };
 
     public static Route submissionsActiveGet = (req, res) -> {
-        Collection<String> inQueue = TrafficController.queue;
+        Collection<String> inQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
 
         Collection<String> currentlyGrading = TrafficController.sessions.keySet()
                 .stream()
@@ -195,7 +204,7 @@ public class SubmissionController {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
-                TrafficController.queue.removeIf(queueNetId -> queueNetId.equals(netId));
+                DaoService.getQueueDao().markStarted(netId);
 
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "started"
