@@ -183,7 +183,7 @@ public abstract class Grader implements Runnable {
                 netId,
                 repoUrl,
                 headHash,
-                Instant.now(),
+                handInDate.toInstant(),
                 phase,
                 results.numTestsFailed == 0,
                 score,
