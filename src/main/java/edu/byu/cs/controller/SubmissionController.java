@@ -9,6 +9,7 @@ import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class SubmissionController {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
-        if (TrafficController.queue.stream().anyMatch(netId::equals)) {
+        if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
             halt(400, "You are already in the queue");
             return null;
         }
@@ -66,6 +67,14 @@ public class SubmissionController {
             return null;
         }
 
+        // check for updated repoUrl
+        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
+        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
+            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
+            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
+            req.session().attribute("user",user);
+        }
+
         String headHash;
         try {
             headHash = getRemoteHeadHash(user.repoUrl());
@@ -85,22 +94,25 @@ public class SubmissionController {
 
         LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
 
-        TrafficController.queue.add(netId);
+        DaoService.getQueueDao().add(
+                new edu.byu.cs.model.QueueItem(
+                        netId,
+                        Phase.valueOf("Phase"+request.phase()),
+                        Instant.now(),
+                        false
+                )
+        );
+
         TrafficController.sessions.put(netId, new ArrayList<>());
 
-        // check to make sure they haven't updated their git repo url
-        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
-        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
-            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
-            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user",user);
-        }
-
         try {
-            Grader grader = getGrader(netId, request, user.repoUrl());
+            Grader grader = getGrader(netId, Phase.valueOf("Phase"+request.phase()), user.repoUrl());
 
             TrafficController.getInstance().addGrader(grader);
 
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            halt(400, "Invalid phase");
         } catch (Exception e) {
             LOGGER.error("Something went wrong submitting", e);
             halt(500, "Something went wrong");
@@ -114,7 +126,7 @@ public class SubmissionController {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
-        boolean inQueue = TrafficController.queue.stream().anyMatch(netId::equals);
+        boolean inQueue = DaoService.getQueueDao().isAlreadyInQueue(netId);
 
         res.status(200);
 
@@ -163,7 +175,7 @@ public class SubmissionController {
     };
 
     public static Route submissionsActiveGet = (req, res) -> {
-        Collection<String> inQueue = TrafficController.queue;
+        Collection<String> inQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
 
         Collection<String> currentlyGrading = TrafficController.sessions.keySet()
                 .stream()
@@ -183,16 +195,16 @@ public class SubmissionController {
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *
-     * @param netId   the netId of the user
-     * @param request the request to create a grader for
+     * @param netId the netId of the user
+     * @param phase the phase to grade
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, GradeRequest request, String repoUrl) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
-                TrafficController.queue.removeIf(queueNetId -> queueNetId.equals(netId));
+                DaoService.getQueueDao().markStarted(netId);
 
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "started"
@@ -217,6 +229,7 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
+                DaoService.getQueueDao().remove(netId);
             }
 
             @Override
@@ -227,19 +240,19 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
+                DaoService.getQueueDao().remove(netId);
             }
         };
 
 
 
 
-        return switch (request.phase()) {
-            case 0 -> new PhaseZeroGrader(netId, repoUrl, observer);
-            case 1 -> new PhaseOneGrader(netId, repoUrl, observer);
-            case 3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case 4 -> null;
-            case 6 -> null;
-            default -> throw new IllegalStateException("Unexpected value: " + request.phase());
+        return switch (phase) {
+            case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
+            case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
+            case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
+            case Phase4 -> null;
+            case Phase6 -> null;
         };
     }
 

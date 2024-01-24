@@ -1,12 +1,14 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.model.QueueItem;
 import org.eclipse.jetty.websocket.api.Session;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,10 +16,7 @@ import java.util.concurrent.Executors;
  * Controller for handling the queue of graders
  */
 public class TrafficController {
-    /**
-     * A queue of netIds that are waiting to be graded
-     */
-    public static final ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
+
     /**
      * A map of netIds to sessions that are subscribed to updates for that netId
      */
@@ -30,6 +29,9 @@ public class TrafficController {
 
     private static final TrafficController trafficController = new TrafficController();
 
+    private TrafficController() {
+    }
+
     public static TrafficController getInstance() {
         return trafficController;
     }
@@ -39,12 +41,15 @@ public class TrafficController {
      * Each client will be notified of their specific position in the queue.
      */
     public static void broadcastQueueStatus() {
+
+        Collection<String> netIdsInQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
+
         int i = 1;
-        for (String netId : queue) {
+        for (String netId : netIdsInQueue) {
             getInstance().notifySubscribers(netId, Map.of(
                     "type", "queueStatus",
                     "position", i,
-                    "total", queue.size()
+                    "total", netIdsInQueue.size()
             ));
             i++;
         }
@@ -59,7 +64,7 @@ public class TrafficController {
         executorService.submit(grader);
     }
 
-    public void notifySubscribers(String netId, Map<String, Object> message) {
+    public synchronized void notifySubscribers(String netId, Map<String, Object> message) {
         sessions.get(netId).stream()
                 .filter(Session::isOpen)
                 .forEach(session -> WebSocketController.send(session, message));

@@ -34,11 +34,16 @@ public class JwtUtils {
      * @return the subject of the JWT if valid, null otherwise
      */
     public static String validateToken(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+        } catch (Exception e) {
+            LOGGER.error("Error validating JWT", e);
+            return null;
+        }
     }
 }
