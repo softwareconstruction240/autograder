@@ -32,4 +32,12 @@ public interface QueueDao {
      * @return all items in the queue
      */
     Collection<QueueItem> getAll();
+
+    /**
+     * Gets the number of items in the queue
+     *
+     * @param netId the netId of the item to check
+     * @return true if the item is in the queue, false otherwise
+     */
+    boolean isAlreadyInQueue(String netId);
 }

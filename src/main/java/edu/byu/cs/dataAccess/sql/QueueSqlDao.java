@@ -93,4 +93,21 @@ public class QueueSqlDao implements QueueDao {
             throw new DataAccessException("Error getting all items from queue", e);
         }
     }
+
+    @Override
+    public boolean isAlreadyInQueue(String netId) {
+        try (var connection = SqlDb.getConnection()) {
+            var statement = connection.prepareStatement(
+                    """
+                            SELECT *
+                            FROM queue
+                            WHERE net_id = ?
+                            """);
+            statement.setString(1, netId);
+            var resultSet = statement.executeQuery();
+            return resultSet.next();
+        } catch (Exception e) {
+            throw new DataAccessException("Error checking if item is in queue", e);
+        }
+    }
 }
