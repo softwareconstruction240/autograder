@@ -21,6 +21,7 @@ export type Submission = {
     score: number,
     notes: string,
     testResults: TestResult,
+    passed: boolean,
 }
 
 export type User = {
