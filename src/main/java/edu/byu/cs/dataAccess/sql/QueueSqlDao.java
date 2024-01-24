@@ -5,6 +5,9 @@ import edu.byu.cs.dataAccess.QueueDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 public class QueueSqlDao implements QueueDao {
     @Override
     public void add(QueueItem item) {
@@ -64,6 +67,30 @@ public class QueueSqlDao implements QueueDao {
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error removing item from queue", e);
+        }
+    }
+
+    @Override
+    public Collection<QueueItem> getAll() {
+        Collection<QueueItem> items = new ArrayList<>();
+        try (var connection = SqlDb.getConnection()) {
+            var statement = connection.prepareStatement(
+                    """
+                            SELECT *
+                            FROM queue
+                            """);
+            var resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                items.add(new QueueItem(
+                        resultSet.getString("net_id"),
+                        Phase.valueOf(resultSet.getString("phase")),
+                        resultSet.getTimestamp("timestamp").toInstant(),
+                        resultSet.getTimestamp("time_started").toInstant()
+                ));
+            }
+            return items;
+        } catch (Exception e) {
+            throw new DataAccessException("Error getting all items from queue", e);
         }
     }
 }

@@ -2,6 +2,8 @@ package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.model.QueueItem;
 
+import java.util.Collection;
+
 public interface QueueDao {
     /**
      * Adds an item to the queue
@@ -23,4 +25,11 @@ public interface QueueDao {
      * @param netId the netId of the item to remove
      */
     void remove(String netId);
+
+    /**
+     * Gets all items in the queue
+     *
+     * @return all items in the queue
+     */
+    Collection<QueueItem> getAll();
 }
