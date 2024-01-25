@@ -131,6 +131,8 @@ public abstract class Grader implements Runnable {
         observer.notifyStarted();
 
         try {
+            // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
+            Thread.sleep(1000);
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
