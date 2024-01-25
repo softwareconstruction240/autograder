@@ -2,6 +2,7 @@ package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
+import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 
@@ -106,6 +107,14 @@ public class CanvasIntegration {
      * @throws CanvasException If there is an error with Canvas
      */
     public static void submitGrade(int userId, int assignmentNum, Map<String, Float> grades, Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
+        CanvasSubmission submission = getSubmission(userId, assignmentNum);
+        if(submission.rubric_assessment() != null) {
+            for(Map.Entry<String, CanvasIntegration.RubricItem> entry : submission.rubric_assessment().items().entrySet()) {
+                grades.putIfAbsent(entry.getKey(), entry.getValue().points());
+                rubricComments.putIfAbsent(entry.getKey(), entry.getValue().comments());
+            }
+        }
+
         StringBuilder queryStringBuilder = new StringBuilder();
         for(String rubricId : grades.keySet()) {
             queryStringBuilder.append("&rubric_assessment[").append(rubricId).append("][points]=")
@@ -131,6 +140,24 @@ public class CanvasIntegration {
                 null);
     }
 
+
+    /**
+     * Gets the submission details for a specific student's assignment
+     *
+     * @param userId            The canvas user id of the user to submit the grade for
+     * @param assignmentNum     The assignment number to submit the grade for
+     * @return                  Submission details for the assignment
+     * @throws CanvasException  If there is an error with Canvas
+     */
+    public static CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
+        return makeCanvasRequest(
+                "GET",
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
+                null,
+                CanvasSubmission.class
+        );
+    }
+
     /**
      * Gets the git repository url for the given user from their GitHub Repository assignment submission on canvas
      *
@@ -139,12 +166,7 @@ public class CanvasIntegration {
      * @throws CanvasException If there is an error with Canvas
      */
     public static String getGitRepo(int userId) throws CanvasException {
-        CanvasSubmission submission = makeCanvasRequest(
-                "GET",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER + "/submissions/" + userId,
-                null,
-                CanvasSubmission.class
-        );
+        CanvasSubmission submission = getSubmission(userId, GIT_REPO_ASSIGNMENT_NUMBER);
 
         if (submission == null)
             throw new CanvasException("Error while accessing GitHub Repository assignment submission on canvas");
@@ -212,7 +234,11 @@ public class CanvasIntegration {
 
     }
 
-    private record CanvasSubmission(String url) {
+    public record RubricItem(String comments, float points) {}
+
+    public record RubricAssessment(Map<String, RubricItem> items) {}
+
+    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
 
     }
 
