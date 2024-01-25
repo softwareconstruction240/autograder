@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -121,10 +123,12 @@ public class CanvasIntegration {
      * @param grade         The grade to submit (this is the total points earned, not a percentage)
      * @throws CanvasException If there is an error with Canvas
      */
-    public static void submitGrade(int userId, int assignmentNum, float grade) throws CanvasException {
+    public static void submitGrade(int userId, int assignmentNum, float grade, String comment) throws CanvasException {
+        String encodedComment = URLEncoder.encode(comment, Charset.defaultCharset());
         makeCanvasRequest(
                 "PUT",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?submission[posted_grade]=" + grade,
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
+                        "?submission[posted_grade]=" + grade + "&comment[text_comment]=" + encodedComment,
                 null,
                 null);
     }

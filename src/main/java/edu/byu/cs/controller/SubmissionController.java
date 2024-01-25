@@ -7,7 +7,6 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
@@ -18,10 +17,7 @@ import spark.Route;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import static spark.Spark.halt;
 
@@ -82,12 +78,12 @@ public class SubmissionController {
             halt(400, "Invalid repo url");
             return null;
         }
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
-                .filter(s -> s.headHash().equals(headHash))
-                .findFirst()
-                .orElse(null);
-        if (submission != null) {
+        if (mostRecentHasMaxScore(netId, request.getPhase())) {
+            halt(400,"You have already earned the highest possible score on this phase");
+            return null;
+        }
+        Submission submission = getMostRecentSubmission(netId, request.getPhase());
+        if (submission != null && submission.headHash().equals(headHash)) {
             halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
             return null;
         }
@@ -121,6 +117,40 @@ public class SubmissionController {
         res.status(200);
         return "";
     };
+
+    /**
+     * checks to see if the specified student achieved the highest possible grade on the specified phase on their most recent submission
+     * @param netId netId of the student to check
+     * @param phase phase of the project to check
+     * @return true if the student's latest submission has the max score.
+     * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
+     */
+    private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
+        Submission mostRecent = getMostRecentSubmission(netId, phase);
+        if (mostRecent == null) { return false; }
+
+        // If they passed the required tests, and there are no extra credit tests they haven't passed,
+        // then by definition they can't get a higher score
+        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
+    }
+
+    /**
+     * gets the most recent submission for the specified user in the specified phase
+     * @param netId the netID of the student to get a submission for
+     * @param phase the phase of the project to get
+     * @return the most recent submission, or null if there are no submissions for this student in this phase
+     */
+    private static Submission getMostRecentSubmission(String netId, Phase phase) {
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
+        Submission mostRecent = null;
+
+        for (Submission submission : submissions) {
+            if (mostRecent == null || mostRecent.timestamp().isBefore(submission.timestamp())) {
+                mostRecent = submission;
+            }
+        }
+        return mostRecent;
+    }
 
     public static Route submitGet = (req, res) -> {
         User user = req.session().attribute("user");

@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.helpers.AttributesImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +24,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static edu.byu.cs.model.Phase.*;
@@ -234,7 +231,7 @@ public abstract class Grader implements Runnable {
         };
 
         try {
-            CanvasIntegration.submitGrade(userId, assignmentNum, score);
+            CanvasIntegration.submitGrade(userId, assignmentNum, score, submission.notes());
         } catch (CanvasException e) {
             LOGGER.error("Error submitting score for user " + submission.netId(), e);
         }
