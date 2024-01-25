@@ -2,7 +2,6 @@ package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
-import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
 
