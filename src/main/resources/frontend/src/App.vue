@@ -1,11 +1,11 @@
 <script setup lang="ts">
 
-import {computed} from "vue";
+import { computed, h } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
-    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()})`
+    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `
   }
 });
 </script>
@@ -14,7 +14,7 @@ const greeting = computed(() => {
   <header>
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
-    <p>{{ greeting }}</p>
+    <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" href="auth/logout">Logout</a></p>
     <p>{{ useAuthStore().user?.repoUrl }}</p>
   </header>
   <main>
@@ -49,5 +49,9 @@ main {
   width: 66vw;
 
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+}
+
+a {
+  color: white;
 }
 </style>
