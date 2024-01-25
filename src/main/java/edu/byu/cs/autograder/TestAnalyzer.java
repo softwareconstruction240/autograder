@@ -39,6 +39,14 @@ public class TestAnalyzer {
          */
         Integer numExtraCreditFailed;
 
+        public Boolean getPassed() {
+            return passed;
+        }
+
+        public Integer getNumExtraCreditFailed() {
+            return numExtraCreditFailed;
+        }
+
         @Override
         public String toString() {
             StringBuilder stringBuilder = new StringBuilder();
