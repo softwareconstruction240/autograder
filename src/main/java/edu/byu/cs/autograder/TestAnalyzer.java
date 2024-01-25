@@ -39,6 +39,38 @@ public class TestAnalyzer {
          */
         Integer numExtraCreditFailed;
 
+        public String getTestName() {
+            return testName;
+        }
+
+        public Boolean getPassed() {
+            return passed;
+        }
+
+        public String getEcCategory() {
+            return ecCategory;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+
+        public Integer getNumTestsPassed() {
+            return numTestsPassed;
+        }
+
+        public Integer getNumTestsFailed() {
+            return numTestsFailed;
+        }
+
+        public Integer getNumExtraCreditPassed() {
+            return numExtraCreditPassed;
+        }
+
+        public Integer getNumExtraCreditFailed() {
+            return numExtraCreditFailed;
+        }
+
         @Override
         public String toString() {
             StringBuilder stringBuilder = new StringBuilder();

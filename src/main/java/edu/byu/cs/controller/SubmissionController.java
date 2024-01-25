@@ -82,12 +82,8 @@ public class SubmissionController {
             halt(400, "Invalid repo url");
             return null;
         }
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = submissionDao.getSubmissionsForPhase(user.netId(), request.getPhase()).stream()
-                .filter(s -> s.headHash().equals(headHash))
-                .findFirst()
-                .orElse(null);
-        if (submission != null) {
+        Submission submission = getMostRecentSubmission(netId, request.getPhase());
+        if (submission == null || submission.headHash().equals(headHash)) {
             halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
             return null;
         }
@@ -121,6 +117,18 @@ public class SubmissionController {
         res.status(200);
         return "";
     };
+
+    private static Submission getMostRecentSubmission(String netId, Phase phase) {
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
+        Submission mostRecent = null;
+
+        for (Submission submission : submissions) {
+            if (mostRecent == null || mostRecent.timestamp().isBefore(submission.timestamp())) {
+                mostRecent = submission;
+            }
+        }
+        return mostRecent;
+    }
 
     public static Route submitGet = (req, res) -> {
         User user = req.session().attribute("user");
