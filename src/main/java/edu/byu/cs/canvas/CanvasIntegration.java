@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 public class CanvasIntegration {
 
@@ -81,6 +82,7 @@ public class CanvasIntegration {
      * @param userId        The canvas user id of the user to submit the grade for
      * @param assignmentNum The assignment number to submit the grade for
      * @param grade         The grade to submit (this is the total points earned, not a percentage)
+     * @param comment       The comment to submit on the assignment
      * @throws CanvasException If there is an error with Canvas
      */
     public static void submitGrade(int userId, int assignmentNum, float grade, String comment) throws CanvasException {
@@ -89,6 +91,42 @@ public class CanvasIntegration {
                 "PUT",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
                         "?submission[posted_grade]=" + grade + "&comment[text_comment]=" + encodedComment,
+                null,
+                null);
+    }
+
+    /**
+     * Submits the given grade for the given assignment for the given user
+     *
+     * @param userId            The canvas user id of the user to submit the grade for
+     * @param assignmentNum     The assignment number to submit the grade for
+     * @param grades            A Map of rubric item id's to grades for that rubric item
+     * @param rubricComments    A Map of rubric item id's to comments to put on that rubric item
+     * @param assignmentComment A comment for the entire assignment, if necessary
+     * @throws CanvasException If there is an error with Canvas
+     */
+    public static void submitGrade(int userId, int assignmentNum, Map<String, Float> grades, Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
+        StringBuilder queryStringBuilder = new StringBuilder();
+        for(String rubricId : grades.keySet()) {
+            queryStringBuilder.append("&rubric_assessment[").append(rubricId).append("][points]=")
+                    .append(grades.get(rubricId));
+        }
+        for(String rubricId : rubricComments.keySet()) {
+            queryStringBuilder.append("&rubric_assessment[").append(rubricId).append("][comments]=")
+                    .append(URLEncoder.encode(rubricComments.get(rubricId), Charset.defaultCharset()));
+        }
+        if(assignmentComment != null && !assignmentComment.isBlank()) {
+            queryStringBuilder.append("&comment[text_comment]=")
+                    .append(URLEncoder.encode(assignmentComment, Charset.defaultCharset()));
+        }
+        if(!queryStringBuilder.isEmpty() && queryStringBuilder.charAt(0) == '&') {
+            queryStringBuilder.setCharAt(0, '?');
+        }
+
+        makeCanvasRequest(
+                "PUT",
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
+                        queryStringBuilder,
                 null,
                 null);
     }
