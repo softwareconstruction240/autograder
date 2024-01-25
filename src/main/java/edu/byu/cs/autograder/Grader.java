@@ -220,7 +220,7 @@ public abstract class Grader implements Runnable {
         };
 
         try {
-            CanvasIntegration.submitGrade(userId, assignmentNum, score);
+            CanvasIntegration.submitGrade(userId, assignmentNum, score, submission.notes());
         } catch (CanvasException e) {
             LOGGER.error("Error submitting score for user " + submission.netId(), e);
         }
