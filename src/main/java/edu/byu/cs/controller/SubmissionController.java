@@ -7,7 +7,6 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.time.Instant;
 import java.util.*;
 
