@@ -21,8 +21,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, notes, results)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """);
             statement.setString(1, submission.netId());
             statement.setString(2, submission.repoUrl());
@@ -31,8 +31,9 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setBoolean(5, submission.passed());
             statement.setFloat(6, submission.score());
             statement.setString(7, submission.headHash());
-            statement.setString(8, submission.notes());
-            statement.setString(9, new Gson().toJson(submission.testResults()));
+            statement.setInt(8, submission.numCommits());
+            statement.setString(9, submission.notes());
+            statement.setString(10, new Gson().toJson(submission.testResults()));
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
@@ -44,7 +45,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, notes, results
+                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results
                     FROM submission
                     WHERE net_id = ? AND phase = ?
                     """);
@@ -62,7 +63,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, notes, results
+                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results
                     FROM submission
                     WHERE net_id = ?
                     """);
@@ -79,7 +80,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, notes, results
+                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results
                             FROM submission
                             WHERE timestamp IN (
                                 SELECT MAX(timestamp)
@@ -122,6 +123,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             Phase phase = Phase.valueOf(rows.getString("phase"));
             Boolean passed = rows.getBoolean("passed");
             float score = rows.getFloat("score");
+            Integer numCommits = rows.getInt("num_commits");
             String notes = rows.getString("notes");
             TestAnalyzer.TestNode results = new Gson().fromJson(rows.getString("results"), TestAnalyzer.TestNode.class);
 
@@ -133,6 +135,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                     phase,
                     passed,
                     score,
+                    numCommits,
                     notes,
                     results
             ));
