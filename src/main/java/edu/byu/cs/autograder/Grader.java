@@ -132,7 +132,7 @@ public abstract class Grader implements Runnable {
 
         try {
             fetchRepo();
-            verifyRegularCommits();
+            int numCommits = verifyRegularCommits();
             verifyProjectStructure();
             runCustomTests();
             packageRepo();
@@ -291,25 +291,29 @@ public abstract class Grader implements Runnable {
 
     /**
      * Counts the commits since the last passoff and halts progress if there are less than the required amount
+     *
+     * @return the number of commits since the last passoff
      */
-    private void verifyRegularCommits() {
+    private int verifyRegularCommits() {
         observer.update("Verifying commits...");
 
         try (Git git = Git.open(new File(stageRepoPath))) {
             Iterable<RevCommit> commits = git.log().all().call();
             long timestamp = getLastSubmissionTimestamp();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp);
-            if (CommitAnalytics.getTotalCommits(commitHistory) < requiredCommits) {
-                observer.notifyError("Not enough commits to pass off. (" + CommitAnalytics.getTotalCommits(commitHistory) + "/" + requiredCommits + ")");
+            int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
+            if (numCommits < requiredCommits) {
+                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
                 LOGGER.error("Insufficient commits to pass off.");
                 throw new RuntimeException("Not enough commits to pass off");
             }
+
+            return numCommits;
         } catch (IOException | GitAPIException e) {
             observer.notifyError("Failed to count commits: " + e.getMessage());
             LOGGER.error("Failed to count commits", e);
             throw new RuntimeException("Failed to count commits: " + e.getMessage());
         }
-
     }
 
     /**
