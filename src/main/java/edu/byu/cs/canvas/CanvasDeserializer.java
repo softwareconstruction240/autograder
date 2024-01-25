@@ -39,9 +39,14 @@ public class CanvasDeserializer<T> {
                 throws JsonParseException {
             Map<String, Map<String, Object>> map = jsonDeserializationContext.deserialize(jsonElement, Map.class);
             Map<String, CanvasIntegration.RubricItem> items = new HashMap<>();
-            for(Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
-                items.put(entry.getKey(), new CanvasIntegration.RubricItem((String) entry.getValue().get("comments"),
-                        ((Double) entry.getValue().get("points")).floatValue()));
+            for (var entry : map.entrySet()) {
+                String key = entry.getKey();
+                Map<String, Object> value = entry.getValue();
+
+                String comments = (String) value.get("comments");
+                float points = ((Double) value.get("points")).floatValue();
+
+                items.put(key, new CanvasIntegration.RubricItem(comments, points));
             }
             return new CanvasIntegration.RubricAssessment(items);
         }
