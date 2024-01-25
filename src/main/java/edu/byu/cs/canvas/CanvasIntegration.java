@@ -98,6 +98,8 @@ public class CanvasIntegration {
     /**
      * Submits the given grade for the given assignment for the given user
      *
+     * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
+     *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
      * @param grades            A Map of rubric item id's to grades for that rubric item
