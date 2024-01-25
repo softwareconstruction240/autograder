@@ -123,11 +123,11 @@ public class SubmissionController {
     };
 
     /**
-     * checks to see if the specified student has already achieved the highest possible grade on the specified phase
+     * checks to see if the specified student achieved the highest possible grade on the specified phase on their most recent submission
      * @param netId netId of the student to check
      * @param phase phase of the project to check
-     * @return true if the student already has the highest possible grade.
-     * False if the student could possibly score highter, or if they haven't submitted before at all for this phase
+     * @return true if the student's latest submission has the max score.
+     * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
      */
     private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
         Submission mostRecent = getMostRecentSubmission(netId, phase);
