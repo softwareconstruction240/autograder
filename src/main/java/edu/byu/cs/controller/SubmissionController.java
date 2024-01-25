@@ -17,11 +17,9 @@ import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import static spark.Spark.halt;
 
@@ -84,7 +82,7 @@ public class SubmissionController {
         }
         if (mostRecentHasMaxScore(netId, request.getPhase())) {
             halt(400,"You have already earned the highest possible score on this phase");
-            throw new RuntimeException("Max score already earned on this phase");
+            return null;
         }
         Submission submission = getMostRecentSubmission(netId, request.getPhase());
         if (submission != null && submission.headHash().equals(headHash)) {
@@ -135,10 +133,7 @@ public class SubmissionController {
 
         // If they passed the required tests, and there are no extra credit tests they haven't passed,
         // then by definition they can't get a higher score
-        if (mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0) {
-            return true;
-        }
-        return false;
+        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
     }
 
     /**
