@@ -138,7 +138,7 @@ public abstract class Grader implements Runnable {
             packageRepo();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
-            saveResults(results);
+            saveResults(results, numCommits);
             observer.notifyDone(results);
 
         } catch (Exception e) {
@@ -163,7 +163,7 @@ public abstract class Grader implements Runnable {
      *
      * @param results the results of the grading
      */
-    private void saveResults(TestAnalyzer.TestNode results) {
+    private void saveResults(TestAnalyzer.TestNode results, int numCommits) {
         String headHash = getHeadHash();
 
         int assignmentNum = switch (phase) {
@@ -198,6 +198,7 @@ public abstract class Grader implements Runnable {
                 phase,
                 results.numTestsFailed == 0,
                 score,
+                numCommits,
                 getNotes(results, results.numTestsFailed == 0, numDaysLate),
                 results
         );
@@ -379,13 +380,7 @@ public abstract class Grader implements Runnable {
      * @return the timestamp (epoch seconds)
      */
     private long getLastSubmissionTimestamp() {
-        Phase prevPhase = switch (phase) {
-            case Phase0 -> null;
-            case Phase1 -> Phase0;
-            case Phase3 -> Phase1;
-            case Phase4 -> Phase3;
-            case Phase6 -> Phase4;
-        };
+        Phase prevPhase = lastPhase();
         if (prevPhase == null) return 0;
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, prevPhase);
         // find first passing submission for the previous phase
@@ -398,6 +393,21 @@ public abstract class Grader implements Runnable {
         }
         if (timestamp == Long.MAX_VALUE) return 0L;
         else return timestamp;
+    }
+
+    /**
+     * Gets the phase before the current phase
+     *
+     * @return the previous phase. null if the current phase is Phase0
+     */
+    private Phase lastPhase() {
+        return switch (phase) {
+            case Phase0 -> null;
+            case Phase1 -> Phase0;
+            case Phase3 -> Phase1;
+            case Phase4 -> Phase3;
+            case Phase6 -> Phase4;
+        };
     }
 
     /**
