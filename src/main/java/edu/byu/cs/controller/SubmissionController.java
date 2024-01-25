@@ -82,8 +82,12 @@ public class SubmissionController {
             halt(400, "Invalid repo url");
             return null;
         }
+        if (mostRecentHasMaxScore(netId, request.getPhase())) {
+            halt(400,"You have already earned the highest possible score on this phase");
+            throw new RuntimeException("Max score already earned on this phase");
+        }
         Submission submission = getMostRecentSubmission(netId, request.getPhase());
-        if (submission == null || submission.headHash().equals(headHash)) {
+        if (submission != null && submission.headHash().equals(headHash)) {
             halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
             return null;
         }
@@ -118,6 +122,31 @@ public class SubmissionController {
         return "";
     };
 
+    /**
+     * checks to see if the specified student has already achieved the highest possible grade on the specified phase
+     * @param netId netId of the student to check
+     * @param phase phase of the project to check
+     * @return true if the student already has the highest possible grade.
+     * False if the student could possibly score highter, or if they haven't submitted before at all for this phase
+     */
+    private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
+        Submission mostRecent = getMostRecentSubmission(netId, phase);
+        if (mostRecent == null) { return false; }
+
+        // If they passed the required tests, and there are no extra credit tests they haven't passed,
+        // then by definition they can't get a higher score
+        if (mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * gets the most recent submission for the specified user in the specified phase
+     * @param netId the netID of the student to get a submission for
+     * @param phase the phase of the project to get
+     * @return the most recent submission, or null if there are no submissions for this student in this phase
+     */
     private static Submission getMostRecentSubmission(String netId, Phase phase) {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
