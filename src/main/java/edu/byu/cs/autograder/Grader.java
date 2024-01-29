@@ -312,7 +312,7 @@ public abstract class Grader implements Runnable {
     }
 
     /**
-     * Run the unit tests written by the student
+     * Run the unit tests written by the student. This approach is destructive as it will delete non-unit tests
      */
     protected abstract void runCustomTests();
 
