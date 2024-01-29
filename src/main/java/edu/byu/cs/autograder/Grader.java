@@ -305,11 +305,11 @@ public abstract class Grader implements Runnable {
             long timestamp = getLastSubmissionTimestamp();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp);
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
-            if (numCommits < requiredCommits) {
-                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
-                LOGGER.error("Insufficient commits to pass off.");
-                throw new RuntimeException("Not enough commits to pass off");
-            }
+//            if (numCommits < requiredCommits) {
+//                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
+//                LOGGER.error("Insufficient commits to pass off.");
+//                throw new RuntimeException("Not enough commits to pass off");
+//            }
 
             return numCommits;
         } catch (IOException | GitAPIException e) {
