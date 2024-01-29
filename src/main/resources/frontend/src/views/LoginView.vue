@@ -11,7 +11,7 @@ onBeforeMount(async () => {
     return;
 
   useAuthStore().user = loggedInUser;
-  await router.push({name: 'home'});
+  router.push({ name: 'home' });
 })
 
 const login = () => {

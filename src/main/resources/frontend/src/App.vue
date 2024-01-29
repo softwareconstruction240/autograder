@@ -2,19 +2,33 @@
 
 import { computed, h } from 'vue'
 import {useAuthStore} from "@/stores/auth";
+import { logoutPost } from '@/services/authService'
+import router from '@/router'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
     return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `
   }
 });
+
+const logOut = async () => {
+  try {
+    await logoutPost()
+    useAuthStore().user = null
+  } catch (e) {
+    alert(e)
+  }
+  alert("You have logged out")
+  router.push({name: "login"})
+
+}
 </script>
 
 <template>
   <header>
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
-    <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" href="auth/logout">Logout</a></p>
+    <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
     <p>{{ useAuthStore().user?.repoUrl }}</p>
   </header>
   <main>

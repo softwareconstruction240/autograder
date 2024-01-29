@@ -81,17 +81,17 @@ public class CasController {
         return null;
     };
 
-    public static Route logoutGet = (req, res) -> {
+    public static Route logoutPost = (req, res) -> {
         if (req.cookie("token") == null) {
-            res.status(401);
-            return "You are not logged in.";
+            res.redirect(ConfigProperties.frontendAppUrl(), 401);
+            return null;
         }
 
 
         // TODO: call cas logout endpoint with ticket
         res.removeCookie("/", "token");
-        res.status(200);
-        return "You are logged out.";
+        res.redirect(ConfigProperties.frontendAppUrl(), 302);
+        return null;
     };
 
     /**
