@@ -333,6 +333,14 @@ public abstract class Grader implements Runnable {
      */
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
+    /**
+     * Gets the notes for the phase. This includes the number of days late and any other relevant information
+     *
+     * @param results the results of the grading
+     * @param passed true if the submission passed, false otherwise
+     * @param numDaysLate the number of days late the submission is
+     * @return the notes
+     */
     protected abstract String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate);
 
     public interface Observer {
