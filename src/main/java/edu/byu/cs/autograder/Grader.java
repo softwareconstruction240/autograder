@@ -142,6 +142,10 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    /**
+     * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
+     * which is checked by looking for a pom.xml file
+     */
     private void verifyProjectStructure() {
         File pomFile = new File(stageRepoPath, "pom.xml");
         if (!pomFile.exists()) {
