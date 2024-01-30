@@ -15,7 +15,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.helpers.AttributesImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -301,7 +300,7 @@ public abstract class Grader implements Runnable {
         try (Git git = Git.open(new File(stageRepoPath))) {
             Iterable<RevCommit> commits = git.log().all().call();
             long timestamp = getLastSubmissionTimestamp();
-            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp);
+            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
             if (numCommits < requiredCommits) {
                 observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
@@ -380,7 +379,13 @@ public abstract class Grader implements Runnable {
      * @return the timestamp (epoch seconds)
      */
     private long getLastSubmissionTimestamp() {
-        Phase prevPhase = lastPhase();
+        Phase prevPhase = switch (phase) {
+            case Phase0 -> null;
+            case Phase1 -> Phase0;
+            case Phase3 -> Phase1;
+            case Phase4 -> Phase3;
+            case Phase6 -> Phase4;
+        };
         if (prevPhase == null) return 0;
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, prevPhase);
         // find first passing submission for the previous phase
@@ -393,21 +398,6 @@ public abstract class Grader implements Runnable {
         }
         if (timestamp == Long.MAX_VALUE) return 0L;
         else return timestamp;
-    }
-
-    /**
-     * Gets the phase before the current phase
-     *
-     * @return the previous phase. null if the current phase is Phase0
-     */
-    private Phase lastPhase() {
-        return switch (phase) {
-            case Phase0 -> null;
-            case Phase1 -> Phase0;
-            case Phase3 -> Phase1;
-            case Phase4 -> Phase3;
-            case Phase6 -> Phase4;
-        };
     }
 
     /**
