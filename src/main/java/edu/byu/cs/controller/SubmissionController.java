@@ -7,6 +7,8 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
+import java.io.Console;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -297,6 +300,29 @@ public class SubmissionController {
             return output.split("\\s+")[0];
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static Route submissionsReRunPost = (req, res) -> {
+        return null;
+    };
+
+
+
+    /**
+     *
+     */
+    public static void reRunSubmissionsInQueue() throws IOException {
+        QueueDao queueDao = DaoService.getQueueDao();
+        UserDao userDao = DaoService.getUserDao();
+        Collection<QueueItem> inQueue = queueDao.getAll();
+        TrafficController trafficController = TrafficController.getInstance();
+
+        for (QueueItem submission : inQueue) {
+            trafficController.addGrader(
+                    getGrader(submission.netId(),
+                            submission.phase(),
+                            userDao.getUser(submission.netId()).repoUrl()) );
         }
     }
 }

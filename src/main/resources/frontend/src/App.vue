@@ -19,7 +19,6 @@ const logOut = async () => {
     alert(e)
   }
   router.push({name: "login"})
-
 }
 </script>
 

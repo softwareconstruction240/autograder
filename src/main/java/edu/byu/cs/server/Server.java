@@ -65,6 +65,8 @@ public class Server {
                 get("/test_mode", testModeGet);
 
                 get("/submissions/active", submissionsActiveGet);
+
+                post("/submissions/rerun", submissionsReRunPost);
             });
         });
 

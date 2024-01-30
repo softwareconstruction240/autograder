@@ -51,3 +51,18 @@ export const submitGet = async (): Promise<boolean> => {
 
     return body.inQueue;
 }
+
+export const reRunSubmissionsPost = async () => {
+    const response = await fetch(useAppConfigStore().backendUrl + "/api/admin/submissions/rerun", {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        console.error(response);
+        throw new Error(await response.text());
+    }
+}
