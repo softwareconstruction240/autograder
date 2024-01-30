@@ -2,6 +2,9 @@ package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -12,8 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -23,89 +28,19 @@ import java.util.stream.Stream;
 public class CommitAnalytics {
 
     /**
-     * Instantiate data structures and compile analytics
-     */
-    public CommitAnalytics() {
-        invalidRepos = new HashSet<>();
-        allStudents = new HashMap<>();
-        commitInfo = compile();
-    }
-
-    /**
-     * A set of users whose repos are unable to be cloned
-     */
-    private final Set<User> invalidRepos;
-
-    /**
-     * A map of netID to User for quick reference
-     */
-    private final Map<String, User> allStudents;
-
-    /**
-     * A map of netID to map of day (represented by a string yyyy-mm-dd) to integer
-     */
-    private final Map<String, Map<String, Integer>> commitInfo;
-
-    public Set<User> getInvalidRepos() {
-        return invalidRepos;
-    }
-
-    public Map<String, Map<String, Integer>> getCommitInfo() {
-        return commitInfo;
-    }
-
-    /**
-     * Compiles git commit analytics for every student
-     *
-     * @return A map of netID to map of day (represented by a string yyyy-mm-dd) to integer
-     */
-    private Map<String, Map<String, Integer>> compile() {
-
-        Set<User> students;
-        Map<String, Map<String, Integer>> commitMap = new TreeMap<>();
-
-        try {
-            students = CanvasIntegration.getAllStudents();
-        } catch (CanvasException e) {
-            throw new RuntimeException("Canvas Exception: " + e.getMessage());
-        }
-
-        for (User student : students) {
-            allStudents.put(student.netId(), student);
-            File repoPath = new File("./tmp-" + student.repoUrl().hashCode());
-
-            CloneCommand cloneCommand = Git.cloneRepository()
-                    .setURI(student.repoUrl())
-                    .setDirectory(repoPath);
-
-            try (Git git = cloneCommand.call()) {
-                Iterable<RevCommit> commits = git.log().all().call();
-                Map<String, Integer> count = handleCommits(commits, 0);
-                commitMap.put(student.netId(), count);
-            } catch (GitAPIException | IOException e) {
-                invalidRepos.add(student);
-            }
-
-            removeTemp(repoPath);
-        }
-
-        return commitMap;
-    }
-
-    /**
-     * Given an iterable of commits and a timestamp, compiles stats since that timestamp
+     * Given an iterable of commits and two timestamps, compiles a list of
+     * timestamps in Unix seconds
      *
      * @param commits the collection of commits
-     * @param seconds the lower bound timestamp in Unix seconds
-     * @return the map
+     * @param lowerBound the lower bound timestamp in Unix seconds
+     * @param upperBound the upper bound timestamp in Unix seconds
+     * @return the list
      */
-    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long seconds) {
+    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
         Map<String, Integer> days = new TreeMap<>();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         for (RevCommit rc : commits) {
-            if (rc.getCommitTime() < seconds) continue;
-            Date date = new Date(rc.getCommitTime() * 1000L);
-            String dayKey = dateFormat.format(date);
+            if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
+            String dayKey = getDateString(rc.getCommitTime(), true);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
         }
         return days;
@@ -125,47 +60,152 @@ public class CommitAnalytics {
         return total;
     }
 
+    private record CommitDatum(
+            String netId,
+            Phase phase,
+            int commits,
+            int days,
+            int section,
+            String timestamp
+    ) {}
+
     /**
-     * Generates a report as a String based on all data in this class, almost like a custom toString()
+     * generates a CSV-formatted string of all commit data
+     * takes around 5 minutes to run for 300+ students
      *
-     * @param simplified whether this output is more robust or not
-     * @return the report as a String
+     * @return a serialized version of the data
      */
-    public String generateReport(boolean simplified) {
-        if (simplified) return generateSimpleReport();
-        String indent = "  ";
-        StringBuilder sb = new StringBuilder();
-        sb.append("Students with invalid repo URLs:\n");
-        for (User u : invalidRepos) {
-            sb.append(indent).append(printUserDetails(u)).append("\n");
-        }
-        sb.append("\n");
-        sb.append("Average: ").append(getAverageCommits()).append(" commits across ").append(getAverageDays()).append(" days\n\n");
-        sb.append("COMMIT DATA:\n");
-        for (Map.Entry<String, Map<String, Integer>> entry : commitInfo.entrySet()) {
-            sb.append(printUserDetails(allStudents.get(entry.getKey()))).append("\n");
-            sb.append(indent).append("Total commits: ").append(getTotalCommits(entry.getValue())).append(" in ")
-                    .append(entry.getValue().size()).append(" day(s). Breakdown:\n");
-            for (Map.Entry<String, Integer> days : entry.getValue().entrySet()) {
-                sb.append(indent).append(indent).append(days.getKey()).append(" -> ").append(days.getValue()).append("\n");
+    public static String generateCSV() {
+
+        Map<Integer, Map<String, ArrayList<Integer>>> commitInfo = compile();
+
+        ArrayList<CommitDatum> csvData = new ArrayList<>();
+        ArrayList<Phase> phases = new ArrayList<>();
+        phases.add(Phase.Phase0);
+        phases.add(Phase.Phase1);
+        phases.add(Phase.Phase3);
+        phases.add(Phase.Phase4);
+        phases.add(Phase.Phase6);
+
+        for (Map.Entry<Integer, Map<String, ArrayList<Integer>>> e : commitInfo.entrySet()) {
+            for (Map.Entry<String, ArrayList<Integer>> entry : e.getValue().entrySet()) {
+                String netID = entry.getKey();
+                for (Phase phase : phases) {
+                    Submission submission = getFirstPassingSubmission(entry.getKey(), phase);
+                    if (submission == null) break;
+                    Phase prevPhase = getPreviousPhase(phase);
+
+                    long lowerBound = 0;
+                    if (prevPhase != null) {
+                        Submission prevSubmission = getFirstPassingSubmission(netID, prevPhase);
+                        if (prevSubmission != null) { // it should never be null due to passoff order enforcement
+                            lowerBound = prevSubmission.timestamp().getEpochSecond();
+                        }
+                    }
+                    long upperBound = submission.timestamp().getEpochSecond();
+                    ArrayList<Integer> chunk = getChunkOfTimestamps(entry.getValue(), lowerBound, upperBound);
+
+                    CommitDatum row = new CommitDatum(netID, phase, chunk.size(), getNumDaysFromChunk(chunk),
+                            e.getKey(), getDateString(submission.timestamp().getEpochSecond(), false));
+
+                    csvData.add(row);
+                }
+
             }
         }
-        return sb.toString();
+        return serializeDataToCSV(csvData);
     }
 
-    private String generateSimpleReport() {
+    /**
+     * Compiles git commit analytics for every student
+     *
+     * @return A map section to map of netID to list of timestamp
+     */
+    private static Map<Integer, Map<String, ArrayList<Integer>>> compile() {
+
+        Map<Integer, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
+
+        Map<Integer, Integer> sectionIDs = CanvasIntegration.sectionIDs;
+        for (Map.Entry<Integer, Integer> i : sectionIDs.entrySet()) {
+
+            Collection<User> students;
+            Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
+
+            try {
+                students = CanvasIntegration.getAllStudentsBySection(i.getValue());
+            } catch (CanvasException e) {
+                throw new RuntimeException("Canvas Exception: " + e.getMessage());
+            }
+
+            for (User student : students) {
+                File repoPath = new File("./tmp-" + student.repoUrl().hashCode());
+
+                CloneCommand cloneCommand = Git.cloneRepository()
+                        .setURI(student.repoUrl())
+                        .setDirectory(repoPath);
+
+                try (Git git = cloneCommand.call()) {
+                    Iterable<RevCommit> commits = git.log().all().call();
+                    ArrayList<Integer> timestamps = getAllTimestamps(commits);
+                    commitMap.put(student.netId(), timestamps);
+                } catch (GitAPIException | IOException ignored) {
+                }
+
+                removeTemp(repoPath);
+            }
+
+            commitsBySection.put(i.getKey(), commitMap);
+
+        }
+
+        return commitsBySection;
+    }
+
+    private static String serializeDataToCSV(ArrayList<CommitDatum> data) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Average: ").append(getAverageCommits()).append(" commits across ").append(getAverageDays()).append(" days\n\n");
-        sb.append("COMMIT DATA:\n\n");
-        for (Map.Entry<String, Map<String, Integer>> entry : commitInfo.entrySet()) {
-            sb.append(printUserDetails(allStudents.get(entry.getKey())));
-            sb.append("\n  Total commits: ").append(getTotalCommits(entry.getValue())).append(" in ")
-                    .append(entry.getValue().size()).append(" day(s).\n\n");
+        sb.append("netID,phase,numCommits,numDays,section,timestamp\n");
+        for (CommitDatum cd : data) {
+            sb.append(cd.netId).append(",").append(cd.phase).append(",")
+                    .append(cd.commits).append(",").append(cd.days).append(",")
+                    .append(cd.section).append(",").append(cd.timestamp).append("\n");
         }
         return sb.toString();
     }
 
-    private void removeTemp(File dir) {
+    private static Submission getFirstPassingSubmission(String netID, Phase phase) {
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netID, phase);
+        Submission firstPassing = null;
+        int earliest = Integer.MAX_VALUE;
+        for (Submission s : submissions) {
+            if (!s.passed()) continue;
+            if (s.timestamp().getEpochSecond() < earliest) firstPassing = s;
+        }
+        return firstPassing;
+    }
+
+    private static ArrayList<Integer> getChunkOfTimestamps(ArrayList<Integer> timestamps, long lowerBound, long upperBound) {
+        ArrayList<Integer> chunk = new ArrayList<>();
+        for (Integer ts : timestamps) {
+            if (ts > lowerBound && ts <= upperBound) chunk.add(ts);
+        }
+        return chunk;
+    }
+
+    private static int getNumDaysFromChunk(ArrayList<Integer> timestamps) {
+        Set<String> days = new HashSet<>();
+        for (Integer ts : timestamps) {
+            days.add(getDateString(ts, true));
+        }
+        return days.size();
+    }
+
+    private static ArrayList<Integer> getAllTimestamps(Iterable<RevCommit> commits) {
+        ArrayList<Integer> timestamps = new ArrayList<>();
+        for (RevCommit rc : commits) timestamps.add(rc.getCommitTime());
+        return timestamps;
+    }
+
+    private static void removeTemp(File dir) {
         if (!dir.exists()) {
             return;
         }
@@ -179,32 +219,20 @@ public class CommitAnalytics {
         }
     }
 
-    private String printUserDetails(User user) {
-        return user.netId() + " (" + user.firstName() + " " + user.lastName() + ") " + user.repoUrl();
+    private static String getDateString(long timestamp, boolean dayOnly) {
+        ZonedDateTime zonedDateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneId.of("America/Denver"));
+        String pattern = dayOnly ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        return zonedDateTime.format(formatter);
     }
 
-    private double getAverageCommits() {
-        int total = 0;
-        for (Map.Entry<String, Map<String, Integer>> entry : commitInfo.entrySet()) {
-            for (Map.Entry<String, Integer> days1 : entry.getValue().entrySet()) {
-                total += days1.getValue();
-            }
-        }
-        return roundToDecimal((double) total / commitInfo.size(), 1);
-    }
-
-    private double getAverageDays() {
-        int total = 0;
-        for (Map.Entry<String, Map<String, Integer>> entry : commitInfo.entrySet()) {
-            total += entry.getValue().size();
-        }
-        return roundToDecimal((double) total / commitInfo.size(), 1);
-    }
-
-    private double roundToDecimal(double value, int decimalPlaces) {
-        String pattern = "#." + "0".repeat(decimalPlaces);
-        DecimalFormat decimalFormat = new DecimalFormat(pattern);
-        String formattedValue = decimalFormat.format(value);
-        return Double.parseDouble(formattedValue);
+    private static Phase getPreviousPhase(Phase phase) {
+        return switch (phase) {
+            case Phase0 -> null;
+            case Phase1 -> Phase.Phase0;
+            case Phase3 -> Phase.Phase1;
+            case Phase4 -> Phase.Phase3;
+            case Phase6 -> Phase.Phase4;
+        };
     }
 }
