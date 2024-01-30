@@ -18,7 +18,6 @@ const logOut = async () => {
   } catch (e) {
     alert(e)
   }
-  alert("You have logged out")
   router.push({name: "login"})
 
 }
