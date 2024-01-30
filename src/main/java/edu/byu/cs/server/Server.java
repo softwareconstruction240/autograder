@@ -34,7 +34,7 @@ public class Server {
 
             // all routes after this point require authentication
             post("/register", registerPost);
-            get("/logout", logoutGet);
+            post("/logout", logoutPost);
         });
 
         path("/api", () -> {
