@@ -87,7 +87,6 @@ public class CasController {
             return null;
         }
 
-
         // TODO: call cas logout endpoint with ticket
         res.removeCookie("/", "token");
         res.redirect(ConfigProperties.frontendAppUrl(), 200);

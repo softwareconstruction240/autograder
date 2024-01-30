@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { computed, h } from 'vue'
+import { computed } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
@@ -67,5 +67,7 @@ main {
 
 a {
   color: white;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
