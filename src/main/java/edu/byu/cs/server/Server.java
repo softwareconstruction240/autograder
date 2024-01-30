@@ -1,7 +1,10 @@
 package edu.byu.cs.server;
 
+import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
+
+import java.io.IOException;
 
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
@@ -81,5 +84,11 @@ public class Server {
             return null;
         });
         init();
+
+//        try {
+//            SubmissionController.reRunSubmissionsInQueue();
+//        } catch (IOException e) {
+//            throw new RuntimeException("Error rerunning submissions already in queue");
+//        }
     }
 }

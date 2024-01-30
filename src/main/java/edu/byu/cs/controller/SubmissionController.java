@@ -68,10 +68,10 @@ public class SubmissionController {
 
         // check for updated repoUrl
         String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
-        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
+        if (!newRepoUrl.equals(user.repoUrl())) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
             DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user",user);
+            req.session().attribute("user", user);
         }
 
         String headHash;
@@ -82,7 +82,7 @@ public class SubmissionController {
             return null;
         }
         if (mostRecentHasMaxScore(netId, request.getPhase())) {
-            halt(400,"You have already earned the highest possible score on this phase");
+            halt(400, "You have already earned the highest possible score on this phase");
             return null;
         }
         Submission submission = getMostRecentSubmission(netId, request.getPhase());
@@ -96,7 +96,7 @@ public class SubmissionController {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
                         netId,
-                        Phase.valueOf("Phase"+request.phase()),
+                        Phase.valueOf("Phase" + request.phase()),
                         Instant.now(),
                         false
                 )
@@ -105,7 +105,7 @@ public class SubmissionController {
         TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
-            Grader grader = getGrader(netId, Phase.valueOf("Phase"+request.phase()), user.repoUrl());
+            Grader grader = getGrader(netId, Phase.valueOf("Phase" + request.phase()), user.repoUrl());
 
             TrafficController.getInstance().addGrader(grader);
 
@@ -123,6 +123,7 @@ public class SubmissionController {
 
     /**
      * checks to see if the specified student achieved the highest possible grade on the specified phase on their most recent submission
+     *
      * @param netId netId of the student to check
      * @param phase phase of the project to check
      * @return true if the student's latest submission has the max score.
@@ -130,7 +131,9 @@ public class SubmissionController {
      */
     private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
         Submission mostRecent = getMostRecentSubmission(netId, phase);
-        if (mostRecent == null) { return false; }
+        if (mostRecent == null) {
+            return false;
+        }
 
         // If they passed the required tests, and there are no extra credit tests they haven't passed,
         // then by definition they can't get a higher score
@@ -139,6 +142,7 @@ public class SubmissionController {
 
     /**
      * gets the most recent submission for the specified user in the specified phase
+     *
      * @param netId the netID of the student to get a submission for
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
@@ -212,8 +216,7 @@ public class SubmissionController {
 
         Collection<String> currentlyGrading = TrafficController.sessions.keySet()
                 .stream()
-            .filter(netId -> !inQueue.contains(netId)).toList();
-
+                .filter(netId -> !inQueue.contains(netId)).toList();
 
 
         res.status(200);
@@ -278,8 +281,6 @@ public class SubmissionController {
         };
 
 
-
-
         return switch (phase) {
             case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
@@ -304,9 +305,9 @@ public class SubmissionController {
     }
 
     public static Route submissionsReRunPost = (req, res) -> {
+        reRunSubmissionsInQueue();
         return null;
     };
-
 
 
     /**
@@ -318,11 +319,16 @@ public class SubmissionController {
         Collection<QueueItem> inQueue = queueDao.getAll();
         TrafficController trafficController = TrafficController.getInstance();
 
-        for (QueueItem submission : inQueue) {
-            trafficController.addGrader(
-                    getGrader(submission.netId(),
-                            submission.phase(),
-                            userDao.getUser(submission.netId()).repoUrl()) );
+        for (QueueItem queueItem : inQueue) {
+            User currentUser = userDao.getUser(queueItem.netId());
+            queueDao.markNotStarted(queueItem.netId());
+
+            // The grader seems to not be grading things once passed in
+
+            TrafficController.getInstance().addGrader(
+                    getGrader(queueItem.netId(),
+                            queueItem.phase(),
+                            currentUser.repoUrl() ));
         }
     }
 }
