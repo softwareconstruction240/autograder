@@ -14,9 +14,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.time.ZonedDateTime;
 
 public class CanvasIntegration {
@@ -31,6 +29,17 @@ public class CanvasIntegration {
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
+    // FIXME: set this dynamically or pull from config
+    public static final Map<Integer, Integer> sectionIDs;
+
+    static {
+        sectionIDs = new HashMap<>();
+        sectionIDs.put(1, 26512);
+        sectionIDs.put(2, 26513);
+        sectionIDs.put(3, 25972);
+        sectionIDs.put(4, 25496);
+        sectionIDs.put(5, 25971);
+    }
 
     /**
      * Queries canvas for the user with the given netId
@@ -84,8 +93,17 @@ public class CanvasIntegration {
      * @return A set of user objects
      * @throws CanvasException If there is an error with Canvas' response
      */
-    public static Set<User> getAllStudents() throws CanvasException {
+    public static Collection<User> getAllStudents() throws CanvasException {
+        return getMultipleStudents("/courses/" + COURSE_NUMBER + "/assignments/" +
+                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+    }
 
+    public static Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
+        return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
+                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+    }
+
+    private static Collection<User> getMultipleStudents(String baseUrl) throws CanvasException {
         int pageIndex = 1;
         int batchSize = 100;
         Set<CanvasSubmissionUser> allSubmissions = new HashSet<>();
@@ -94,8 +112,7 @@ public class CanvasIntegration {
         while (batchSize == 100) {
             CanvasSubmissionUser[] batch = makeCanvasRequest(
                     "GET",
-                    "/courses/" + COURSE_NUMBER + "/assignments/" + GIT_REPO_ASSIGNMENT_NUMBER
-                            + "/submissions?include[]=user&per_page=" + batchSize + "&page=" + pageIndex,
+                    baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
                     null,
                     CanvasSubmissionUser[].class);
             batchSize = batch.length;
