@@ -1,7 +1,6 @@
 package passoffTests.chessTests.chessPieceTests;
 
 import chess.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import passoffTests.TestFactory;
 
@@ -239,20 +238,19 @@ public class PawnMoveTests {
         );
     }
 
-    private void validatePromotion(String boardText, ChessPosition start, int[][] endPositions) {
-
+    private void validatePromotion(String boardText, ChessPosition startPosition, int[][] endPositions) {
         var board = TestFactory.loadBoard(boardText);
-        var testPiece = board.getPiece(start);
+        var testPiece = board.getPiece(startPosition);
         var validMoves = new HashSet<ChessMove>();
         for (var endPosition : endPositions) {
             var end = startPosition(endPosition[0], endPosition[1]);
-            validMoves.add(TestFactory.getNewMove(start, end, ChessPiece.PieceType.QUEEN));
-            validMoves.add(TestFactory.getNewMove(start, end, ChessPiece.PieceType.BISHOP));
-            validMoves.add(TestFactory.getNewMove(start, end, ChessPiece.PieceType.ROOK));
-            validMoves.add(TestFactory.getNewMove(start, end, ChessPiece.PieceType.KNIGHT));
+            validMoves.add(TestFactory.getNewMove(startPosition, end, ChessPiece.PieceType.QUEEN));
+            validMoves.add(TestFactory.getNewMove(startPosition, end, ChessPiece.PieceType.BISHOP));
+            validMoves.add(TestFactory.getNewMove(startPosition, end, ChessPiece.PieceType.ROOK));
+            validMoves.add(TestFactory.getNewMove(startPosition, end, ChessPiece.PieceType.KNIGHT));
         }
 
-        Assertions.assertEquals(validMoves, new HashSet<>(testPiece.pieceMoves(board, start)), "Wrong moves");
+        validateMoves(board, testPiece, startPosition, validMoves);
     }
 
 }
