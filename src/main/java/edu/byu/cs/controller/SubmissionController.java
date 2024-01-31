@@ -306,7 +306,13 @@ public class SubmissionController {
 
     public static Route submissionsReRunPost = (req, res) -> {
         reRunSubmissionsInQueue();
-        return null;
+
+        res.status(200);
+        res.type("application/json");
+
+        return new Gson().toJson(Map.of(
+                "message", "re-running submissions in queue"
+        ));
     };
 
 
