@@ -316,7 +316,9 @@ public class SubmissionController {
 
 
     /**
-     *
+     * Takes any submissions currently in the queue and reruns them through the grader.
+     * Used if the queue got stuck or if the server crashed while submissions were
+     * waiting in the queue.
      */
     public static void reRunSubmissionsInQueue() throws IOException {
         QueueDao queueDao = DaoService.getQueueDao();
@@ -326,8 +328,6 @@ public class SubmissionController {
         for (QueueItem queueItem : inQueue) {
             User currentUser = userDao.getUser(queueItem.netId());
             queueDao.markNotStarted(queueItem.netId());
-
-            // The grader seems to not be grading things once passed in
 
             TrafficController.getInstance().addGrader(
                     getGrader(queueItem.netId(),
