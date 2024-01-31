@@ -85,10 +85,10 @@ public class Server {
         });
         init();
 
-//        try {
-//            SubmissionController.reRunSubmissionsInQueue();
-//        } catch (IOException e) {
-//            throw new RuntimeException("Error rerunning submissions already in queue");
-//        }
+        try {
+            SubmissionController.reRunSubmissionsInQueue();
+        } catch (IOException e) {
+            throw new RuntimeException("Error rerunning submissions already in queue");
+        }
     }
 }
