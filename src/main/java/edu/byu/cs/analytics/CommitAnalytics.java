@@ -165,7 +165,7 @@ public class CommitAnalytics {
         StringBuilder sb = new StringBuilder();
         sb.append("netID,phase,numCommits,numDays,section,timestamp\n");
         for (CommitDatum cd : data) {
-            sb.append(cd.netId).append(",").append(cd.phase).append(",")
+            sb.append(cd.netId).append(",").append(getPhaseAsString(cd.phase)).append(",")
                     .append(cd.commits).append(",").append(cd.days).append(",")
                     .append(cd.section).append(",").append(cd.timestamp).append("\n");
         }
@@ -233,6 +233,16 @@ public class CommitAnalytics {
             case Phase3 -> Phase.Phase1;
             case Phase4 -> Phase.Phase3;
             case Phase6 -> Phase.Phase4;
+        };
+    }
+
+    private static String getPhaseAsString(Phase phase) {
+        return switch (phase) {
+            case Phase0 -> "0";
+            case Phase1 -> "1";
+            case Phase3 -> "3";
+            case Phase4 -> "4";
+            case Phase6 -> "6";
         };
     }
 }
