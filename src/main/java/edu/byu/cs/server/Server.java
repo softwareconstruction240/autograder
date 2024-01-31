@@ -65,6 +65,8 @@ public class Server {
                 get("/test_mode", testModeGet);
 
                 get("/submissions/active", submissionsActiveGet);
+
+                get("/analytics/commit", commitAnalyticsGet);
             });
         });
 
