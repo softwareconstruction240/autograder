@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import {onMounted, onUnmounted, ref} from "vue";
 import {getQueueStatus} from "@/services/adminService";
-import { logoutPost } from '@/services/authService'
-import { useAuthStore } from '@/stores/auth'
-import router from '@/router'
 import { reRunSubmissionsPost } from '@/services/submissionService'
 
 const currentlyGrading = ref<string[]>([]);

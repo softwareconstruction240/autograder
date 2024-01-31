@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
-import java.io.Console;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -323,7 +322,6 @@ public class SubmissionController {
         QueueDao queueDao = DaoService.getQueueDao();
         UserDao userDao = DaoService.getUserDao();
         Collection<QueueItem> inQueue = queueDao.getAll();
-        TrafficController trafficController = TrafficController.getInstance();
 
         for (QueueItem queueItem : inQueue) {
             User currentUser = userDao.getUser(queueItem.netId());
