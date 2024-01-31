@@ -28,13 +28,12 @@ import java.util.stream.Stream;
 public class CommitAnalytics {
 
     /**
-     * Given an iterable of commits and two timestamps, compiles a list of
-     * timestamps in Unix seconds
+     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day
      *
      * @param commits the collection of commits
      * @param lowerBound the lower bound timestamp in Unix seconds
      * @param upperBound the upper bound timestamp in Unix seconds
-     * @return the list
+     * @return the map
      */
     public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
         Map<String, Integer> days = new TreeMap<>();
