@@ -99,3 +99,15 @@ export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
         };
     }
 }
+
+export const commitAnalyticsGet = async (): Promise<string> => {
+    try {
+        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit', {
+            method: 'GET',
+            credentials: 'include'
+        })).text()
+    } catch (e) {
+        console.error('Failed to get data: ', e)
+        return ''
+    }
+}

@@ -70,6 +70,9 @@ public class Server {
                 get("/submissions/active", submissionsActiveGet);
 
                 post("/submissions/rerun", submissionsReRunPost);
+
+                get("/analytics/commit", commitAnalyticsGet);
+
             });
         });
 
