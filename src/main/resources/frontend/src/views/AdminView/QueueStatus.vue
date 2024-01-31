@@ -25,8 +25,9 @@ onUnmounted(() => {
   clearInterval(intervalId);
 });
 
+let reRunInProgress = false;
 const reRunQueue = async () => {
-  await reRunSubmissionsPost()
+  reRunInProgress = await reRunSubmissionsPost()
 }
 </script>
 
@@ -49,6 +50,7 @@ const reRunQueue = async () => {
   </div>
   <div>
     <button @click="reRunQueue">Rerun Submissions In Queue</button>
+    <p v-if="reRunInProgress">The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again</p>
   </div>
 </template>
 

@@ -64,5 +64,7 @@ export const reRunSubmissionsPost = async () => {
     if (!response.ok) {
         console.error(response);
         throw new Error(await response.text());
+    } else {
+        return true;
     }
 }
