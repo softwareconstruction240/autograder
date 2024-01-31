@@ -240,15 +240,23 @@ public class SubmissionController {
                         "type", "started"
                 ));
 
-                TrafficController.broadcastQueueStatus();
+                try {
+                    TrafficController.broadcastQueueStatus();
+                } catch (Exception e) {
+                    LOGGER.error("Error broadcasting queue status", e);
+                }
             }
 
             @Override
             public void update(String message) {
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "update",
-                        "message", message
-                ));
+                try {
+                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                            "type", "update",
+                            "message", message
+                    ));
+                } catch (Exception e) {
+                    LOGGER.error("Error updating subscribers", e);
+                }
             }
 
             @Override
@@ -264,10 +272,14 @@ public class SubmissionController {
 
             @Override
             public void notifyDone(TestAnalyzer.TestNode results) {
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "results",
-                        "results", new Gson().toJson(results)
-                ));
+                try {
+                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
+                            "type", "results",
+                            "results", new Gson().toJson(results)
+                    ));
+                } catch (Exception e) {
+                    LOGGER.error("Error updating subscribers", e);
+                }
 
                 TrafficController.sessions.remove(netId);
                 DaoService.getQueueDao().remove(netId);
