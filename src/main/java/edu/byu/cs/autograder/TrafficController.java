@@ -64,7 +64,7 @@ public class TrafficController {
         executorService.submit(grader);
     }
 
-    public synchronized void notifySubscribers(String netId, Map<String, Object> message) {
+    public void notifySubscribers(String netId, Map<String, Object> message) {
         sessions.get(netId).stream()
                 .filter(Session::isOpen)
                 .forEach(session -> WebSocketController.send(session, message));
