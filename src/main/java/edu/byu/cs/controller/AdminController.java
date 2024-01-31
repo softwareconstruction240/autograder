@@ -10,7 +10,7 @@ import spark.Route;
 
 import java.util.Collection;
 
-import static edu.byu.cs.controller.JwtUtils.generateToken;
+import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class AdminController {

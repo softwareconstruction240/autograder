@@ -2,6 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.autograder.TrafficController;
+import edu.byu.cs.util.JwtUtils;
 import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
