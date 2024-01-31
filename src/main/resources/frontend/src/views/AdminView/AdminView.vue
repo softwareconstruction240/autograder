@@ -7,6 +7,7 @@ import Exceptions from "@/views/AdminView/Exceptions.vue";
 import Admins from "@/views/AdminView/Admins/Admins.vue";
 import {testStudentModeGet} from "@/services/adminService";
 import QueueStatus from "@/views/AdminView/QueueStatus.vue";
+import Analytics from "@/views/AdminView/Analytics.vue";
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -41,6 +42,9 @@ const activateTestStudentMode = async () => {
             <div>Loading...</div>
           </template>
         </Suspense>
+      </Tab>
+      <Tab title="Analytics">
+        <Analytics/>
       </Tab>
     </Tabs>
   </div>
