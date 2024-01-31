@@ -3,7 +3,7 @@
 import {ref} from "vue";
 import {commitAnalyticsGet} from "@/services/adminService";
 
-const infoText = ref<string>('This data takes around 5 minutes to compile.')
+const infoText = ref<string>('This data takes around 5 minutes to compile. By default, it is sorted by section and then by netID.')
 const buttonDisabled = ref<boolean>(false)
 
 const getData = async () => {
