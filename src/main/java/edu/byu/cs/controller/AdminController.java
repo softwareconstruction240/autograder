@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
+import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
@@ -83,5 +84,20 @@ public class AdminController {
         res.status(200);
 
         return null;
+    };
+
+    public static Route commitAnalyticsGet = (req, res) -> {
+        String csvData;
+
+        try {
+            csvData = CommitAnalytics.generateCSV();
+        } catch (Exception e) {
+            res.status(500);
+            return e.getMessage();
+        }
+
+        res.status(200);
+
+        return csvData;
     };
 }
