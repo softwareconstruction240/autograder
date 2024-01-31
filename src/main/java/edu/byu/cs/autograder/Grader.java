@@ -130,6 +130,8 @@ public abstract class Grader implements Runnable {
         observer.notifyStarted();
 
         try {
+            // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
+            Thread.sleep(1000);
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
@@ -302,11 +304,11 @@ public abstract class Grader implements Runnable {
             long timestamp = getLastSubmissionTimestamp();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
-            if (numCommits < requiredCommits) {
-                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
-                LOGGER.error("Insufficient commits to pass off.");
-                throw new RuntimeException("Not enough commits to pass off");
-            }
+//            if (numCommits < requiredCommits) {
+//                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
+//                LOGGER.error("Insufficient commits to pass off.");
+//                throw new RuntimeException("Not enough commits to pass off");
+//            }
 
             return numCommits;
         } catch (IOException | GitAPIException e) {

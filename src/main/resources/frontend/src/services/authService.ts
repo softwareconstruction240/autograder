@@ -32,3 +32,18 @@ export const registerPost = async (firstName: string, lastName: string, repoUrl:
 
     return response.ok;
 }
+
+export const logoutPost = async () => {
+    const response = await fetch(useAppConfigStore().backendUrl + "/auth/logout", {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        console.error(response);
+        throw new Error(await response.text());
+    }
+}
