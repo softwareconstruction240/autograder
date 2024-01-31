@@ -6,6 +6,9 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.DateTimeUtils;
+import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -13,14 +16,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Analyzes the commit history of every student with a GitHub repo URL submission
@@ -39,7 +35,7 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         for (RevCommit rc : commits) {
             if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
-            String dayKey = getDateString(rc.getCommitTime(), true);
+            String dayKey = DateTimeUtils.getDateString(rc.getCommitTime(), false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
         }
         return days;
@@ -92,7 +88,7 @@ public class CommitAnalytics {
                 for (Phase phase : phases) {
                     Submission submission = getFirstPassingSubmission(entry.getKey(), phase);
                     if (submission == null) break;
-                    Phase prevPhase = getPreviousPhase(phase);
+                    Phase prevPhase = PhaseUtils.getPreviousPhase(phase);
 
                     long lowerBound = 0;
                     if (prevPhase != null) {
@@ -105,7 +101,7 @@ public class CommitAnalytics {
                     ArrayList<Integer> chunk = getChunkOfTimestamps(entry.getValue(), lowerBound, upperBound);
 
                     CommitDatum row = new CommitDatum(netID, phase, chunk.size(), getNumDaysFromChunk(chunk),
-                            e.getKey(), getDateString(submission.timestamp().getEpochSecond(), false));
+                            e.getKey(), DateTimeUtils.getDateString(submission.timestamp().getEpochSecond(), true));
 
                     csvData.add(row);
                 }
@@ -150,7 +146,7 @@ public class CommitAnalytics {
                 } catch (GitAPIException | IOException ignored) {
                 }
 
-                removeTemp(repoPath);
+                FileUtils.removeDirectory(repoPath);
             }
 
             commitsBySection.put(i.getKey(), commitMap);
@@ -164,7 +160,7 @@ public class CommitAnalytics {
         StringBuilder sb = new StringBuilder();
         sb.append("netID,phase,numCommits,numDays,section,timestamp\n");
         for (CommitDatum cd : data) {
-            sb.append(cd.netId).append(",").append(getPhaseAsString(cd.phase)).append(",")
+            sb.append(cd.netId).append(",").append(PhaseUtils.getPhaseAsString(cd.phase)).append(",")
                     .append(cd.commits).append(",").append(cd.days).append(",")
                     .append(cd.section).append(",").append(cd.timestamp).append("\n");
         }
@@ -193,7 +189,7 @@ public class CommitAnalytics {
     private static int getNumDaysFromChunk(ArrayList<Integer> timestamps) {
         Set<String> days = new HashSet<>();
         for (Integer ts : timestamps) {
-            days.add(getDateString(ts, true));
+            days.add(DateTimeUtils.getDateString(ts, false));
         }
         return days.size();
     }
@@ -202,46 +198,5 @@ public class CommitAnalytics {
         ArrayList<Integer> timestamps = new ArrayList<>();
         for (RevCommit rc : commits) timestamps.add(rc.getCommitTime());
         return timestamps;
-    }
-
-    private static void removeTemp(File dir) {
-        if (!dir.exists()) {
-            return;
-        }
-
-        try (Stream<Path> paths = Files.walk(dir.toPath())) {
-            paths.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete directory: " + e.getMessage());
-        }
-    }
-
-    private static String getDateString(long timestamp, boolean dayOnly) {
-        ZonedDateTime zonedDateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneId.of("America/Denver"));
-        String pattern = dayOnly ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-        return zonedDateTime.format(formatter);
-    }
-
-    private static Phase getPreviousPhase(Phase phase) {
-        return switch (phase) {
-            case Phase0 -> null;
-            case Phase1 -> Phase.Phase0;
-            case Phase3 -> Phase.Phase1;
-            case Phase4 -> Phase.Phase3;
-            case Phase6 -> Phase.Phase4;
-        };
-    }
-
-    private static String getPhaseAsString(Phase phase) {
-        return switch (phase) {
-            case Phase0 -> "0";
-            case Phase1 -> "1";
-            case Phase3 -> "3";
-            case Phase4 -> "4";
-            case Phase6 -> "6";
-        };
     }
 }
