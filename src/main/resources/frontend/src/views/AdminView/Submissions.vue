@@ -37,7 +37,7 @@ const getNameFromSubmission = (submission: Submission) => {
       <td>{{ getNameFromSubmission(submission) }}</td>
       <td>{{ submission.netId }}</td>
       <td>{{ submission.phase }}</td>
-      <td>{{ readableTimestamp(new Date(submission.timestamp)) }}</td>
+      <td>{{ readableTimestamp(submission.timestamp) }}</td>
       <td>{{ submission.score * 100 }}%</td>
       <td>{{ submission.notes }}</td>
     </tr>
