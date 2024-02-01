@@ -100,9 +100,9 @@ export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
     }
 }
 
-export const commitAnalyticsGet = async (): Promise<string> => {
+export const commitAnalyticsGet = async (option: string): Promise<string> => {
     try {
-        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit', {
+        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit/' + option, {
             method: 'GET',
             credentials: 'include'
         })).text()
