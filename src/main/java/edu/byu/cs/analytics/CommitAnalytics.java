@@ -11,11 +11,9 @@ import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -143,8 +141,10 @@ public class CommitAnalytics {
                     Iterable<RevCommit> commits = git.log().all().call();
                     ArrayList<Integer> timestamps = getAllTimestamps(commits);
                     commitMap.put(student.netId(), timestamps);
-                } catch (GitAPIException | IOException ignored) {
+                } catch (Exception e) {
+                    continue;
                 }
+
 
                 FileUtils.removeDirectory(repoPath);
             }
