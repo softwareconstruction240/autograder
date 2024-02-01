@@ -8,7 +8,9 @@ import {useAdminStore} from "@/stores/admin";
 const latestSubmissions = ref<Submission[]>([])
 
 onMounted(async () => {
-  latestSubmissions.value = await submissionsLatestGet();
+  const latestData = await submissionsLatestGet();
+  latestData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
+  latestSubmissions.value = latestData;
 })
 
 const getNameFromSubmission = (submission: Submission) => {
