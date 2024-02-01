@@ -32,7 +32,7 @@ public class CommitAnalyticsRouter {
      */
     public static String cached() {
         File file = FileUtils.getLastAlphabeticalFile(new File(cacheDir));
-        if (file == null) return null;
+        if (file == null) return "";
 
         return FileUtils.readStringFromFile(file);
     }
@@ -44,7 +44,7 @@ public class CommitAnalyticsRouter {
      */
     public static String when() {
         File file = FileUtils.getLastAlphabeticalFile(new File(cacheDir));
-        if (file == null) return null;
+        if (file == null) return "";
 
         long ts = Long.parseLong(file.getName().substring(0, 10));
 
