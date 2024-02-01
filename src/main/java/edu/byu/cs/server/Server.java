@@ -4,15 +4,6 @@ import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.jar.JarFile;
 
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
