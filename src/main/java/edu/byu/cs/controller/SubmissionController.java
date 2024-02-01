@@ -286,9 +286,6 @@ public class SubmissionController {
             }
         };
 
-
-
-
         return switch (phase) {
             case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);

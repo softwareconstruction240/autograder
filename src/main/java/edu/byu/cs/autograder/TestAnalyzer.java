@@ -1,6 +1,5 @@
 package edu.byu.cs.autograder;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
