@@ -6,6 +6,9 @@ import edu.byu.cs.util.FileUtils;
 import java.io.File;
 import java.time.Instant;
 
+/**
+ * Handles different type of commit analytics requests
+ */
 public class CommitAnalyticsRouter {
 
     private static final String cacheDir = "commit-cache";
