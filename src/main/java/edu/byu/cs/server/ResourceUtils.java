@@ -60,8 +60,8 @@ public class ResourceUtils {
     private static void copyResourceFilesJar(String codeSource, String origin, File destinationDir) {
         try {
             JarFile jarFile = new JarFile(codeSource);
-            for(Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
-                JarEntry next = it.next();
+            for(Iterator<JarEntry> iter = jarFile.entries().asIterator(); iter.hasNext();) {
+                JarEntry next = iter.next();
                 String path = next.toString();
                 if (!path.startsWith(origin)) continue;
                 if (path.contains(".")) {
