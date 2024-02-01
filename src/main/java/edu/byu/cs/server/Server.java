@@ -51,7 +51,8 @@ public class Server {
 
         path("/api", () -> {
             before("/*", (req, res) -> {
-                if (!req.requestMethod().equals("OPTIONS")) verifyAuthenticatedMiddleware.handle(req, res);
+                if (!req.requestMethod().equals("OPTIONS"))
+                    verifyAuthenticatedMiddleware.handle(req, res);
             });
 
             get("/submit", submitGet);
@@ -63,7 +64,8 @@ public class Server {
 
             path("/admin", () -> {
                 before("/*", (req, res) -> {
-                    if (!req.requestMethod().equals("OPTIONS")) verifyAdminMiddleware.handle(req, res);
+                    if (!req.requestMethod().equals("OPTIONS"))
+                        verifyAdminMiddleware.handle(req, res);
                 });
 
                 get("/users", usersGet);
@@ -82,7 +84,8 @@ public class Server {
 
         // spark's notFound method does not work
         get("/*", (req, res) -> {
-            if (req.pathInfo().equals("/ws")) return null;
+            if (req.pathInfo().equals("/ws"))
+                return null;
 
             String urlParms = req.queryString();
             urlParms = urlParms == null ? "" : "?" + urlParms;
