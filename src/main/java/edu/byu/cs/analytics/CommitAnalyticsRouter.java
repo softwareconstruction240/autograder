@@ -20,6 +20,7 @@ public class CommitAnalyticsRouter {
         String data = CommitAnalytics.generateCSV();
 
         FileUtils.removeDirectory(new File(cacheDir));
+        FileUtils.createDirectory(cacheDir);
         FileUtils.writeStringToFile(data, new File(cacheDir + "/" + ts + ".csv"));
 
         return data;
