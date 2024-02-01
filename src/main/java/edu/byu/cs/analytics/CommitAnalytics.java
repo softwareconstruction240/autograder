@@ -145,12 +145,10 @@ public class CommitAnalytics {
                     continue;
                 }
 
-
                 FileUtils.removeDirectory(repoPath);
             }
 
             commitsBySection.put(i.getKey(), commitMap);
-
         }
 
         return commitsBySection;
