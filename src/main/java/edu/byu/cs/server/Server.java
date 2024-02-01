@@ -3,6 +3,17 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.jar.JarFile;
+
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
@@ -13,6 +24,7 @@ public class Server {
 
 
     public static void main(String[] args) {
+        ResourceUtils.copyResourceFiles("phases", new File(""));
 
         port(8080);
 
@@ -39,8 +51,7 @@ public class Server {
 
         path("/api", () -> {
             before("/*", (req, res) -> {
-                if (!req.requestMethod().equals("OPTIONS"))
-                    verifyAuthenticatedMiddleware.handle(req, res);
+                if (!req.requestMethod().equals("OPTIONS")) verifyAuthenticatedMiddleware.handle(req, res);
             });
 
             get("/submit", submitGet);
@@ -52,8 +63,7 @@ public class Server {
 
             path("/admin", () -> {
                 before("/*", (req, res) -> {
-                    if (!req.requestMethod().equals("OPTIONS"))
-                        verifyAdminMiddleware.handle(req, res);
+                    if (!req.requestMethod().equals("OPTIONS")) verifyAdminMiddleware.handle(req, res);
                 });
 
                 get("/users", usersGet);
@@ -72,8 +82,7 @@ public class Server {
 
         // spark's notFound method does not work
         get("/*", (req, res) -> {
-            if (req.pathInfo().equals("/ws"))
-                return null;
+            if (req.pathInfo().equals("/ws")) return null;
 
             String urlParms = req.queryString();
             urlParms = urlParms == null ? "" : "?" + urlParms;
