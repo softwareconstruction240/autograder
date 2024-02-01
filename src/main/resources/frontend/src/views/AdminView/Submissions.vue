@@ -14,7 +14,7 @@ onMounted(async () => {
 })
 
 const getNameFromSubmission = (submission: Submission) => {
-  const user = useAdminStore().users.filter(user => user.netId == submission.netId)[0]
+  const user = useAdminStore().usersByNetId[submission.netId];
   return `${user.firstName} ${user.lastName}`
 }
 

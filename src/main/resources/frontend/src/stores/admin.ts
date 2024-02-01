@@ -5,9 +5,18 @@ import {usersGet} from "@/services/adminService";
 
 export const useAdminStore = defineStore('admin', () => {
     const users = ref<User[]>([]);
+    const usersByNetId = ref<Record<string, User>>({});
 
     const updateUsers = async () => {
-        users.value = await usersGet();
+        const latestUsers = await usersGet();
+        users.value = latestUsers;
+
+        // Also store a cache of all the users by their netId
+        const byNetId: typeof usersByNetId = {};
+        for (let user of latestUsers) {
+            byNetId[user.netId] = user;
+        }
+        usersByNetId.value = byNetId;
     }
 
     const admins = computed(() => users.value.filter(user => user.role === 'ADMIN'));
