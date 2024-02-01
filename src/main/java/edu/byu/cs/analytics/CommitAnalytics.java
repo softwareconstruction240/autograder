@@ -2,10 +2,10 @@ package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.DataUtils;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
@@ -84,13 +84,13 @@ public class CommitAnalytics {
             for (Map.Entry<String, ArrayList<Integer>> entry : e.getValue().entrySet()) {
                 String netID = entry.getKey();
                 for (Phase phase : phases) {
-                    Submission submission = getFirstPassingSubmission(entry.getKey(), phase);
+                    Submission submission = DataUtils.getFirstPassingSubmission(entry.getKey(), phase);
                     if (submission == null) break;
                     Phase prevPhase = PhaseUtils.getPreviousPhase(phase);
 
                     long lowerBound = 0;
                     if (prevPhase != null) {
-                        Submission prevSubmission = getFirstPassingSubmission(netID, prevPhase);
+                        Submission prevSubmission = DataUtils.getFirstPassingSubmission(netID, prevPhase);
                         if (prevSubmission != null) { // it should never be null due to passoff order enforcement
                             lowerBound = prevSubmission.timestamp().getEpochSecond();
                         }
@@ -163,17 +163,6 @@ public class CommitAnalytics {
                     .append(cd.section).append(",").append(cd.timestamp).append("\n");
         }
         return sb.toString();
-    }
-
-    private static Submission getFirstPassingSubmission(String netID, Phase phase) {
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netID, phase);
-        Submission firstPassing = null;
-        int earliest = Integer.MAX_VALUE;
-        for (Submission s : submissions) {
-            if (!s.passed()) continue;
-            if (s.timestamp().getEpochSecond() < earliest) firstPassing = s;
-        }
-        return firstPassing;
     }
 
     private static ArrayList<Integer> getChunkOfTimestamps(ArrayList<Integer> timestamps, long lowerBound, long upperBound) {

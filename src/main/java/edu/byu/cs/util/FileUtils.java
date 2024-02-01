@@ -1,5 +1,7 @@
 package edu.byu.cs.util;
 
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,17 +12,36 @@ import java.util.stream.Stream;
 public class FileUtils {
 
     /**
+     * Creates a directory if it doesn't exist
+     *
+     * @param path the path to said directory
+     */
+    public static void createDirectory(String path) {
+        try {
+            File file = new File(path);
+            if (file.exists()) return;
+            Files.createDirectory(Path.of(path));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write to file: " + e.getMessage());
+        }
+    }
+
+    /**
      * Writes a string to a file
      *
      * @param data the data to write
      * @param file the file to be written to
      */
     public static void writeStringToFile(String data, File file) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(data);
+        try {
+            if (!file.exists()) Files.createFile(file.toPath());
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(data);
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to write to file: " + e.getMessage());
         }
+
     }
 
     /**
@@ -59,6 +80,7 @@ public class FileUtils {
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
+            LoggerFactory.getLogger(FileUtils.class).error("Failed to delete stage directory", e);
             throw new RuntimeException("Failed to delete directory: " + e.getMessage());
         }
     }
@@ -70,7 +92,7 @@ public class FileUtils {
      * @return the file, null if there are issues
      */
     public static File getLastAlphabeticalFile(File dir) {
-        if (dir.isDirectory()) return null;
+        if (!dir.isDirectory()) return null;
 
         File[] files = dir.listFiles();
         if (files != null && files.length > 0) {
