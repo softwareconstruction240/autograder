@@ -168,7 +168,7 @@ public class SubmissionController {
 
     public static Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
-        Phase phaseEnum = PhaseUtils.getStringAsPhase(phase);
+        Phase phaseEnum = PhaseUtils.getPhaseByString(phase);
 
         if (phaseEnum == null) {
             res.status(400);
