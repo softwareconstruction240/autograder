@@ -6,6 +6,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.util.Collection;
@@ -98,6 +99,7 @@ public class AdminController {
                 default -> throw new IllegalStateException("Not found (invalid option: " + option + ")");
             };
         } catch (Exception e) {
+            LoggerFactory.getLogger(AdminController.class).error(e.getMessage());
             if (e instanceof IllegalStateException) res.status(404);
             else res.status(500);
             return e.getMessage();
