@@ -49,7 +49,7 @@ public class PhaseUtils {
      * @param str examples include "0", "3"
      * @return the phase as an enum
      */
-    public static Phase getStringAsPhase(String str) {
+    public static Phase getPhaseByString(String str) {
         return switch (str) {
             case "0" -> Phase.Phase0;
             case "1" -> Phase.Phase1;
