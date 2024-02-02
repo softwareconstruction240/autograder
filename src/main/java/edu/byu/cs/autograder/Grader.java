@@ -9,7 +9,6 @@ import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
-import edu.byu.cs.util.DataUtils;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
@@ -256,7 +255,7 @@ public abstract class Grader implements Runnable {
 
         try (Git git = Git.open(new File(stageRepoPath))) {
             Iterable<RevCommit> commits = git.log().all().call();
-            Submission submission = DataUtils.getFirstPassingSubmission(netId, phase);
+            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
             long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
