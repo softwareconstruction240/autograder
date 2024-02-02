@@ -1,5 +1,6 @@
 import {useAppConfigStore} from "@/stores/appConfig";
 import type {Submission, User} from "@/types/types";
+import type {Option} from "@/views/AdminView/Analytics.vue";
 
 export const usersGet = async (): Promise<User[]> => {
     try {
@@ -100,7 +101,7 @@ export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
     }
 }
 
-export const commitAnalyticsGet = async (option: string): Promise<string> => {
+export const commitAnalyticsGet = async (option: Option): Promise<string> => {
     try {
         return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit/' + option, {
             method: 'GET',

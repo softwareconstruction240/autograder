@@ -4,6 +4,8 @@ import {onMounted, ref} from "vue";
 import {commitAnalyticsGet} from "@/services/adminService";
 import sound from "@/assets/aria.mp3"
 
+export type Option = 'update' | 'cached' | 'when'
+
 const lastCache = ref<string>('')
 const infoText = ref<string>('')
 const cachedButtonDisabled = ref<boolean>(false)
@@ -36,7 +38,7 @@ const getNewData = async () => {
   await getMostRecent()
 }
 
-const getData = async (info: string, option: string, music: boolean) => {
+const getData = async (info: string, option: Option, music: boolean) => {
   updateButtonDisabled.value = true
   cachedButtonDisabled.value = true
   infoText.value = info
