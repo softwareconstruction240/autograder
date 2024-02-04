@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.*;
 
+/**
+ * A helper class for running common test operations
+ */
 public class TestHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
@@ -92,6 +95,13 @@ public class TestHelper {
         }
     }
 
+    /**
+     * Extracts the output as a string from a process
+     *
+     * @param process The process to extract the output from
+     * @return The output of the process as a string
+     * @throws IOException If an error occurs while reading the output
+     */
     private static String getOutputFromProcess(Process process) throws IOException {
         String output;
 
