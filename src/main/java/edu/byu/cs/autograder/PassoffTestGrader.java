@@ -66,50 +66,8 @@ public abstract class PassoffTestGrader extends Grader {
     @Override
     protected void compileTests() {
         observer.update("Compiling tests...");
-
-        // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and find
-        // to get the files
-
-        // absolute path to student's chess jar
-        String chessJarWithDeps;
-        try {
-            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module +"-jar-with-dependencies.jar")
-                    .getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        ProcessBuilder processBuilder =
-                new ProcessBuilder()
-                        .directory(phaseTests)
-//                        .inheritIO() // TODO: implement better logging
-                        .command("find",
-                                "passoffTests",
-                                "-name",
-                                "*.java",
-                                "-exec",
-                                "javac",
-                                "-d",
-                                stagePath + "/tests",
-                                "-cp",
-                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" +
-                                        junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                                "{}",
-                                ";");
-
-        try {
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
-                observer.notifyError("exited with non-zero exit code");
-                LOGGER.error("exited with non-zero exit code");
-                throw new RuntimeException("exited with non-zero exit code");
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        observer.update("Successfully compiled tests");
+        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath + "/tests");
+        observer.update("Finished compiling tests.");
     }
 
     @Override

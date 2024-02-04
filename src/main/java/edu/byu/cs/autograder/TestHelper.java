@@ -42,6 +42,52 @@ public class TestHelper {
     }
 
     /**
+     *
+     */
+    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath) {
+
+        // Process cannot handle relative paths or wildcards,
+        // so we need to only use absolute paths and find
+        // to get the files
+
+        // absolute path to student's chess jar
+        String chessJarWithDeps;
+        try {
+            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar")
+                    .getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ProcessBuilder processBuilder =
+                new ProcessBuilder()
+                        .directory(testsLocation)
+//                        .inheritIO() // TODO: implement better logging
+                        .command("find",
+                                "passoffTests",
+                                "-name",
+                                "*.java",
+                                "-exec",
+                                "javac",
+                                "-d",
+                                stagePath + "/tests",
+                                "-cp",
+                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" +
+                                        junitJupiterApiJarPath + ":" + passoffDependenciesPath,
+                                "{}",
+                                ";");
+
+        try {
+            Process process = processBuilder.start();
+            if (process.waitFor() != 0) {
+                throw new RuntimeException("exited with non-zero exit code");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error compiling tests", e);
+        }
+    }
+
+    /**
      * Runs the JUnit tests in the given directory
      *
      * @param uberJar          The jar file containing the compiled classes to be tested.
