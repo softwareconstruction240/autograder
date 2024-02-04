@@ -36,7 +36,7 @@ const submissionsByPhaseDesc = computed(() => {
         v-for="submission in submissionsByPhaseDesc"
         :key="`${submission.headHash}-${submission.timestamp}`"
         @click="$emit('show-results', submission)">
-      {{ readableTimestamp(new Date(submission.timestamp)) }} -
+      {{ readableTimestamp(submission.timestamp) }} -
       {{ (submission.score * 100).toPrecision(4) }}% {{ isPassFail ? `(${passFail(submission)})` : ''}}
     </li>
   </ul>
