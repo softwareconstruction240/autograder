@@ -135,6 +135,7 @@ public class TestAnalyzer {
      * Parses the output of the JUnit Console Runner
      *
      * @param inputLines the lines of the output of the JUnit Console Runner
+     * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
     public TestNode parse(String[] inputLines, Set<String> extraCreditTests) {
