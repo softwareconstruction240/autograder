@@ -66,7 +66,7 @@ public abstract class PassoffTestGrader extends Grader {
     @Override
     protected void compileTests() {
         observer.update("Compiling tests...");
-        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath + "/tests");
+        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath);
         observer.update("Finished compiling tests.");
     }
 
