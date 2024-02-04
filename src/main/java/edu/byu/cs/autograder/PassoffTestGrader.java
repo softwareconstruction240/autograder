@@ -117,7 +117,7 @@ public abstract class PassoffTestGrader extends Grader {
         observer.update("Running tests...");
 
         return new TestHelper().runJUnitTests(
-                new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
+                new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
                 stageTestsPath,
                 extraCreditTests
         );
