@@ -2,7 +2,7 @@
 
 import {onMounted, ref} from "vue";
 import {commitAnalyticsGet} from "@/services/adminService";
-import sound from "@/assets/aria.mp3"
+import sound from "@/assets/wet-hands.mp3"
 
 export type Option = 'update' | 'cached' | 'when'
 
