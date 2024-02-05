@@ -127,8 +127,8 @@ public abstract class Grader implements Runnable {
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
-            runCustomTests();
             packageRepo();
+            runCustomTests();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
             saveResults(results, numCommits);
