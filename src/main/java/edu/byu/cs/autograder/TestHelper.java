@@ -43,7 +43,12 @@ public class TestHelper {
     }
 
     /**
+     * Compiles the tests in the given directory
      *
+     * @param stageRepoPath The path to the student's repository
+     * @param module        The module to compile
+     * @param testsLocation The location of the tests
+     * @param stagePath     The path to the stage directory
      */
     void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath) {
 
