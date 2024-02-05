@@ -174,6 +174,7 @@ public abstract class Grader implements Runnable {
         int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
         float score = getScore(results);
         score -= numDaysLate * 0.1F;
+        if (score < 0) score = 0;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
