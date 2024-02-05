@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class TestAnalyzer {
 
-    public static class TestNode implements Comparable<TestNode> {
+    public static class TestNode implements Comparable<TestNode>, Cloneable {
         String testName;
         Boolean passed;
         String ecCategory;
@@ -112,6 +112,39 @@ public class TestAnalyzer {
         @Override
         public int compareTo(TestNode o) {
             return this.testName.compareTo(o.testName);
+        }
+
+        @Override
+        public TestNode clone() {
+            try {
+                TestNode clone = (TestNode) super.clone();
+                clone.children = new HashMap<>();
+                for (Map.Entry<String, TestNode> entry : children.entrySet()) {
+                    clone.children.put(entry.getKey(), entry.getValue().clone());
+                }
+                return clone;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Merges two TestNodes.
+         *
+         * @param a the first TestNode
+         * @param b the second TestNode
+         * @return a new TestNode that is the result of merging a and b
+         */
+        public static TestNode merge(TestNode a, TestNode b) {
+            TestNode merged = a.clone();
+            for (Map.Entry<String, TestNode> entry : b.children.entrySet()) {
+                if (merged.children.containsKey(entry.getKey()))
+                    merged.children.put(entry.getKey(), merge(merged.children.get(entry.getKey()), entry.getValue()));
+                else
+                    merged.children.put(entry.getKey(), entry.getValue().clone());
+            }
+
+            return merged;
         }
     }
 
