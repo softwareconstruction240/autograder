@@ -70,7 +70,7 @@ const triggerDownload = (csvData: string, filename: string) => {
 }
 
 const playAudio = () => {
-  audio.volume = .25
+  audio.volume = .5
   audio.play()
 }
 
