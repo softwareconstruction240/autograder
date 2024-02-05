@@ -56,4 +56,15 @@ public class SubmissionMemoryDao implements SubmissionDao {
     public void removeSubmissionsByNetId(String netId) {
         submissions.removeIf(submission -> submission.netId().equals(netId));
     }
+
+    @Override
+    public Submission getFirstPassingSubmission(String netId, Phase phase) {
+        Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
+        Submission earliest = null;
+        long min = Long.MAX_VALUE;
+        for (Submission s : submissions) {
+            if (s.passed() && s.timestamp().getEpochSecond() < min) earliest = s;
+        }
+        return earliest;
+    }
 }

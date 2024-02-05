@@ -9,6 +9,9 @@ import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.DateTimeUtils;
+import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -18,15 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Stream;
-
-import static edu.byu.cs.model.Phase.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -92,13 +90,6 @@ public abstract class Grader implements Runnable {
 
     protected Observer observer;
 
-    // FIXME: dynamically get assignment numbers
-    private final int PHASE0_ASSIGNMENT_NUMBER = 880445;
-    private final int PHASE1_ASSIGNMENT_NUMBER = 880446;
-    private final int PHASE3_ASSIGNMENT_NUMBER = 880448;
-    private final int PHASE4_ASSIGNMENT_NUMBER = 880449;
-    private final int PHASE6_ASSIGNMENT_NUMBER = 880451;
-
     /**
      * Creates a new grader
      *
@@ -147,7 +138,7 @@ public abstract class Grader implements Runnable {
 
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
-            removeStage();
+            FileUtils.removeDirectory(new File(stagePath));
         }
     }
 
@@ -167,13 +158,7 @@ public abstract class Grader implements Runnable {
     private void saveResults(TestAnalyzer.TestNode results, int numCommits) {
         String headHash = getHeadHash();
 
-        int assignmentNum = switch (phase) {
-            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
-            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
-            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
-            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
-            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
-        };
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
@@ -186,7 +171,7 @@ public abstract class Grader implements Runnable {
 
         // penalize at most 5 days
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        int numDaysLate = Math.min(getNumDaysLate(handInDate, dueDate), 5);
+        int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
         float score = getScore(results);
         score -= numDaysLate * 0.1F;
 
@@ -217,20 +202,9 @@ public abstract class Grader implements Runnable {
 
         int userId = user.canvasUserId();
 
-        int assignmentNum = switch (phase) {
-            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
-            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
-            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
-            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
-            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
-        };
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
-        //FIXME
-        float score = submission.score() * switch (phase) {
-            case Phase0, Phase1, Phase4 -> 125.0F;
-            case Phase3 -> 180.0F;
-            case Phase6 -> 155.0F;
-        };
+        float score = submission.score() * PhaseUtils.getTotalPoints(phase);
 
         try {
             CanvasIntegration.submitGrade(userId, assignmentNum, score, submission.notes());
@@ -248,26 +222,6 @@ public abstract class Grader implements Runnable {
             throw new RuntimeException("Failed to get head hash: " + e.getMessage());
         }
         return headHash;
-    }
-
-    /**
-     * Removes the stage directory if it exists
-     */
-    private void removeStage() {
-        File file = new File(stagePath);
-
-        if (!file.exists()) {
-            return;
-        }
-
-        try (Stream<Path> paths = Files.walk(file.toPath())) {
-            paths.sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            LOGGER.error("Failed to delete stage directory", e);
-            throw new RuntimeException("Failed to delete stage directory: " + e.getMessage());
-        }
     }
 
     /**
@@ -301,7 +255,8 @@ public abstract class Grader implements Runnable {
 
         try (Git git = Git.open(new File(stageRepoPath))) {
             Iterable<RevCommit> commits = git.log().all().call();
-            long timestamp = getLastSubmissionTimestamp();
+            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
+            long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
 //            if (numCommits < requiredCommits) {
@@ -374,73 +329,6 @@ public abstract class Grader implements Runnable {
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
     protected abstract String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate);
-
-    /**
-     * Gets the timestamp of the first passing submission for the previous phase
-     *
-     * @return the timestamp (epoch seconds)
-     */
-    private long getLastSubmissionTimestamp() {
-        Phase prevPhase = switch (phase) {
-            case Phase0 -> null;
-            case Phase1 -> Phase0;
-            case Phase3 -> Phase1;
-            case Phase4 -> Phase3;
-            case Phase6 -> Phase4;
-        };
-        if (prevPhase == null) return 0;
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, prevPhase);
-        // find first passing submission for the previous phase
-        long timestamp = Long.MAX_VALUE;
-        for (Submission s : submissions) {
-            if (!s.passed()) continue;
-            if (s.timestamp().getEpochSecond() < timestamp) {
-                timestamp = s.timestamp().getEpochSecond();
-            }
-        }
-        if (timestamp == Long.MAX_VALUE) return 0L;
-        else return timestamp;
-    }
-
-    /**
-     * Gets the number of days late the submission is. This excludes weekends and public holidays
-     *
-     * @param handInDate the date the submission was handed in
-     * @param dueDate    the due date of the phase
-     * @return the number of days late or 0 if the submission is not late
-     */
-    private int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
-        // end of day
-        dueDate = dueDate.withHour(23).withMinute(59).withSecond(59);
-
-        int daysLate = 0;
-
-        while (handInDate.isAfter(dueDate)) {
-            if (handInDate.getDayOfWeek().getValue() < 6 && !isPublicHoliday(handInDate)) {
-                daysLate++;
-            }
-            handInDate = handInDate.minusDays(1);
-        }
-
-        return daysLate;
-    }
-
-    /**
-     * Checks if the given date is a public holiday
-     *
-     * @param zonedDateTime the date to check
-     * @return true if the date is a public holiday, false otherwise
-     */
-    private boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
-        Date date = Date.from(zonedDateTime.toInstant());
-        // TODO: use non-hardcoded list of public holidays
-        Set<Date> publicHolidays = Set.of(
-                Date.from(ZonedDateTime.parse("2023-02-19T00:00:00.000Z").toInstant()),
-                Date.from(ZonedDateTime.parse("2023-03-15T00:00:00.000Z").toInstant())
-        );
-
-        return publicHolidays.contains(date);
-    }
 
     public interface Observer {
         void notifyStarted();

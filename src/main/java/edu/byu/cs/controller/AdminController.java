@@ -1,16 +1,17 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
-import edu.byu.cs.analytics.CommitAnalytics;
+import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.util.Collection;
 
-import static edu.byu.cs.controller.JwtUtils.generateToken;
+import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class AdminController {
@@ -87,17 +88,25 @@ public class AdminController {
     };
 
     public static Route commitAnalyticsGet = (req, res) -> {
-        String csvData;
+        String option = req.params(":option");
+        String data;
 
         try {
-            csvData = CommitAnalytics.generateCSV();
+            data = switch (option) {
+                case "update" -> CommitAnalyticsRouter.update();
+                case "cached" -> CommitAnalyticsRouter.cached();
+                case "when" -> CommitAnalyticsRouter.when();
+                default -> throw new IllegalStateException("Not found (invalid option: " + option + ")");
+            };
         } catch (Exception e) {
-            res.status(500);
+            LoggerFactory.getLogger(AdminController.class).error(e.getMessage());
+            if (e instanceof IllegalStateException) res.status(404);
+            else res.status(500);
             return e.getMessage();
         }
 
         res.status(200);
 
-        return csvData;
+        return data;
     };
 }
