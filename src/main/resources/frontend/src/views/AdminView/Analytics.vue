@@ -76,6 +76,7 @@ const playAudio = () => {
 
 const stopAudio = () => {
   audio.pause()
+  audio.currentTime = 0
 }
 
 </script>
