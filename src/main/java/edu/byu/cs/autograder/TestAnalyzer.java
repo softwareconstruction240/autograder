@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class TestAnalyzer {
 
-    public static class TestNode implements Comparable {
+    public static class TestNode implements Comparable<TestNode> {
         String testName;
         Boolean passed;
         String ecCategory;
@@ -110,9 +110,8 @@ public class TestAnalyzer {
         }
 
         @Override
-        public int compareTo(Object o) {
-            TestNode other = (TestNode) o;
-            return this.testName.compareTo(other.testName);
+        public int compareTo(TestNode o) {
+            return this.testName.compareTo(o.testName);
         }
     }
 
