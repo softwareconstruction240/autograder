@@ -2,7 +2,7 @@
 
 import {onMounted, ref} from "vue";
 import {commitAnalyticsGet} from "@/services/adminService";
-import sound from "@/assets/aria.mp3"
+import sound from "@/assets/wet-hands.mp3"
 
 export type Option = 'update' | 'cached' | 'when'
 
@@ -33,7 +33,7 @@ const getCachedData = async () => {
 }
 
 const getNewData = async () => {
-  await getData('Downloading data... (should take around 5 minutes) Enjoy this 5-minute song in the meantime.',
+  await getData('Downloading data... (should take around 90 seconds) Enjoy this song in the meantime.',
       'update', true)
   await getMostRecent()
 }
@@ -70,12 +70,13 @@ const triggerDownload = (csvData: string, filename: string) => {
 }
 
 const playAudio = () => {
-  audio.volume = .25
+  audio.volume = .5
   audio.play()
 }
 
 const stopAudio = () => {
   audio.pause()
+  audio.currentTime = 0
 }
 
 </script>
@@ -83,7 +84,7 @@ const stopAudio = () => {
 <template>
   <div class="container">
     <p class="desc">Downloading commit analytics CSV data can be done in one of two ways: downloading a cached version,
-        which was compiled at the timestamp below, or updating the data. Updating the data takes around 5 minutes.
+        which was compiled at the timestamp below, or updating the data. Updating the data takes around 90 seconds.
         By default, the data is sorted by section and then by netID.</p>
     <p>Last update: {{ lastCache }}</p>
     <button :disabled="cachedButtonDisabled" @click="getCachedData">Download Cached Data</button>
