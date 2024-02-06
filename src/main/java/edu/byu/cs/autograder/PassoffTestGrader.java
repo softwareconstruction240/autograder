@@ -59,8 +59,9 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected void runCustomTests() {
+    protected TestAnalyzer.TestNode runCustomTests() {
         // no unit tests for this phase
+        return null;
     }
 
     @Override

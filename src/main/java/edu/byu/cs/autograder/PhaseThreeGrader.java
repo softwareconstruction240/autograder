@@ -21,7 +21,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected void runCustomTests() {
+    protected TestAnalyzer.TestNode runCustomTests() {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
@@ -29,12 +29,12 @@ public class PhaseThreeGrader extends PassoffTestGrader {
                 new File(stageRepo, "server/src/test/java"),
                 stagePath,
                 excludedTests);
-        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
+
+        return new TestHelper().runJUnitTests(
                 new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
                 new File(stagePath, "tests"),
                 new HashSet<>()
         );
-        System.out.println(results);
     }
 
     /* Rubric Items Winter 2024:

@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Map;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -314,8 +314,10 @@ public abstract class Grader implements Runnable {
 
     /**
      * Run the unit tests written by the student. This approach is destructive as it will delete non-unit tests
+     *
+     * @return the results of the tests
      */
-    protected abstract void runCustomTests();
+    protected abstract TestAnalyzer.TestNode runCustomTests();
 
     /**
      * Compiles the test files with the student code
