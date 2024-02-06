@@ -1,5 +1,6 @@
 import {useAppConfigStore} from "@/stores/appConfig";
 import type {Submission, User} from "@/types/types";
+import type {Option} from "@/views/AdminView/Analytics.vue";
 
 export const usersGet = async (): Promise<User[]> => {
     try {
@@ -97,5 +98,17 @@ export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
             currentlyGrading: [],
             inQueue: []
         };
+    }
+}
+
+export const commitAnalyticsGet = async (option: Option): Promise<string> => {
+    try {
+        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit/' + option, {
+            method: 'GET',
+            credentials: 'include'
+        })).text()
+    } catch (e) {
+        console.error('Failed to get data: ', e)
+        return ''
     }
 }

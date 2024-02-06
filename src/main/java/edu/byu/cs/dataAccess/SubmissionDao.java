@@ -45,4 +45,13 @@ public interface SubmissionDao {
      * @param netId the netId to remove submissions for
      */
     void removeSubmissionsByNetId(String netId);
+
+    /**
+     * Gets the first passing submission chronologically for the given phase
+     *
+     * @param netId the student's netId
+     * @param phase the phase
+     * @return the submission object, or null
+     */
+    Submission getFirstPassingSubmission(String netId, Phase phase);
 }

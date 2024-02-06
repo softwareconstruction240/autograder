@@ -18,7 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static edu.byu.cs.controller.JwtUtils.generateToken;
+import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {
@@ -81,17 +81,16 @@ public class CasController {
         return null;
     };
 
-    public static Route logoutGet = (req, res) -> {
+    public static Route logoutPost = (req, res) -> {
         if (req.cookie("token") == null) {
-            res.status(401);
-            return "You are not logged in.";
+            res.redirect(ConfigProperties.frontendAppUrl(), 401);
+            return null;
         }
-
 
         // TODO: call cas logout endpoint with ticket
         res.removeCookie("/", "token");
-        res.status(200);
-        return "You are logged out.";
+        res.redirect(ConfigProperties.frontendAppUrl(), 200);
+        return null;
     };
 
     /**

@@ -16,6 +16,7 @@ public record Submission(
         Phase phase,
         Boolean passed,
         Float score,
+        Integer numCommits,
         String notes,
         TestAnalyzer.TestNode testResults
 ) {

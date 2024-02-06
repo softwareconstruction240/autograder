@@ -34,7 +34,7 @@ public class Server {
 
             // all routes after this point require authentication
             post("/register", registerPost);
-            get("/logout", logoutGet);
+            post("/logout", logoutPost);
         });
 
         path("/api", () -> {
@@ -65,6 +65,8 @@ public class Server {
                 get("/test_mode", testModeGet);
 
                 get("/submissions/active", submissionsActiveGet);
+
+                get("/analytics/commit/:option", commitAnalyticsGet);
             });
         });
 

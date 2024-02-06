@@ -8,11 +8,13 @@ import {useAdminStore} from "@/stores/admin";
 const latestSubmissions = ref<Submission[]>([])
 
 onMounted(async () => {
-  latestSubmissions.value = await submissionsLatestGet();
+  const latestData = await submissionsLatestGet();
+  latestData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
+  latestSubmissions.value = latestData;
 })
 
 const getNameFromSubmission = (submission: Submission) => {
-  const user = useAdminStore().users.filter(user => user.netId == submission.netId)[0]
+  const user = useAdminStore().usersByNetId[submission.netId];
   return `${user.firstName} ${user.lastName}`
 }
 
@@ -35,7 +37,7 @@ const getNameFromSubmission = (submission: Submission) => {
       <td>{{ getNameFromSubmission(submission) }}</td>
       <td>{{ submission.netId }}</td>
       <td>{{ submission.phase }}</td>
-      <td>{{ readableTimestamp(new Date(submission.timestamp)) }}</td>
+      <td>{{ readableTimestamp(submission.timestamp) }}</td>
       <td>{{ submission.score * 100 }}%</td>
       <td>{{ submission.notes }}</td>
     </tr>

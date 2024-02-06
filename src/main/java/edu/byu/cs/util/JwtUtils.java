@@ -1,6 +1,5 @@
-package edu.byu.cs.controller;
+package edu.byu.cs.util;
 
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;

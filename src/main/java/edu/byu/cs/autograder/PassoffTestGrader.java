@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public abstract class PassoffTestGrader extends Grader {
 
@@ -50,6 +51,7 @@ public abstract class PassoffTestGrader extends Grader {
         super(repoUrl, netId, observer, phase);
         this.stageTestsPath = new File(stagePath + "/tests");
         this.phaseTests = new File(phaseResources);
+        // FIXME
         this.module = switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4 -> "server";
@@ -133,8 +135,10 @@ public abstract class PassoffTestGrader extends Grader {
         try {
             Process process = processBuilder.start();
 
-            if (process.waitFor() != 0) {
-//                throw new RuntimeException("exited with non-zero exit code");
+            if (!process.waitFor(30000, TimeUnit.MILLISECONDS)) {
+                observer.notifyError("Tests took too long to run, come see a TA for more info");
+                LOGGER.error("Tests took too long to run, come see a TA for more info");
+                throw new RuntimeException("Tests took too long to run, come see a TA for more info");
             }
 
             String output = getOutputFromProcess(process);

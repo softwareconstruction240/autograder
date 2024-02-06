@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.*;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
@@ -29,6 +30,17 @@ public class CanvasIntegration {
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
+    // FIXME: set this dynamically or pull from config
+    public static final Map<Integer, Integer> sectionIDs;
+
+    static {
+        sectionIDs = new HashMap<>();
+        sectionIDs.put(1, 26512);
+        sectionIDs.put(2, 26513);
+        sectionIDs.put(3, 25972);
+        sectionIDs.put(4, 25496);
+        sectionIDs.put(5, 25971);
+    }
 
     /**
      * Queries canvas for the user with the given netId
@@ -74,6 +86,51 @@ public class CanvasIntegration {
         }
 
         throw new CanvasException("User not found in Canvas: " + netId);
+    }
+
+    /**
+     * Queries Canvas for every student with a Git repo URL submission
+     *
+     * @return A set of user objects
+     * @throws CanvasException If there is an error with Canvas' response
+     */
+    public static Collection<User> getAllStudents() throws CanvasException {
+        return getMultipleStudents("/courses/" + COURSE_NUMBER + "/assignments/" +
+                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+    }
+
+    public static Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
+        return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
+                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+    }
+
+    private static Collection<User> getMultipleStudents(String baseUrl) throws CanvasException {
+        int pageIndex = 1;
+        int batchSize = 100;
+        Set<CanvasSubmissionUser> allSubmissions = new HashSet<>();
+        Set<User> allStudents = new HashSet<>();
+
+        while (batchSize == 100) {
+            CanvasSubmissionUser[] batch = makeCanvasRequest(
+                    "GET",
+                    baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
+                    null,
+                    CanvasSubmissionUser[].class);
+            batchSize = batch.length;
+            allSubmissions.addAll(Arrays.asList(batch));
+            pageIndex++;
+        }
+
+        for (CanvasSubmissionUser sub : allSubmissions) {
+            if (sub.url == null) continue;
+            CanvasUser user = sub.user;
+            String[] names = user.sortable_name().split(",");
+            String firstName = ((names.length >= 2) ? names[1] : "").trim();
+            String lastName = ((names.length >= 1) ? names[0] : "").trim();
+            allStudents.add(new User(user.login_id, user.id, firstName, lastName, sub.url, User.Role.STUDENT));
+        }
+
+        return allStudents;
     }
 
     /**
@@ -240,6 +297,10 @@ public class CanvasIntegration {
     public record RubricAssessment(Map<String, RubricItem> items) {}
 
     public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
+
+    }
+
+    private record CanvasSubmissionUser(String url, CanvasUser user) {
 
     }
 

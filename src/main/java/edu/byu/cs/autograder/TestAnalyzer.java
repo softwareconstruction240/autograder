@@ -1,6 +1,5 @@
 package edu.byu.cs.autograder;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +37,14 @@ public class TestAnalyzer {
          * The number of extra credit tests that failed under this node
          */
         Integer numExtraCreditFailed;
+
+        public Boolean getPassed() {
+            return passed;
+        }
+
+        public Integer getNumExtraCreditFailed() {
+            return numExtraCreditFailed;
+        }
 
         @Override
         public String toString() {
