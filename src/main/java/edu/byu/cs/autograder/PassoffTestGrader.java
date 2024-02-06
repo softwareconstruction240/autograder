@@ -14,7 +14,7 @@ public abstract class PassoffTestGrader extends Grader {
     /**
      * The path where the official tests are stored
      */
-    private final File phaseTests;
+    protected final File phaseTests;
 
     /**
      * The path where the compiled tests are stored (and ran)
@@ -66,7 +66,7 @@ public abstract class PassoffTestGrader extends Grader {
     @Override
     protected void compileTests() {
         observer.update("Compiling tests...");
-        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath);
+        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
         observer.update("Finished compiling tests.");
     }
 
