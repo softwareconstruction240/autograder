@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Route;
 
-import static edu.byu.cs.controller.JwtUtils.validateToken;
+import static edu.byu.cs.util.JwtUtils.validateToken;
 import static edu.byu.cs.model.User.Role.STUDENT;
 import static spark.Spark.halt;
 

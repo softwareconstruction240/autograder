@@ -111,6 +111,26 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
+    @Override
+    public Submission getFirstPassingSubmission(String netId, Phase phase) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results
+                            FROM submission
+                            WHERE net_id = ? AND phase = ? AND passed = 1
+                            ORDER BY timestamp
+                            LIMIT 1
+                            """);
+            statement.setString(1, netId);
+            statement.setString(2, phase.toString());
+            Collection<Submission> submissions = getSubmissionsFromQuery(statement);
+            return submissions.isEmpty() ? null : submissions.iterator().next();
+        } catch (Exception e) {
+            throw new DataAccessException("Error getting first passing submission", e);
+        }
+    }
+
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
         ResultSet rows = statement.executeQuery();
 

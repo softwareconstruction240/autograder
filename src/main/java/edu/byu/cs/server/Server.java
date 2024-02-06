@@ -69,7 +69,7 @@ public class Server {
 
                 get("/submissions/active", submissionsActiveGet);
 
-                get("/analytics/commit", commitAnalyticsGet);
+                get("/analytics/commit/:option", commitAnalyticsGet);
             });
         });
 

@@ -25,20 +25,13 @@ Before running the server, two configuration files need to be modified to match 
 1. `src/main/resources/config.properties` - contains the frontend and backend urls
 2. `src/main/resources/frontend/.env.prod` - contains the url of the backend
 
-In addition to these config files, the following environment variables must be set:
-```
-DB_URL=<host>:<port>
-DB_USER=<user>
-DB_PASSWORD=<password>
-DB_NAME=autograder
-```
-
 ### Docker
 For a docker deployment, run one of the following commands:
 ```bash
 # For a deployment with a MySQL database included
 docker compose --profile with-db up -d
-
+```
+```bash
 # For a deployment requiring an external MySQL database
 docker compose up -d
 ```
@@ -46,58 +39,40 @@ docker compose up -d
 Note, if you are using the docker MySQL database, ensure that in `src/main/resources/db.properties` the property `db.url` is set to `db:3306`
 
 ## Development
-### Running the database
-There is a docker compose file in the root of the project that will start a MySQL database. To start the database, run the following command (you will need docker installed):
+### Pre-requisites
+#### Node/Yarn
+The frontend is built using Vue.js. To run the frontend, you will need to have `yarn`. After installing `Node`, run the following to enable `yarn` globally:
+```bash
+corepack enable
+```
+(`sudo` may be required)
+
+The frontend can be run in development mode by running the following in the `src/main/resources/frontend` directory:
+```bash
+yarn dev
+```
+
+#### Docker
+To run the database locally, you will need to have `docker` installed. Run the following in the root of the project to start the db container:
 ```bash
 docker compose up db -d
 ```
 
+#### Maven
+A local installation of maven is required to run the backend.
+
+
 Alternatively, you can run the database locally with your own MySQL server. Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
 
-## Websocket Commands
-0. Client joins submit queue by sending a POST to /api/submit
-1. Client connects via /ws
-2. Client sends a message with their auth token
-    ```jwt
-    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlBhdWwgaXMgYSBjb29sIGR1ZGUiLCJpYXQiOjE1MTYyMzkwMjJ9.5L4Fjs4D8R1RGDERzyPdSeltqQ_u-n1EeRlBTRspaEI
-    ```
-3. Server responds with a message with the following format:
-    ```json
-    {
-      "type": "queueStatus",
-      "position": 3,
-      "total": 4
-    }
-   ```
-4. When the position in the queue changes, new `queueStatus` messages are sent
-5. When the client's submission starts to be processed, the server sends a `started` message:
-    ```json
-    {
-      "type": "started"
-    }
-    ```
-6. As the autograder runs, the server sends `update` messages:
-    ```json
-    {
-      "type": "update",
-      "message": "Step x is starting"
-    }
-    ```
-7. When the autograder is done, the server sends a `results` message, containing the results of the autograder:
-    ```json
-    {
-      "type": "results",
-      "results": "{...}"
-    }
-    ```
-8. If an error occurs, the server sends an `error` message:
-    ```json
-    {
-      "type": "error",
-      "message": "Something went wrong"
-    }
-    ```
-
+## Environment Variables
+For both deployment and development, the following environment variables are required to be set:
+```
+DB_URL=<host>:<port>
+DB_USER=<user>
+DB_PASSWORD=<password>
+DB_NAME=autograder
+CANVAS_AUTHORIZATION_KEY=<canvas api key>
+```
 
 ## Enabling Logging
 

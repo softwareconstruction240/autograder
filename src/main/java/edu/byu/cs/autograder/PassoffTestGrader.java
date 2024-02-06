@@ -51,6 +51,7 @@ public abstract class PassoffTestGrader extends Grader {
         super(repoUrl, netId, observer, phase);
         this.stageTestsPath = new File(stagePath + "/tests");
         this.phaseTests = new File(phaseResources);
+        // FIXME
         this.module = switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4 -> "server";

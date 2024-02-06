@@ -18,7 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static edu.byu.cs.controller.JwtUtils.generateToken;
+import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {
