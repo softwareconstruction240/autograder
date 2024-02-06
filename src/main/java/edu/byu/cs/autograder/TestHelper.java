@@ -5,7 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -49,8 +53,9 @@ public class TestHelper {
      * @param module        The module to compile
      * @param testsLocation The location of the tests
      * @param stagePath     The path to the stage directory
+     * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath) {
+    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests) {
 
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
@@ -64,23 +69,13 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
 
+        List<String> commands = getCompileCommands(stagePath, excludedTests, chessJarWithDeps);
+
         ProcessBuilder processBuilder =
                 new ProcessBuilder()
                         .directory(testsLocation)
 //                        .inheritIO() // TODO: implement better logging
-                        .command("find",
-                                "passoffTests",
-                                "-name",
-                                "*.java",
-                                "-exec",
-                                "javac",
-                                "-d",
-                                stagePath + "/tests",
-                                "-cp",
-                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" +
-                                        junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                                "{}",
-                                ";");
+                        .command(commands);
 
         try {
             Process process = processBuilder.start();
@@ -90,6 +85,32 @@ public class TestHelper {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Error compiling tests", e);
         }
+    }
+
+    private static List<String> getCompileCommands(String stagePath, Set<String> excludedTests, String chessJarWithDeps) {
+        List<String> commands = new ArrayList<>();
+        commands.add("find");
+        commands.add(".");
+        commands.add("-name");
+        commands.add("*.java");
+
+        if (!excludedTests.isEmpty())
+            commands.add("-not");
+
+        for (String excludedTest : excludedTests) {
+            commands.add("-name");
+            commands.add(excludedTest);
+        }
+
+        commands.add("-exec");
+        commands.add("javac");
+        commands.add("-d");
+        commands.add(stagePath + "/tests");
+        commands.add("-cp");
+        commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add("{}");
+        commands.add(";");
+        return commands;
     }
 
     /**
@@ -170,5 +191,29 @@ public class TestHelper {
             output = sb.toString();
         }
         return output;
+    }
+
+    /**
+     * Gets the names of all the test files in the phases directory. The expected use case is to
+     * us this list to build the excludedTests set for the compileTests method.
+     *
+     * @return A set of the names of all the test files in the phases directory
+     */
+    Set<String> getTestFileNames(File testDirectory) {
+        Set<String> testFileNames = new HashSet<>();
+        try {
+            Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
+            Files.walk(testDirectoryPath)
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        String fileName = path.getFileName().toString();
+                        if (fileName.endsWith(".java")) {
+                            testFileNames.add(fileName);
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return testFileNames;
     }
 }
