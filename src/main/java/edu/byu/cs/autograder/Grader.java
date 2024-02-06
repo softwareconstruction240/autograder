@@ -128,11 +128,21 @@ public abstract class Grader implements Runnable {
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
             packageRepo();
-            runCustomTests();
+            TestAnalyzer.TestNode customTestsResults = runCustomTests();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
-            saveResults(results, numCommits);
-            observer.notifyDone(results);
+
+            TestAnalyzer.TestNode combinedResults;
+            if (customTestsResults != null) {
+                results.testName = "Passoff Tests";
+                customTestsResults.testName = "Custom Tests";
+                combinedResults = TestAnalyzer.TestNode.bundle(results, customTestsResults, "All Tests");
+            } else {
+                combinedResults = results;
+            }
+
+            saveResults(combinedResults, numCommits);
+            observer.notifyDone(combinedResults);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());

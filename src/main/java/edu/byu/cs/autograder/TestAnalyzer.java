@@ -129,20 +129,21 @@ public class TestAnalyzer {
         }
 
         /**
-         * Merges two TestNodes.
+         * Bundles two TestNodes into a single TestNode
          *
-         * @param a the first TestNode
-         * @param b the second TestNode
-         * @return a new TestNode that is the result of merging a and b
+         * @param a          the first TestNode
+         * @param b          the second TestNode
+         * @param bundleName the name of the parent TestNode
+         * @return a new TestNode that is the result of bundling a and b
          */
-        public static TestNode merge(TestNode a, TestNode b) {
-            TestNode merged = a.clone();
-            for (Map.Entry<String, TestNode> entry : b.children.entrySet()) {
-                if (merged.children.containsKey(entry.getKey()))
-                    merged.children.put(entry.getKey(), merge(merged.children.get(entry.getKey()), entry.getValue()));
-                else
-                    merged.children.put(entry.getKey(), entry.getValue().clone());
-            }
+        public static TestNode bundle(TestNode a, TestNode b, String bundleName) {
+            TestNode merged = new TestNode();
+            merged.testName = bundleName;
+
+            merged.children.put(a.testName, a);
+            merged.children.put(b.testName, b);
+
+            TestNode.countTests(merged);
 
             return merged;
         }
@@ -166,7 +167,7 @@ public class TestAnalyzer {
     /**
      * Parses the output of the JUnit Console Runner
      *
-     * @param inputLines the lines of the output of the JUnit Console Runner
+     * @param inputLines       the lines of the output of the JUnit Console Runner
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
