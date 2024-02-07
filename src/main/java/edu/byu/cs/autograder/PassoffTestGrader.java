@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public abstract class PassoffTestGrader extends Grader {
 
@@ -132,22 +132,32 @@ public abstract class PassoffTestGrader extends Grader {
                         "--scan-class-path",
                         "--details=testfeed");
 
-        try {
+        try (ExecutorService processOutputExecutor = Executors.newSingleThreadExecutor()){
+
             Process process = processBuilder.start();
 
+            /*
+            Grab the output from the process asynchronously. Without this concurrency, if this is computed
+            synchronously after the process terminates, the pipe from the process may fill up, causing the process
+            writes to block, resulting in the process never finishing. This is usually the result of the tested
+            code printing out too many lines to stdout as a means of logging/debugging
+             */
+            Future<String> processOutputFuture = processOutputExecutor.submit(() -> getOutputFromProcess(process));
+
             if (!process.waitFor(30000, TimeUnit.MILLISECONDS)) {
+                process.destroyForcibly();
                 observer.notifyError("Tests took too long to run, come see a TA for more info");
                 LOGGER.error("Tests took too long to run, come see a TA for more info");
                 throw new RuntimeException("Tests took too long to run, come see a TA for more info");
             }
 
-            String output = getOutputFromProcess(process);
+            String output = processOutputFuture.get(1000, TimeUnit.MILLISECONDS);
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
 
             return testAnalyzer.parse(output.split("\n"), extraCreditTests);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
