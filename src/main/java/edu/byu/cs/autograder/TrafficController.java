@@ -65,7 +65,7 @@ public class TrafficController {
     }
 
 
-    public synchronized void notifySubscribers(String netId, Map<String, Object> message) {
+    public void notifySubscribers(String netId, Map<String, Object> message) {
         List<Session> sessionList = sessions.get(netId);
 
         if (sessionList == null) return;
