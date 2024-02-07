@@ -13,6 +13,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
@@ -173,14 +174,7 @@ public class SubmissionController {
 
     public static Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
-        Phase phaseEnum = switch (phase) {
-            case "0" -> Phase.Phase0;
-            case "1" -> Phase.Phase1;
-            case "3" -> Phase.Phase3;
-            case "4" -> Phase.Phase4;
-            case "6" -> Phase.Phase6;
-            default -> null;
-        };
+        Phase phaseEnum = PhaseUtils.getPhaseByString(phase);
 
         if (phaseEnum == null) {
             res.status(400);
@@ -290,7 +284,6 @@ public class SubmissionController {
                 DaoService.getQueueDao().remove(netId);
             }
         };
-
 
         return switch (phase) {
             case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);

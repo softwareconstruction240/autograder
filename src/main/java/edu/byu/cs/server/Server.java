@@ -73,6 +73,8 @@ public class Server {
 
                 get("/analytics/commit", commitAnalyticsGet);
 
+                get("/analytics/commit/:option", commitAnalyticsGet);
+
             });
         });
 

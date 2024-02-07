@@ -5,6 +5,7 @@ services:
     image: mysql:latest
     profiles:
       - with-db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "root"
     volumes:
