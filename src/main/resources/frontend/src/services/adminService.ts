@@ -112,3 +112,15 @@ export const commitAnalyticsGet = async (option: Option): Promise<string> => {
         return ''
     }
 }
+
+export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
+    try {
+        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/honorChecker/zip/' + section, {
+            method: 'GET',
+            credentials: 'include'
+        })).blob()
+    } catch (e) {
+        console.error('Failed to get data: ', e)
+        return new Blob()
+    }
+}
