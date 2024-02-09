@@ -7,8 +7,9 @@ const selectedSection = ref<number>(1)
 const infoText = ref<string>('')
 const buttonDisabled = ref<boolean>(false)
 
-const onSelectionChange = (event) => {
-  selectedSection.value = event.target.value
+const onSelectionChange = (event: Event) => {
+  const selectElement = event.target as HTMLSelectElement;
+  selectedSection.value = Number(selectElement.value);
 }
 
 const getData = async () => {
