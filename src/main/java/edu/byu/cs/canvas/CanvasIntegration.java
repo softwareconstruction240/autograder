@@ -153,7 +153,9 @@ public class CanvasIntegration {
     }
 
     /**
-     * Submits the given grade for the given assignment for the given user
+     * Submits the given grade for the given assignment for the given user. Any grades or comments in the rubric not
+     * included in the parameter maps are retrieved from the previous submission to prevent the loss of previous grades
+     * and comments (The canvas API will set items not included to empty/black rather than grabbing the old data)
      *
      * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
      *
