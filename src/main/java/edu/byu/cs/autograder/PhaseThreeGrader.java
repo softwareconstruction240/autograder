@@ -16,4 +16,11 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     public PhaseThreeGrader(String netId, String repoUrl, Observer observer) throws IOException {
         super("./phases/phase3", netId, repoUrl, observer, Phase.Phase3);
     }
+
+    /* Rubric Items Winter 2024:
+    "_5202": "Web API Works"
+    "_3003": "Code Quality"
+    "90344_5657": "Web Page Loads"
+    "90344_776": "Unit Tests"
+     */
 }
