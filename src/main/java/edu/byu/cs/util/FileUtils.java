@@ -132,7 +132,6 @@ public class FileUtils {
 
             zipOut.close();
             fos.close();
-            System.out.println("Directory successfully zipped at: " + zipFilePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to zip directory: " + e.getMessage());
         }
