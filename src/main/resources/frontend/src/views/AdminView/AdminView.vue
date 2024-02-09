@@ -8,6 +8,7 @@ import Admins from "@/views/AdminView/Admins/Admins.vue";
 import {testStudentModeGet} from "@/services/adminService";
 import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 import Analytics from "@/views/AdminView/Analytics.vue";
+import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -45,6 +46,9 @@ const activateTestStudentMode = async () => {
       </Tab>
       <Tab title="Analytics">
         <Analytics/>
+      </Tab>
+      <Tab title="Honor Checker">
+        <HonorChecker/>
       </Tab>
     </Tabs>
   </div>
