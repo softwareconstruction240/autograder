@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class FileUtils {
@@ -71,6 +72,16 @@ public class FileUtils {
      * @param dir the directory to delete
      */
     public static void removeDirectory(File dir) {
+        modifyDirectory(dir, File::delete);
+    }
+
+    /**
+     * Iterates through a directory and executes the provided action on each file
+     *
+     * @param dir the directory to modify
+     * @param action the action to perform on each file
+     */
+    public static void modifyDirectory(File dir, Consumer<File> action) {
         if (!dir.exists()) {
             return;
         }
@@ -78,7 +89,7 @@ public class FileUtils {
         try (Stream<Path> paths = Files.walk(dir.toPath())) {
             paths.sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
-                    .forEach(File::delete);
+                    .forEach(action);
         } catch (IOException e) {
             LoggerFactory.getLogger(FileUtils.class).error("Failed to delete stage directory", e);
             throw new RuntimeException("Failed to delete directory: " + e.getMessage());
