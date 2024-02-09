@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtils {
 
@@ -112,5 +114,52 @@ public class FileUtils {
         }
 
         return null;
+    }
+
+    /**
+     * Creates a .zip file from a directory
+     *
+     * @param sourceDirectoryPath the directory to compress
+     * @param zipFilePath the path of the .zip file to be created
+     */
+    public static void zipDirectory(String sourceDirectoryPath, String zipFilePath) {
+        try {
+            File sourceDirectory = new File(sourceDirectoryPath);
+            FileOutputStream fos = new FileOutputStream(zipFilePath);
+            ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+            zipDirectoryContents(sourceDirectory, sourceDirectory, zipOut);
+
+            zipOut.close();
+            fos.close();
+            System.out.println("Directory successfully zipped at: " + zipFilePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to zip directory: " + e.getMessage());
+        }
+    }
+
+    private static void zipDirectoryContents(File rootDirectory, File currentDirectory, ZipOutputStream zipOut) throws IOException {
+        File[] files = currentDirectory.listFiles();
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                zipDirectoryContents(rootDirectory, file, zipOut);
+            } else {
+                FileInputStream fis = new FileInputStream(file);
+
+                String entryName = rootDirectory.toURI().relativize(file.toURI()).getPath();
+
+                ZipEntry zipEntry = new ZipEntry(entryName);
+                zipOut.putNextEntry(zipEntry);
+
+                byte[] bytes = new byte[1024];
+                int length;
+                while ((length = fis.read(bytes)) >= 0) {
+                    zipOut.write(bytes, 0, length);
+                }
+
+                fis.close();
+            }
+        }
     }
 }
