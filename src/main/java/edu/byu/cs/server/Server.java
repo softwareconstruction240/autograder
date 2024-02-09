@@ -67,6 +67,8 @@ public class Server {
                 get("/submissions/active", submissionsActiveGet);
 
                 get("/analytics/commit/:option", commitAnalyticsGet);
+
+                get("/honorChecker/zip/:section", honorCheckerZipGet);
             });
         });
 
