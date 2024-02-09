@@ -10,7 +10,6 @@ const buttonDisabled = ref<boolean>(false)
 const onSelectionChange = (event: Event) => {
   const selectElement = event.target as HTMLSelectElement;
   selectedSection.value = Number(selectElement.value);
-  console.log(selectedSection.value)
 }
 
 const getData = async () => {
