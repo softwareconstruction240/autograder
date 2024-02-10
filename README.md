@@ -49,16 +49,14 @@ corepack enable
 (`sudo` may be required)
 
 #### Backend
-A local installation of maven is required to run the backend.
+The backend of the app can be run with either `maven`, or by running your own MySQL server.
 
-Alternatively, you can run the database locally with your own MySQL server.
-Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
+##### Maven
+Go fish🐟 These instructions are not included in this file.
 
 #### Database
-To run the database locally, you will need to have `docker` installed.
 
-Alternatively, you can run the database locally with your own MySQL server.
-Be sure to update `src/main/resources/db.properties` with the correct database url, username, and password.
+You can run the database inside a Docker container, or locally with your own MySQL server.
 
 ##### Docker
 Run the following in the root of the project to start the db container:
@@ -67,9 +65,7 @@ docker compose up db -d
 ```
 
 ##### MySQL
-Go fish🐟
-
-_This is required, but no setup instructions are given in this document._
+Go fish🐟 These instructions are not included in this file.
 
 ### Getting Started
 NOTE: These instructions will help you set up this project in Intelli-J.
