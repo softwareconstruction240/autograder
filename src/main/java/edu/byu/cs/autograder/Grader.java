@@ -162,19 +162,7 @@ public abstract class Grader implements Runnable {
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
-        ZonedDateTime dueDate;
-        try {
-            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
-        } catch (CanvasException e) {
-            throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
-        }
-
-        // penalize at most 5 days
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
-        float score = getScore(results);
-        score -= numDaysLate * 0.1F;
-        if (score < 0) score = 0;
+        float score = getFinalAdjustedScore();
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -196,6 +184,39 @@ public abstract class Grader implements Runnable {
 
         submissionDao.insertSubmission(submission);
     }
+
+    /**
+     * Gets the reported score from the grader, and then adds appropriate adjustments.
+     * These adjustments include any late penalty that should be applied.
+     *
+     * @return The final score that should be saved in the Gradebook.
+     */
+    private float getFinalAdjustedScore() {
+        final int MAX_PENALIZE_DAYS_LATE = 5; // Lose credit for days late UP TO this value
+        final int LATE_PENALTY_PCT_PER_DAY = 10; // x% per day will be subtracted
+
+        float reportedScore = getScore(results);
+
+        // Prepare due date
+        ZonedDateTime dueDate;
+        try {
+            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+        } catch (CanvasException e) {
+            throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+        }
+
+        // Determine number of days late
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+        int actualDaysLate = DateTimeUtils.getNumDaysLate(handInDate, dueDate);
+
+        // Penalize at most 5 days
+        int effectiveDaysLate = Math.min(MAX_PENALIZE_DAYS_LATE, actualDaysLate);
+        float finalScore = reportedScore - effectiveDaysLate * (LATE_PENALTY_PCT_PER_DAY / 100.0F);
+        if (finalScore < 0) finalScore = 0;
+
+        return finalScore;
+    }
+
 
     private void sendToCanvas(Submission submission) {
         UserDao userDao = DaoService.getUserDao();
