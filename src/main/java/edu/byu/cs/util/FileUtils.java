@@ -7,7 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtils {
 
@@ -71,6 +74,16 @@ public class FileUtils {
      * @param dir the directory to delete
      */
     public static void removeDirectory(File dir) {
+        modifyDirectory(dir, File::delete);
+    }
+
+    /**
+     * Iterates through a directory and executes the provided action on each file
+     *
+     * @param dir the directory to modify
+     * @param action the action to perform on each file
+     */
+    public static void modifyDirectory(File dir, Consumer<File> action) {
         if (!dir.exists()) {
             return;
         }
@@ -78,7 +91,7 @@ public class FileUtils {
         try (Stream<Path> paths = Files.walk(dir.toPath())) {
             paths.sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
-                    .forEach(File::delete);
+                    .forEach(action);
         } catch (IOException e) {
             LoggerFactory.getLogger(FileUtils.class).error("Failed to delete stage directory", e);
             throw new RuntimeException("Failed to delete directory: " + e.getMessage());
@@ -101,5 +114,51 @@ public class FileUtils {
         }
 
         return null;
+    }
+
+    /**
+     * Creates a .zip file from a directory
+     *
+     * @param sourceDirectoryPath the directory to compress
+     * @param zipFilePath the path of the .zip file to be created
+     */
+    public static void zipDirectory(String sourceDirectoryPath, String zipFilePath) {
+        try {
+            File sourceDirectory = new File(sourceDirectoryPath);
+            FileOutputStream fos = new FileOutputStream(zipFilePath);
+            ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+            zipDirectoryContents(sourceDirectory, sourceDirectory, zipOut);
+
+            zipOut.close();
+            fos.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to zip directory: " + e.getMessage());
+        }
+    }
+
+    private static void zipDirectoryContents(File rootDirectory, File currentDirectory, ZipOutputStream zipOut) throws IOException {
+        File[] files = currentDirectory.listFiles();
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                zipDirectoryContents(rootDirectory, file, zipOut);
+            } else {
+                FileInputStream fis = new FileInputStream(file);
+
+                String entryName = rootDirectory.toURI().relativize(file.toURI()).getPath();
+
+                ZipEntry zipEntry = new ZipEntry(entryName);
+                zipOut.putNextEntry(zipEntry);
+
+                byte[] bytes = new byte[1024];
+                int length;
+                while ((length = fis.read(bytes)) >= 0) {
+                    zipOut.write(bytes, 0, length);
+                }
+
+                fis.close();
+            }
+        }
     }
 }

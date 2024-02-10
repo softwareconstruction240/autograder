@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {onMounted, onUnmounted, ref} from "vue";
 import {getQueueStatus} from "@/services/adminService";
+import { reRunSubmissionsPost } from '@/services/submissionService'
 
 const currentlyGrading = ref<string[]>([]);
 const inQueue = ref<string[]>([]);
@@ -20,6 +21,11 @@ onMounted(async () => {
 onUnmounted(() => {
   clearInterval(intervalId);
 });
+
+let reRunInProgress = false;
+const reRunQueue = async () => {
+  reRunInProgress = await reRunSubmissionsPost()
+}
 </script>
 
 <template>
@@ -38,6 +44,10 @@ onUnmounted(() => {
       </ol>
       <p v-else>No submissions in queue</p>
     </div>
+  </div>
+  <div>
+    <button @click="reRunQueue">Rerun Submissions In Queue</button>
+    <p v-if="reRunInProgress">The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again</p>
   </div>
 </template>
 

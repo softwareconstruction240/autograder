@@ -48,6 +48,8 @@ public interface QueueDao {
      */
     void markStarted(String netId);
 
+    void markNotStarted(String netId);
+
     /**
      * Gets an item from the queue
      *
