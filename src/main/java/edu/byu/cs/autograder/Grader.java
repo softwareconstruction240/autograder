@@ -204,7 +204,7 @@ public abstract class Grader implements Runnable {
                 results.numTestsFailed == 0,
                 score,
                 numCommits,
-                getNotes(results, results.numTestsFailed == 0, numDaysLate),
+                getNotes(results, numDaysLate),
                 results
         );
 
@@ -352,12 +352,11 @@ public abstract class Grader implements Runnable {
     /**
      * Gets the notes for the phase. This includes the number of days late and any other relevant information
      *
-     * @param results the results of the grading
-     * @param passed true if the submission passed, false otherwise
+     * @param results     the results of the grading
      * @param numDaysLate the number of days late the submission is
      * @return the notes
      */
-    protected abstract String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate);
+    protected abstract String getNotes(TestAnalyzer.TestNode results, int numDaysLate);
 
     public interface Observer {
         void notifyStarted();
