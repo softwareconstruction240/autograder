@@ -27,7 +27,7 @@ onMounted(async () => {
     <Tab title="Phase 1">
       <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." phase="1" />
     </Tab>
-    <Tab disabled title="Phase 3">
+    <Tab title="Phase 3">
       <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests." phase="3" />
     </Tab>
     <Tab title="Phase 4" disabled>Phase 4 content</Tab>
