@@ -73,13 +73,17 @@ If there are any holes or gaps in the instructions, please submit a new pull req
 to share the learned knowledge with the people behind you.
 1. Clone the repo onto your local machine.
 2. Ensure that you are using the latest version of JVM. The system currently requires version 21+.
-3. Use `yarn` to install all dependencies. This only requires running `yarn` in the root directory.
+3. Use `yarn` to install all dependencies. This must be done from the _front end_ root folder.
+    ```bash
+    cd src/main/resources/frontend
+    yarn
+    ```
 4. Setup "Server" _Run Configuration_
    - Navigate to the server file: `src/main/java/edu/byu/cs/server/Server.java`
    - Click the "Run" button to run `Server.main()`
    - This will give you a _Run Configuration_ that you can modify in the following steps.
-5. Set up **environment variables**
-   - Reference the subtitle below for the list of required variables
+5. Set up [environment variables](#environment-variables)
+   - Reference the [subtitle below](#environment-variables) for the list of required variables
    - Prepare the values you will use for each variable
       - Put them all onto a single line, with each variable separated by a `;` (semicolon)
    - Edit the "Server" run configuration
@@ -87,17 +91,20 @@ to share the learned knowledge with the people behind you.
       - Going forward, there is an option to open up a table of the variables where you can
         edit just one value from the lot
    - Save & apply the changes
-6. **Enable logging** by following the instructions below
+6. [Enable logging](#enabling-logging) by following the instructions below
 7. **Change config properties**
    - Navigate to the following file: `src/main/resources/config.properties`
-   - For a simple development setup, skip now to the subheading **Dev Config Properties**
+   - For a simple development setup, skip now to the subheading [Dev Config Properties](#environment-variables-for-development)
    - Change the value of the following three properties:
      - `frontend_app.url`
      - `backend_app.url`
      - `backend_app.cas_callback_url`
 8. **Run the Autograder Locally**
    - Run your "Server" run configuration
-   - Run the frontend by referencing the section below
+   - Run the frontend by referencing the [section below](#running-locally)
+   ```bash
+   yarn dev
+   ```
 
 #### Environment Variables
 For both deployment and development, the following environment variables are required to be set.
@@ -109,7 +116,7 @@ DB_NAME=autograder
 CANVAS_AUTHORIZATION_KEY=<canvas api key>
 ```
 
-##### For Development
+##### Environment Variables For Development
 Here are values typically used for development:
 * DB_URL=localhost:3306
 * DB_NAME=autograder
