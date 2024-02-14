@@ -131,17 +131,16 @@ public class TestAnalyzer {
         /**
          * Bundles two TestNodes into a single TestNode
          *
-         * @param a          the first TestNode
-         * @param b          the second TestNode
          * @param bundleName the name of the parent TestNode
+         * @param nodes      the second TestNode
          * @return a new TestNode that is the result of bundling a and b
          */
-        public static TestNode bundle(TestNode a, TestNode b, String bundleName) {
+        public static TestNode bundle(String bundleName, TestNode... nodes) {
             TestNode merged = new TestNode();
             merged.testName = bundleName;
 
-            merged.children.put(a.testName, a);
-            merged.children.put(b.testName, b);
+            for (TestNode node : nodes)
+                merged.children.put(node.testName, node);
 
             TestNode.countTests(merged);
 
