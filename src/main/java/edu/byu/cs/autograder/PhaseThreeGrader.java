@@ -30,11 +30,16 @@ public class PhaseThreeGrader extends PassoffTestGrader {
                 stagePath,
                 excludedTests);
 
-        return new TestHelper().runJUnitTests(
+        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
                 new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
                 new File(stagePath, "tests"),
                 new HashSet<>()
+
         );
+
+        results.testName = CUSTOM_TESTS_NAME;
+
+        return results;
     }
 
     /* Rubric Items Winter 2024:

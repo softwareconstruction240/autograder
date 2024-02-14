@@ -136,13 +136,10 @@ public abstract class Grader implements Runnable {
             TestAnalyzer.TestNode results = runTests();
 
             TestAnalyzer.TestNode combinedResults;
-            if (customTestsResults != null) {
-                results.testName = "Passoff Tests";
-                customTestsResults.testName = "Custom Tests";
-                combinedResults = TestAnalyzer.TestNode.bundle(results, customTestsResults, "All Tests");
-            } else {
-                combinedResults = results;
-            }
+            if (customTestsResults != null)
+                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results, customTestsResults);
+            else
+                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results);;
 
             saveResults(combinedResults, numCommits);
             observer.notifyDone(combinedResults);
