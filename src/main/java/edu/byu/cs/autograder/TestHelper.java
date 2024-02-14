@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +47,8 @@ public class TestHelper {
      */
     void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath) {
 
-        // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and find
-        // to get the files
+        // remove any existing tests
+        FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
         // absolute path to student's chess jar
         String chessJarWithDeps;
