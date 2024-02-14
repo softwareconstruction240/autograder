@@ -89,6 +89,9 @@ public abstract class Grader implements Runnable {
      */
     private final int requiredCommits;
 
+    protected final String PASSOFF_TESTS_NAME = "Passoff Tests";
+    protected final String CUSTOM_TESTS_NAME = "Custom Tests";
+
     protected Observer observer;
 
     /**
