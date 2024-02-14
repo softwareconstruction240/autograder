@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 public abstract class PassoffTestGrader extends Grader {
 
@@ -117,68 +116,11 @@ public abstract class PassoffTestGrader extends Grader {
     protected TestAnalyzer.TestNode runTests() {
         observer.update("Running tests...");
 
-        // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and find
-        // to get the files
-        String chessJarWithDeps = new File(stageRepoPath, module + "/target/" + module + "-jar-with-dependencies.jar").getAbsolutePath();
-
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .directory(stageTestsPath)
-                .command("java",
-                        "-jar",
-                        standaloneJunitJarPath,
-                        "--class-path",
-                        ".:" + chessJarWithDeps + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                        "--scan-class-path",
-                        "--details=testfeed");
-
-        try (ExecutorService processOutputExecutor = Executors.newSingleThreadExecutor()){
-
-            Process process = processBuilder.start();
-
-            /*
-            Grab the output from the process asynchronously. Without this concurrency, if this is computed
-            synchronously after the process terminates, the pipe from the process may fill up, causing the process
-            writes to block, resulting in the process never finishing. This is usually the result of the tested
-            code printing out too many lines to stdout as a means of logging/debugging
-             */
-            Future<String> processOutputFuture = processOutputExecutor.submit(() -> getOutputFromProcess(process));
-
-            if (!process.waitFor(30000, TimeUnit.MILLISECONDS)) {
-                process.destroyForcibly();
-                observer.notifyError("Tests took too long to run, come see a TA for more info");
-                LOGGER.error("Tests took too long to run, come see a TA for more info");
-                throw new RuntimeException("Tests took too long to run, come see a TA for more info");
-            }
-
-            String output = processOutputFuture.get(1000, TimeUnit.MILLISECONDS);
-
-            TestAnalyzer testAnalyzer = new TestAnalyzer();
-
-            return testAnalyzer.parse(output.split("\n"), extraCreditTests);
-
-        } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static String getOutputFromProcess(Process process) throws IOException {
-        String output;
-
-        InputStream is = process.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        {
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
-            }
-
-            output = sb.toString();
-        }
-        return output;
+        return new TestHelper().runJUnitTests(
+                new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
+                stageTestsPath,
+                extraCreditTests
+        );
     }
 
     @Override
