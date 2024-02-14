@@ -17,6 +17,11 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         super("./phases/phase3", netId, repoUrl, observer, Phase.Phase3);
     }
 
+    @Override
+    protected void runCustomTests() {
+
+    }
+
     /* Rubric Items Winter 2024:
     "_5202": "Web API Works"
     "_3003": "Code Quality"
