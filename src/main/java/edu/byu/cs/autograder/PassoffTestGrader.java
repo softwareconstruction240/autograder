@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.model.Phase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,5 +152,10 @@ public abstract class PassoffTestGrader extends Grader {
             return "All tests passed, but " + numDaysLate + " day"+ (numDaysLate > 1 ? "s" : "") +" late. (-" + Math.min(50, numDaysLate * 10) + "%)";
 
         return "Some tests failed. You must pass all tests to pass off this phase";
+    }
+
+    @Override
+    protected CanvasIntegration.RubricItem runQualityChecks() {
+        return null;
     }
 }
