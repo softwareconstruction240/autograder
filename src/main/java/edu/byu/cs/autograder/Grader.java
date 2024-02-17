@@ -159,31 +159,27 @@ public abstract class Grader implements Runnable {
     }
 
     /**
-     * Saves the results of the grading to the database and to Canvas if the submission passed
+     * Saves the gradingResults of the grading to the database and to Canvas if the submission passed
      *
-     * @param results the results of the grading
+     * @param gradingResults the results of the grading
      */
-    private void saveResults(TestAnalyzer.TestNode results, int numCommits) {
+    private void saveResults(TestAnalyzer.TestNode gradingResults, int numCommits) {
         String headHash = getHeadHash();
 
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-
-        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
-
-        float score = getFinalAdjustedScore();
+        FinalScore finalScore = getFinalAdjustedScore(gradingResults);
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
                 netId,
                 repoUrl,
                 headHash,
-                handInDate.toInstant(),
+                finalScore.handInDate.toInstant(),
                 phase,
-                results.numTestsFailed == 0,
-                score,
+                gradingResults.numTestsFailed == 0,
+                finalScore.finalScore,
                 numCommits,
-                getNotes(results, results.numTestsFailed == 0, numDaysLate),
-                results
+                getNotes(gradingResults, gradingResults.numTestsFailed == 0, finalScore.daysLate),
+                gradingResults
         );
 
         if (submission.passed()) {
@@ -193,35 +189,69 @@ public abstract class Grader implements Runnable {
         submissionDao.insertSubmission(submission);
     }
 
+    private record FinalScore(
+            float reportedScore,
+            float finalScore,
+            ZonedDateTime handInDate,
+            ZonedDateTime dueDate,
+            int daysLate
+    ) {}
+
     /**
      * Gets the reported score from the grader, and then adds appropriate adjustments.
      * These adjustments include any late penalty that should be applied.
      *
-     * @return The final score that should be saved in the Gradebook.
+     * @return A result object containing multiple fields.
+     * One of those is the `finalScore` that should be saved in the grade-book.
      */
-    private float getFinalAdjustedScore() {
-        final int MAX_PENALIZE_DAYS_LATE = 5; // Lose credit for days late UP TO this value
-        final int LATE_PENALTY_PCT_PER_DAY = 10; // x% per day will be subtracted
+    private FinalScore getFinalAdjustedScore(TestAnalyzer.TestNode gradingResults) {
+        // Due Date
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+        ZonedDateTime dueDate = getStudentDueDate(canvasUserId, assignmentNum);
 
-        float reportedScore = getScore(results);
+        // Hand In Date
+        ZonedDateTime handInDate = getSubmissionHandInDate();
 
-        // Prepare due date
-        ZonedDateTime dueDate;
+        // Scoring
+        float reportedScore = getScore(gradingResults);
+        int daysLate = getDaysLate(dueDate, handInDate);
+        float finalScore = applyGradePenalties(reportedScore, daysLate);
+
+        // Return
+        return new FinalScore(
+                reportedScore,
+                finalScore,
+                handInDate,
+                dueDate,
+                daysLate
+        );
+    }
+    private ZonedDateTime getStudentDueDate(int canvasUserId, int assignmentNum) {
         try {
-            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            return CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
-
-        // Determine number of days late
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+    }
+    private ZonedDateTime getSubmissionHandInDate() {
+        return DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+    }
+    private int getDaysLate(ZonedDateTime dueDate, ZonedDateTime handInDate) {
         int actualDaysLate = DateTimeUtils.getNumDaysLate(handInDate, dueDate);
+        // FIXME! Exclude certain holidays
+        return Math.min(gradingSettings.MAX_PENALIZE_DAYS_LATE(), actualDaysLate); // Effective days late
+    }
+    private float applyGradePenalties(float reportedScore, int daysLate) {
+        int percentagePenalty = 0;
 
-        // Penalize at most 5 days
-        int effectiveDaysLate = Math.min(MAX_PENALIZE_DAYS_LATE, actualDaysLate);
-        float finalScore = reportedScore - effectiveDaysLate * (LATE_PENALTY_PCT_PER_DAY / 100.0F);
+        // Late penalty: Lose X% per day late
+        int latePenaltyPerDay = gradingSettings.LATE_PENALTY_PCT_PER_DAY();
+        percentagePenalty += daysLate * latePenaltyPerDay;
+
+        // Apply and return
+        float finalScore = reportedScore - (percentagePenalty / 100.0F);
         if (finalScore < 0) finalScore = 0;
-
         return finalScore;
     }
 
