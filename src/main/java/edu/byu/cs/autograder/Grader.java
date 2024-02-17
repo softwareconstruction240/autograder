@@ -239,7 +239,7 @@ public abstract class Grader implements Runnable {
     }
     private int getDaysLate(ZonedDateTime dueDate, ZonedDateTime handInDate) {
         int actualDaysLate = DateTimeUtils.getNumDaysLate(handInDate, dueDate);
-        // FIXME! Exclude certain holidays
+        // FIXME! Exclude certain holidays and weekends
         return Math.min(gradingSettings.MAX_PENALIZE_DAYS_LATE(), actualDaysLate); // Effective days late
     }
     private float applyGradePenalties(float reportedScore, int daysLate) {
