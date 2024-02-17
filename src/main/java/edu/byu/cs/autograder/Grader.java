@@ -133,17 +133,22 @@ public abstract class Grader implements Runnable {
             verifyProjectStructure();
             packageRepo();
 
-            Rubric.Results qualityItem = runQualityChecks();
+            Rubric.Results qualityResults = runQualityChecks();
             compileTests();
-            Rubric.Results results = runTests();
+            Rubric.Results passoffResults = runTests();
+            Rubric.Results customTestsResults = runCustomTests();
 
-            TestAnalyzer.TestNode customTestsResults = runCustomTests();
+            Rubric.RubricItem qualityItem = new Rubric.RubricItem("TODO: quality description", qualityResults);
+            Rubric.RubricItem passoffItem = new Rubric.RubricItem("TODO: passoff description", passoffResults);
+            Rubric.RubricItem customTestsItem = new Rubric.RubricItem("TODO: custom tests description", customTestsResults);
 
-            TestAnalyzer.TestNode combinedResults;
-            if (customTestsResults != null)
-                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results, customTestsResults);
-            else
-                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results);;
+            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
+
+//            TestAnalyzer.TestNode combinedResults;
+//            if (customTestsResults != null)
+//                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results, customTestsResults);
+//            else
+//                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results);;
 
             saveResults(combinedResults, numCommits);
             observer.notifyDone(combinedResults);
@@ -338,7 +343,7 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the tests
      */
-    protected abstract TestAnalyzer.TestNode runCustomTests();
+    protected abstract Rubric.Results runCustomTests();
 
     /**
      * Compiles the test files with the student code

@@ -21,7 +21,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected TestAnalyzer.TestNode runCustomTests() {
+    protected Rubric.Results runCustomTests() {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
@@ -39,7 +39,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
         results.testName = CUSTOM_TESTS_NAME;
 
-        return results;
+        return new Rubric.Results("", getScore(results), results, null);
     }
 
     /* Rubric Items Winter 2024:
