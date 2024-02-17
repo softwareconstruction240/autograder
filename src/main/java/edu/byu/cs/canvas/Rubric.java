@@ -21,7 +21,7 @@ public record Rubric(
      * @param description The description of the rubric item
      * @param results     The results of the rubric item
      */
-    record RubricItem(
+    public record RubricItem(
             String description,
             Results results
 
@@ -36,7 +36,7 @@ public record Rubric(
      * @param testResults
      * @param textResults
      */
-    record Results(
+    public record Results(
             String notes,
             Float score,
             TestAnalyzer.TestNode testResults,
