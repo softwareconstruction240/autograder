@@ -249,6 +249,10 @@ public abstract class Grader implements Runnable {
         int latePenaltyPerDay = gradingSettings.LATE_PENALTY_PCT_PER_DAY();
         percentagePenalty += daysLate * latePenaltyPerDay;
 
+        // Commit penalty: Lose 10% for not meeting commit requirements
+        // FIXME! Add penalty for commit number and frequency
+        // If (COMMIT_REQ_NOT_MET) { percentagePenalty += 10 }
+
         // Apply and return
         float finalScore = reportedScore - (percentagePenalty / 100.0F);
         if (finalScore < 0) finalScore = 0;
