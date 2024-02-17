@@ -54,7 +54,7 @@ public class SqlDb {
                                 `score` FLOAT NOT NULL,
                                 `num_commits` INT,
                                 `notes` TEXT,
-                                `results` JSON,
+                                `rubric` JSON,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
                                     FOREIGN KEY (`net_id`)
@@ -77,26 +77,49 @@ public class SqlDb {
 
             connection.createStatement().executeUpdate(
                     """
-                            CREATE TABLE IF NOT EXISTS `phase_configuration` (
+                            CREATE TABLE IF NOT EXISTS `rubric` (
                                 `phase` VARCHAR(9) NOT NULL,
-                                `due_date_mountain_time` DATETIME NOT NULL,
-                                PRIMARY KEY (`phase`)
+                                `item` VARCHAR(15) NOT NULL,
+                                `points` INT NOT NULL,
+                                `description` TEXT NOT NULL,
+                                PRIMARY KEY (`phase`, `item`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
-            connection.createStatement().executeUpdate(
-                    """
-                            INSERT IGNORE INTO `phase_configuration` (`phase`, `due_date_mountain_time`) VALUES
-                                ('Phase0', '2006-01-02 15:04:05'),
-                                ('Phase1', '2006-01-02 15:04:05'),
-                                ('Phase3', '2006-01-02 15:04:05'),
-                                ('Phase4', '2006-01-02 15:04:05'),
-                                ('Phase6', '2006-01-02 15:04:05')
                             """);
 
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);
+        }
+    }
+
+    static {
+        // migrations
+        try (Connection connection = getConnection()) {
+            if (connection.getMetaData().getColumns(null, null, "submission", "results").next()) {
+                connection.createStatement().executeUpdate(
+                        """
+                                IF EXISTS (
+                                    SELECT 1
+                                    FROM INFORMATION_SCHEMA.COLUMNS
+                                    WHERE TABLE_NAME = 'submission'
+                                        AND COLUMN_NAME = 'results'
+                                ) THEN
+                                    ALTER TABLE `submission`
+                                    CHANGE COLUMN `results` `rubric` JSON;
+                                END IF;
+                                """
+                );
+
+            }
+
+            connection.createStatement().executeUpdate(
+                    """
+                            DROP TABLE IF EXISTS `phase_configuration`;
+                            """
+            );
+        } catch (SQLException e) {
+            LOGGER.error("Error migrating database", e);
+            throw new DataAccessException("Error migrating database", e);
         }
     }
 
