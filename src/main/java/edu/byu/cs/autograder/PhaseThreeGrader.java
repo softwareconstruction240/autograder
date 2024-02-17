@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.canvas.Rubric;
 import edu.byu.cs.model.Phase;
 
 import java.io.File;
