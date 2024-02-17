@@ -87,6 +87,10 @@ public abstract class Grader implements Runnable {
      * The required number of commits (since the last phase) to be able to pass off
      */
     private final int requiredCommits;
+    /**
+     * Holds configurable settings related to the grading of assignments.
+     */
+    private final GradingSettings gradingSettings;
 
     protected Observer observer;
 
@@ -113,8 +117,16 @@ public abstract class Grader implements Runnable {
         this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
 
         this.requiredCommits = 10;
+        this.gradingSettings = this.getGradingSettings();
 
         this.observer = observer;
+    }
+    private GradingSettings getGradingSettings() {
+        // FIXME! Import from some dynamic location
+        return new GradingSettings(
+                5,
+                10
+        );
     }
 
     public void run() {
