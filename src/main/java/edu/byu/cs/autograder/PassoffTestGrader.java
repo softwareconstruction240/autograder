@@ -94,13 +94,13 @@ public abstract class PassoffTestGrader extends Grader {
         if (results == null)
             return 0;
 
-        int totalStandardTests = results.numTestsFailed + results.numTestsPassed;
-        int totalECTests = results.numExtraCreditPassed + results.numExtraCreditFailed;
+        float totalStandardTests = results.numTestsFailed + results.numTestsPassed;
+        float totalECTests = results.numExtraCreditPassed + results.numExtraCreditFailed;
 
         if (totalStandardTests == 0)
             return 0;
 
-        float score = (float) results.numTestsPassed / totalStandardTests;
+        float score = results.numTestsPassed / totalStandardTests;
         if (totalECTests == 0) return score;
 
         // extra credit calculation
