@@ -3,6 +3,7 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.Rubric;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
@@ -132,7 +133,7 @@ public abstract class Grader implements Runnable {
             verifyProjectStructure();
             packageRepo();
 
-            CanvasIntegration.RubricItem qualityItem = runQualityChecks();
+            Rubric.Results qualityItem = runQualityChecks();
 
             TestAnalyzer.TestNode customTestsResults = runCustomTests();
             compileTests();
@@ -161,7 +162,7 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the quality checks as a CanvasIntegration.RubricItem
      */
-    protected abstract CanvasIntegration.RubricItem runQualityChecks();
+    protected abstract Rubric.Results runQualityChecks();
 
     /**
      * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
@@ -347,7 +348,7 @@ public abstract class Grader implements Runnable {
     /**
      * Runs the tests on the student code
      */
-    protected abstract TestAnalyzer.TestNode runTests();
+    protected abstract Rubric.Results runTests();
 
     /**
      * Gets the score for the phase

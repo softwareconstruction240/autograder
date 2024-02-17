@@ -1,6 +1,6 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.Rubric;
 import edu.byu.cs.model.Phase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,7 +155,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected CanvasIntegration.RubricItem runQualityChecks() {
+    protected Rubric.Results runQualityChecks() {
         return null;
     }
 }
