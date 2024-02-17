@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Map;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -81,12 +81,16 @@ public abstract class Grader implements Runnable {
     /**
      * The path for the student repo (child of stagePath)
      */
-    protected final String stageRepoPath;
+
+    protected final File stageRepo;
 
     /**
      * The required number of commits (since the last phase) to be able to pass off
      */
     private final int requiredCommits;
+
+    protected final String PASSOFF_TESTS_NAME = "Passoff Tests";
+    protected final String CUSTOM_TESTS_NAME = "Custom Tests";
 
     protected Observer observer;
 
@@ -110,7 +114,7 @@ public abstract class Grader implements Runnable {
         this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
 
         this.repoUrl = repoUrl;
-        this.stageRepoPath = new File(stagePath, "repo").getCanonicalPath();
+        this.stageRepo = new File(stagePath, "repo");
 
         this.requiredCommits = 10;
 
@@ -126,12 +130,19 @@ public abstract class Grader implements Runnable {
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
-            runCustomTests();
             packageRepo();
+            TestAnalyzer.TestNode customTestsResults = runCustomTests();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
-            saveResults(results, numCommits);
-            observer.notifyDone(results);
+
+            TestAnalyzer.TestNode combinedResults;
+            if (customTestsResults != null)
+                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results, customTestsResults);
+            else
+                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results);;
+
+            saveResults(combinedResults, numCommits);
+            observer.notifyDone(combinedResults);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -142,8 +153,12 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    /**
+     * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
+     * which is checked by looking for a pom.xml file
+     */
     private void verifyProjectStructure() {
-        File pomFile = new File(stageRepoPath, "pom.xml");
+        File pomFile = new File(stageRepo, "pom.xml");
         if (!pomFile.exists()) {
             observer.notifyError("Project is not structured correctly. Your project should be at the top level of your git repository.");
             throw new RuntimeException("No pom.xml file found");
@@ -186,7 +201,7 @@ public abstract class Grader implements Runnable {
                 results.numTestsFailed == 0,
                 score,
                 numCommits,
-                getNotes(results, results.numTestsFailed == 0, numDaysLate),
+                getNotes(results, numDaysLate),
                 results
         );
 
@@ -217,7 +232,7 @@ public abstract class Grader implements Runnable {
 
     private String getHeadHash() {
         String headHash;
-        try (Git git = Git.open(new File(stageRepoPath))) {
+        try (Git git = Git.open(stageRepo)) {
             headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
         } catch (IOException e) {
             throw new RuntimeException("Failed to get head hash: " + e.getMessage());
@@ -233,7 +248,7 @@ public abstract class Grader implements Runnable {
 
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(repoUrl)
-                .setDirectory(new File(stageRepoPath));
+                .setDirectory(stageRepo);
 
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
@@ -254,7 +269,7 @@ public abstract class Grader implements Runnable {
     private int verifyRegularCommits() {
         observer.update("Verifying commits...");
 
-        try (Git git = Git.open(new File(stageRepoPath))) {
+        try (Git git = Git.open(stageRepo)) {
             Iterable<RevCommit> commits = git.log().all().call();
             Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
             long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
@@ -285,7 +300,7 @@ public abstract class Grader implements Runnable {
         for (String command : commands) {
             observer.update("  Running maven " + command + " command...");
             ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.directory(new File(stageRepoPath));
+            processBuilder.directory(stageRepo);
             processBuilder.command("mvn", command, "-Dmaven.test.skip");
             try {
                 processBuilder.inheritIO();
@@ -308,9 +323,11 @@ public abstract class Grader implements Runnable {
     }
 
     /**
-     * Run the unit tests written by the student
+     * Run the unit tests written by the student. This approach is destructive as it will delete non-unit tests
+     *
+     * @return the results of the tests
      */
-    protected abstract void runCustomTests();
+    protected abstract TestAnalyzer.TestNode runCustomTests();
 
     /**
      * Compiles the test files with the student code
@@ -329,7 +346,14 @@ public abstract class Grader implements Runnable {
      */
     protected abstract float getScore(TestAnalyzer.TestNode results);
 
-    protected abstract String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate);
+    /**
+     * Gets the notes for the phase. This includes the number of days late and any other relevant information
+     *
+     * @param results     the results of the grading
+     * @param numDaysLate the number of days late the submission is
+     * @return the notes
+     */
+    protected abstract String getNotes(TestAnalyzer.TestNode results, int numDaysLate);
 
     public interface Observer {
         void notifyStarted();

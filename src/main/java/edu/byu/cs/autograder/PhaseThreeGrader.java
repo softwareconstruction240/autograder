@@ -2,7 +2,10 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Phase;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PhaseThreeGrader extends PassoffTestGrader {
     /**
@@ -15,6 +18,28 @@ public class PhaseThreeGrader extends PassoffTestGrader {
      */
     public PhaseThreeGrader(String netId, String repoUrl, Observer observer) throws IOException {
         super("./phases/phase3", netId, repoUrl, observer, Phase.Phase3);
+    }
+
+    @Override
+    protected TestAnalyzer.TestNode runCustomTests() {
+        Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
+        new TestHelper().compileTests(
+                stageRepo,
+                "server",
+                new File(stageRepo, "server/src/test/java"),
+                stagePath,
+                excludedTests);
+
+        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
+                new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
+                new File(stagePath, "tests"),
+                new HashSet<>()
+
+        );
+
+        results.testName = CUSTOM_TESTS_NAME;
+
+        return results;
     }
 
     /* Rubric Items Winter 2024:

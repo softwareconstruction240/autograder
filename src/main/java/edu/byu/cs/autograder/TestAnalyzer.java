@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class TestAnalyzer {
 
-    public static class TestNode implements Comparable {
+    public static class TestNode implements Comparable<TestNode>, Cloneable {
         String testName;
         Boolean passed;
         String ecCategory;
@@ -110,9 +110,41 @@ public class TestAnalyzer {
         }
 
         @Override
-        public int compareTo(Object o) {
-            TestNode other = (TestNode) o;
-            return this.testName.compareTo(other.testName);
+        public int compareTo(TestNode o) {
+            return this.testName.compareTo(o.testName);
+        }
+
+        @Override
+        public TestNode clone() {
+            try {
+                TestNode clone = (TestNode) super.clone();
+                clone.children = new HashMap<>();
+                for (Map.Entry<String, TestNode> entry : children.entrySet()) {
+                    clone.children.put(entry.getKey(), entry.getValue().clone());
+                }
+                return clone;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Bundles two TestNodes into a single TestNode
+         *
+         * @param bundleName the name of the parent TestNode
+         * @param nodes      the second TestNode
+         * @return a new TestNode that is the result of bundling a and b
+         */
+        public static TestNode bundle(String bundleName, TestNode... nodes) {
+            TestNode merged = new TestNode();
+            merged.testName = bundleName;
+
+            for (TestNode node : nodes)
+                merged.children.put(node.testName, node);
+
+            TestNode.countTests(merged);
+
+            return merged;
         }
     }
 
@@ -134,7 +166,8 @@ public class TestAnalyzer {
     /**
      * Parses the output of the JUnit Console Runner
      *
-     * @param inputLines the lines of the output of the JUnit Console Runner
+     * @param inputLines       the lines of the output of the JUnit Console Runner
+     * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
     public TestNode parse(String[] inputLines, Set<String> extraCreditTests) {
