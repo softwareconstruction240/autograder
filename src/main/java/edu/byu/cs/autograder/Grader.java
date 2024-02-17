@@ -131,6 +131,9 @@ public abstract class Grader implements Runnable {
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
             packageRepo();
+
+            CanvasIntegration.RubricItem qualityItem = runQualityChecks();
+
             TestAnalyzer.TestNode customTestsResults = runCustomTests();
             compileTests();
             TestAnalyzer.TestNode results = runTests();
@@ -152,6 +155,13 @@ public abstract class Grader implements Runnable {
             FileUtils.removeDirectory(new File(stagePath));
         }
     }
+
+    /**
+     * Runs quality checks on the student's code
+     *
+     * @return the results of the quality checks as a CanvasIntegration.RubricItem
+     */
+    protected abstract CanvasIntegration.RubricItem runQualityChecks();
 
     /**
      * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
