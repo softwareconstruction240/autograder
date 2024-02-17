@@ -134,10 +134,10 @@ public abstract class Grader implements Runnable {
             packageRepo();
 
             Rubric.Results qualityItem = runQualityChecks();
+            compileTests();
+            Rubric.Results results = runTests();
 
             TestAnalyzer.TestNode customTestsResults = runCustomTests();
-            compileTests();
-            TestAnalyzer.TestNode results = runTests();
 
             TestAnalyzer.TestNode combinedResults;
             if (customTestsResults != null)

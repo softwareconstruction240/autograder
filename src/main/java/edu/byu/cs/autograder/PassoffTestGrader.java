@@ -73,7 +73,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected TestAnalyzer.TestNode runTests() {
+    protected Rubric.Results runTests() {
         observer.update("Running tests...");
 
         TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
@@ -83,7 +83,10 @@ public abstract class PassoffTestGrader extends Grader {
         );
 
         results.testName = PASSOFF_TESTS_NAME;
-        return results;
+
+        float score = getScore(results);
+
+        return new Rubric.Results("", score, results, null);
     }
 
     @Override
