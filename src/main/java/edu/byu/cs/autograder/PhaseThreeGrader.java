@@ -1,7 +1,9 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.model.Rubric;
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,12 +52,12 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         boolean passed = true;
 
         if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < 1)
+            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
-        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
-            if (rubric.unitTests().results().score() < 1)
-                passed = false;
+//        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
+//            if (rubric.unitTests().results().score() < rubric.unitTests().results().possiblePoints())
+//                passed = false;
 
         // TODO: enable quality check
 //        if (rubric.quality() != null && rubric.quality().results() != null) {
