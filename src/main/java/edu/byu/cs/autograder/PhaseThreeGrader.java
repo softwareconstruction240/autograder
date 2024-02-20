@@ -40,7 +40,29 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
         results.testName = CUSTOM_TESTS_NAME;
 
-        return new Rubric.Results("", getScore(results), results, null);
+//        return new Rubric.Results("", getScore(results), results, null);
+        return null;
+    }
+
+    @Override
+    protected boolean passed(Rubric rubric) {
+        boolean passed = true;
+
+        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
+            if (rubric.passoffTests().results().score() < 1)
+                passed = false;
+
+        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
+            if (rubric.unitTests().results().score() < 1)
+                passed = false;
+
+        // TODO: enable quality check
+//        if (rubric.quality() != null && rubric.quality().results() != null) {
+//            if (rubric.quality().results().score() < 1)
+//                passed = false;
+//        }
+
+        return passed;
     }
 
     /* Rubric Items Winter 2024:
