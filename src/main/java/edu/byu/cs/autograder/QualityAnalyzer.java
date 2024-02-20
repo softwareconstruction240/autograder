@@ -31,10 +31,15 @@ public class QualityAnalyzer {
 
 
     public QualityAnalysis runQualityChecks(File stageRepo) {
-        ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo)
-                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "./");
+        ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
+                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
 
         String output = ProcessUtils.runProcess(processBuilder);
+
+        output = output.replaceAll(stageRepo.getAbsolutePath(), "");
+        output = output.replaceAll(stageRepo.getPath(), "");
+        output = output.replaceAll("repo/", "");
+
         return parseOutput(output);
     }
 
