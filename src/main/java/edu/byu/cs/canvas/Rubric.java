@@ -43,4 +43,10 @@ public record Rubric(
             String textResults
     ) {
     }
+
+    public enum RubricType {
+        PASSOFF_TESTS,
+        UNIT_TESTS,
+        QUALITY
+    }
 }
