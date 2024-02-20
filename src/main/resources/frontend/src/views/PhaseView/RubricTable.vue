@@ -19,19 +19,19 @@ defineProps<{
       <tr v-if="rubric.passoffTests">
         <td>{{rubric.passoffTests.category}}</td>
         <td>{{rubric.passoffTests.criteria}}</td>
-        <td>{{rubric.passoffTests.results.score}}</td>
+        <td>{{rubric.passoffTests.results.score}} / {{rubric.passoffTests.results.possiblePoints}}</td>
         <td>Click here</td>
       </tr>
       <tr v-if="rubric.unitTests">
         <td>{{rubric.unitTests.category}}</td>
         <td>{{rubric.unitTests.criteria}}</td>
-        <td>{{rubric.unitTests.results.score}}</td>
+        <td>{{rubric.unitTests.results.score}} / {{rubric.unitTests.results.possiblePoints}}</td>
         <td>Click here</td>
       </tr>
       <tr v-if="rubric.styleTests">
         <td>{{rubric.styleTests.category}}</td>
         <td>{{rubric.styleTests.criteria}}</td>
-        <td>{{rubric.styleTests.results.score}}</td>
+        <td>{{rubric.styleTests.results.score}} / {{rubric.styleTests.results.possiblePoints}}</td>
         <td>Click here</td>
       </tr>
     </table>
