@@ -27,7 +27,7 @@
       ]
     },
     {
-      "name": "[Code Decomposition]",
+      "name": "Code Decomposition",
       "value": 30.0,
       "items": [
         {
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "name": "[Code Readability]",
+      "name": "Code Readability",
       "value": 30.0,
       "items": [
         {
@@ -57,7 +57,7 @@
       ]
     },
     {
-      "name": "[Package Structure]",
+      "name": "Package Structure",
       "value": 15.0,
       "items": [
         {

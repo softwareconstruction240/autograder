@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder;
 
 import com.google.gson.Gson;
-import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.File;
@@ -16,6 +15,7 @@ public class QualityAnalyzer {
      * The path to the checkstyle jar
      */
     protected static final String checkStyleJarPath;
+
     private static final QualityRubric qualityRubricItems;
 
     static {
@@ -30,33 +30,18 @@ public class QualityAnalyzer {
     }
 
 
-    public static void main(String[] args) {
-        String out = new Gson().toJson(qualityRubricItems);
-        System.out.println(out);
-    }
-
-    private Map<String, List<String>> errors;
-
-    private List<String> warnings;
-
-
-    public Rubric.Results runQualityChecks(File stageRepo) {
+    public QualityAnalysis runQualityChecks(File stageRepo) {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo)
-                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "*");
+                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "./");
 
         String output = ProcessUtils.runProcess(processBuilder);
-        parseOutput(output);
-
-        float score = getScore();
-        String results = getResults();
-
-        return new Rubric.Results("", score, null, results);
+        return parseOutput(output);
     }
 
 
-    private void parseOutput(String output) {
-        errors = new HashMap<>();
-        warnings = new ArrayList<>();
+    private QualityAnalysis parseOutput(String output) {
+        Map<String, List<String>> errors = new HashMap<>();
+        List<String> warnings = new ArrayList<>();
         String[] lines = output.split("\n");
         for (String line : lines) {
             String trimmed = line.trim();
@@ -71,38 +56,62 @@ public class QualityAnalyzer {
                 warnings.add(trimmed);
             }
         }
+        return new QualityAnalysis(errors, warnings);
     }
 
 
-    private float getScore() {
-        float points = 0;
-        float deductions = 0;
-        for(QualityRubricCategory category : qualityRubricItems.categories()) {
-            points += category.value();
-            float itemWeight = category.value() / category.items().size();
-            for(QualityRubricItem item : category.items()) {
-                float reporterWeight = itemWeight / item.reporters().size();
-                for(String reporter : item.reporters()) {
-                    if(errors.containsKey(reporter)) {
-                        deductions += reporterWeight;
-                    }
-                }
-            }
+    public float getScore(QualityAnalysis analysis) {
+        float totalPoints = 0;
+        float earnedPoints = 0;
+        for (QualityRubricCategory category : qualityRubricItems.categories()) {
+            totalPoints += category.value();
+            earnedPoints += getCategoryPoints(analysis, category);
         }
-        return 1 - (deductions / points);
+        return earnedPoints / totalPoints;
     }
 
 
-    private String getResults() {
+    public String getResults(QualityAnalysis analysis) {
         StringBuilder builder = new StringBuilder();
-        errors.values().forEach(errorList -> errorList.forEach(s -> builder.append(s).append("\n")));
-        warnings.forEach(s -> builder.append(s).append("\n"));
-        if(!builder.isEmpty()) builder.deleteCharAt(builder.length() - 1);
+        analysis.errors().values().forEach(errorList -> errorList.forEach(s -> builder.append(s).append("\n")));
+        analysis.warnings().forEach(s -> builder.append(s).append("\n"));
+        if (!builder.isEmpty()) builder.deleteCharAt(builder.length() - 1);
         return builder.toString();
     }
 
+
+    public String getNotes(QualityAnalysis analysis) {
+        StringBuilder builder = new StringBuilder();
+        for (QualityRubricCategory category : qualityRubricItems.categories()) {
+            float categoryPoints = getCategoryPoints(analysis, category);
+            builder.append(category.name()).append(": ").append(categoryPoints).append("/").append(category.value())
+                    .append("\n");
+        }
+        return builder.toString();
+    }
+
+
+    private float getCategoryPoints(QualityAnalysis analysis, QualityRubricCategory category) {
+        float deductions = 0;
+        float itemWeight = category.value() / category.items().size();
+        for (QualityRubricItem item : category.items()) {
+            float reporterWeight = itemWeight / item.reporters().size();
+            for (String reporter : item.reporters()) {
+                if (analysis.errors().containsKey(reporter)) {
+                    deductions += reporterWeight;
+                }
+            }
+        }
+        return category.value() - deductions;
+    }
+
+
+    public record QualityAnalysis(Map<String, List<String>> errors, List<String> warnings) {}
+
     private record QualityRubricItem(Set<String> reporters) {}
+
     private record QualityRubricCategory(String name, float value, Set<QualityRubricItem> items) {}
+
     private record QualityRubric(Set<QualityRubricCategory> categories) {}
 
 }
