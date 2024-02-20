@@ -9,10 +9,7 @@ import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
 import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.QueueItem;
-import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,14 +127,17 @@ public class SubmissionController {
      * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
      */
     private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
-        Submission mostRecent = getMostRecentSubmission(netId, phase);
-        if (mostRecent == null) {
-            return false;
-        }
+//        Submission mostRecent = getMostRecentSubmission(netId, phase);
+//        if (mostRecent == null) {
+//            return false;
+//        }
+//
+//        // If they passed the required tests, and there are no extra credit tests they haven't passed,
+//        // then by definition they can't get a higher score
+//        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
 
-        // If they passed the required tests, and there are no extra credit tests they haven't passed,
-        // then by definition they can't get a higher score
-        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
+        //FIXME: this needs to be reworked to use the Rubric format
+        return false;
     }
 
     /**
@@ -270,11 +270,14 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyDone(TestAnalyzer.TestNode results) {
+            public void notifyDone(Submission submission) {
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                        .create();
                 try {
                     TrafficController.getInstance().notifySubscribers(netId, Map.of(
                             "type", "results",
-                            "results", new Gson().toJson(results)
+                            "results", gson.toJson(submission)
                     ));
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);

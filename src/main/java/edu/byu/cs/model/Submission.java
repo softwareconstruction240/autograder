@@ -3,7 +3,6 @@ package edu.byu.cs.model;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import edu.byu.cs.autograder.TestAnalyzer;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -18,7 +17,7 @@ public record Submission(
         Float score,
         Integer numCommits,
         String notes,
-        TestAnalyzer.TestNode testResults
+        Rubric rubric
 ) {
     public static class InstantAdapter extends TypeAdapter<Instant> {
 
