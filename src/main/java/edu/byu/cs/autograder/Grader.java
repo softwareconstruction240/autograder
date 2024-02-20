@@ -152,8 +152,8 @@ public abstract class Grader implements Runnable {
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
             rubric = annotateRubric(rubric);
 
-            saveResults(rubric, numCommits);
-            observer.notifyDone(rubric);
+            Submission submission = saveResults(rubric, numCommits);
+            observer.notifyDone(submission);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -188,7 +188,7 @@ public abstract class Grader implements Runnable {
      *
      * @param rubric the rubric for the phase
      */
-    private void saveResults(Rubric rubric, int numCommits) {
+    private Submission saveResults(Rubric rubric, int numCommits) {
         String headHash = getHeadHash();
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
@@ -209,6 +209,10 @@ public abstract class Grader implements Runnable {
         score -= numDaysLate * 0.1F;
         if (score < 0) score = 0;
 
+        String notes = "";
+        if (numDaysLate > 0)
+            notes = numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
                 netId,
@@ -219,7 +223,7 @@ public abstract class Grader implements Runnable {
                 passed(rubric),
                 score,
                 numCommits,
-                "",
+                notes,
                 rubric
         );
 
@@ -228,6 +232,8 @@ public abstract class Grader implements Runnable {
         }
 
         submissionDao.insertSubmission(submission);
+
+        return submission;
     }
 
     private void sendToCanvas(Submission submission) {
@@ -398,7 +404,7 @@ public abstract class Grader implements Runnable {
 
         void notifyError(String message);
 
-        void notifyDone(Rubric rubric);
+        void notifyDone(Submission submission);
     }
 
 }
