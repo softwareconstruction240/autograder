@@ -4,13 +4,10 @@ import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
-import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
@@ -139,9 +136,17 @@ public abstract class Grader implements Runnable {
             Rubric.Results passoffResults = runTests();
             Rubric.Results customTestsResults = runCustomTests();
 
-            Rubric.RubricItem qualityItem = new Rubric.RubricItem("TODO: quality", qualityResults, "TODO: quality criteria");
-            Rubric.RubricItem passoffItem = new Rubric.RubricItem("TODO: functionality", passoffResults, "TODO: passoff criteria");
-            Rubric.RubricItem customTestsItem = new Rubric.RubricItem("TODO: unit tests", customTestsResults, "TODO: custom tests criteria");
+            Rubric.RubricItem qualityItem = null;
+            Rubric.RubricItem passoffItem = null;
+            Rubric.RubricItem customTestsItem = null;
+
+            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+            if (qualityResults != null)
+                qualityItem = new Rubric.RubricItem(rubricConfig.quality().category(), qualityResults, rubricConfig.quality().criteria());
+            if (passoffResults != null)
+                passoffItem = new Rubric.RubricItem(rubricConfig.passoffTests().category(), passoffResults, rubricConfig.passoffTests().criteria());
+            if (customTestsResults != null)
+                customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
 
             Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
