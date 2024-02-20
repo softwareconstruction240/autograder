@@ -84,28 +84,24 @@ public abstract class PassoffTestGrader extends Grader {
 
         results.testName = PASSOFF_TESTS_NAME;
 
-        float score = getScore(results);
+        float score = getPassoffScore(results);
 
         return new Rubric.Results("", score, results, null);
     }
 
-    @Override
-    protected float getScore(TestAnalyzer.TestNode results) {
-        if (results == null)
-            return 0;
-
-        float totalStandardTests = results.numTestsFailed + results.numTestsPassed;
-        float totalECTests = results.numExtraCreditPassed + results.numExtraCreditFailed;
+    protected float getPassoffScore(TestAnalyzer.TestNode testResults) {
+        float totalStandardTests = testResults.numTestsFailed + testResults.numTestsPassed;
+        float totalECTests = testResults.numExtraCreditPassed + testResults.numExtraCreditFailed;
 
         if (totalStandardTests == 0)
             return 0;
 
-        float score = results.numTestsPassed / totalStandardTests;
+        float score = testResults.numTestsPassed / totalStandardTests;
         if (totalECTests == 0) return score;
 
         // extra credit calculation
         if (score < 1f) return score;
-        Map<String, Float> ecScores = getECScores(results);
+        Map<String, Float> ecScores = getECScores(testResults);
         for (String category : extraCreditTests) {
             if (ecScores.get(category) == 1f) {
                 score += extraCreditValue;

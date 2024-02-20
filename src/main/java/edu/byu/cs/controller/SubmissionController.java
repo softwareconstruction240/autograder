@@ -9,10 +9,7 @@ import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
 import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.QueueItem;
-import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,11 +270,11 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyDone(TestAnalyzer.TestNode results) {
+            public void notifyDone(Rubric rubric) {
                 try {
                     TrafficController.getInstance().notifySubscribers(netId, Map.of(
                             "type", "results",
-                            "results", new Gson().toJson(results)
+                            "results", new Gson().toJson(rubric)
                     ));
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);

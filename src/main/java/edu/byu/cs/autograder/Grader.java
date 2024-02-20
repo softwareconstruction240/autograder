@@ -3,6 +3,7 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -143,15 +144,10 @@ public abstract class Grader implements Runnable {
             Rubric.RubricItem customTestsItem = new Rubric.RubricItem("TODO: custom tests description", customTestsResults);
 
             Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
+            rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
 
-//            TestAnalyzer.TestNode combinedResults;
-//            if (customTestsResults != null)
-//                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results, customTestsResults);
-//            else
-//                combinedResults = TestAnalyzer.TestNode.bundle("All Tests", results);;
-
-            saveResults(combinedResults, numCommits);
-            observer.notifyDone(combinedResults);
+            saveResults(rubric, numCommits);
+            observer.notifyDone(rubric);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -184,9 +180,9 @@ public abstract class Grader implements Runnable {
     /**
      * Saves the results of the grading to the database and to Canvas if the submission passed
      *
-     * @param results the results of the grading
+     * @param rubric the rubric for the phase
      */
-    private void saveResults(TestAnalyzer.TestNode results, int numCommits) {
+    private void saveResults(Rubric rubric, int numCommits) {
         String headHash = getHeadHash();
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
@@ -203,7 +199,7 @@ public abstract class Grader implements Runnable {
         // penalize at most 5 days
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
         int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
-        float score = getScore(results);
+        float score = getScore(rubric);
         score -= numDaysLate * 0.1F;
         if (score < 0) score = 0;
 
@@ -214,11 +210,11 @@ public abstract class Grader implements Runnable {
                 headHash,
                 handInDate.toInstant(),
                 phase,
-                results.numTestsFailed == 0,
+                passed(rubric),
                 score,
                 numCommits,
-                getNotes(results, numDaysLate),
-                results
+                "",
+                rubric
         );
 
         if (submission.passed()) {
@@ -360,7 +356,24 @@ public abstract class Grader implements Runnable {
      *
      * @return the score
      */
-    protected abstract float getScore(TestAnalyzer.TestNode results);
+    protected float getScore(Rubric rubric) {
+        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
+
+        if (totalPossiblePoints == 0)
+            throw new RuntimeException("Total possible points for phase " + phase + " is 0");
+
+        float score = 0;
+        if (rubric.passoffTests() != null)
+            score += rubric.passoffTests().results().score();
+
+        if (rubric.unitTests() != null)
+            score += rubric.unitTests().results().score();
+
+        if (rubric.quality() != null)
+            score += rubric.quality().results().score();
+
+        return score;
+    };
 
     /**
      * Gets the notes for the phase. This includes the number of days late and any other relevant information
@@ -371,6 +384,8 @@ public abstract class Grader implements Runnable {
      */
     protected abstract String getNotes(TestAnalyzer.TestNode results, int numDaysLate);
 
+    protected abstract boolean passed(Rubric rubric);
+
     public interface Observer {
         void notifyStarted();
 
@@ -378,7 +393,7 @@ public abstract class Grader implements Runnable {
 
         void notifyError(String message);
 
-        void notifyDone(TestAnalyzer.TestNode results);
+        void notifyDone(Rubric rubric);
     }
 
 }
