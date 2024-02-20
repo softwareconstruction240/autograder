@@ -1,9 +1,9 @@
 package edu.byu.cs.dataAccess;
 
-import edu.byu.cs.canvas.Rubric;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.RubricConfig;
 
-public interface RubricDao {
+public interface RubricConfigDao {
 
     /**
      * Gets the rubric for the given phase
@@ -11,5 +11,5 @@ public interface RubricDao {
      * @param phase the phase of the rubric
      * @return the rubric for the given phase
      */
-    Rubric getRubric(Phase phase);
+    RubricConfig getRubricConfig(Phase phase);
 }
