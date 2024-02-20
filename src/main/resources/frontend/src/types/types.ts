@@ -15,6 +15,7 @@ export type TestResult = {
 export type RubricItemResults = {
     notes: string,
     score: number,
+    possiblePoints: number,
     testResults: TestResult,
     textResults: string,
 }
@@ -29,6 +30,8 @@ export type Rubric = {
     passoffTests: RubricItem,
     unitTests: RubricItem,
     styleTests: RubricItem,
+    passed: boolean,
+    notes: string,
 }
 
 export type Submission = {

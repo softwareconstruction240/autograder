@@ -1,8 +1,10 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.ProcessUtils;
+import edu.byu.cs.model.RubricConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,8 +92,9 @@ public abstract class PassoffTestGrader extends Grader {
         results.testName = PASSOFF_TESTS_NAME;
 
         float score = getPassoffScore(results);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        return new Rubric.Results("", score, results, null);
+        return new Rubric.Results(getNotes(results), score, rubricConfig.passoffTests().points(), results, null);
     }
 
     protected float getPassoffScore(TestAnalyzer.TestNode testResults) {
@@ -136,26 +139,25 @@ public abstract class PassoffTestGrader extends Grader {
         return scores;
     }
 
-    @Override
-    protected String getNotes(TestAnalyzer.TestNode results, int numDaysLate) {
+    protected String getNotes(TestAnalyzer.TestNode results) {
 
-        TestAnalyzer.TestNode passoffTests = results.children.get(PASSOFF_TESTS_NAME);
-        TestAnalyzer.TestNode customTests = results.children.get(CUSTOM_TESTS_NAME);
+        StringBuilder notes = new StringBuilder();
 
-        if (passoffTests == null)
+        if (results == null)
             return "No tests were run";
 
-        boolean passed = passoffTests.numTestsFailed == 0;
-        if (customTests != null)
-            passed = passed && customTests.numTestsFailed == 0;
+        if (results.numTestsFailed == 0)
+            notes.append("All required tests passed");
+        else
+            notes.append("Some required tests failed");
 
-        if (passed && numDaysLate == 0)
-            return "All tests passed";
+        Map<String, Float> ecScores = getECScores(results);
+        float totalECPoints = ecScores.values().stream().reduce(0f, Float::sum) * extraCreditValue ;
 
-        if (passed & numDaysLate > 0)
-            return "All tests passed, but " + numDaysLate + " day"+ (numDaysLate > 1 ? "s" : "") +" late. (-" + Math.min(50, numDaysLate * 10) + "%)";
+        if (totalECPoints > 0f)
+            notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
 
-        return "Some tests failed. You must pass all tests to pass off this phase";
+        return notes.toString();
     }
 
     @Override
@@ -164,4 +166,16 @@ public abstract class PassoffTestGrader extends Grader {
 
         return new QualityAnalyzer().runQualityChecks(stageRepo);
     }
+
+    @Override
+    protected Rubric annotateRubric(Rubric rubric) {
+        return new Rubric(
+                rubric.passoffTests(),
+                rubric.unitTests(),
+                rubric.quality(),
+                passed(rubric),
+                rubric.notes()
+        );
+    }
+
 }

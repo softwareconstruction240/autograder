@@ -55,14 +55,16 @@ public class CanvasUtils {
         return new Rubric(
                 convertedPassoffTests,
                 convertedUnitTests,
-                convertedQuality
-        );
+                convertedQuality,
+                rubric.passed(),
+                rubric.notes());
     }
 
     private static Rubric.Results convertPoints(Rubric.Results results, int points) {
         return new Rubric.Results(
                 results.notes(),
                 results.score() * points,
+                results.possiblePoints(),
                 results.testResults(),
                 results.textResults()
         );

@@ -31,9 +31,6 @@ public class DateTimeUtils {
      * @return the number of days late or 0 if the submission is not late
      */
     public static int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
-        // end of day
-        dueDate = dueDate.withHour(23).withMinute(59).withSecond(59);
-
         int daysLate = 0;
 
         while (handInDate.isAfter(dueDate)) {

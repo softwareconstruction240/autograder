@@ -148,11 +148,12 @@ public abstract class Grader implements Runnable {
             if (customTestsResults != null)
                 customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
 
-            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
+            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
+            rubric = annotateRubric(rubric);
 
-            saveResults(rubric, numCommits);
-            observer.notifyDone(rubric);
+            Submission submission = saveResults(rubric, numCommits);
+            observer.notifyDone(submission);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -187,7 +188,7 @@ public abstract class Grader implements Runnable {
      *
      * @param rubric the rubric for the phase
      */
-    private void saveResults(Rubric rubric, int numCommits) {
+    private Submission saveResults(Rubric rubric, int numCommits) {
         String headHash = getHeadHash();
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
@@ -208,6 +209,10 @@ public abstract class Grader implements Runnable {
         score -= numDaysLate * 0.1F;
         if (score < 0) score = 0;
 
+        String notes = "";
+        if (numDaysLate > 0)
+            notes = numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
                 netId,
@@ -218,7 +223,7 @@ public abstract class Grader implements Runnable {
                 passed(rubric),
                 score,
                 numCommits,
-                "",
+                notes,
                 rubric
         );
 
@@ -227,6 +232,8 @@ public abstract class Grader implements Runnable {
         }
 
         submissionDao.insertSubmission(submission);
+
+        return submission;
     }
 
     private void sendToCanvas(Submission submission) {
@@ -378,18 +385,17 @@ public abstract class Grader implements Runnable {
             score += rubric.quality().results().score();
 
         return score / totalPossiblePoints;
-    };
-
-    /**
-     * Gets the notes for the phase. This includes the number of days late and any other relevant information
-     *
-     * @param results     the results of the grading
-     * @param numDaysLate the number of days late the submission is
-     * @return the notes
-     */
-    protected abstract String getNotes(TestAnalyzer.TestNode results, int numDaysLate);
+    }
 
     protected abstract boolean passed(Rubric rubric);
+
+    /**
+     * Annotates the rubric with notes and passed status
+     *
+     * @param rubric the rubric to annotate
+     * @return the annotated rubric
+     */
+    protected abstract Rubric annotateRubric(Rubric rubric);
 
     public interface Observer {
         void notifyStarted();
@@ -398,7 +404,7 @@ public abstract class Grader implements Runnable {
 
         void notifyError(String message);
 
-        void notifyDone(Rubric rubric);
+        void notifyDone(Submission submission);
     }
 
 }

@@ -6,6 +6,10 @@ defineProps<{
   submission: Submission;
 }>();
 
+const roundTwoDecimals = (num: number) => {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
 </script>
 
 <!--<template>-->
@@ -26,10 +30,16 @@ defineProps<{
 <!--  </div>-->
 <!--</template>-->
 <template>
+  <h1 v-if="submission.passed">Passed with {{roundTwoDecimals(submission.score * 100)}}%</h1>
+  <h1 v-else>Failed</h1>
+  <h2>{{submission.notes}}</h2>
   <Rubric :rubric="submission.rubric" />
 </template>
 
 <style scoped>
+h1, h2 {
+  text-align: center;
+}
 #submission-title, #submission-score, #submission-notes {
   text-align: center;
 }
