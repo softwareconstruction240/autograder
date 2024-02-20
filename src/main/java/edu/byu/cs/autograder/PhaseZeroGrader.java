@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 
 import java.io.IOException;
 
@@ -15,5 +16,13 @@ public class PhaseZeroGrader extends PassoffTestGrader {
      */
     public PhaseZeroGrader(String netId, String repoUrl, Observer observer) throws IOException {
         super("./phases/phase0", netId, repoUrl, observer, Phase.Phase0);
+    }
+
+    @Override
+    protected boolean passed(Rubric rubric) {
+        if (rubric.passoffTests() == null || rubric.passoffTests().results() == null || rubric.passoffTests().results().testResults() == null)
+            throw new RuntimeException("Passoff tests are null");
+
+        return rubric.passoffTests().results().testResults().numTestsFailed == 0;
     }
 }

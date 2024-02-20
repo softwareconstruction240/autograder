@@ -1,10 +1,12 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 
 import java.io.IOException;
 
 public class PhaseOneGrader extends PassoffTestGrader {
+
     /**
      * Creates a new grader for phase 1
      *
@@ -18,5 +20,13 @@ public class PhaseOneGrader extends PassoffTestGrader {
         extraCreditTests.add("CastlingTests");
         extraCreditTests.add("EnPassantTests");
         extraCreditValue = .04f;
+    }
+
+    @Override
+    protected boolean passed(Rubric rubric) {
+        if (rubric.passoffTests() == null || rubric.passoffTests().results() == null || rubric.passoffTests().results().testResults() == null)
+            throw new RuntimeException("Passoff tests are null");
+
+        return rubric.passoffTests().results().testResults().numTestsFailed == 0;
     }
 }

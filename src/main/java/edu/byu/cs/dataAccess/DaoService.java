@@ -1,9 +1,7 @@
 package edu.byu.cs.dataAccess;
 
-import edu.byu.cs.dataAccess.sql.PhaseConfigurationSqlDao;
-import edu.byu.cs.dataAccess.sql.QueueSqlDao;
-import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
-import edu.byu.cs.dataAccess.sql.UserSqlDao;
+import edu.byu.cs.dataAccess.sql.*;
+import edu.byu.cs.model.RubricConfig;
 
 public class DaoService {
     public static UserDao getUserDao() {
@@ -14,11 +12,11 @@ public class DaoService {
         return new SubmissionSqlDao();
     }
 
-    public static PhaseConfigurationDao getPhaseConfigurationDao() {
-        return new PhaseConfigurationSqlDao();
-    }
-
     public static QueueDao getQueueDao() {
         return new QueueSqlDao();
+    }
+
+    public static RubricConfigDao getRubricConfigDao() {
+        return new RubricSqlConfigDao();
     }
 }

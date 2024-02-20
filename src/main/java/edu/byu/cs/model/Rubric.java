@@ -1,4 +1,4 @@
-package edu.byu.cs.canvas;
+package edu.byu.cs.model;
 
 import edu.byu.cs.autograder.TestAnalyzer;
 
@@ -8,22 +8,26 @@ import edu.byu.cs.autograder.TestAnalyzer;
  * @param passoffTests
  * @param unitTests
  * @param quality
+ * @param passed
+ * @param notes
  */
 public record Rubric(
         RubricItem passoffTests,
         RubricItem unitTests,
-        RubricItem quality
+        RubricItem quality,
+        boolean passed,
+        String notes
 ) {
 
     /**
      * Represents a single rubric item
      *
-     * @param description The description of the rubric item
-     * @param results     The results of the rubric item
+     * @param category
+     * @param results  The results of the rubric item
+     * @param criteria The criteria of the rubric item
      */
     public record RubricItem(
-            String description,
-            Results results
+            String category, Results results, String criteria
 
     ) {
     }
@@ -35,12 +39,20 @@ public record Rubric(
      * @param score
      * @param testResults
      * @param textResults
+     * @param possiblePoints
      */
     public record Results(
             String notes,
             Float score,
+            Integer possiblePoints,
             TestAnalyzer.TestNode testResults,
             String textResults
     ) {
+    }
+
+    public enum RubricType {
+        PASSOFF_TESTS,
+        UNIT_TESTS,
+        QUALITY
     }
 }
