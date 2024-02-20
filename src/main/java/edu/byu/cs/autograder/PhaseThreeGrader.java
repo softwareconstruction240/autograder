@@ -40,8 +40,9 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
         results.testName = CUSTOM_TESTS_NAME;
 
-//        return new Rubric.Results("", getScore(results), results, null);
-        return null;
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+
+        return new Rubric.Results("", getUnitTestScore(results), rubricConfig.unitTests().points(), results, null);
     }
 
     @Override
@@ -63,6 +64,14 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 //        }
 
         return passed;
+    }
+    protected float getUnitTestScore(TestAnalyzer.TestNode testResults) {
+        float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
+
+        if (totalTests == 0)
+            throw new RuntimeException("No standard tests found in the test results");
+
+        return testResults.numTestsPassed / totalTests;
     }
 
     /* Rubric Items Winter 2024:
