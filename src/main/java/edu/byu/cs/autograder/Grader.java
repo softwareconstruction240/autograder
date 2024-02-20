@@ -378,16 +378,7 @@ public abstract class Grader implements Runnable {
             score += rubric.quality().results().score();
 
         return score / totalPossiblePoints;
-    };
-
-    /**
-     * Gets the notes for the phase. This includes the number of days late and any other relevant information
-     *
-     * @param results     the results of the grading
-     * @param numDaysLate the number of days late the submission is
-     * @return the notes
-     */
-    protected abstract String getNotes(TestAnalyzer.TestNode results, int numDaysLate);
+    }
 
     protected abstract boolean passed(Rubric rubric);
 
