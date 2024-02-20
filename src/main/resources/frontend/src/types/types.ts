@@ -30,6 +30,8 @@ export type Rubric = {
     passoffTests: RubricItem,
     unitTests: RubricItem,
     styleTests: RubricItem,
+    passed: boolean,
+    notes: string,
 }
 
 export type Submission = {

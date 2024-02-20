@@ -8,11 +8,15 @@ import edu.byu.cs.autograder.TestAnalyzer;
  * @param passoffTests
  * @param unitTests
  * @param quality
+ * @param passed
+ * @param notes
  */
 public record Rubric(
         RubricItem passoffTests,
         RubricItem unitTests,
-        RubricItem quality
+        RubricItem quality,
+        boolean passed,
+        String notes
 ) {
 
     /**
