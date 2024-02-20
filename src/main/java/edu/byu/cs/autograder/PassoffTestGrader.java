@@ -159,4 +159,16 @@ public abstract class PassoffTestGrader extends Grader {
     protected Rubric.Results runQualityChecks() {
         return null;
     }
+
+    @Override
+    protected Rubric annotateRubric(Rubric rubric) {
+        return new Rubric(
+                rubric.passoffTests(),
+                rubric.unitTests(),
+                rubric.quality(),
+                passed(rubric),
+                rubric.notes()
+        );
+    }
+
 }

@@ -148,8 +148,9 @@ public abstract class Grader implements Runnable {
             if (customTestsResults != null)
                 customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
 
-            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
+            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
+            rubric = annotateRubric(rubric);
 
             saveResults(rubric, numCommits);
             observer.notifyDone(rubric);
@@ -381,6 +382,14 @@ public abstract class Grader implements Runnable {
     }
 
     protected abstract boolean passed(Rubric rubric);
+
+    /**
+     * Annotates the rubric with notes and passed status
+     *
+     * @param rubric the rubric to annotate
+     * @return the annotated rubric
+     */
+    protected abstract Rubric annotateRubric(Rubric rubric);
 
     public interface Observer {
         void notifyStarted();
