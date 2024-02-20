@@ -20,7 +20,8 @@ export type RubricItemResults = {
 }
 
 export type RubricItem = {
-    description: string,
+    category: string,
+    criteria: string,
     results: RubricItemResults,
 }
 

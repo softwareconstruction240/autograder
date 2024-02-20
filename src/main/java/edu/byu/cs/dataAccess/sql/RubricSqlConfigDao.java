@@ -48,8 +48,9 @@ public class RubricSqlConfigDao implements RubricConfigDao {
             ResultSet results = statement.executeQuery();
             if (results.next()) {
                 return new RubricConfig.RubricConfigItem(
-                        results.getInt("points"),
-                        results.getString("description")
+                        results.getString("category"),
+                        results.getString("criteria"),
+                        results.getInt("points")
                 );
             }
         } catch (Exception e) {

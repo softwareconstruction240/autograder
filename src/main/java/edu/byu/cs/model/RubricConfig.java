@@ -8,8 +8,9 @@ public record RubricConfig(
         RubricConfigItem quality
 ) {
     public record RubricConfigItem(
-            int points,
-            String description
+            String category,
+            String criteria,
+            int points
     ) {
     }
 }
