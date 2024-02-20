@@ -22,7 +22,7 @@ public class CanvasUtils {
         Rubric.RubricItem convertedUnitTests = null;
         Rubric.RubricItem convertedQuality = null;
 
-        if (rubric.passoffTests() != null) {
+        if (rubric.passoffTests().results() != null) {
             if (rubricConfig.passoffTests() == null)
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " passoff tests");
 
@@ -32,7 +32,7 @@ public class CanvasUtils {
             );
         }
 
-        if (rubric.unitTests() != null) {
+        if (rubric.unitTests().results() != null) {
             if (rubricConfig.unitTests() == null)
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " unit tests");
 
@@ -42,7 +42,7 @@ public class CanvasUtils {
             );
         }
 
-        if (rubric.quality() != null) {
+        if (rubric.quality().results() != null) {
             if (rubricConfig.quality() == null)
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " quality");
 
