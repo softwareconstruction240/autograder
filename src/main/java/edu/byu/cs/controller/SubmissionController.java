@@ -270,11 +270,14 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyDone(Rubric rubric) {
+            public void notifyDone(Submission submission) {
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                        .create();
                 try {
                     TrafficController.getInstance().notifySubscribers(netId, Map.of(
                             "type", "results",
-                            "results", new Gson().toJson(rubric)
+                            "results", gson.toJson(submission)
                     ));
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);
