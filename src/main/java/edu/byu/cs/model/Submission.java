@@ -3,7 +3,6 @@ package edu.byu.cs.model;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import edu.byu.cs.canvas.Rubric;
 
 import java.io.IOException;
 import java.time.Instant;

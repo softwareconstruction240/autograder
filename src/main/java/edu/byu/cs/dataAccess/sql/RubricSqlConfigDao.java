@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.sql;
 
-import edu.byu.cs.canvas.Rubric;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.RubricConfigDao;
 import edu.byu.cs.model.Phase;

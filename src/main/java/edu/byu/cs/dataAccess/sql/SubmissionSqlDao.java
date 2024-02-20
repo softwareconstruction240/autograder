@@ -1,7 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
 import com.google.gson.Gson;
-import edu.byu.cs.canvas.Rubric;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;

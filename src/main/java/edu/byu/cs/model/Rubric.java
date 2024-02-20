@@ -1,4 +1,4 @@
-package edu.byu.cs.canvas;
+package edu.byu.cs.model;
 
 import edu.byu.cs.autograder.TestAnalyzer;
 

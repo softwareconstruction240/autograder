@@ -3,7 +3,7 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.Rubric;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
