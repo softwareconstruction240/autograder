@@ -93,22 +93,25 @@ public class QualityAnalyzer {
 
     private float getCategoryPoints(QualityAnalysis analysis, QualityRubricCategory category) {
         float deductions = 0;
-        float itemWeight = category.value() / category.items().size();
+        float totalWeight = 0;
         for (QualityRubricItem item : category.items()) {
-            float reporterWeight = itemWeight / item.reporters().size();
-            for (String reporter : item.reporters()) {
-                if (analysis.errors().containsKey(reporter)) {
-                    deductions += reporterWeight;
+            for (QualityRubricReporter reporter : item.reporters()) {
+                float weight = item.weight() * reporter.weight();
+                totalWeight += weight;
+                if (analysis.errors().containsKey(reporter.name())) {
+                    deductions += weight;
                 }
             }
         }
-        return category.value() - deductions;
+        return category.value() * (1 - (deductions / totalWeight));
     }
 
 
     public record QualityAnalysis(Map<String, List<String>> errors, List<String> warnings) {}
 
-    private record QualityRubricItem(Set<String> reporters) {}
+    private record QualityRubricReporter(String name, int weight){}
+
+    private record QualityRubricItem(Set<QualityRubricReporter> reporters, int weight) {}
 
     private record QualityRubricCategory(String name, float value, Set<QualityRubricItem> items) {}
 

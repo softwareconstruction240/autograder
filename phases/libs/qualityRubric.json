@@ -6,23 +6,92 @@
       "items": [
         {
           "reporters": [
-            "[PackageName]",
-            "[CatchParameterName]",
-            "[LambdaParameterName]",
-            "[StaticVariableName]",
-            "[RecordTypeParameterName]",
-            "[LocalFinalVariableName]",
-            "[ConstantName]",
-            "[TypeName]",
-            "[MemberName]",
-            "[MethodTypeParameterName]",
-            "[ClassTypeParameterName]",
-            "[PatternVariableName]",
-            "[RecordComponentName]",
-            "[InterfaceTypeParameterName]",
-            "[ParameterName]",
-            "[LocalVariableName]"
-          ]
+            {
+              "name": "[PackageName]",
+              "weight": 1
+            }
+          ],
+          "weight": 0
+        },
+        {
+          "reporters": [
+            {
+              "name": "[TypeName]",
+              "weight": 1
+            }
+          ],
+          "weight": 3
+        },
+        {
+          "reporters": [
+            {
+              "name": "[MethodName]",
+              "weight": 1
+            }
+          ],
+          "weight": 3
+        },
+        {
+          "reporters": [
+            {
+              "name": "[ConstantName]",
+              "weight": 0
+            },
+            {
+              "name": "[MemberName]",
+              "weight": 3
+            },
+            {
+              "name": "[LocalVariableName]",
+              "weight": 3
+            },
+            {
+              "name": "[RecordComponentName]",
+              "weight": 3
+            },
+            {
+              "name": "[ParameterName]",
+              "weight": 3
+            },
+            {
+              "name": "[LambdaParameterName]",
+              "weight": 2
+            },
+            {
+              "name": "[StaticVariableName]",
+              "weight": 2
+            },
+            {
+              "name": "[LocalFinalVariableName]",
+              "weight": 1
+            },
+            {
+              "name": "[PatternVariableName]",
+              "weight": 1
+            }
+          ],
+          "weight": 5
+        },
+        {
+          "reporters": [
+            {
+              "name": "[RecordTypeParameterName]",
+              "weight": 1
+            },
+            {
+              "name": "[MethodTypeParameterName]",
+              "weight": 1
+            },
+            {
+              "name": "[ClassTypeParameterName]",
+              "weight": 1
+            },
+            {
+              "name": "[InterfaceTypeParameterName]",
+              "weight": 1
+            }
+          ],
+          "weight": 1
         }
       ]
     },
@@ -32,15 +101,29 @@
       "items": [
         {
           "reporters": [
-            "[DuplicateLines]",
-            "[DuplicateBlock]"
-          ]
+            {
+              "name": "[DuplicateLines]",
+              "weight": 1
+            },
+            {
+              "name": "[DuplicateBlock]",
+              "weight": 1
+            }
+          ],
+          "weight": 3
         },
         {
           "reporters": [
-            "[MethodLength]",
-            "[FileLength]"
-          ]
+            {
+              "name": "[MethodLength]",
+              "weight": 1
+            },
+            {
+              "name": "[FileLength]",
+              "weight": 1
+            }
+          ],
+          "weight": 2
         }
       ]
     },
@@ -50,9 +133,16 @@
       "items": [
         {
           "reporters": [
-            "[UnusedMethodReporter]",
-            "[CommentedCode]"
-          ]
+            {
+              "name": "[UnusedMethodReporter]",
+              "weight": 3
+            },
+            {
+              "name": "[CommentedCode]",
+              "weight": 4
+            }
+          ],
+          "weight": 1
         }
       ]
     },
@@ -62,8 +152,12 @@
       "items": [
         {
           "reporters": [
-            "[FilesPerPackage]"
-          ]
+            {
+              "name": "[FilesPerPackage]",
+              "weight": 1
+            }
+          ],
+          "weight": 1
         }
       ]
     }
