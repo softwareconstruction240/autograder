@@ -1,0 +1,71 @@
+{
+  "categories": [
+    {
+      "name": "Naming",
+      "value": 25.0,
+      "items": [
+        {
+          "reporters": [
+            "[PackageName]",
+            "[CatchParameterName]",
+            "[LambdaParameterName]",
+            "[StaticVariableName]",
+            "[RecordTypeParameterName]",
+            "[LocalFinalVariableName]",
+            "[ConstantName]",
+            "[TypeName]",
+            "[MemberName]",
+            "[MethodTypeParameterName]",
+            "[ClassTypeParameterName]",
+            "[PatternVariableName]",
+            "[RecordComponentName]",
+            "[InterfaceTypeParameterName]",
+            "[ParameterName]",
+            "[LocalVariableName]"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "[Code Decomposition]",
+      "value": 30.0,
+      "items": [
+        {
+          "reporters": [
+            "[DuplicateLines]",
+            "[DuplicateBlock]"
+          ]
+        },
+        {
+          "reporters": [
+            "[MethodLength]",
+            "[FileLength]"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "[Code Readability]",
+      "value": 30.0,
+      "items": [
+        {
+          "reporters": [
+            "[UnusedMethodReporter]",
+            "[CommentedCode]"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "[Package Structure]",
+      "value": 15.0,
+      "items": [
+        {
+          "reporters": [
+            "[FilesPerPackage]"
+          ]
+        }
+      ]
+    }
+  ]
+}

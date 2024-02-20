@@ -2,11 +2,16 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public abstract class PassoffTestGrader extends Grader {
 
@@ -155,6 +160,8 @@ public abstract class PassoffTestGrader extends Grader {
 
     @Override
     protected Rubric.Results runQualityChecks() {
-        return null;
+        observer.update("Running code quality...");
+
+        return new QualityAnalyzer().runQualityChecks(stageRepo);
     }
 }
