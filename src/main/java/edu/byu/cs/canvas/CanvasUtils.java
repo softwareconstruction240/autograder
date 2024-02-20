@@ -27,9 +27,9 @@ public class CanvasUtils {
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " passoff tests");
 
             convertedPassoffTests = new Rubric.RubricItem(
-                    rubric.passoffTests().description(),
-                    convertPoints(rubric.passoffTests().results(), rubricConfig.passoffTests().points())
-            );
+                    rubric.passoffTests().category(),
+                    convertPoints(rubric.passoffTests().results(), rubricConfig.passoffTests().points()),
+                    rubric.passoffTests().criteria());
         }
 
         if (rubric.unitTests().results() != null) {
@@ -37,9 +37,9 @@ public class CanvasUtils {
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " unit tests");
 
             convertedUnitTests = new Rubric.RubricItem(
-                    rubric.unitTests().description(),
-                    convertPoints(rubric.unitTests().results(), rubricConfig.unitTests().points())
-            );
+                    rubric.unitTests().category(),
+                    convertPoints(rubric.unitTests().results(), rubricConfig.unitTests().points()),
+                    rubric.unitTests().criteria());
         }
 
         if (rubric.quality().results() != null) {
@@ -47,9 +47,9 @@ public class CanvasUtils {
                 throw new RuntimeException("Rubric not configured for " + phase.toString() + " quality");
 
             convertedQuality = new Rubric.RubricItem(
-                    rubric.quality().description(),
-                    convertPoints(rubric.quality().results(), rubricConfig.quality().points())
-            );
+                    rubric.quality().category(),
+                    convertPoints(rubric.quality().results(), rubricConfig.quality().points()),
+                    rubric.quality().criteria());
         }
 
         return new Rubric(

@@ -139,9 +139,9 @@ public abstract class Grader implements Runnable {
             Rubric.Results passoffResults = runTests();
             Rubric.Results customTestsResults = runCustomTests();
 
-            Rubric.RubricItem qualityItem = new Rubric.RubricItem("TODO: quality description", qualityResults);
-            Rubric.RubricItem passoffItem = new Rubric.RubricItem("TODO: passoff description", passoffResults);
-            Rubric.RubricItem customTestsItem = new Rubric.RubricItem("TODO: custom tests description", customTestsResults);
+            Rubric.RubricItem qualityItem = new Rubric.RubricItem("TODO: quality", qualityResults, "TODO: quality criteria");
+            Rubric.RubricItem passoffItem = new Rubric.RubricItem("TODO: functionality", passoffResults, "TODO: passoff criteria");
+            Rubric.RubricItem customTestsItem = new Rubric.RubricItem("TODO: unit tests", customTestsResults, "TODO: custom tests criteria");
 
             Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem);
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);

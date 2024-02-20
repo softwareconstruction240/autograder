@@ -18,12 +18,12 @@ public record Rubric(
     /**
      * Represents a single rubric item
      *
-     * @param description The description of the rubric item
-     * @param results     The results of the rubric item
+     * @param category
+     * @param results  The results of the rubric item
+     * @param criteria The criteria of the rubric item
      */
     public record RubricItem(
-            String description,
-            Results results
+            String category, Results results, String criteria
 
     ) {
     }
