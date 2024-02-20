@@ -92,37 +92,6 @@ public class SqlDb {
         }
     }
 
-    static {
-        // migrations
-        try (Connection connection = getConnection()) {
-            if (connection.getMetaData().getColumns(null, null, "submission", "results").next()) {
-                connection.createStatement().executeUpdate(
-                        """
-                                IF EXISTS (
-                                    SELECT 1
-                                    FROM INFORMATION_SCHEMA.COLUMNS
-                                    WHERE TABLE_NAME = 'submission'
-                                        AND COLUMN_NAME = 'results'
-                                ) THEN
-                                    ALTER TABLE `submission`
-                                    CHANGE COLUMN `results` `rubric` JSON;
-                                END IF;
-                                """
-                );
-
-            }
-
-            connection.createStatement().executeUpdate(
-                    """
-                            DROP TABLE IF EXISTS `phase_configuration`;
-                            """
-            );
-        } catch (SQLException e) {
-            LOGGER.error("Error migrating database", e);
-            throw new DataAccessException("Error migrating database", e);
-        }
-    }
-
     static Connection getConnection() {
         try {
             Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
