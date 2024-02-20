@@ -158,6 +158,8 @@ public abstract class PassoffTestGrader extends Grader {
 
     @Override
     protected Rubric.Results runQualityChecks() {
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        if(rubricConfig.quality() == null) return null;
         observer.update("Running code quality...");
 
         QualityAnalyzer analyzer = new QualityAnalyzer();
@@ -168,7 +170,6 @@ public abstract class PassoffTestGrader extends Grader {
         String results = analyzer.getResults(analysis);
         String notes = analyzer.getNotes(analysis);
 
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         return new Rubric.Results(notes, score, rubricConfig.quality().points(), null, results);
     }
 
