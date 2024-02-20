@@ -1,7 +1,9 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.RubricConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +87,9 @@ public abstract class PassoffTestGrader extends Grader {
         results.testName = PASSOFF_TESTS_NAME;
 
         float score = getPassoffScore(results);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        return new Rubric.Results("", score, results, null);
+        return new Rubric.Results("", score, rubricConfig.passoffTests().points(), results, null);
     }
 
     protected float getPassoffScore(TestAnalyzer.TestNode testResults) {

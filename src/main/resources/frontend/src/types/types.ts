@@ -15,6 +15,7 @@ export type TestResult = {
 export type RubricItemResults = {
     notes: string,
     score: number,
+    possiblePoints: number,
     testResults: TestResult,
     textResults: string,
 }

@@ -35,10 +35,12 @@ public record Rubric(
      * @param score
      * @param testResults
      * @param textResults
+     * @param possiblePoints
      */
     public record Results(
             String notes,
             Float score,
+            Integer possiblePoints,
             TestAnalyzer.TestNode testResults,
             String textResults
     ) {

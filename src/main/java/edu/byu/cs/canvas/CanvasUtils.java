@@ -63,6 +63,7 @@ public class CanvasUtils {
         return new Rubric.Results(
                 results.notes(),
                 results.score() * points,
+                results.possiblePoints(),
                 results.testResults(),
                 results.textResults()
         );
