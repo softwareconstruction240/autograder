@@ -1,15 +1,13 @@
 package edu.byu.cs.dataAccess.sql;
 
-import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.RubricConfigDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RubricSqlConfigDao implements RubricConfigDao {
     @Override
@@ -19,18 +17,27 @@ public class RubricSqlConfigDao implements RubricConfigDao {
         RubricConfig.RubricConfigItem unitTests = getRubricItem(phase, Rubric.RubricType.UNIT_TESTS);
         RubricConfig.RubricConfigItem quality = getRubricItem(phase, Rubric.RubricType.QUALITY);
 
-        List<RubricConfig.RubricConfigItem> rubricItems = new ArrayList<>();
+        return new RubricConfig(
+                phase,
+                passoffTests,
+                unitTests,
+                quality
+        );
+    }
 
-        if (passoffTests != null)
-            rubricItems.add(passoffTests);
+    @Override
+    public int getPhaseTotalPossiblePoints(Phase phase) {
+        RubricConfig rubricConfig = getRubricConfig(phase);
 
-        if (unitTests != null)
-            rubricItems.add(unitTests);
+        int total = 0;
+        if (rubricConfig.passoffTests() != null)
+            total += rubricConfig.passoffTests().points();
+        if (rubricConfig.unitTests() != null)
+            total += rubricConfig.unitTests().points();
+        if (rubricConfig.quality() != null)
+            total += rubricConfig.quality().points();
 
-        if (quality != null)
-            rubricItems.add(quality);
-
-        return new RubricConfig(rubricItems);
+        return total;
     }
 
     private RubricConfig.RubricConfigItem getRubricItem(Phase phase, Rubric.RubricType type) throws DataAccessException {
@@ -41,8 +48,6 @@ public class RubricSqlConfigDao implements RubricConfigDao {
             ResultSet results = statement.executeQuery();
             if (results.next()) {
                 return new RubricConfig.RubricConfigItem(
-                        phase,
-                        type,
                         results.getInt("points"),
                         results.getString("description")
                 );

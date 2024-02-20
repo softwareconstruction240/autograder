@@ -12,4 +12,6 @@ public interface RubricConfigDao {
      * @return the rubric for the given phase
      */
     RubricConfig getRubricConfig(Phase phase);
+
+    int getPhaseTotalPossiblePoints(Phase phase);
 }
