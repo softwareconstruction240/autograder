@@ -21,8 +21,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """);
             statement.setString(1, submission.netId());
             statement.setString(2, submission.repoUrl());
@@ -33,7 +33,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(7, submission.headHash());
             statement.setInt(8, submission.numCommits());
             statement.setString(9, submission.notes());
-            statement.setString(10, new Gson().toJson(submission.rubric()));
+            statement.setString(10, "{}");
+            statement.setString(11, new Gson().toJson(submission.rubric()));
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
@@ -145,7 +146,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             float score = rows.getFloat("score");
             Integer numCommits = rows.getInt("num_commits");
             String notes = rows.getString("notes");
-            Rubric rubric = new Gson().fromJson(rows.getString("results"), Rubric.class);
+            Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
 
             submissions.add(new Submission(
                     netId,
