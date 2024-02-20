@@ -130,14 +130,17 @@ public class SubmissionController {
      * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
      */
     private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
-        Submission mostRecent = getMostRecentSubmission(netId, phase);
-        if (mostRecent == null) {
-            return false;
-        }
+//        Submission mostRecent = getMostRecentSubmission(netId, phase);
+//        if (mostRecent == null) {
+//            return false;
+//        }
+//
+//        // If they passed the required tests, and there are no extra credit tests they haven't passed,
+//        // then by definition they can't get a higher score
+//        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
 
-        // If they passed the required tests, and there are no extra credit tests they haven't passed,
-        // then by definition they can't get a higher score
-        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
+        //FIXME: this needs to be reworked to use the Rubric format
+        return false;
     }
 
     /**
