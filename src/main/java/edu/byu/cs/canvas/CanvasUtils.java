@@ -15,7 +15,7 @@ public class CanvasUtils {
      * @param rubric the rubric to convert
      * @return the rubric with the score converted to points
      */
-    public Rubric decimalScoreToPoints(Phase phase, Rubric rubric) {
+    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
         Rubric.RubricItem convertedPassoffTests = null;
@@ -59,7 +59,7 @@ public class CanvasUtils {
         );
     }
 
-    private Rubric.Results convertPoints(Rubric.Results results, int points) {
+    private static Rubric.Results convertPoints(Rubric.Results results, int points) {
         return new Rubric.Results(
                 results.notes(),
                 results.score() * points,
