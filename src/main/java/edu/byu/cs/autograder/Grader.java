@@ -372,7 +372,7 @@ public abstract class Grader implements Runnable {
         if (rubric.quality() != null)
             score += rubric.quality().results().score();
 
-        return score;
+        return score / totalPossiblePoints;
     };
 
     /**
