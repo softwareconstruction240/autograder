@@ -77,12 +77,12 @@ public class SqlDb {
 
             connection.createStatement().executeUpdate(
                     """
-                            CREATE TABLE IF NOT EXISTS `rubric` (
+                            CREATE TABLE IF NOT EXISTS `rubric_config` (
                                 `phase` VARCHAR(9) NOT NULL,
-                                `item` VARCHAR(15) NOT NULL,
+                                `type` VARCHAR(15) NOT NULL,
                                 `points` INT NOT NULL,
                                 `description` TEXT NOT NULL,
-                                PRIMARY KEY (`phase`, `item`)
+                                PRIMARY KEY (`phase`, `type`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                             """);
 
