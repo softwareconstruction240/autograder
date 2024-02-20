@@ -54,6 +54,7 @@ public class SqlDb {
                                 `score` FLOAT NOT NULL,
                                 `num_commits` INT,
                                 `notes` TEXT,
+                                `results` JSON,
                                 `rubric` JSON,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
