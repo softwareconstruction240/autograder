@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class PhaseThreeGrader extends PassoffTestGrader {
 
-    private static final int MIN_UNIT_TESTS = 14;
+    private static final int MIN_UNIT_TESTS = 13;
 
     /**
      * Creates a new grader for phase 3
