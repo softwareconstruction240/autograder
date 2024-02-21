@@ -81,6 +81,7 @@ public class QualityAnalyzer {
         analysis.errors().values().forEach(errorList -> errorList.forEach(s -> builder.append(s).append("\n")));
         analysis.warnings().forEach(s -> builder.append(s).append("\n"));
         if (!builder.isEmpty()) builder.deleteCharAt(builder.length() - 1);
+        if(builder.isEmpty()) builder.append("Good job!");
         return builder.toString();
     }
 
