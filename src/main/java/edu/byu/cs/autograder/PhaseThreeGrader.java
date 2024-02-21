@@ -11,6 +11,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PhaseThreeGrader extends PassoffTestGrader {
+
+    private static final int MIN_UNIT_TESTS = 14;
+
     /**
      * Creates a new grader for phase 3
      *
@@ -55,9 +58,13 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
-        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
-            if (rubric.unitTests().results().score() < rubric.unitTests().results().possiblePoints())
+        if (rubric.unitTests() != null && rubric.unitTests().results() != null) {
+            Rubric.Results unitTestResults = rubric.unitTests().results();
+            if (unitTestResults.score() < unitTestResults.possiblePoints())
                 passed = false;
+            if (unitTestResults.testResults().numTestsPassed + unitTestResults.testResults().numTestsFailed < MIN_UNIT_TESTS)
+                passed = false;
+        }
 
         // TODO: enable quality check
 //        if (rubric.quality() != null && rubric.quality().results() != null) {
@@ -77,6 +84,10 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     }
 
     protected String getNotes(TestAnalyzer.TestNode testResults) {
+        if (testResults.numTestsPassed + testResults.numTestsFailed < MIN_UNIT_TESTS)
+            return "Not enough tests: each service method should have a positive and negative test";
+
+
         return switch (testResults.numTestsFailed) {
             case 0 -> "All tests passed";
             case 1 -> "1 test failed. All tests must pass";
