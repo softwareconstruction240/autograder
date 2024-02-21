@@ -132,16 +132,26 @@ public abstract class Grader implements Runnable {
             verifyProjectStructure();
             packageRepo();
 
-            Rubric.Results qualityResults = runQualityChecks();
+            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+            Rubric.Results qualityResults = null;
+            if(rubricConfig.quality() != null) {
+                qualityResults = runQualityChecks();
+            }
+
             compileTests();
-            Rubric.Results passoffResults = runTests();
-            Rubric.Results customTestsResults = runCustomTests();
+            Rubric.Results passoffResults = null;
+            if(rubricConfig.passoffTests() != null) {
+                passoffResults = runTests();
+            }
+            Rubric.Results customTestsResults = null;
+            if(rubricConfig.unitTests() != null) {
+                customTestsResults = runCustomTests();
+            }
 
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;
             Rubric.RubricItem customTestsItem = null;
 
-            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
             if (qualityResults != null)
                 qualityItem = new Rubric.RubricItem(rubricConfig.quality().category(), qualityResults, rubricConfig.quality().criteria());
             if (passoffResults != null)
