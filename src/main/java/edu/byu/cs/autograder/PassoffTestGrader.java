@@ -1,18 +1,15 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public abstract class PassoffTestGrader extends Grader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
      * The path where the official tests are stored
@@ -157,7 +154,19 @@ public abstract class PassoffTestGrader extends Grader {
 
     @Override
     protected Rubric.Results runQualityChecks() {
-        return null;
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        if(rubricConfig.quality() == null) return null;
+        observer.update("Running code quality...");
+
+        QualityAnalyzer analyzer = new QualityAnalyzer();
+
+        QualityAnalyzer.QualityAnalysis analysis = analyzer.runQualityChecks(stageRepo);
+
+        float score = analyzer.getScore(analysis);
+        String results = analyzer.getResults(analysis);
+        String notes = analyzer.getNotes(analysis);
+
+        return new Rubric.Results(notes, score, rubricConfig.quality().points(), null, results);
     }
 
     @Override

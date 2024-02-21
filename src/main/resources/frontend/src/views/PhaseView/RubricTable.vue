@@ -49,16 +49,16 @@ const selectedTextResults = ref<string | undefined>(undefined);
             }"
         >Click here</td>
       </tr>
-      <tr v-if="rubric.styleTests">
-        <td>{{rubric.styleTests.category}}</td>
-        <td>{{rubric.styleTests.criteria}}</td>
-        <td>{{rubric.styleTests.results.notes}}</td>
-        <td>{{rubric.styleTests.results.score}} / {{rubric.styleTests.results.possiblePoints}}</td>
+      <tr v-if="rubric.quality">
+        <td>{{ rubric.quality.category }}</td>
+        <td>{{ rubric.quality.criteria }}</td>
+        <td>{{ rubric.quality.results.notes }}</td>
+        <td>{{ rubric.quality.results.score }} / {{ rubric.quality.results.possiblePoints }}</td>
         <td
             class="selectable"
             @click="() => {
               selectedTestResults = undefined
-              selectedTextResults = rubric.styleTests.results.textResults;
+              selectedTextResults = rubric.quality.results.textResults;
             }"
         >Click here</td>
       </tr>

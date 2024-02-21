@@ -44,9 +44,12 @@ public class CanvasDeserializer<T> {
                 Map<String, Object> value = entry.getValue();
 
                 String comments = (String) value.get("comments");
-                float points = ((Double) value.get("points")).floatValue();
 
-                items.put(key, new CanvasIntegration.RubricItem(comments, points));
+                Double points = ((Double) value.get("points"));
+
+                float score = (points == null) ? 0 : points.floatValue();
+
+                items.put(key, new CanvasIntegration.RubricItem(comments, score));
             }
             return new CanvasIntegration.RubricAssessment(items);
         }

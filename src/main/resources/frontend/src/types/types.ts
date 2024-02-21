@@ -29,7 +29,7 @@ export type RubricItem = {
 export type Rubric = {
     passoffTests: RubricItem,
     unitTests: RubricItem,
-    styleTests: RubricItem,
+    quality: RubricItem,
     passed: boolean,
     notes: string,
 }
