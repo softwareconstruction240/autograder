@@ -18,6 +18,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      - CANVAS_AUTHORIZATION_KEY=
 
 volumes:
     db-data:
