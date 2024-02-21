@@ -22,7 +22,10 @@ const selectedTextResults = ref<string | undefined>(undefined);
         <th>Points</th>
         <th>Results</th>
       </tr>
-      <tr v-if="rubric.passoffTests">
+      <tr
+          v-if="rubric.passoffTests"
+          :class="rubric.passoffTests.results.testResults.numTestsFailed > 0 &&'failed'"
+      >
         <td>{{rubric.passoffTests.category}}</td>
         <td>{{rubric.passoffTests.criteria}}</td>
         <td>{{rubric.passoffTests.results.notes}}</td>
@@ -30,13 +33,15 @@ const selectedTextResults = ref<string | undefined>(undefined);
         <td
             class="selectable"
             @click="() => {
-              console.log('hi')
               selectedTestResults = rubric.passoffTests.results.testResults;
               selectedTextResults = undefined;
             }"
         >Click here</td>
       </tr>
-      <tr v-if="rubric.unitTests">
+      <tr
+          v-if="rubric.unitTests"
+          :class="rubric.unitTests.results.testResults.numTestsFailed > 0 && 'failed'"
+      >
         <td>{{rubric.unitTests.category}}</td>
         <td>{{rubric.unitTests.criteria}}</td>
         <td>{{rubric.unitTests.results.notes}}</td>
@@ -107,5 +112,9 @@ td {
 .selectable:hover {
   cursor: pointer;
   background-color: #e1e1e1;
+}
+
+.failed {
+  background-color: rgba(255, 204, 204, 0.6);
 }
 </style>
