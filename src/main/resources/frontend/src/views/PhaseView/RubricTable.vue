@@ -29,7 +29,7 @@ const selectedTextResults = ref<string | undefined>(undefined);
         <td>{{rubric.passoffTests.category}}</td>
         <td>{{rubric.passoffTests.criteria}}</td>
         <td>{{rubric.passoffTests.results.notes}}</td>
-        <td>{{rubric.passoffTests.results.score}} / {{rubric.passoffTests.results.possiblePoints}}</td>
+        <td>{{Math.round(rubric.passoffTests.results.score)}} / {{rubric.passoffTests.results.possiblePoints}}</td>
         <td
             class="selectable"
             @click="() => {
@@ -45,7 +45,7 @@ const selectedTextResults = ref<string | undefined>(undefined);
         <td>{{rubric.unitTests.category}}</td>
         <td>{{rubric.unitTests.criteria}}</td>
         <td>{{rubric.unitTests.results.notes}}</td>
-        <td>{{rubric.unitTests.results.score}} / {{rubric.unitTests.results.possiblePoints}}</td>
+        <td>{{Math.round(rubric.unitTests.results.score)}} / {{rubric.unitTests.results.possiblePoints}}</td>
         <td
             class="selectable"
             @click="() => {
@@ -58,7 +58,7 @@ const selectedTextResults = ref<string | undefined>(undefined);
         <td>{{ rubric.quality.category }}</td>
         <td>{{ rubric.quality.criteria }}</td>
         <td>{{ rubric.quality.results.notes }}</td>
-        <td>{{ rubric.quality.results.score }} / {{ rubric.quality.results.possiblePoints }}</td>
+        <td>{{ Math.round(rubric.quality.results.score) }} / {{ rubric.quality.results.possiblePoints }}</td>
         <td
             class="selectable"
             @click="() => {
