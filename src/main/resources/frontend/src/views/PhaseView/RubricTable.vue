@@ -79,6 +79,10 @@ const selectedTextResults = ref<string | undefined>(undefined);
 
 <style scoped>
 
+.rubric-container {
+  overflow-x: auto;
+}
+
 table, th, td {
   border: 2px solid #ddd;
 }
@@ -96,6 +100,8 @@ th {
 
 td {
   padding: 8px;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .selectable:hover {
