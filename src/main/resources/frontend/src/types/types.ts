@@ -42,7 +42,7 @@ export type Submission = {
     phase: Phase,
     score: number,
     notes: string,
-    rubric: TestResult,
+    rubric: Rubric,
     passed: boolean,
 }
 
