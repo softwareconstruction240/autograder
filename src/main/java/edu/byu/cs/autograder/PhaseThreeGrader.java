@@ -83,7 +83,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
 
         if (totalTests == 0)
-            throw new RuntimeException("No standard tests found in the test results");
+            return 0;
 
         return testResults.numTestsPassed / totalTests;
     }
