@@ -25,4 +25,13 @@ public class PhaseZeroGrader extends PassoffTestGrader {
 
         return rubric.passoffTests().results().testResults().numTestsFailed == 0;
     }
+
+    @Override
+    protected String getCanvasRubricId(Rubric.RubricType type) {
+        return switch (type) {
+            case PASSOFF_TESTS -> "_1958";
+            case UNIT_TESTS, QUALITY -> throw new RuntimeException(String.format("No %s item for this phase", type));
+        };
+    }
+
 }

@@ -4,16 +4,12 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public abstract class PassoffTestGrader extends Grader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
      * The path where the official tests are stored

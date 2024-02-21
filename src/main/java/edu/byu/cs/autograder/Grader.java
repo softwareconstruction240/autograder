@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -228,7 +229,7 @@ public abstract class Grader implements Runnable {
         );
 
         if (submission.passed()) {
-            sendToCanvas(submission);
+            sendToCanvas(submission, 1 - (numDaysLate * 0.1F));
         }
 
         submissionDao.insertSubmission(submission);
@@ -236,7 +237,7 @@ public abstract class Grader implements Runnable {
         return submission;
     }
 
-    private void sendToCanvas(Submission submission) {
+    private void sendToCanvas(Submission submission, float lateAdjustment) {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
@@ -244,10 +245,31 @@ public abstract class Grader implements Runnable {
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
-        float score = submission.score() * PhaseUtils.getTotalPoints(phase);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        Map<String, Float> scores = new HashMap<>();
+        Map<String, String> comments = new HashMap<>();
+        if(rubricConfig.passoffTests() != null) {
+            String id = getCanvasRubricId(Rubric.RubricType.PASSOFF_TESTS);
+            Rubric.Results results = submission.rubric().passoffTests().results();
+            scores.put(id, results.score() * lateAdjustment);
+            comments.put(id, results.notes());
+        }
+        if(rubricConfig.unitTests() != null) {
+            String id = getCanvasRubricId(Rubric.RubricType.UNIT_TESTS);
+            Rubric.Results results = submission.rubric().unitTests().results();
+            scores.put(id, results.score() * lateAdjustment);
+            comments.put(id, results.notes());
+        }
+        if(rubricConfig.quality() != null) {
+            String id = getCanvasRubricId(Rubric.RubricType.QUALITY);
+            Rubric.Results results = submission.rubric().quality().results();
+            scores.put(id, results.score() * lateAdjustment);
+            comments.put(id, results.notes());
+        }
+
 
         try {
-            CanvasIntegration.submitGrade(userId, assignmentNum, score, submission.notes());
+            CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
         } catch (CanvasException e) {
             LOGGER.error("Error submitting score for user " + submission.netId(), e);
         }
@@ -396,6 +418,8 @@ public abstract class Grader implements Runnable {
      * @return the annotated rubric
      */
     protected abstract Rubric annotateRubric(Rubric rubric);
+
+    protected abstract String getCanvasRubricId(Rubric.RubricType type);
 
     public interface Observer {
         void notifyStarted();
