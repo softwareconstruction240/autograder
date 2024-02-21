@@ -42,6 +42,30 @@ public class CanvasIntegration {
         sectionIDs.put(5, 25971);
     }
 
+    private record Enrollment(EnrollmentType type) {
+
+    }
+
+    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
+
+    }
+
+    public record RubricItem(String comments, float points) {}
+
+    public record RubricAssessment(Map<String, RubricItem> items) {}
+
+    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
+
+    }
+
+    private record CanvasSubmissionUser(String url, CanvasUser user) {
+
+    }
+
+    private record CanvasAssignment(ZonedDateTime due_at) {
+
+    }
+
     /**
      * Queries canvas for the user with the given netId
      *
@@ -283,30 +307,6 @@ public class CanvasIntegration {
 
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
-
-    }
-
-    private record Enrollment(EnrollmentType type) {
-
-    }
-
-    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
-
-    }
-
-    public record RubricItem(String comments, float points) {}
-
-    public record RubricAssessment(Map<String, RubricItem> items) {}
-
-    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
-
-    }
-
-    private record CanvasSubmissionUser(String url, CanvasUser user) {
-
-    }
-
-    private record CanvasAssignment(ZonedDateTime due_at) {
 
     }
 

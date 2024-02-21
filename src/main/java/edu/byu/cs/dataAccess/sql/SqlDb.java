@@ -55,6 +55,7 @@ public class SqlDb {
                                 `num_commits` INT,
                                 `notes` TEXT,
                                 `results` JSON,
+                                `rubric` JSON,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
                                     FOREIGN KEY (`net_id`)
@@ -77,21 +78,14 @@ public class SqlDb {
 
             connection.createStatement().executeUpdate(
                     """
-                            CREATE TABLE IF NOT EXISTS `phase_configuration` (
+                            CREATE TABLE IF NOT EXISTS `rubric_config` (
                                 `phase` VARCHAR(9) NOT NULL,
-                                `due_date_mountain_time` DATETIME NOT NULL,
-                                PRIMARY KEY (`phase`)
+                                `type` VARCHAR(15) NOT NULL,
+                                `category` TEXT NOT NULL,
+                                `criteria` TEXT NOT NULL,
+                                `points` INT NOT NULL,
+                                PRIMARY KEY (`phase`, `type`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
-            connection.createStatement().executeUpdate(
-                    """
-                            INSERT IGNORE INTO `phase_configuration` (`phase`, `due_date_mountain_time`) VALUES
-                                ('Phase0', '2006-01-02 15:04:05'),
-                                ('Phase1', '2006-01-02 15:04:05'),
-                                ('Phase3', '2006-01-02 15:04:05'),
-                                ('Phase4', '2006-01-02 15:04:05'),
-                                ('Phase6', '2006-01-02 15:04:05')
                             """);
 
         } catch (SQLException e) {
