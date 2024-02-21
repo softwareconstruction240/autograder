@@ -10,6 +10,10 @@ defineProps<{
 const selectedTestResults = ref<TestResult | undefined>(undefined);
 const selectedTextResults = ref<string | undefined>(undefined);
 
+const failedTests = (testResults: TestResult) => {
+  return testResults.numTestsFailed > 0 || testResults.numTestsPassed === 0;
+}
+
 </script>
 
 <template>
@@ -24,7 +28,7 @@ const selectedTextResults = ref<string | undefined>(undefined);
       </tr>
       <tr
           v-if="rubric.passoffTests"
-          :class="rubric.passoffTests.results.testResults.numTestsFailed > 0 &&'failed'"
+          :class="failedTests(rubric.passoffTests.results.testResults) && 'failed'"
       >
         <td>{{rubric.passoffTests.category}}</td>
         <td>{{rubric.passoffTests.criteria}}</td>
@@ -40,7 +44,7 @@ const selectedTextResults = ref<string | undefined>(undefined);
       </tr>
       <tr
           v-if="rubric.unitTests"
-          :class="rubric.unitTests.results.testResults.numTestsFailed > 0 && 'failed'"
+          :class="failedTests(rubric.unitTests.results.testResults) && 'failed'"
       >
         <td>{{rubric.unitTests.category}}</td>
         <td>{{rubric.unitTests.criteria}}</td>
