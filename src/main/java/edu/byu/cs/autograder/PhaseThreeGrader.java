@@ -36,12 +36,17 @@ public class PhaseThreeGrader extends PassoffTestGrader {
                 stagePath,
                 excludedTests);
 
-        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
-                new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
-                new File(stagePath, "tests"),
-                new HashSet<>()
+        TestAnalyzer.TestNode results;
+        if (!new File(stagePath, "tests").exists()) {
+            results = new TestAnalyzer.TestNode();
+            TestAnalyzer.TestNode.countTests(results);
+        } else
+            results = new TestHelper().runJUnitTests(
+                    new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
+                    new File(stagePath, "tests"),
+                    new HashSet<>()
 
-        );
+            );
 
         results.testName = CUSTOM_TESTS_NAME;
 
@@ -78,7 +83,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
 
         if (totalTests == 0)
-            throw new RuntimeException("No standard tests found in the test results");
+            return 0;
 
         return testResults.numTestsPassed / totalTests;
     }
