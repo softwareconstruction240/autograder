@@ -44,7 +44,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        return new Rubric.Results("", getUnitTestScore(results), rubricConfig.unitTests().points(), results, null);
+        return new Rubric.Results(getNotes(results), getUnitTestScore(results), rubricConfig.unitTests().points(), results, null);
     }
 
     @Override
@@ -55,9 +55,9 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
-//        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
-//            if (rubric.unitTests().results().score() < rubric.unitTests().results().possiblePoints())
-//                passed = false;
+        if (rubric.unitTests() != null && rubric.unitTests().results() != null)
+            if (rubric.unitTests().results().score() < rubric.unitTests().results().possiblePoints())
+                passed = false;
 
         // TODO: enable quality check
 //        if (rubric.quality() != null && rubric.quality().results() != null) {
@@ -74,6 +74,14 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             throw new RuntimeException("No standard tests found in the test results");
 
         return testResults.numTestsPassed / totalTests;
+    }
+
+    protected String getNotes(TestAnalyzer.TestNode testResults) {
+        return switch (testResults.numTestsFailed) {
+            case 0 -> "All tests passed";
+            case 1 -> "1 test failed. All tests must pass";
+            default -> testResults.numTestsFailed + " tests failed. All tests must pass";
+        };
     }
 
     @Override
