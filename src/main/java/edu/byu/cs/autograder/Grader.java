@@ -281,7 +281,8 @@ public abstract class Grader implements Runnable {
         try {
             CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
         } catch (CanvasException e) {
-            LOGGER.error("Error submitting score for user " + submission.netId(), e);
+            LOGGER.error("Error submitting to canvas for user " + submission.netId(), e);
+            throw new RuntimeException("Error contacting canvas to record scores");
         }
 
     }
