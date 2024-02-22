@@ -7,10 +7,9 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.QueueItem;
-import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
+import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,21 +65,22 @@ public class SubmissionController {
 
         // check for updated repoUrl
         String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
-        if ( !newRepoUrl.equals( user.repoUrl() ) ) {
+        if (!newRepoUrl.equals(user.repoUrl())) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
             DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user",user);
+            req.session().attribute("user", user);
         }
 
         String headHash;
         try {
             headHash = getRemoteHeadHash(user.repoUrl());
         } catch (Exception e) {
+            LOGGER.error("Error getting remote head hash", e);
             halt(400, "Invalid repo url");
             return null;
         }
         if (mostRecentHasMaxScore(netId, request.getPhase())) {
-            halt(400,"You have already earned the highest possible score on this phase");
+            halt(400, "You have already earned the highest possible score on this phase");
             return null;
         }
         Submission submission = getMostRecentSubmission(netId, request.getPhase());
@@ -94,7 +94,7 @@ public class SubmissionController {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
                         netId,
-                        Phase.valueOf("Phase"+request.phase()),
+                        Phase.valueOf("Phase" + request.phase()),
                         Instant.now(),
                         false
                 )
@@ -103,7 +103,7 @@ public class SubmissionController {
         TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
-            Grader grader = getGrader(netId, Phase.valueOf("Phase"+request.phase()), user.repoUrl());
+            Grader grader = getGrader(netId, Phase.valueOf("Phase" + request.phase()), user.repoUrl());
 
             TrafficController.getInstance().addGrader(grader);
 
@@ -121,22 +121,29 @@ public class SubmissionController {
 
     /**
      * checks to see if the specified student achieved the highest possible grade on the specified phase on their most recent submission
+     *
      * @param netId netId of the student to check
      * @param phase phase of the project to check
      * @return true if the student's latest submission has the max score.
      * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
      */
     private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
-        Submission mostRecent = getMostRecentSubmission(netId, phase);
-        if (mostRecent == null) { return false; }
+//        Submission mostRecent = getMostRecentSubmission(netId, phase);
+//        if (mostRecent == null) {
+//            return false;
+//        }
+//
+//        // If they passed the required tests, and there are no extra credit tests they haven't passed,
+//        // then by definition they can't get a higher score
+//        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
 
-        // If they passed the required tests, and there are no extra credit tests they haven't passed,
-        // then by definition they can't get a higher score
-        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
+        //FIXME: this needs to be reworked to use the Rubric format
+        return false;
     }
 
     /**
      * gets the most recent submission for the specified user in the specified phase
+     *
      * @param netId the netID of the student to get a submission for
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
@@ -203,8 +210,7 @@ public class SubmissionController {
 
         Collection<String> currentlyGrading = TrafficController.sessions.keySet()
                 .stream()
-            .filter(netId -> !inQueue.contains(netId)).toList();
-
+                .filter(netId -> !inQueue.contains(netId)).toList();
 
 
         res.status(200);
@@ -265,11 +271,14 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyDone(TestAnalyzer.TestNode results) {
+            public void notifyDone(Submission submission) {
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                        .create();
                 try {
                     TrafficController.getInstance().notifySubscribers(netId, Map.of(
                             "type", "results",
-                            "results", new Gson().toJson(results)
+                            "results", gson.toJson(submission)
                     ));
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);
@@ -300,6 +309,39 @@ public class SubmissionController {
             return output.split("\\s+")[0];
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static Route submissionsReRunPost = (req, res) -> {
+        reRunSubmissionsInQueue();
+
+        res.status(200);
+        res.type("application/json");
+
+        return new Gson().toJson(Map.of(
+                "message", "re-running submissions in queue"
+        ));
+    };
+
+
+    /**
+     * Takes any submissions currently in the queue and reruns them through the grader.
+     * Used if the queue got stuck or if the server crashed while submissions were
+     * waiting in the queue.
+     */
+    public static void reRunSubmissionsInQueue() throws IOException {
+        QueueDao queueDao = DaoService.getQueueDao();
+        UserDao userDao = DaoService.getUserDao();
+        Collection<QueueItem> inQueue = queueDao.getAll();
+
+        for (QueueItem queueItem : inQueue) {
+            User currentUser = userDao.getUser(queueItem.netId());
+            queueDao.markNotStarted(queueItem.netId());
+
+            TrafficController.getInstance().addGrader(
+                    getGrader(queueItem.netId(),
+                            queueItem.phase(),
+                            currentUser.repoUrl() ));
         }
     }
 }

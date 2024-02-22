@@ -12,6 +12,28 @@ export type TestResult = {
     numExtraCreditFailed: number,
 }
 
+export type RubricItemResults = {
+    notes: string,
+    score: number,
+    possiblePoints: number,
+    testResults: TestResult,
+    textResults: string,
+}
+
+export type RubricItem = {
+    category: string,
+    criteria: string,
+    results: RubricItemResults,
+}
+
+export type Rubric = {
+    passoffTests: RubricItem,
+    unitTests: RubricItem,
+    quality: RubricItem,
+    passed: boolean,
+    notes: string,
+}
+
 export type Submission = {
     netId: string,
     repoUrl: string,
@@ -20,7 +42,7 @@ export type Submission = {
     phase: Phase,
     score: number,
     notes: string,
-    testResults: TestResult,
+    rubric: Rubric,
     passed: boolean,
 }
 

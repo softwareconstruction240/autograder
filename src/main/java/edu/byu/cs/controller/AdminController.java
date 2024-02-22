@@ -5,10 +5,13 @@ import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
@@ -108,5 +111,32 @@ public class AdminController {
         res.status(200);
 
         return data;
+    };
+
+    public static Route honorCheckerZipGet = (req, res) -> {
+        String sectionStr = req.params(":section");
+        String filePath;
+
+        res.header("Content-Type", "application/zip");
+        res.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
+
+        try {
+            filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
+            try (FileInputStream fis = new FileInputStream(filePath);
+                 OutputStream os = res.raw().getOutputStream()) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+
+                res.status(200);
+                return res.raw();
+            }
+        } catch (Exception e) {
+            res.status(500);
+            return e.getMessage();
+        }
     };
 }

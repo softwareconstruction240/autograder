@@ -5,6 +5,7 @@ services:
     image: mysql:latest
     profiles:
       - with-db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "root"
     volumes:
@@ -17,6 +18,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      - CANVAS_AUTHORIZATION_KEY=
 
 volumes:
     db-data:

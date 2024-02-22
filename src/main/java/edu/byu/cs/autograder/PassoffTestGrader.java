@@ -1,21 +1,20 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public abstract class PassoffTestGrader extends Grader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
      * The path where the official tests are stored
      */
-    private final File phaseTests;
+    protected final File phaseTests;
 
     /**
      * The path where the compiled tests are stored (and ran)
@@ -60,134 +59,49 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected void runCustomTests() {
+    protected Rubric.Results runCustomTests() {
         // no unit tests for this phase
+        return null;
     }
 
     @Override
     protected void compileTests() {
         observer.update("Compiling tests...");
-
-        // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and find
-        // to get the files
-
-        // absolute path to student's chess jar
-        String chessJarWithDeps;
-        try {
-            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module +"-jar-with-dependencies.jar")
-                    .getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        ProcessBuilder processBuilder =
-                new ProcessBuilder()
-                        .directory(phaseTests)
-//                        .inheritIO() // TODO: implement better logging
-                        .command("find",
-                                "passoffTests",
-                                "-name",
-                                "*.java",
-                                "-exec",
-                                "javac",
-                                "-d",
-                                stagePath + "/tests",
-                                "-cp",
-                                ".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" +
-                                        junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                                "{}",
-                                ";");
-
-        try {
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
-                observer.notifyError("exited with non-zero exit code");
-                LOGGER.error("exited with non-zero exit code");
-                throw new RuntimeException("exited with non-zero exit code");
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        observer.update("Successfully compiled tests");
+        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
+        observer.update("Finished compiling tests.");
     }
 
     @Override
-    protected TestAnalyzer.TestNode runTests() {
+    protected Rubric.Results runTests() {
         observer.update("Running tests...");
 
-        // Process cannot handle relative paths or wildcards,
-        // so we need to only use absolute paths and find
-        // to get the files
-        String chessJarWithDeps = new File(stageRepoPath, module + "/target/" + module + "-jar-with-dependencies.jar").getAbsolutePath();
+        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
+                new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
+                stageTestsPath,
+                extraCreditTests
+        );
 
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .directory(stageTestsPath)
-                .command("java",
-                        "-jar",
-                        standaloneJunitJarPath,
-                        "--class-path",
-                        ".:" + chessJarWithDeps + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                        "--scan-class-path",
-                        "--details=testfeed");
+        results.testName = PASSOFF_TESTS_NAME;
 
-        try {
-            Process process = processBuilder.start();
+        float score = getPassoffScore(results);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-            if (!process.waitFor(30000, TimeUnit.MILLISECONDS)) {
-                observer.notifyError("Tests took too long to run, come see a TA for more info");
-                LOGGER.error("Tests took too long to run, come see a TA for more info");
-                throw new RuntimeException("Tests took too long to run, come see a TA for more info");
-            }
-
-            String output = getOutputFromProcess(process);
-
-            TestAnalyzer testAnalyzer = new TestAnalyzer();
-
-            return testAnalyzer.parse(output.split("\n"), extraCreditTests);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return new Rubric.Results(getNotes(results), score, rubricConfig.passoffTests().points(), results, null);
     }
 
-    private static String getOutputFromProcess(Process process) throws IOException {
-        String output;
-
-        InputStream is = process.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        {
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
-            }
-
-            output = sb.toString();
-        }
-        return output;
-    }
-
-    @Override
-    protected float getScore(TestAnalyzer.TestNode results) {
-        if (results == null)
-            return 0;
-
-        int totalStandardTests = results.numTestsFailed + results.numTestsPassed;
-        int totalECTests = results.numExtraCreditPassed + results.numExtraCreditFailed;
+    protected float getPassoffScore(TestAnalyzer.TestNode testResults) {
+        float totalStandardTests = testResults.numTestsFailed + testResults.numTestsPassed;
+        float totalECTests = testResults.numExtraCreditPassed + testResults.numExtraCreditFailed;
 
         if (totalStandardTests == 0)
             return 0;
 
-        float score = (float) results.numTestsPassed / totalStandardTests;
+        float score = testResults.numTestsPassed / totalStandardTests;
         if (totalECTests == 0) return score;
 
         // extra credit calculation
         if (score < 1f) return score;
-        Map<String, Float> ecScores = getECScores(results);
+        Map<String, Float> ecScores = getECScores(testResults);
         for (String category : extraCreditTests) {
             if (ecScores.get(category) == 1f) {
                 score += extraCreditValue;
@@ -217,20 +131,53 @@ public abstract class PassoffTestGrader extends Grader {
         return scores;
     }
 
-    @Override
-    protected String getNotes(TestAnalyzer.TestNode results, boolean passed, int numDaysLate) {
+    protected String getNotes(TestAnalyzer.TestNode results) {
+
+        StringBuilder notes = new StringBuilder();
+
         if (results == null)
             return "No tests were run";
 
-        if (passed && numDaysLate == 0)
-            return "All tests passed";
+        if (results.numTestsFailed == 0)
+            notes.append("All required tests passed");
+        else
+            notes.append("Some required tests failed");
 
-        if (passed & numDaysLate > 0)
-            return "All tests passed, but " + numDaysLate + " day"+ (numDaysLate > 1 ? "s" : "") +" late. (-" + Math.min(50, numDaysLate * 10) + "%)";
+        Map<String, Float> ecScores = getECScores(results);
+        float totalECPoints = ecScores.values().stream().reduce(0f, Float::sum) * extraCreditValue ;
 
-        if (getScore(results) != 1)
-            return "Some tests failed. You must pass all tests to pass off this phase";
+        if (totalECPoints > 0f)
+            notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
 
-        return results.toString();
+        return notes.toString();
     }
+
+    @Override
+    protected Rubric.Results runQualityChecks() {
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        if(rubricConfig.quality() == null) return null;
+        observer.update("Running code quality...");
+
+        QualityAnalyzer analyzer = new QualityAnalyzer();
+
+        QualityAnalyzer.QualityAnalysis analysis = analyzer.runQualityChecks(stageRepo);
+
+        float score = analyzer.getScore(analysis);
+        String results = analyzer.getResults(analysis);
+        String notes = analyzer.getNotes(analysis);
+
+        return new Rubric.Results(notes, score, rubricConfig.quality().points(), null, results);
+    }
+
+    @Override
+    protected Rubric annotateRubric(Rubric rubric) {
+        return new Rubric(
+                rubric.passoffTests(),
+                rubric.unitTests(),
+                rubric.quality(),
+                passed(rubric),
+                rubric.notes()
+        );
+    }
+
 }

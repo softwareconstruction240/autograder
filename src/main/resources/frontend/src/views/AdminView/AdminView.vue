@@ -4,10 +4,10 @@ import Tabs from "@/components/tabs/Tabs.vue";
 import Tab from "@/components/tabs/Tab.vue";
 import SubmissionsView from "@/views/AdminView/Submissions.vue";
 import Exceptions from "@/views/AdminView/Exceptions.vue";
-import Admins from "@/views/AdminView/Admins/Admins.vue";
 import {testStudentModeGet} from "@/services/adminService";
 import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 import Analytics from "@/views/AdminView/Analytics.vue";
+import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -35,16 +35,11 @@ const activateTestStudentMode = async () => {
       <Tab title="Queue Status">
         <QueueStatus/>
       </Tab>
-      <Tab title="Admins">
-        <Suspense>
-          <Admins/>
-          <template #fallback>
-            <div>Loading...</div>
-          </template>
-        </Suspense>
-      </Tab>
       <Tab title="Analytics">
         <Analytics/>
+      </Tab>
+      <Tab title="Honor Checker">
+        <HonorChecker/>
       </Tab>
     </Tabs>
   </div>
