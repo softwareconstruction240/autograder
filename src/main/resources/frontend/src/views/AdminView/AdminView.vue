@@ -8,6 +8,9 @@ import {testStudentModeGet} from "@/services/adminService";
 import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 import Analytics from "@/views/AdminView/Analytics.vue";
 import HonorChecker from "@/views/AdminView/HonorChecker.vue";
+import {useAdminStore} from "@/stores/admin";
+
+useAdminStore().updateUsers();
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()

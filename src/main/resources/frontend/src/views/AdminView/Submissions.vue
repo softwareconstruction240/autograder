@@ -22,6 +22,10 @@ const getNameFromSubmission = (submission: Submission) => {
 
 const selectedRubric = ref<Rubric | null>(null);
 
+const roundTwoDecimals = (num: number) => {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
 </script>
 
 <template>
@@ -43,7 +47,7 @@ const selectedRubric = ref<Rubric | null>(null);
       <td>{{ submission.netId }}</td>
       <td>{{ submission.phase }}</td>
       <td>{{ readableTimestamp(submission.timestamp) }}</td>
-      <td>{{ submission.score * 100 }}%</td>
+      <td>{{ roundTwoDecimals(submission.score * 100) }}%</td>
       <td>{{ submission.notes }}</td>
       <td
           @click="() => {
