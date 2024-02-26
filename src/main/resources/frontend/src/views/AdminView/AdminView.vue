@@ -9,6 +9,7 @@ import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 import Analytics from "@/views/AdminView/Analytics.vue";
 import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 import {useAdminStore} from "@/stores/admin";
+import LiveLogs from "@/views/AdminView/LiveLogs.vue";
 
 useAdminStore().updateUsers();
 
@@ -32,8 +33,8 @@ const activateTestStudentMode = async () => {
       <Tab title="Submissions">
         <SubmissionsView/>
       </Tab>
-      <Tab disabled title="Exceptions">
-        <Exceptions/>
+      <Tab title="Logs">
+        <LiveLogs/>
       </Tab>
       <Tab title="Queue Status">
         <QueueStatus/>
