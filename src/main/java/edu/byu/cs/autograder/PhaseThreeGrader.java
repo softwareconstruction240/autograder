@@ -4,6 +4,8 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PhaseThreeGrader extends PassoffTestGrader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseThreeGrader.class);
 
     private static final int MIN_UNIT_TESTS = 13;
 
@@ -47,6 +51,12 @@ public class PhaseThreeGrader extends PassoffTestGrader {
                     new HashSet<>()
 
             );
+
+        if (results == null) {
+            results = new TestAnalyzer.TestNode();
+            TestAnalyzer.TestNode.countTests(results);
+            LOGGER.error("Tests failed to run for " + netId + " in phase 3");
+        }
 
         results.testName = CUSTOM_TESTS_NAME;
 
