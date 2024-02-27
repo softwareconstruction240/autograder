@@ -93,10 +93,8 @@ public class TestHelper {
         commands.add("-name");
         commands.add("*.java");
 
-        if (!excludedTests.isEmpty())
-            commands.add("-not");
-
         for (String excludedTest : excludedTests) {
+            commands.add("-not");
             commands.add("-name");
             commands.add(excludedTest);
         }
