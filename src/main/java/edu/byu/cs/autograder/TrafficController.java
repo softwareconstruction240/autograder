@@ -42,7 +42,9 @@ public class TrafficController {
      */
     public static void broadcastQueueStatus() {
 
-        Collection<String> netIdsInQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
+        Collection<String> netIdsInQueue = DaoService.getQueueDao().getAll().stream()
+                .filter(queueItem -> !queueItem.started())
+                .map(QueueItem::netId).toList();
 
         int i = 1;
         for (String netId : netIdsInQueue) {
