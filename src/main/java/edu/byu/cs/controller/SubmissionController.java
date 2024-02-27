@@ -206,11 +206,9 @@ public class SubmissionController {
     };
 
     public static Route submissionsActiveGet = (req, res) -> {
-        Collection<String> inQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
+        List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
 
-        Collection<String> currentlyGrading = TrafficController.sessions.keySet()
-                .stream()
-                .filter(netId -> !inQueue.contains(netId)).toList();
+        List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
 
 
         res.status(200);
