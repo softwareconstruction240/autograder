@@ -93,8 +93,8 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
         return switch (testResults.numTestsFailed) {
             case 0 -> "All tests passed";
-            case 1 -> "1 test failed. All tests must pass";
-            default -> testResults.numTestsFailed + " tests failed. All tests must pass";
+            case 1 -> "1 test failed";
+            default -> testResults.numTestsFailed + " tests failed";
         };
     }
 
