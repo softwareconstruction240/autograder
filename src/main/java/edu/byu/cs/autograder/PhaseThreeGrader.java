@@ -73,20 +73,6 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
-        if (rubric.unitTests() != null && rubric.unitTests().results() != null) {
-            Rubric.Results unitTestResults = rubric.unitTests().results();
-            if (unitTestResults.score() < unitTestResults.possiblePoints())
-                passed = false;
-            if (unitTestResults.testResults().numTestsPassed + unitTestResults.testResults().numTestsFailed < MIN_UNIT_TESTS)
-                passed = false;
-        }
-
-        // TODO: enable quality check
-//        if (rubric.quality() != null && rubric.quality().results() != null) {
-//            if (rubric.quality().results().score() < 1)
-//                passed = false;
-//        }
-
         return passed;
     }
     protected float getUnitTestScore(TestAnalyzer.TestNode testResults) {
@@ -95,13 +81,15 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         if (totalTests == 0)
             return 0;
 
+        if (totalTests < MIN_UNIT_TESTS)
+            return (float) testResults.numTestsPassed / MIN_UNIT_TESTS;
+
         return testResults.numTestsPassed / totalTests;
     }
 
     protected String getNotes(TestAnalyzer.TestNode testResults) {
         if (testResults.numTestsPassed + testResults.numTestsFailed < MIN_UNIT_TESTS)
             return "Not enough tests: each service method should have a positive and negative test";
-
 
         return switch (testResults.numTestsFailed) {
             case 0 -> "All tests passed";
