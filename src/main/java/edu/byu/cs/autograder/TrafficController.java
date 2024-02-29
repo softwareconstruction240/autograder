@@ -5,9 +5,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.QueueItem;
 import org.eclipse.jetty.websocket.api.Session;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,14 +40,19 @@ public class TrafficController {
      */
     public static void broadcastQueueStatus() {
 
-        Collection<String> netIdsInQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
+        List<QueueItem> usersWaitingInQueue = new ArrayList<>();
+        for (QueueItem item : DaoService.getQueueDao().getAll())
+            if (!item.started())
+                usersWaitingInQueue.add(item);
+
+        usersWaitingInQueue.sort(Comparator.comparing(QueueItem::timeAdded));
 
         int i = 1;
-        for (String netId : netIdsInQueue) {
-            getInstance().notifySubscribers(netId, Map.of(
+        for (QueueItem item : usersWaitingInQueue) {
+            getInstance().notifySubscribers(item.netId(), Map.of(
                     "type", "queueStatus",
                     "position", i,
-                    "total", netIdsInQueue.size()
+                    "total", usersWaitingInQueue.size()
             ));
             i++;
         }

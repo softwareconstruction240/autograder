@@ -283,12 +283,16 @@ public abstract class Grader implements Runnable {
                 headHash,
                 handInDate.toInstant(),
                 phase,
-                passed(rubric),
+                rubric.passed(),
                 score,
                 numCommits,
                 notes,
                 rubric
         );
+
+        if (submission.rubric().passed()) {
+            sendToCanvas(submission, 1 - (numDaysLate * 0.1F));
+        }
 
         submissionDao.insertSubmission(submission);
         return submission;
