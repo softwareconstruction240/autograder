@@ -179,11 +179,11 @@ public abstract class Grader implements Runnable {
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
 
             Submission thisSubmission;
-            float highestScore = DaoService.getSubmissionDao().getBestScoreForPhase(netId, phase);
+            float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
             if (thisScore <= highestScore) {
-                String notes = "Submission did not score higher than previous submissions. Score not saved to Canvas.\n";
+                String notes = "Submission did not improve current score. (" + (highestScore * 100) + "%) Score not saved to Canvas.\n";
                 thisSubmission = saveResults(rubric, numCommits,daysLate, thisScore, notes);
             } else {
                 thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
@@ -198,6 +198,25 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             FileUtils.removeDirectory(new File(stagePath));
+        }
+    }
+
+    /**
+     * gets the score stored in canvas for the current user and phase
+     * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
+     */
+    private float getCanvasScore() {
+        User user = DaoService.getUserDao().getUser(netId);
+
+        int userId = user.canvasUserId();
+
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        try {
+            CanvasIntegration.CanvasSubmission submission = CanvasIntegration.getSubmission(userId, assignmentNum);
+            int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
+            return submission.score() / totalPossiblePoints;
+        } catch (CanvasException e) {
+            throw new RuntimeException(e);
         }
     }
 
