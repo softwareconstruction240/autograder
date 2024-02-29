@@ -179,15 +179,10 @@ public abstract class Grader implements Runnable {
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
 
             Submission thisSubmission;
-            float recentScore;
-            Submission recentSubmission = SubmissionController.getMostRecentSubmission(netId,phase);
-            if (recentSubmission != null) {
-                recentScore = recentSubmission.score();
-            } else {
-                recentScore = 0;
-            }
+            float highestScore = DaoService.getSubmissionDao().getBestScoreForPhase(netId, phase);
 
-            if (thisScore <= recentScore) {
+            // prevent score from being saved to canvas if it will lower their score
+            if (thisScore <= highestScore) {
                 String notes = "Submission did not score higher than previous submissions. Score not saved to Canvas.\n";
                 thisSubmission = saveResults(rubric, numCommits,daysLate, thisScore, notes);
             } else {
