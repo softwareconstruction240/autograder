@@ -1,18 +1,17 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
 
 /**
  * A helper class for running common test operations
@@ -165,5 +164,15 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
         return testFileNames;
+    }
+
+    public static boolean checkIfPassedPassoffTests(Rubric rubric) {
+        boolean passed = true;
+
+        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
+            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
+                passed = false;
+
+        return passed;
     }
 }

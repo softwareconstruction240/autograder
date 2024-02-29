@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static edu.byu.cs.autograder.TestHelper.checkIfPassedPassoffTests;
+
 public class PhaseThreeGrader extends PassoffTestGrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhaseThreeGrader.class);
@@ -67,13 +69,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
 
     @Override
     protected boolean passed(Rubric rubric) {
-        boolean passed = true;
-
-        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
-                passed = false;
-
-        return passed;
+        return checkIfPassedPassoffTests(rubric);
     }
     protected float getUnitTestScore(TestAnalyzer.TestNode testResults) {
         float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
