@@ -83,6 +83,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         return testResults.numTestsPassed / totalTests;
     }
 
+    @Override
     protected String getNotes(TestAnalyzer.TestNode testResults) {
         if (testResults.numTestsPassed + testResults.numTestsFailed < MIN_UNIT_TESTS)
             return "Not enough tests: each service method should have a positive and negative test";
