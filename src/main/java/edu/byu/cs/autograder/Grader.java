@@ -274,7 +274,7 @@ public abstract class Grader implements Runnable {
     private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
                                        RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
                                        Map<String, String> comments, Rubric.RubricType rubricType) {
-        if (rubricConfigItem != null) {
+        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
             String id = getCanvasRubricId(rubricType);
             Rubric.Results results = rubricItem.results();
             scores.put(id, results.score() * lateAdjustment);
