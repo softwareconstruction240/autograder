@@ -38,7 +38,6 @@ public class QualityAnalyzer {
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
         output = output.replaceAll(stageRepo.getPath(), "");
-        output = output.replaceAll("repo/", "");
 
         QualityAnalysis analysis = parseAnalysis(output);
         float score = getScore(analysis);
