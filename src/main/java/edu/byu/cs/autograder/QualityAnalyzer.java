@@ -30,7 +30,7 @@ public class QualityAnalyzer {
     }
 
 
-    public QualityAnalysis runQualityChecks(File stageRepo) {
+    public QualityOutput runQualityChecks(File stageRepo) {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
 
@@ -40,11 +40,15 @@ public class QualityAnalyzer {
         output = output.replaceAll(stageRepo.getPath(), "");
         output = output.replaceAll("repo/", "");
 
-        return parseOutput(output);
+        QualityAnalysis analysis = parseAnalysis(output);
+        float score = getScore(analysis);
+        String results = getResults(analysis);
+        String notes = getNotes(analysis);
+        return new QualityOutput(score, results, notes);
     }
 
 
-    private QualityAnalysis parseOutput(String output) {
+    private QualityAnalysis parseAnalysis(String output) {
         Map<String, List<String>> errors = new HashMap<>();
         List<String> warnings = new ArrayList<>();
         String[] lines = output.split("\n");
@@ -64,8 +68,7 @@ public class QualityAnalyzer {
         return new QualityAnalysis(errors, warnings);
     }
 
-
-    public float getScore(QualityAnalysis analysis) {
+    private float getScore(QualityAnalysis analysis) {
         float totalPoints = 0;
         float earnedPoints = 0;
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
@@ -75,18 +78,34 @@ public class QualityAnalyzer {
         return earnedPoints / totalPoints;
     }
 
+    private String getResults(QualityAnalysis analysis) {
+        StringBuilder resultsBuilder = new StringBuilder();
+        for (QualityRubricCategory category : qualityRubricItems.categories()) {
+            StringBuilder categoryResultsBuilder = new StringBuilder();
+            for (QualityRubricItem item : category.items()) {
+                for (QualityRubricReporter reporter : item.reporters()) {
+                    StringBuilder reporterResultsBuilder = new StringBuilder();
+                    if (analysis.errors().containsKey(reporter.name())) {
+                        analysis.errors().get(reporter.name())
+                                .forEach(s -> reporterResultsBuilder.append("\t\t").append(s).append("\n"));
+                    }
+                    if (!reporterResultsBuilder.isEmpty()) {
+                        categoryResultsBuilder.append("\t").append(reporter.name()).append(":\n")
+                                .append(reporterResultsBuilder);
+                    }
+                }
+            }
+            if (!categoryResultsBuilder.isEmpty()) {
+                resultsBuilder.append(category.name()).append(":\n").append(categoryResultsBuilder);
+            }
+        }
 
-    public String getResults(QualityAnalysis analysis) {
-        StringBuilder builder = new StringBuilder();
-        analysis.errors().values().forEach(errorList -> errorList.forEach(s -> builder.append(s).append("\n")));
-        analysis.warnings().forEach(s -> builder.append(s).append("\n"));
-        if (!builder.isEmpty()) builder.deleteCharAt(builder.length() - 1);
-        if(builder.isEmpty()) builder.append("Good job!");
-        return builder.toString();
+        if (resultsBuilder.isEmpty()) resultsBuilder.append("Good job!");
+        else resultsBuilder.deleteCharAt(resultsBuilder.length() - 1);
+        return resultsBuilder.toString();
     }
 
-
-    public String getNotes(QualityAnalysis analysis) {
+    private String getNotes(QualityAnalysis analysis) {
         StringBuilder builder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             float categoryPoints = getCategoryPoints(analysis, category);
@@ -113,9 +132,11 @@ public class QualityAnalyzer {
     }
 
 
-    public record QualityAnalysis(Map<String, List<String>> errors, List<String> warnings) {}
+    public record QualityOutput(float score, String results, String notes) {}
 
-    private record QualityRubricReporter(String name, int weight){}
+    private record QualityAnalysis(Map<String, List<String>> errors, List<String> warnings) {}
+
+    private record QualityRubricReporter(String name, int weight) {}
 
     private record QualityRubricItem(Set<QualityRubricReporter> reporters, int weight) {}
 
