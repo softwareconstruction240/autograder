@@ -4,10 +4,10 @@ import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
-import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
@@ -258,25 +258,9 @@ public abstract class Grader implements Runnable {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Map<String, Float> scores = new HashMap<>();
         Map<String, String> comments = new HashMap<>();
-        if(rubricConfig.passoffTests() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.PASSOFF_TESTS);
-            Rubric.Results results = submission.rubric().passoffTests().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-        if(rubricConfig.unitTests() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.UNIT_TESTS);
-            Rubric.Results results = submission.rubric().unitTests().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-        if(rubricConfig.quality() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.QUALITY);
-            Rubric.Results results = submission.rubric().quality().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-
+        convertToCanvasFormat(submission.rubric().passoffTests(), lateAdjustment, rubricConfig.passoffTests(), scores, comments, Rubric.RubricType.PASSOFF_TESTS);
+        convertToCanvasFormat(submission.rubric().unitTests(), lateAdjustment, rubricConfig.unitTests(), scores, comments, Rubric.RubricType.UNIT_TESTS);
+        convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
 
         try {
             CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
@@ -285,6 +269,17 @@ public abstract class Grader implements Runnable {
             throw new RuntimeException("Error contacting canvas to record scores");
         }
 
+    }
+
+    private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
+                                       RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
+                                       Map<String, String> comments, Rubric.RubricType rubricType) {
+        if (rubricConfigItem != null) {
+            String id = getCanvasRubricId(rubricType);
+            Rubric.Results results = rubricItem.results();
+            scores.put(id, results.score() * lateAdjustment);
+            comments.put(id, results.notes());
+        }
     }
 
     private String getHeadHash() {
