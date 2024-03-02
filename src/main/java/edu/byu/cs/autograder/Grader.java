@@ -20,16 +20,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -137,6 +138,7 @@ public abstract class Grader implements Runnable {
             verifyProjectStructure();
 
             injectDatabaseConfig();
+            cleanupDatabase();
             modifyPoms();
 
             packageRepo();
@@ -181,6 +183,35 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             FileUtils.removeDirectory(new File(stagePath));
+        }
+    }
+
+    private void cleanupDatabase() {
+        String dbPropertiesPath = new File("./phases/phase4/resources/db.properties").getAbsolutePath();
+        Properties dbProperties = new Properties();
+        try (InputStream input = Files.newInputStream(Path.of(dbPropertiesPath))) {
+            dbProperties.load(input);
+
+        } catch (IOException ex) {
+            LOGGER.error("Error loading properties file", ex);
+            System.exit(1);
+        }
+
+        String dbHost = dbProperties.getProperty("db.host");
+        String dbPort = dbProperties.getProperty("db.port");
+        String dbUser = dbProperties.getProperty("db.user");
+        String dbPassword = dbProperties.getProperty("db.password");
+        String dbName = dbProperties.getProperty("db.name");
+
+        String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
+
+        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword)) {
+            connection.createStatement().executeUpdate(
+                    "DROP DATABASE IF EXISTS " + dbName
+            );
+        } catch (SQLException e) {
+            LOGGER.error("Failed to cleanup database", e);
+            throw new RuntimeException("Failed to cleanup environment", e);
         }
     }
 
