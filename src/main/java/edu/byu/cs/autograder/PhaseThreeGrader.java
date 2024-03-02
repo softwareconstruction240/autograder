@@ -33,6 +33,11 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     }
 
     @Override
+    protected Set<String> getPackagesToTest() {
+        return Set.of("passoffTests.serverTests");
+    }
+
+    @Override
     protected Rubric.Results runCustomTests() {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
@@ -50,9 +55,8 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             results = new TestHelper().runJUnitTests(
                     new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
                     new File(stagePath, "tests"),
-                    new HashSet<>()
-
-            );
+                    Set.of("serviceTests"),
+                    new HashSet<>());
 
         if (results == null) {
             results = new TestAnalyzer.TestNode();
