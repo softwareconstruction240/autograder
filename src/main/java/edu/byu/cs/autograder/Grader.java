@@ -130,6 +130,10 @@ public abstract class Grader implements Runnable {
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
+
+            injectDatabaseConfig();
+            modifyPoms();
+
             packageRepo();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
@@ -172,6 +176,30 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             FileUtils.removeDirectory(new File(stagePath));
+        }
+    }
+
+
+    private void modifyPoms() {
+        File serverPom = new File(stageRepo, "server/pom.xml");
+        try {
+            removeLineFromFile(serverPom, "<scope>test</scope>");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to modify server pom.xml", e);
+        }
+    }
+
+
+    void injectDatabaseConfig() {
+        File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
+        if (dbProperties.exists())
+            dbProperties.delete();
+
+        File dbPropertiesSource = new File("./phases/phase4/resources/db.properties");
+        try {
+            Files.copy(dbPropertiesSource.toPath(), dbProperties.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
