@@ -1,0 +1,53 @@
+{
+  "items": [
+    {
+      "phase": "Phase0",
+      "type": "PASSOFF_TESTS",
+      "category": "Functionality",
+      "criteria": "All pass off test cases succeed",
+      "points": 125
+    },
+    {
+      "phase": "Phase1",
+      "type": "PASSOFF_TESTS",
+      "category": "Functionality",
+      "criteria": "All pass off test cases succeed",
+      "points": 125
+    },
+    {
+      "phase": "Phase3",
+      "type": "PASSOFF_TESTS",
+      "category": "Web API Works",
+      "criteria": "All pass off test cases in StandardAPITests.java succeed",
+      "points": 125
+    },
+    {
+      "phase": "Phase3",
+      "type": "QUALITY",
+      "category": "Code Quality",
+      "criteria": "Chess Code Quality Rubric (see GitHub)",
+      "points": 30
+    },
+    {
+      "phase": "Phase3",
+      "type": "UNIT_TESTS",
+      "category": "Unit Tests",
+      "criteria": "All test cases pass\nEach public method on your Service classes has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type",
+      "points": 25
+    },
+    {
+      "phase": "Phase4",
+      "type": "PASSOFF_TESTS",
+      "category": "Functionality",
+      "criteria": "All pass off test cases succeed",
+      "points": 100
+    },
+    {
+      "phase": "Phase4",
+      "type": "UNIT_TESTS",
+      "category": "Unit Tests",
+      "criteria": "All test cases pass\nEach public method on DAO classes has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type",
+      "points": 25
+    }
+  ]
+}
