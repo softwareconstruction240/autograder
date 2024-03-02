@@ -20,11 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -145,7 +150,7 @@ public abstract class Grader implements Runnable {
             compileTests();
             Rubric.Results passoffResults = null;
             if(rubricConfig.passoffTests() != null) {
-                passoffResults = runTests();
+                passoffResults = runTests(getPackagesToTest());
             }
             Rubric.Results customTestsResults = null;
             if(rubricConfig.unitTests() != null) {
@@ -179,6 +184,7 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    protected abstract Set<String> getPackagesToTest();
 
     private void modifyPoms() {
         File serverPom = new File(stageRepo, "server/pom.xml");
@@ -189,6 +195,25 @@ public abstract class Grader implements Runnable {
         }
     }
 
+    public static void removeLineFromFile(File file, String searchText) throws IOException {
+        Path path = file.toPath();
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+
+        int indexToRemove = -1;
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains(searchText)) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove != -1) {
+            lines.remove(indexToRemove);
+
+            Files.write(path, lines, StandardCharsets.UTF_8);
+            System.out.println("Removed: " + searchText);
+        }
+    }
 
     void injectDatabaseConfig() {
         File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
@@ -422,7 +447,7 @@ public abstract class Grader implements Runnable {
     /**
      * Runs the tests on the student code
      */
-    protected abstract Rubric.Results runTests();
+    protected abstract Rubric.Results runTests(Set<String> packagesToTest);
 
     /**
      * Gets the score for the phase
