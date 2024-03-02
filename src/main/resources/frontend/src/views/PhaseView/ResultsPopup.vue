@@ -48,7 +48,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
     <div class="results-popup">
       <h2>Results</h2>
       <div v-if="testResults" v-html="prettifyResults(testResults, '')"></div>
-      <div v-if="textResults" v-html="textResults.replace(/\n/g, '<br />')"></div>
+      <div style="white-space: pre" v-if="textResults" v-html="textResults.replace(/\n/g, '<br />')"></div>
     </div>
   </PopUp>
 </template>
