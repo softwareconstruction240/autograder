@@ -28,9 +28,11 @@ onMounted(async () => {
       <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." phase="1" />
     </Tab>
     <Tab title="Phase 3">
-      <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests." phase="3" />
+      <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." phase="3" />
     </Tab>
-    <Tab title="Phase 4" disabled>Phase 4 content</Tab>
+    <Tab title="Phase 4">
+      <PhaseView phase-title="Phase 4: SQL DAOs" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." phase="4" />
+    </Tab>
     <Tab title="Phase 6" disabled>Phase 6 content</Tab>
   </Tabs>
 </template>

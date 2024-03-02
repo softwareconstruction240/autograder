@@ -72,14 +72,14 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runTests() {
+    protected Rubric.Results runTests(Set<String> packagesToTest) {
         observer.update("Running tests...");
 
         TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
                 new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
                 stageTestsPath,
-                extraCreditTests
-        );
+                packagesToTest,
+                extraCreditTests);
 
         results.testName = PASSOFF_TESTS_NAME;
 

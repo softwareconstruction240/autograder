@@ -20,11 +20,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -130,6 +136,11 @@ public abstract class Grader implements Runnable {
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
+
+            injectDatabaseConfig();
+            cleanupDatabase();
+            modifyPoms();
+
             packageRepo();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
@@ -141,7 +152,7 @@ public abstract class Grader implements Runnable {
             compileTests();
             Rubric.Results passoffResults = null;
             if(rubricConfig.passoffTests() != null) {
-                passoffResults = runTests();
+                passoffResults = runTests(getPackagesToTest());
             }
             Rubric.Results customTestsResults = null;
             if(rubricConfig.unitTests() != null) {
@@ -172,6 +183,79 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             FileUtils.removeDirectory(new File(stagePath));
+        }
+    }
+
+    private void cleanupDatabase() {
+        String dbPropertiesPath = new File("./phases/phase4/resources/db.properties").getAbsolutePath();
+        Properties dbProperties = new Properties();
+        try (InputStream input = Files.newInputStream(Path.of(dbPropertiesPath))) {
+            dbProperties.load(input);
+
+        } catch (IOException ex) {
+            LOGGER.error("Error loading properties file", ex);
+            System.exit(1);
+        }
+
+        String dbHost = dbProperties.getProperty("db.host");
+        String dbPort = dbProperties.getProperty("db.port");
+        String dbUser = dbProperties.getProperty("db.user");
+        String dbPassword = dbProperties.getProperty("db.password");
+        String dbName = dbProperties.getProperty("db.name");
+
+        String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
+
+        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword)) {
+            connection.createStatement().executeUpdate(
+                    "DROP DATABASE IF EXISTS " + dbName
+            );
+        } catch (SQLException e) {
+            LOGGER.error("Failed to cleanup database", e);
+            throw new RuntimeException("Failed to cleanup environment", e);
+        }
+    }
+
+    protected abstract Set<String> getPackagesToTest();
+
+    private void modifyPoms() {
+        File serverPom = new File(stageRepo, "server/pom.xml");
+        try {
+            removeLineFromFile(serverPom, "<scope>test</scope>");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to modify server pom.xml", e);
+        }
+    }
+
+    public static void removeLineFromFile(File file, String searchText) throws IOException {
+        Path path = file.toPath();
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+
+        int indexToRemove = -1;
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains(searchText)) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove != -1) {
+            lines.remove(indexToRemove);
+
+            Files.write(path, lines, StandardCharsets.UTF_8);
+            System.out.println("Removed: " + searchText);
+        }
+    }
+
+    void injectDatabaseConfig() {
+        File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
+        if (dbProperties.exists())
+            dbProperties.delete();
+
+        File dbPropertiesSource = new File("./phases/phase4/resources/db.properties");
+        try {
+            Files.copy(dbPropertiesSource.toPath(), dbProperties.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -394,7 +478,7 @@ public abstract class Grader implements Runnable {
     /**
      * Runs the tests on the student code
      */
-    protected abstract Rubric.Results runTests();
+    protected abstract Rubric.Results runTests(Set<String> packagesToTest);
 
     /**
      * Gets the score for the phase

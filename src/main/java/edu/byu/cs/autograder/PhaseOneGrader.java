@@ -4,6 +4,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class PhaseOneGrader extends PassoffTestGrader {
 
@@ -20,6 +21,11 @@ public class PhaseOneGrader extends PassoffTestGrader {
         extraCreditTests.add("CastlingTests");
         extraCreditTests.add("EnPassantTests");
         extraCreditValue = .04f;
+    }
+
+    @Override
+    protected Set<String> getPackagesToTest() {
+        return Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
     }
 
     @Override
