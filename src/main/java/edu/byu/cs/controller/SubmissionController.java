@@ -148,7 +148,7 @@ public class SubmissionController {
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      */
-    public static Submission getMostRecentSubmission(String netId, Phase phase) {
+    private static Submission getMostRecentSubmission(String netId, Phase phase) {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 

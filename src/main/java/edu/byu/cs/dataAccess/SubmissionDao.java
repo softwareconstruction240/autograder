@@ -54,6 +54,4 @@ public interface SubmissionDao {
      * @return the submission object, or null
      */
     Submission getFirstPassingSubmission(String netId, Phase phase);
-
-    float getBestScoreForPhase(String netId, Phase phase);
 }
