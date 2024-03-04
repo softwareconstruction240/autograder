@@ -291,7 +291,7 @@ public class SubmissionController {
             case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
             case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case Phase4 -> null;
+            case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
             case Phase6 -> null;
         };
     }

@@ -14,22 +14,27 @@ import java.util.Set;
 
 import static edu.byu.cs.autograder.TestHelper.checkIfPassedPassoffTests;
 
-public class PhaseThreeGrader extends PassoffTestGrader {
+public class PhaseFourGrader extends PassoffTestGrader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseThreeGrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseFourGrader.class);
 
-    private static final int MIN_UNIT_TESTS = 13;
+    private static final int MIN_UNIT_TESTS = 20;
 
     /**
-     * Creates a new grader for phase 3
+     * Creates a new grader for phase X
      *
-     * @param netId    the netId of the student
-     * @param repoUrl  the url of the student repo
-     * @param observer the observer to notify of updates
+     * @param netId          the netId of the student
+     * @param repoUrl        the url of the student repo
+     * @param observer       the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
-    public PhaseThreeGrader(String netId, String repoUrl, Observer observer) throws IOException {
-        super("./phases/phase3", netId, repoUrl, observer, Phase.Phase3);
+    public PhaseFourGrader(String netId, String repoUrl, Observer observer) throws IOException {
+        super("./phases/phase4", netId, repoUrl, observer, Phase.Phase4);
+    }
+
+    @Override
+    protected boolean passed(Rubric rubric) {
+        return checkIfPassedPassoffTests(rubric);
     }
 
     @Override
@@ -43,7 +48,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         new TestHelper().compileTests(
                 stageRepo,
                 "server",
-                new File(stageRepo, "server/src/test/java"),
+                new File(stageRepo, "server/src/test/java/dataAccessTests"),
                 stagePath,
                 excludedTests);
 
@@ -55,13 +60,13 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             results = new TestHelper().runJUnitTests(
                     new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
                     new File(stagePath, "tests"),
-                    Set.of("serviceTests"),
+                    Set.of("dataAccessTests"),
                     new HashSet<>());
 
         if (results == null) {
             results = new TestAnalyzer.TestNode();
             TestAnalyzer.TestNode.countTests(results);
-            LOGGER.error("Tests failed to run for " + netId + " in phase 3");
+            LOGGER.error("Tests failed to run for " + netId + " in phase 4");
         }
 
         results.testName = CUSTOM_TESTS_NAME;
@@ -71,10 +76,6 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         return new Rubric.Results(getNotes(results), getUnitTestScore(results), rubricConfig.unitTests().points(), results, null);
     }
 
-    @Override
-    protected boolean passed(Rubric rubric) {
-        return checkIfPassedPassoffTests(rubric);
-    }
     protected float getUnitTestScore(TestAnalyzer.TestNode testResults) {
         float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
 
@@ -90,7 +91,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     @Override
     protected String getNotes(TestAnalyzer.TestNode testResults) {
         if (testResults.numTestsPassed + testResults.numTestsFailed < MIN_UNIT_TESTS)
-            return "Not enough tests: each service method should have a positive and negative test";
+            return "Not enough tests: each dao method should have a positive and negative test";
 
         return switch (testResults.numTestsFailed) {
             case 0 -> "All tests passed";
@@ -102,9 +103,9 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     @Override
     protected String getCanvasRubricId(Rubric.RubricType type) {
         return switch (type) {
-            case PASSOFF_TESTS -> "_5202";
-            case UNIT_TESTS -> "90344_776";
-            case QUALITY -> "_3003";
+            case PASSOFF_TESTS -> "_2614";
+            case UNIT_TESTS -> "_930";
+            default -> throw new RuntimeException(String.format("No %s item for this phase", type));
         };
     }
 }
