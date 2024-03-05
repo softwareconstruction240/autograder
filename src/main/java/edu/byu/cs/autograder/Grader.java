@@ -299,7 +299,7 @@ public abstract class Grader implements Runnable {
         try {
             CanvasIntegration.CanvasSubmission submission = CanvasIntegration.getSubmission(userId, assignmentNum);
             int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
-            return submission.score() / totalPossiblePoints;
+            return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
         } catch (CanvasException e) {
             throw new RuntimeException(e);
         }
