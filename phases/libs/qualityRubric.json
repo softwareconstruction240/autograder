@@ -37,7 +37,8 @@
       "value": 30,
       "reporters": [
         "[UnusedMethodReporter]",
-        "[CommentedCode]"
+        "[CommentedCode]",
+        "[NoCodeInFile]"
       ]
     },
     {
