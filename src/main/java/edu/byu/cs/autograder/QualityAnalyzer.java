@@ -99,6 +99,11 @@ public class QualityAnalyzer {
             }
         }
 
+        if(!analysis.warnings().isEmpty()) {
+            resultsBuilder.append("Warnings:\n");
+            analysis.warnings().forEach(s -> resultsBuilder.append("\t").append(s).append("\n"));
+        }
+
         if (resultsBuilder.isEmpty()) resultsBuilder.append("Good job!");
         else resultsBuilder.deleteCharAt(resultsBuilder.length() - 1);
         return resultsBuilder.toString();
