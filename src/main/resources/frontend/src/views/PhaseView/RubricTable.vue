@@ -14,6 +14,10 @@ const failedTests = (testResults: TestResult) => {
   return testResults.numTestsFailed > 0 || testResults.numTestsPassed === 0;
 }
 
+const prettyQualityOutput = (qualityNotes: string) => {
+  return qualityNotes.replace(/✓/g, `<span class="success">✓</span>`).replace(/✗/g, `<span class="failure">✗</span>`);
+}
+
 </script>
 
 <template>
@@ -61,7 +65,7 @@ const failedTests = (testResults: TestResult) => {
       <tr v-if="rubric.quality">
         <td>{{ rubric.quality.category }}</td>
         <td>{{ rubric.quality.criteria }}</td>
-        <td>{{ rubric.quality.results.notes }}</td>
+        <td v-html="prettyQualityOutput(rubric.quality.results.notes)"></td>
         <td>{{ Math.round(rubric.quality.results.score) }} / {{ rubric.quality.results.possiblePoints }}</td>
         <td
             class="selectable"
