@@ -54,11 +54,17 @@ public class CanvasIntegration {
 
     public record RubricAssessment(Map<String, RubricItem> items) {}
 
-    public record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {}
+    public record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {
 
-    private record CanvasSubmissionUser(String url, CanvasUser user) {}
+    }
 
-    private record CanvasAssignment(ZonedDateTime due_at) {}
+    private record CanvasSubmissionUser(String url, CanvasUser user) {
+
+    }
+
+    private record CanvasAssignment(ZonedDateTime due_at) {
+
+    }
 
     /**
      * Queries canvas for the user with the given netId

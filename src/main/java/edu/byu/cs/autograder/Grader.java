@@ -95,6 +95,17 @@ public abstract class Grader implements Runnable {
      */
     private final int requiredCommits;
 
+    /**
+     * The max number of days that the late penalty should be applied for.
+     */
+    private final int MAX_LATE_DAYS_TO_PENALIZE = 5;
+
+    /**
+     * The penalty to be applied per day to a late submission.
+     * This is out of 1. So putting 0.1 would be a 10% deduction per day
+     */
+    private final float PER_DAY_LATE_PENALTY = 0.1F;
+
     protected final String PASSOFF_TESTS_NAME = "Passoff Tests";
     protected final String CUSTOM_TESTS_NAME = "Custom Tests";
 
@@ -174,8 +185,22 @@ public abstract class Grader implements Runnable {
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
             rubric = annotateRubric(rubric);
 
-            Submission submission = saveResults(rubric, numCommits);
-            observer.notifyDone(submission);
+            int daysLate = calculateLateDays(rubric);
+            float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
+
+            Submission thisSubmission;
+            float highestScore = getCanvasScore();
+
+            // prevent score from being saved to canvas if it will lower their score
+            if (thisScore <= highestScore) {
+                String notes = "Submission did not improve current score. (" + (highestScore * 100) + "%) Score not saved to Canvas.\n";
+                thisSubmission = saveResults(rubric, numCommits,daysLate, thisScore, notes);
+            } else {
+                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
+            }
+
+            observer.notifyDone(thisSubmission);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -297,14 +322,7 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    /**
-     * Saves the results of the grading to the database and to Canvas if the submission passed
-     *
-     * @param rubric the rubric for the phase
-     */
-    private Submission saveResults(Rubric rubric, int numCommits) {
-        String headHash = getHeadHash();
-
+    private int calculateLateDays(Rubric rubric) {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
@@ -316,16 +334,30 @@ public abstract class Grader implements Runnable {
             throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
 
-        // penalize at most 5 days
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
-        float score = getScore(rubric);
-        score -= numDaysLate * 0.1F;
-        if (score < 0) score = 0;
+        return Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+    }
 
-        String notes = "";
+    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) {
+        float score = getScore(rubric);
+        score -= numDaysLate * PER_DAY_LATE_PENALTY;
+        if (score < 0) score = 0;
+        return score;
+    }
+
+    /**
+     * Saves the results of the grading to the database if the submission passed
+     *
+     * @param rubric the rubric for the phase
+     */
+    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes) {
+        String headHash = getHeadHash();
+
         if (numDaysLate > 0)
-            notes = numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+            notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+
+        // FIXME: this is code duplication from calculateLateDays()
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -346,7 +378,6 @@ public abstract class Grader implements Runnable {
         }
 
         submissionDao.insertSubmission(submission);
-
         return submission;
     }
 
@@ -361,6 +392,7 @@ public abstract class Grader implements Runnable {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Map<String, Float> scores = new HashMap<>();
         Map<String, String> comments = new HashMap<>();
+
         convertToCanvasFormat(submission.rubric().passoffTests(), lateAdjustment, rubricConfig.passoffTests(), scores, comments, Rubric.RubricType.PASSOFF_TESTS);
         convertToCanvasFormat(submission.rubric().unitTests(), lateAdjustment, rubricConfig.unitTests(), scores, comments, Rubric.RubricType.UNIT_TESTS);
         convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
