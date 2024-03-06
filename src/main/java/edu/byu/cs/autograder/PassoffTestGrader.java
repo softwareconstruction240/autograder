@@ -160,7 +160,7 @@ public abstract class PassoffTestGrader extends Grader {
 
         QualityAnalyzer analyzer = new QualityAnalyzer();
 
-        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(stageRepo);
+        QualityAnalyzer.QualityAnalysis quality = analyzer.runQualityChecks(stageRepo);
 
         return new Rubric.Results(quality.notes(), quality.score(),
                 rubricConfig.quality().points(), null, quality.results());
