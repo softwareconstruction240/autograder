@@ -34,7 +34,7 @@ public class QualityAnalyzer {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
 
-        String output = ProcessUtils.runProcess(processBuilder);
+        String output = ProcessUtils.runProcess(processBuilder)[0];
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
         output = output.replaceAll(stageRepo.getPath(), "");
