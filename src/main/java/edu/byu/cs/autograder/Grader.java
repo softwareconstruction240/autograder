@@ -187,17 +187,24 @@ public abstract class Grader implements Runnable {
 
             int daysLate = calculateLateDays(rubric);
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
-
             Submission thisSubmission;
-            float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
-            if (thisScore <= highestScore) {
-                String notes = "Submission did not improve current score. (" + (highestScore * 100) + "%) Score not saved to Canvas.\n";
-                thisSubmission = saveResults(rubric, numCommits,daysLate, thisScore, notes);
-            } else {
+            if(rubric.passed()) {
+                float highestScore = getCanvasScore();
+
+                // prevent score from being saved to canvas if it will lower their score
+                if (thisScore <= highestScore) {
+                    String notes = "Submission did not improve current score. (" + (highestScore * 100) +
+                            "%) Score not saved to Canvas.\n";
+                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
+                } else {
+                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                    sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
+                }
+            }
+            else {
                 thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-                sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
             }
 
             observer.notifyDone(thisSubmission);
