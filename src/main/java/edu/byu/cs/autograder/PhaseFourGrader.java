@@ -18,7 +18,7 @@ public class PhaseFourGrader extends PassoffTestGrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhaseFourGrader.class);
 
-    private static final int MIN_UNIT_TESTS = 20;
+    private static final int MIN_UNIT_TESTS = 18;
 
     /**
      * Creates a new grader for phase X
