@@ -98,16 +98,16 @@ public abstract class Grader implements Runnable {
     /**
      * The max number of days that the late penalty should be applied for.
      */
-    private final int MAX_LATE_DAYS_TO_PENALIZE = 5;
+    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
 
     /**
      * The penalty to be applied per day to a late submission.
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
      */
-    private final float PER_DAY_LATE_PENALTY = 0.1F;
+    private static final float PER_DAY_LATE_PENALTY = 0.1F;
 
-    protected final String PASSOFF_TESTS_NAME = "Passoff Tests";
-    protected final String CUSTOM_TESTS_NAME = "Custom Tests";
+    protected static final String PASSOFF_TESTS_NAME = "Passoff Tests";
+    protected static final String CUSTOM_TESTS_NAME = "Custom Tests";
 
     protected Observer observer;
 
@@ -372,10 +372,6 @@ public abstract class Grader implements Runnable {
                 notes,
                 rubric
         );
-
-        if (submission.rubric().passed()) {
-            sendToCanvas(submission, 1 - (numDaysLate * 0.1F));
-        }
 
         submissionDao.insertSubmission(submission);
         return submission;
