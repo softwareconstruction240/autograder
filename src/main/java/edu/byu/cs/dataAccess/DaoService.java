@@ -1,7 +1,6 @@
 package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.dataAccess.sql.*;
-import edu.byu.cs.model.RubricConfig;
 
 public class DaoService {
     public static UserDao getUserDao() {
@@ -17,6 +16,6 @@ public class DaoService {
     }
 
     public static RubricConfigDao getRubricConfigDao() {
-        return new RubricSqlConfigDao();
+        return new RubricConfigSqlDao();
     }
 }
