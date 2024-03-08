@@ -38,6 +38,10 @@ const prettifyResults = (node: TestResult, indent: string) => {
     }
   }
 
+  if (node.passed === undefined && node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
+      result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
+  }
+
   return result;
 }
 
@@ -47,7 +51,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
   <PopUp @closePopUp="$emit('closePopUp')">
     <div class="results-popup">
       <h2>Results</h2>
-      <div v-if="testResults" v-html="prettifyResults(testResults, '')"></div>
+      <div style="white-space: pre" v-if="testResults" v-html="prettifyResults(testResults, '')"></div>
       <div style="white-space: pre" v-if="textResults" v-html="textResults.replace(/\n/g, '<br />')"></div>
     </div>
   </PopUp>

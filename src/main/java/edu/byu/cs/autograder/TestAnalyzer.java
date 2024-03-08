@@ -261,6 +261,6 @@ public class TestAnalyzer {
         if (lastFailingTest.errorMessage == null)
             lastFailingTest.errorMessage = "";
 
-        lastFailingTest.errorMessage += line;
+        lastFailingTest.errorMessage += (line + "\n");
     }
 }
