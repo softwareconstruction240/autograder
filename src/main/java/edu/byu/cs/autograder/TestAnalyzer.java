@@ -170,7 +170,7 @@ public class TestAnalyzer {
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestNode parse(String[] inputLines, Set<String> extraCreditTests) {
+    public TestNode parse(String[] inputLines, Set<String> extraCreditTests, String error) {
         this.ecCategories = extraCreditTests;
 
         for (String line : inputLines) {
@@ -203,8 +203,10 @@ public class TestAnalyzer {
                 handleErrorMessage(line);
         }
 
-        if (root != null)
+        if (root != null) {
             TestNode.countTests(root);
+            root.errorMessage = error;
+        }
 
         return root;
     }

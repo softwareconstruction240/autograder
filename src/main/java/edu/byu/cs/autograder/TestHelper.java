@@ -143,10 +143,12 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(commands);
 
-        String output = ProcessUtils.runProcess(processBuilder)[0];
+        String[] processOutput = ProcessUtils.runProcess(processBuilder);
+        String output = processOutput[0];
+        String error = processOutput[1];
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
-        return testAnalyzer.parse(output.split("\n"), extraCreditTests);
+        return testAnalyzer.parse(output.split("\n"), extraCreditTests, error);
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
