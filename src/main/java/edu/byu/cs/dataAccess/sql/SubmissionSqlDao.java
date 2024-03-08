@@ -132,6 +132,25 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
+    @Override
+    public float getBestScoreForPhase(String netId, Phase phase) {
+        try (var connection = SqlDb.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                            SELECT max(score) as highestScore
+                            FROM submission
+                            WHERE net_id = ? AND phase = ?
+                            """);
+            statement.setString(1, netId);
+            statement.setString(2, phase.toString());
+            ResultSet rows = statement.executeQuery();
+            rows.next();
+            return rows.getFloat("highestScore");
+        } catch (Exception e) {
+            throw new DataAccessException("Error getting highest score", e);
+        }
+    }
+
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
         ResultSet rows = statement.executeQuery();
 

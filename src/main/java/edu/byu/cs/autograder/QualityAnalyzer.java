@@ -34,7 +34,7 @@ public class QualityAnalyzer {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
 
-        String output = ProcessUtils.runProcess(processBuilder);
+        String output = ProcessUtils.runProcess(processBuilder)[0];
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
         output = output.replaceAll(stageRepo.getPath(), "");
@@ -97,6 +97,11 @@ public class QualityAnalyzer {
             if (!categoryResultsBuilder.isEmpty()) {
                 resultsBuilder.append(category.name()).append(":\n").append(categoryResultsBuilder);
             }
+        }
+
+        if(!analysis.warnings().isEmpty()) {
+            resultsBuilder.append("Warnings:\n");
+            analysis.warnings().forEach(s -> resultsBuilder.append("\t").append(s).append("\n"));
         }
 
         if (resultsBuilder.isEmpty()) resultsBuilder.append("Good job!");

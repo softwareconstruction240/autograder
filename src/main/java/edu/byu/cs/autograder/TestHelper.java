@@ -68,7 +68,7 @@ public class TestHelper {
                     .directory(testsLocation)
                     .command(findCommands);
 
-            String findOutput = ProcessUtils.runProcess(findProcessBuilder).replace("\n", " ");
+            String findOutput = ProcessUtils.runProcess(findProcessBuilder)[0].replace("\n", " ");
 
             /* Compile files */
             String chessJarWithDeps;
@@ -143,7 +143,7 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(commands);
 
-        String output = ProcessUtils.runProcess(processBuilder);
+        String output = ProcessUtils.runProcess(processBuilder)[0];
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
         return testAnalyzer.parse(output.split("\n"), extraCreditTests);

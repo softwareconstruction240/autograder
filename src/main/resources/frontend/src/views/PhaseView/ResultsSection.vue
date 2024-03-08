@@ -12,27 +12,10 @@ const roundTwoDecimals = (num: number) => {
 
 </script>
 
-<!--<template>-->
-<!--  <div class="container" v-if="submission !== undefined && submission !== null">-->
-<!--    <div id="submission-title">-->
-<!--      <h2>Results from {{ readableTimestamp(submission.timestamp) }}</h2>-->
-<!--    </div>-->
-<!--    <div id="submission-score">-->
-<!--      <h3>Score: {{ submission.score * 100 }}%</h3>-->
-<!--    </div>-->
-<!--    <div id="submission-notes">-->
-<!--      {{ submission.notes }}-->
-<!--    </div>-->
-<!--    <div-->
-<!--        id="submission-results-container"-->
-<!--        v-html="prettifyResults(submission.testResults, '')"-->
-<!--    ></div>-->
-<!--  </div>-->
-<!--</template>-->
 <template>
   <h1 v-if="submission.passed">Passed with {{roundTwoDecimals(submission.score * 100)}}%</h1>
   <h1 v-else>Failed</h1>
-  <h2>{{submission.notes}}</h2>
+  <h2 v-html="submission.notes.replace('\n', '<br />')"></h2>
   <Rubric :rubric="submission.rubric" />
 </template>
 

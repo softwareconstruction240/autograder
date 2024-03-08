@@ -67,4 +67,14 @@ public class SubmissionMemoryDao implements SubmissionDao {
         }
         return earliest;
     }
+
+    @Override
+    public float getBestScoreForPhase(String netId, Phase phase) {
+        Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
+        float bestScore = 0;
+        for (Submission s : submissions) {
+            if (s.score() > bestScore) { bestScore = s.score(); }
+        }
+        return bestScore;
+    }
 }

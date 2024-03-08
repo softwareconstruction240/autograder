@@ -54,7 +54,7 @@ public class CanvasIntegration {
 
     public record RubricAssessment(Map<String, RubricItem> items) {}
 
-    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
+    public record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {
 
     }
 
