@@ -156,6 +156,7 @@ public class TestHelper {
         commands.add("java");
         commands.add("-jar");
         commands.add(standaloneJunitJarPath);
+        commands.add("execute");
         commands.add("--class-path");
         commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
         commands.add("--details=testfeed");
