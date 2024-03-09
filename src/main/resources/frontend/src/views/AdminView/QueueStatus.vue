@@ -86,5 +86,6 @@ cursor: pointer;
 
 #queue-refresh {
   min-height: 30vh;
+  padding: 10px;
 }
 </style>
