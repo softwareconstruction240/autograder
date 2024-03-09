@@ -4,7 +4,7 @@ import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {onMounted, reactive, ref} from "vue";
-import {usersGet} from "@/services/adminService";
+import {testStudentModeGet, usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
@@ -34,9 +34,27 @@ const columnDefs = reactive([
 const rowData = reactive({
   value: []
 })
+
+const activateTestStudentMode = async () => {
+  await testStudentModeGet()
+  window.location.href = '/';
+}
 </script>
 
 <template>
+  <div class="test-student-mode-container">
+    <div>
+      <p>Click on the button below to become the test student</p>
+      <p>- you will need to log out and back in again to return to admin
+        mode</p>
+      <p>- you will not be able to enter student mode unless the Test Student has a submission for the GitHub Repository
+        assignment on Canvas</p>
+    </div>
+    <div>
+      <button @click="activateTestStudentMode">Go to Test Student Mode</button>
+    </div>
+  </div>
+
   <ag-grid-vue
       class="ag-theme-quartz"
       style="height: 75vh"
@@ -53,5 +71,15 @@ const rowData = reactive({
 </template>
 
 <style scoped>
-
+.test-student-mode-container {
+  align-items: center;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+}
 </style>
