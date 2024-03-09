@@ -1,6 +1,6 @@
 import type { ValueGetterParams } from 'ag-grid-community'
 import {useAdminStore} from "@/stores/admin";
-import type {RubricItem, Submission} from "@/types/types";
+import type {RubricItem, RubricItemResults, Submission} from "@/types/types";
 import {onRenderTracked} from "vue";
 import {generateClickableLink, nameFromNetId, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
 
@@ -43,7 +43,8 @@ type RubricRow = {
     category: string,
     criteria: string,
     notes: string,
-    points: string
+    points: string,
+    results: RubricItemResults
 }
 
 export const loadRubricRows = (submission: Submission) => {
@@ -60,7 +61,8 @@ export const loadRubricRows = (submission: Submission) => {
                 category: item.category,
                 criteria: item.criteria,
                 notes: item.results.notes,
-                points: Math.round(item.results.score) + "/" + item.results.possiblePoints
+                points: Math.round(item.results.score) + "/" + item.results.possiblePoints,
+                results: item.results
             }
             rubricRows.push(row)
         }
