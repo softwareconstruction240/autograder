@@ -53,7 +53,7 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p>Github Repo: <a href="{{student.repoUrl}}">{{student.repoUrl}}</a> </p>
+  <p>Github Repo: <a :href=student.repoUrl target="_blank">{{student.repoUrl}}</a> </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"
