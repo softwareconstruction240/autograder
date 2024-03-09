@@ -8,7 +8,7 @@ export const readableTimestamp = (timestampOrString: Date | string) => {
 export const simpleTimestamp = (date: Date | string) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   const time = typeof date === "string" ? new Date(date) : date;
-  return months[time.getMonth()] + " " + time.getDate() + " " + time.getHours() + ":" + time.getMinutes()
+  return months[time.getMonth()] + " " + time.getDate() + " " + time.getHours() + ":" + String(time.getMinutes()).padStart(2, '0')
 }
 
 export const nameFromNetId = (netId: string) => {
