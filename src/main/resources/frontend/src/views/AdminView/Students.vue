@@ -8,12 +8,13 @@ import {usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
+import {renderRepoLinkCell} from "@/utils/tableUtils";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
 
 const cellClickHandler = (event: CellClickedEvent) => {
-  let findResult = studentData.find(user => user.netId === event.data.netID)
+  let findResult = studentData.find(user => user.netId === event.data.netId)
   selectedStudent.value = findResult || null; // Setting selected student opens a popup
 }
 
@@ -25,7 +26,7 @@ onMounted(async () => {
     dataToShow.push(
         {
           name: student.firstName + " " + student.lastName,
-          netID: student.netId,
+          netId: student.netId,
           github: student.repoUrl
         }
     )
@@ -35,10 +36,8 @@ onMounted(async () => {
 
 const columnDefs = reactive([
   { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "BYU netID", field: "netID", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "github", flex: 5, sortable: false, filter: true, cellRenderer: function(params: ValueGetterParams) {
-      return '<a id="repo-link" href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
-    }}
+  { headerName: "BYU netID", field: "netId", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "Github Repo URL", field: "github", flex: 5, sortable: false, filter: true, cellRenderer: renderRepoLinkCell }
 ])
 const rowData = reactive({
   value: []
