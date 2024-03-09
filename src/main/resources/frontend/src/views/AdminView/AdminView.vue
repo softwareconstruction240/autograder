@@ -36,7 +36,5 @@ useAdminStore().updateUsers();
 </template>
 
 <style scoped>
-.container {
-  min-height: 50vh;
-}
+
 </style>
