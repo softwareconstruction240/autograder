@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Rubric, Submission, User} from "@/types/types";
+import type {Rubric, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
@@ -77,7 +77,4 @@ const rowClassRules = {
 </template>
 
 <style scoped>
-.failed-row {
-  --ag-background-color: lightcoral;
-}
 </style>

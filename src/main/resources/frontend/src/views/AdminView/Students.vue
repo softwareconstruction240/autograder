@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AgGridVue } from 'ag-grid-vue3';
-import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
+import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {onMounted, reactive, ref} from "vue";
