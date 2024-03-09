@@ -2,7 +2,7 @@
 import { AgGridVue } from 'ag-grid-vue3';
 import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
-import "ag-grid-community/styles/ag-theme-alpine.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import {onMounted, reactive, ref} from "vue";
 import {usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
@@ -48,7 +48,7 @@ const rowData = reactive({
 
 <template>
   <ag-grid-vue
-      class="ag-theme-alpine"
+      class="ag-theme-quartz"
       style="height: 75vh"
       :columnDefs="columnDefs"
       :rowData="rowData.value"

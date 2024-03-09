@@ -5,7 +5,7 @@ import {submissionsForUserGet, usersGet} from "@/services/adminService";
 import { AgGridVue } from 'ag-grid-vue3';
 import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
-import "ag-grid-community/styles/ag-theme-alpine.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
 
@@ -56,7 +56,7 @@ const rowData = reactive({
   <p>Github Repo: <a href="{{student.repoUrl}}">{{student.repoUrl}}</a> </p>
 
   <ag-grid-vue
-      class="ag-theme-alpine"
+      class="ag-theme-quartz"
       style="height: 35vh; width: 60vw"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
