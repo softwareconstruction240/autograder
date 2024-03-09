@@ -1,18 +1,39 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
-import type {Rubric, Submission} from "@/types/types";
+import {onMounted, reactive, ref} from "vue";
+import type {Rubric, Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
-import {readableTimestamp} from "@/utils/utils";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
+import { AgGridVue } from 'ag-grid-vue3';
+import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css';
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import {renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 
-const latestSubmissions = ref<Submission[]>([])
+const selectedRubric = ref<Rubric | null>(null);
+const selectedStudent = ref<User | null>(null);
 
 onMounted(async () => {
-  const latestData = await submissionsLatestGet();
-  latestData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
-  latestSubmissions.value = latestData;
+  const submissionsData = await submissionsLatestGet();
+  submissionsData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
+  var dataToShow: any = []
+  submissionsData.forEach(submission => {
+    dataToShow.push(
+        {
+          name: getNameFromSubmission(submission),
+          netId: submission.netId,
+          phase: submission.phase,
+          time: new Date(submission.timestamp),
+          score: submission.score,
+          notes: submission.notes,
+          passed: submission.passed,
+          rubric: submission.rubric
+        }
+    )
+  })
+  rowData.value = dataToShow
 })
 
 const getNameFromSubmission = (submission: Submission) => {
@@ -20,44 +41,42 @@ const getNameFromSubmission = (submission: Submission) => {
   return `${user.firstName} ${user.lastName}`
 }
 
-const selectedRubric = ref<Rubric | null>(null);
+const notesCellClicked = (event: CellClickedEvent) => {
+  selectedRubric.value = event.data.rubric
+  console.log(selectedRubric.value)
+}
 
-const roundTwoDecimals = (num: number) => {
-  return Math.round((num + Number.EPSILON) * 100) / 100;
+const nameCellClicked = (event: CellClickedEvent) => {
+  selectedStudent.value = useAdminStore().usersByNetId[event.data.netId];
+  console.log(event.data.netId)
+  console.log(selectedStudent.value)
+}
+
+const columnDefs = reactive([
+  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, onCellClicked: nameCellClicked },
+  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: 'time', sortable: true, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
+  { headerName: "Score", field: 'score', sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: 'notes', sortable: true, filter: true, flex:5, onCellClicked: notesCellClicked },
+])
+const rowData = reactive({
+  value: []
+})
+const rowClassRules = {
+  'failed-row': (params: ValueGetterParams) => !params.data.passed,
 }
 
 </script>
 
+
 <template>
-  <table>
-    <thead>
-    <tr>
-      <th>Name</th>
-      <th>NetId</th>
-      <th>Phase</th>
-      <th>Timestamp</th>
-      <th>Score</th>
-      <th>Notes</th>
-      <th>Results</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr v-for="submission in latestSubmissions" :key="`${submission.netId}-${submission.phase}`">
-      <td>{{ getNameFromSubmission(submission) }}</td>
-      <td>{{ submission.netId }}</td>
-      <td>{{ submission.phase }}</td>
-      <td>{{ readableTimestamp(submission.timestamp) }}</td>
-      <td>{{ roundTwoDecimals(submission.score * 100) }}%</td>
-      <td>{{ submission.notes }}</td>
-      <td
-          @click="() => {
-            selectedRubric = submission.rubric;
-          }"
-          class="selectable"
-      >See results</td>
-    </tr>
-    </tbody>
-  </table>
+  <ag-grid-vue
+      class="ag-theme-quartz"
+      style="height: 75vh"
+      :columnDefs="columnDefs"
+      :rowData="rowData.value"
+      :rowClassRules="rowClassRules"
+  ></ag-grid-vue>
 
   <PopUp
       v-if="selectedRubric"
@@ -65,34 +84,16 @@ const roundTwoDecimals = (num: number) => {
     <RubricTable :rubric="selectedRubric"/>
   </PopUp>
 
+  <PopUp
+      v-if="selectedStudent"
+      @closePopUp="selectedStudent = null">
+    <StudentInfo :student="selectedStudent"></StudentInfo>
+  </PopUp>
+
 </template>
 
 <style scoped>
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 0.25rem;
-  border: 1px solid #ccc;
-}
-
-tr:nth-child(even) {
-  background-color: #eee;
-}
-
-tr:nth-child(odd) {
-  background-color: #fff;
-}
-
-th {
-  background-color: #333;
-  color: #fff;
-}
-
-.selectable:hover {
-  cursor: pointer;
-  background-color: #e1e1e1;
+.failed-row {
+  --ag-background-color: lightcoral;
 }
 </style>

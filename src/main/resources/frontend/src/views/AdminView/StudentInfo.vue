@@ -8,13 +8,13 @@ import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
+import {renderPhaseCell, renderTimestampCell} from "@/utils/tableUtils";
 
 const { student } = defineProps<{
   student: User;
 }>();
 
 const studentSubmissions = ref<Submission[]>([])
-
 const selectedRubric = ref<Rubric | null>(null);
 
 onMounted(async () => {
@@ -24,7 +24,7 @@ onMounted(async () => {
     dataToShow.push(
         {
           phase: submission.phase,
-          time: submission.timestamp,
+          time: new Date(submission.timestamp),
           score: (submission.score * 100) + "%",
           notes: submission.notes,
           rubric: submission.rubric,
@@ -40,8 +40,8 @@ const cellClickHandler = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1},
-  { headerName: "Timestamp", field: "time", sortable: true, filter: true, flex:2 },
+  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: "time", sortable: true, filter: true, flex:1, cellRenderer: renderTimestampCell},
   { headerName: "Score", field: "score", sortable: true, filter: true, flex:1 },
   { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:5, onCellClicked: cellClickHandler }
 ])
