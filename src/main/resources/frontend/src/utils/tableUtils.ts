@@ -1,5 +1,8 @@
 import type { ValueGetterParams } from 'ag-grid-community'
 import {useAdminStore} from "@/stores/admin";
+import type {RubricItem, Submission} from "@/types/types";
+import {onRenderTracked} from "vue";
+import {generateClickableLink, nameFromNetId, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
@@ -11,34 +14,56 @@ export const renderPhaseCell = (params: ValueGetterParams):string => {
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "netId"
  */
-export const nameFromNetIdCellRender = (params: ValueGetterParams) => {
-    const user = useAdminStore().usersByNetId[params.data.netId];
-    return `${user.firstName} ${user.lastName}`
+export const nameCellRender = (params: ValueGetterParams) => {
+    return nameFromNetId(params.data.netId)
 }
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "timestamp"
  */
 export const renderTimestampCell = (params: ValueGetterParams):string => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    const time = new Date(params.data.timestamp)
-    return months[time.getMonth()] + " " + time.getDate() + " " + time.getHours() + ":" + time.getMinutes()
+    return simpleTimestamp(params.data.timestamp)
 }
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "repoUrl"
  */
 export const renderRepoLinkCell = (params: ValueGetterParams):string => {
-    return '<a id="repo-link" href="' + params.data.repoUrl + '" target="_blank">' + params.data.repoUrl + '</a>'
+    return generateClickableLink(params.data.repoUrl)
 }
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "score"
  */
 export const renderScoreCell = (params: ValueGetterParams):string => {
-    return roundTwoDecimals(params.data.score * 100) + "%"
+    return scoreToPercentage(params.data.score)
 }
 
-const roundTwoDecimals = (num: number) => {
-    return Math.round((num + Number.EPSILON) * 100) / 100;
+type RubricRow = {
+    category: string,
+    criteria: string,
+    notes: string,
+    points: string
+}
+
+export const loadRubricRows = (submission: Submission) => {
+    const possibleRubricItems: RubricItem[] = [
+        submission.rubric.passoffTests,
+        submission.rubric.unitTests,
+        submission.rubric.quality,
+    ];
+    const rubricRows: any = []
+    for (let i = 0; i < possibleRubricItems.length; i++) {
+        const item = possibleRubricItems[i]
+        if(item) {
+            const row: RubricRow = {
+                category: item.category,
+                criteria: item.criteria,
+                notes: item.results.notes,
+                points: Math.round(item.results.score) + "/" + item.results.possiblePoints
+            }
+            rubricRows.push(row)
+        }
+    }
+    return rubricRows
 }
