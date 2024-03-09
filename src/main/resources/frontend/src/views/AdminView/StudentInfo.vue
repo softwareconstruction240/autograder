@@ -8,7 +8,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
-import {renderPhaseCell, renderTimestampCell} from "@/utils/tableUtils";
+import {renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
 
 const { student } = defineProps<{
   student: User;
@@ -33,7 +33,7 @@ const cellClickHandler = (event: CellClickedEvent) => {
 const columnDefs = reactive([
   { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: "time", sortable: true, filter: true, flex:1, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: "score", sortable: true, filter: true, flex:1 },
+  { headerName: "Score", field: "score", sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },
   { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:5, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({
