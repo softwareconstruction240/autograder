@@ -34,10 +34,10 @@ public class DateTimeUtils {
         int daysLate = 0;
 
         while (handInDate.isAfter(dueDate)) {
-            if (handInDate.getDayOfWeek().getValue() < 6 && !isPublicHoliday(handInDate)) {
+            if (dueDate.getDayOfWeek().getValue() < 6 && !isPublicHoliday(dueDate)) {
                 daysLate++;
             }
-            handInDate = handInDate.minusDays(1);
+            dueDate = dueDate.plusDays(1);
         }
 
         return daysLate;
