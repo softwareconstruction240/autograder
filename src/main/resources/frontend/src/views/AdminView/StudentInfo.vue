@@ -27,7 +27,8 @@ onMounted(async () => {
           time: submission.timestamp,
           score: (submission.score * 100) + "%",
           notes: submission.notes,
-          rubric: submission.rubric
+          rubric: submission.rubric,
+          passed: submission.passed
         }
     )
   })
@@ -47,14 +48,12 @@ const columnDefs = reactive([
 const rowData = reactive({
   value: []
 })
-
 </script>
 
 <template>
-  <h4>Student Info</h4>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
-  <p class="netID">netID: {{student.netId}}</p>
-  <p class="repo">Github Repo: <a href="{{student.repoUrl}}">{{student.repoUrl}}</a> </p>
+  <p>netID: {{student.netId}}</p>
+  <p>Github Repo: <a href="{{student.repoUrl}}">{{student.repoUrl}}</a> </p>
 
   <ag-grid-vue
       class="ag-theme-alpine"
@@ -71,5 +70,8 @@ const rowData = reactive({
 </template>
 
 <style scoped>
-
+a:visited, a {
+  color: darkblue;
+  font-style: italic;
+}
 </style>

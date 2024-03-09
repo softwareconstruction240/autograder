@@ -35,10 +35,10 @@ onMounted(async () => {
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: 'name', sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "BYU netID", field: "netID", sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "github", flex:1, sortable: false, filter: true, cellRenderer: function(params: ValueGetterParams) {
-      return '<a href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
+  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "BYU netID", field: "netID", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "Github Repo URL", field: "github", flex: 5, sortable: false, filter: true, cellRenderer: function(params: ValueGetterParams) {
+      return '<a id="repo-link" href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
     }}
 ])
 const rowData = reactive({
@@ -63,4 +63,5 @@ const rowData = reactive({
 </template>
 
 <style scoped>
+
 </style>
