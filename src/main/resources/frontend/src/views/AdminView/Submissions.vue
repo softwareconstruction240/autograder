@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Rubric, Submission, User} from "@/types/types";
+import type {Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
-import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import { AgGridVue } from 'ag-grid-vue3';
 import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
@@ -38,11 +37,11 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, cellRenderer: nameCellRender, onCellClicked: nameCellClicked },
-  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: 'time', sortable: true, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', sortable: true, filter: true, flex:5, onCellClicked: notesCellClicked },
+  { headerName: "Name", field: 'name', flex:2, cellRenderer: nameCellRender, onCellClicked: nameCellClicked },
+  { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: 'time', filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
+  { headerName: "Score", field: 'score', flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: notesCellClicked },
 ])
 const rowData = reactive({
   value: []

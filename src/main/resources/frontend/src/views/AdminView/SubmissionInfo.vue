@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import type {Rubric, Submission, TestResult, User} from "@/types/types";
-import {onMounted, reactive, ref} from "vue";
-import {submissionsForUserGet} from "@/services/adminService";
+import type {Submission, TestResult} from "@/types/types";
+import {reactive, ref} from "vue";
 import { AgGridVue } from 'ag-grid-vue3';
 import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import RubricTable from "@/views/PhaseView/RubricTable.vue";
-import PopUp from "@/components/PopUp.vue";
-import {loadRubricRows, renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import {loadRubricRows} from "@/utils/tableUtils";
 import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
 import {
   generateClickableLink,
@@ -40,8 +37,8 @@ const openResults = (event: CellClickedEvent) => {
 
 const columnDefs = reactive([
   { headerName: "Category", field: 'category', sortable: true, filter: true, flex:1 },
-  { headerName: "Criteria", field: "criteria", sortable: true, filter: true, flex:2 },
-  { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:2, cellStyle: {"wordBreak": "normal"}, wrapText: true, onCellClicked: openResults},
+  { headerName: "Criteria", field: "criteria", sortable: true, filter: true, flex:2, wrapText: true, autoHeight:true, cellStyle: {"wordBreak": "normal", "lineHeight": "unset"} },
+  { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:2, onCellClicked: openResults,  wrapText: true, autoHeight:true, cellStyle: {"wordBreak": "normal", "lineHeight": "unset"}},
   { headerName: "Points", field: "points", sortable: true, filter: true, flex:1, onCellClicked: openResults }
 ])
 const rowData = reactive({
