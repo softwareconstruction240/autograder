@@ -2,33 +2,34 @@
 import { AgGridVue } from 'ag-grid-vue3';
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import {onMounted, reactive} from "vue";
+import {usersGet} from "@/services/adminService";
 
-// eslint-disable-next-line vue/no-export-in-script-setup
-const columnDefs = [
-        { headerName: "Name", field: 'name'},
-        { headerName: "BYU netID", field: "netID"},
-        { headerName: "Github URL", field: "github", flex:1}
-      ]
-const rowData = [
-        {name: "Roger McGee", netID: "rogerm", github: "http://girthagk.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.comasdfghdfgdhdsasfgdfhfjfrewrtyhgftryhgfd"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-        {name: "Roger McGee", netID: "rogerm", github: "http://github.com"},
-        {name: "Steve McGee", netID: "stevem", github: "http://github.com"},
-      ]
+const columnDefs = reactive([
+        { headerName: "Name", field: 'name', sortable: true, filter: true},
+        { headerName: "BYU netID", field: "netID", sortable: true, filter: true},
+        { headerName: "Github URL", field: "github", flex:1, sortable: false, filter: true}
+      ])
+let rowData = reactive({
+  value: []
+})
+
+onMounted(async () => {
+  const userData = await usersGet();
+  const studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
+  var dataToShow: any = []
+  studentData.forEach(student => {
+    dataToShow.push(
+        {
+          name: student.firstName + " " + student.lastName,
+          netID: student.netId,
+          github: student.repoUrl
+        }
+    )
+  })
+  console.log(dataToShow)
+  rowData.value = dataToShow
+})
 </script>
 
 <template>
@@ -36,7 +37,7 @@ const rowData = [
       class="ag-theme-alpine"
       style="height: 75vh"
       :columnDefs="columnDefs"
-      :rowData="rowData"
+      :rowData="rowData.value"
   ></ag-grid-vue>
 
 </template>

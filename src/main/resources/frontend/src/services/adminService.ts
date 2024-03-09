@@ -66,6 +66,19 @@ export const submissionsLatestGet = async (): Promise<Submission[]> => {
     }
 }
 
+export const studentListGet = async (): Promise<Submission[]> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/latest', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return await response.json();
+    } catch (e) {
+        return [];
+    }
+}
+
 export const testStudentModeGet = async (): Promise<null> => {
     try {
         const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/test_mode', {
