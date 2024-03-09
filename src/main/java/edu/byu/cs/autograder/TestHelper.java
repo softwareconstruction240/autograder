@@ -7,10 +7,9 @@ import edu.byu.cs.util.ProcessUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A helper class for running common test operations
@@ -148,7 +147,7 @@ public class TestHelper {
         String error = processOutput.stdErr();
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
-        return testAnalyzer.parse(output.split("\n"), extraCreditTests, error);
+        return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
@@ -201,5 +200,11 @@ public class TestHelper {
                 passed = false;
 
         return passed;
+    }
+
+    private static String removeSparkLines(String errorOutput) {
+        List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
+        lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
+        return String.join("\n", lines);
     }
 }
