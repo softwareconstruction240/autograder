@@ -36,9 +36,6 @@ const activateTestStudentMode = async () => {
       <Tab title="Students">
         <Students/>
       </Tab>
-      <Tab disabled title="Exceptions">
-        <Exceptions/>
-      </Tab>
       <Tab title="Queue Status">
         <QueueStatus/>
       </Tab>
