@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {onMounted, onUnmounted, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {getQueueStatus} from "@/services/adminService";
 import { reRunSubmissionsPost } from '@/services/submissionService'
 
@@ -22,9 +22,16 @@ onUnmounted(() => {
   clearInterval(intervalId);
 });
 
-let reRunInProgress = false;
+let reRunStatusMessage = reactive({value: "This is run automatically everytime the autograder server starts up."})
+
 const reRunQueue = async () => {
-  reRunInProgress = await reRunSubmissionsPost()
+  reRunStatusMessage.value = "Refreshing grading queue...";
+  try {
+    await reRunSubmissionsPost();
+    reRunStatusMessage.value = "The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again";
+  } catch (e) {
+    reRunStatusMessage.value = "Something went wrong while re-running queue."
+  }
 }
 </script>
 
@@ -47,8 +54,11 @@ const reRunQueue = async () => {
       </div>
     </div>
     <div>
-      <button @click="reRunQueue">Rerun Submissions In Queue</button>
-      <p v-if="reRunInProgress">The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again</p>
+      <div id="queue-refresh">
+        <p>This re-runs every submission in the queue. Used if something has gone wrong.</p>
+        <button @click="reRunQueue">Rerun Submissions In Queue</button>
+        <p id="queue-refresh-message">{{reRunStatusMessage.value}}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -58,7 +68,7 @@ const reRunQueue = async () => {
   padding: 10px;
   display: grid;
   grid-template-columns: 2fr 1fr;
-  align-items: center;
+  align-items: first;
 }
 
 .grading-queue {
@@ -68,5 +78,13 @@ border: 1px solid #ccc;
 border-radius: 5px;
 background-color: #f2f2f2;
 cursor: pointer;
+}
+
+#queue-refresh-message {
+  font-weight: bold;
+}
+
+#queue-refresh {
+  min-height: 30vh;
 }
 </style>
