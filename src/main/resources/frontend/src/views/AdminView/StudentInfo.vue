@@ -21,16 +21,7 @@ onMounted(async () => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
   var dataToShow: any = []
   studentSubmissions.value.forEach(submission => {
-    dataToShow.push(
-        {
-          phase: submission.phase,
-          time: new Date(submission.timestamp),
-          score: (submission.score * 100) + "%",
-          notes: submission.notes,
-          rubric: submission.rubric,
-          passed: submission.passed
-        }
-    )
+    dataToShow.push( submission )
   })
   rowData.value = dataToShow
 });

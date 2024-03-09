@@ -9,7 +9,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import {renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import {nameFromNetIdCellRender, renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 
 const selectedRubric = ref<Rubric | null>(null);
@@ -20,26 +20,10 @@ onMounted(async () => {
   submissionsData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
   var dataToShow: any = []
   submissionsData.forEach(submission => {
-    dataToShow.push(
-        {
-          name: getNameFromSubmission(submission),
-          netId: submission.netId,
-          phase: submission.phase,
-          time: new Date(submission.timestamp),
-          score: submission.score,
-          notes: submission.notes,
-          passed: submission.passed,
-          rubric: submission.rubric
-        }
-    )
+    dataToShow.push( submission )
   })
   rowData.value = dataToShow
 })
-
-const getNameFromSubmission = (submission: Submission) => {
-  const user = useAdminStore().usersByNetId[submission.netId];
-  return `${user.firstName} ${user.lastName}`
-}
 
 const notesCellClicked = (event: CellClickedEvent) => {
   selectedRubric.value = event.data.rubric
@@ -53,7 +37,7 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, onCellClicked: nameCellClicked },
+  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, cellRenderer: nameFromNetIdCellRender, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'time', sortable: true, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
   { headerName: "Score", field: 'score', sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },

@@ -8,7 +8,7 @@ import {usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import {renderRepoLinkCell} from "@/utils/tableUtils";
+import {nameFromNetIdCellRender, renderRepoLinkCell} from "@/utils/tableUtils";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
@@ -22,22 +22,14 @@ onMounted(async () => {
   const userData = await usersGet();
   studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
   var dataToShow: any = []
-  studentData.forEach(student => {
-    dataToShow.push(
-        {
-          name: student.firstName + " " + student.lastName,
-          netId: student.netId,
-          github: student.repoUrl
-        }
-    )
-  })
+  studentData.forEach(student => {dataToShow.push(student)})
   rowData.value = dataToShow
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, cellRenderer: nameFromNetIdCellRender, onCellClicked: cellClickHandler },
   { headerName: "BYU netID", field: "netId", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "github", flex: 5, sortable: false, filter: true, cellRenderer: renderRepoLinkCell }
+  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, filter: true, cellRenderer: renderRepoLinkCell }
 ])
 const rowData = reactive({
   value: []
