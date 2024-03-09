@@ -44,11 +44,9 @@ const activateTestStudentMode = async () => {
 <template>
   <div class="test-student-mode-container">
     <div>
-      <p>Click on the button below to become the test student</p>
-      <p>- you will need to log out and back in again to return to admin
-        mode</p>
-      <p>- you will not be able to enter student mode unless the Test Student has a submission for the GitHub Repository
-        assignment on Canvas</p>
+      <p>Use "Test Student Mode" to use the autograder as the course's test student</p>
+      <p>- you will need to log out and back in again to return to admin mode</p>
+      <p>- the test student must have a Github Repo submitted to the Canvas assignment</p>
     </div>
     <div>
       <button @click="activateTestStudentMode">Go to Test Student Mode</button>
