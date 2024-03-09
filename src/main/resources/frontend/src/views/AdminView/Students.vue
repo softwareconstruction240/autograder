@@ -1,25 +1,27 @@
 <script setup lang="ts">
 import { AgGridVue } from 'ag-grid-vue3';
-import type { ValueGetterParams } from 'ag-grid-community'
+import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import {onMounted, reactive} from "vue";
-import {usersGet} from "@/services/adminService";
+import {onMounted, reactive, ref} from "vue";
+import {submissionsForUserGet, usersGet} from "@/services/adminService";
+import PopUp from "@/components/PopUp.vue";
+import type {User} from "@/types/types";
+import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 
-const columnDefs = reactive([
-        { headerName: "Name", field: 'name', sortable: true, filter: true},
-        { headerName: "BYU netID", field: "netID", sortable: true, filter: true},
-        { headerName: "Github URL", field: "github", flex:1, sortable: false, filter: true, cellRenderer: function(params: ValueGetterParams) {
-          return '<a href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
-          }}
-      ])
-let rowData = reactive({
-  value: []
-})
+let selectedStudent = ref<User | null>(null);
+
+const cellClickHandler = (event: CellClickedEvent) => {
+  let findResult = studentData.find(user => user.netId === event.data.netID)
+  selectedStudent.value = findResult || null; // Setting selected student opens a popup
+  console.log(selectedStudent)
+}
+
+let studentData: User[] = [];
 
 onMounted(async () => {
   const userData = await usersGet();
-  const studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
+  studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
   var dataToShow: any = []
   studentData.forEach(student => {
     dataToShow.push(
@@ -33,6 +35,17 @@ onMounted(async () => {
   console.log(dataToShow)
   rowData.value = dataToShow
 })
+
+const columnDefs = reactive([
+  { headerName: "Student Name", field: 'name', sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "BYU netID", field: "netID", sortable: true, filter: true, onCellClicked: cellClickHandler },
+  { headerName: "Github Repo URL", field: "github", flex:1, sortable: false, filter: true, cellRenderer: function(params: ValueGetterParams) {
+      return '<a href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
+    }}
+])
+let rowData = reactive({
+  value: []
+})
 </script>
 
 <template>
@@ -42,6 +55,12 @@ onMounted(async () => {
       :columnDefs="columnDefs"
       :rowData="rowData.value"
   ></ag-grid-vue>
+
+  <PopUp
+      v-if="selectedStudent"
+      @closePopUp="selectedStudent = null">
+    <StudentInfo :student="selectedStudent"></StudentInfo>
+  </PopUp>
 
 </template>
 

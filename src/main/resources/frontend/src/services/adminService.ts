@@ -15,6 +15,19 @@ export const usersGet = async (): Promise<User[]> => {
     }
 }
 
+export const submissionsForUserGet = async (netID: string): Promise<Submission[]> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/student/' + netID, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return await response.json();
+    } catch (e) {
+        return [];
+    }
+}
+
 interface UserPatch {
     netId: string,
     firstName?: string,

@@ -69,6 +69,8 @@ public class Server {
 
                 get("/submissions/active", submissionsActiveGet);
 
+                get("/submissions/student/:netID", studentSubmissionsGet);
+
                 post("/submissions/rerun", submissionsReRunPost);
 
                 get("/analytics/commit", commitAnalyticsGet);
