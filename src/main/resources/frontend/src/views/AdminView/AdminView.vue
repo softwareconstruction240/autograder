@@ -39,10 +39,8 @@ const activateTestStudentMode = async () => {
       <Tab title="Queue Status">
         <QueueStatus/>
       </Tab>
-      <Tab title="Analytics">
+      <Tab title="Downloads">
         <Analytics/>
-      </Tab>
-      <Tab title="Honor Checker">
         <HonorChecker/>
       </Tab>
     </Tabs>
