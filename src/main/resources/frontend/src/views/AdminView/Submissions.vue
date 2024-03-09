@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Rubric, User} from "@/types/types";
+import type {Rubric, Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
@@ -9,10 +9,11 @@ import { AgGridVue } from 'ag-grid-vue3';
 import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import {nameFromNetIdCellRender, renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import {nameCellRender, renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
+import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
 
-const selectedRubric = ref<Rubric | null>(null);
+const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
 
 onMounted(async () => {
@@ -26,8 +27,8 @@ onMounted(async () => {
 })
 
 const notesCellClicked = (event: CellClickedEvent) => {
-  selectedRubric.value = event.data.rubric
-  console.log(selectedRubric.value)
+  selectedSubmission.value = event.data
+  console.log(selectedSubmission.value)
 }
 
 const nameCellClicked = (event: CellClickedEvent) => {
@@ -37,7 +38,7 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, cellRenderer: nameFromNetIdCellRender, onCellClicked: nameCellClicked },
+  { headerName: "Name", field: 'name', sortable: true, filter: true, flex:2, cellRenderer: nameCellRender, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'time', sortable: true, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
   { headerName: "Score", field: 'score', sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },
@@ -63,9 +64,9 @@ const rowClassRules = {
   ></ag-grid-vue>
 
   <PopUp
-      v-if="selectedRubric"
-      @closePopUp="selectedRubric = null">
-    <RubricTable :rubric="selectedRubric"/>
+      v-if="selectedSubmission"
+      @closePopUp="selectedSubmission = null">
+    <SubmissionInfo :submission="selectedSubmission"/>
   </PopUp>
 
   <PopUp

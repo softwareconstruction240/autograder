@@ -8,7 +8,7 @@ import {testStudentModeGet, usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import {nameFromNetIdCellRender, renderRepoLinkCell} from "@/utils/tableUtils";
+import {nameCellRender, renderRepoLinkCell} from "@/utils/tableUtils";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
@@ -27,7 +27,7 @@ onMounted(async () => {
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, cellRenderer: nameFromNetIdCellRender, onCellClicked: cellClickHandler },
+  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, cellRenderer: nameCellRender, onCellClicked: cellClickHandler },
   { headerName: "BYU netID", field: "netId", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
   { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, filter: true, cellRenderer: renderRepoLinkCell }
 ])

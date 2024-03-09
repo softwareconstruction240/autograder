@@ -9,13 +9,15 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
 import {renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
+import {generateClickableLink} from "../../utils/utils";
 
 const { student } = defineProps<{
   student: User;
 }>();
 
 const studentSubmissions = ref<Submission[]>([])
-const selectedRubric = ref<Rubric | null>(null);
+const selectedSubmission = ref<Submission | null>(null);
 
 onMounted(async () => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
@@ -27,7 +29,10 @@ onMounted(async () => {
 });
 
 const cellClickHandler = (event: CellClickedEvent) => {
-  selectedRubric.value = event.data.rubric;
+  selectedSubmission.value = event.data;
+  console.log("meme")
+  console.log(event.data)
+  console.log(selectedSubmission.value?.score)
 }
 
 const columnDefs = reactive([
@@ -44,19 +49,19 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p>Github Repo: <a :href=student.repoUrl target="_blank">{{student.repoUrl}}</a> </p>
+  <p>Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"
-      style="height: 35vh; width: 60vw"
+      style="height: 35vh; width: 75vw"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
   ></ag-grid-vue>
 
   <PopUp
-      v-if="selectedRubric"
-      @closePopUp="selectedRubric = null">
-    <RubricTable :rubric="selectedRubric"/>
+      v-if="selectedSubmission"
+      @closePopUp="selectedSubmission = null">
+    <SubmissionInfo :submission="selectedSubmission"/>
   </PopUp>
 </template>
 
