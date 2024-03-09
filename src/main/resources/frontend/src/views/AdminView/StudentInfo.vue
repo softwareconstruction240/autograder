@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type {Rubric, Submission, User} from "@/types/types";
 import {onMounted, reactive, ref} from "vue";
-import {submissionsForUserGet, usersGet} from "@/services/adminService";
+import {submissionsForUserGet} from "@/services/adminService";
 import { AgGridVue } from 'ag-grid-vue3';
-import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
+import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
