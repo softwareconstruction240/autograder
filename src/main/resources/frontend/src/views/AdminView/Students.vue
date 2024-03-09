@@ -10,13 +10,12 @@ import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 
 const selectedStudent = ref<User | null>(null);
+let studentData: User[] = [];
 
 const cellClickHandler = (event: CellClickedEvent) => {
   let findResult = studentData.find(user => user.netId === event.data.netID)
   selectedStudent.value = findResult || null; // Setting selected student opens a popup
 }
-
-let studentData: User[] = [];
 
 onMounted(async () => {
   const userData = await usersGet();
