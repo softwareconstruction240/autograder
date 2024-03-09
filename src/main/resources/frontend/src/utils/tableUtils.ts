@@ -1,6 +1,5 @@
 import type { ValueGetterParams } from 'ag-grid-community'
 import {useAdminStore} from "@/stores/admin";
-import type {Submission} from "@/types/types";
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
