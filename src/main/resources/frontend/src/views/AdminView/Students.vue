@@ -4,17 +4,16 @@ import type { ValueGetterParams, CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {onMounted, reactive, ref} from "vue";
-import {submissionsForUserGet, usersGet} from "@/services/adminService";
+import {usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 
-let selectedStudent = ref<User | null>(null);
+const selectedStudent = ref<User | null>(null);
 
 const cellClickHandler = (event: CellClickedEvent) => {
   let findResult = studentData.find(user => user.netId === event.data.netID)
   selectedStudent.value = findResult || null; // Setting selected student opens a popup
-  console.log(selectedStudent)
 }
 
 let studentData: User[] = [];
@@ -32,7 +31,6 @@ onMounted(async () => {
         }
     )
   })
-  console.log(dataToShow)
   rowData.value = dataToShow
 })
 
@@ -43,7 +41,7 @@ const columnDefs = reactive([
       return '<a href="' + params.data.github + '" target="_blank">' + params.data.github + '</a>'
     }}
 ])
-let rowData = reactive({
+const rowData = reactive({
   value: []
 })
 </script>
