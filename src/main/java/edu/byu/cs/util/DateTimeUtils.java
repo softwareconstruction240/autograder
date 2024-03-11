@@ -45,6 +45,11 @@ public class DateTimeUtils {
      * @return the number of days late or 0 if the submission is not late
      */
     public int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
+        if (publicHolidays == null) {
+            throw new RuntimeException("Public Holidays have not yet been initialized. "
+                    + "Call `dateTimeUtils.initializePublicHolidays()` before attempting to count the days late.");
+        }
+
         int daysLate = 0;
 
         while (handInDate.isAfter(dueDate)) {
