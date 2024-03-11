@@ -8,8 +8,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+/**
+ * Has helper methods for handling dates.
+ * Note that some methods are available statically.
+ * but some methods require configuration ahead of time and are available
+ * only on instances of the class.
+ * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
+ */
 public class DateTimeUtils {
-    private static Set<LocalDate> publicHolidays;
+    private Set<LocalDate> publicHolidays;
 
     /**
      * Generates a String representation of a timestamp
@@ -32,7 +39,7 @@ public class DateTimeUtils {
      * @param dueDate    the due date of the phase
      * @return the number of days late or 0 if the submission is not late
      */
-    public static int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
+    public int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
         int daysLate = 0;
 
         while (handInDate.isAfter(dueDate)) {
@@ -45,6 +52,13 @@ public class DateTimeUtils {
         return daysLate;
     }
 
+    /**
+     * Initializes the public holidays to an empty value.
+     * Useful for testing when it's recognized that no holidays exist.
+     */
+    public void initializePublicHolidays() {
+        publicHolidays = new HashSet<>();
+    }
     /**
      * Initializes our public holidays with the default date format `MM/DD/YYYY`.
      *
@@ -149,7 +163,7 @@ public class DateTimeUtils {
      * @param zonedDateTime the date to check
      * @return true if the date is a public holiday, false otherwise
      */
-    private static boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
+    private boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
         if (publicHolidays == null) {
 //            return false; // Holidays have not been initialized
             throw new RuntimeException("Holiday settings have not been initialized properly");

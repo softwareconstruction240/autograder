@@ -58,11 +58,14 @@ class DateTimeUtilsTest {
                 new ExpectedDaysLate("2024-04-15 02:15:00 PM -07:00", 27),
         };
 
+        DateTimeUtils dateTimeUtils = new DateTimeUtils();
+        dateTimeUtils.initializePublicHolidays();
+
         // Evaluate all the test cases above
         ZonedDateTime handInTime;
         for (var expectedResult : expectedDaysLate) {
             handInTime = ZonedDateTime.parse(expectedResult.handInDate, formatter);
-            Assertions.assertEquals(expectedResult.daysLate, DateTimeUtils.getNumDaysLate(handInTime, dueDate));
+            Assertions.assertEquals(expectedResult.daysLate, dateTimeUtils.getNumDaysLate(handInTime, dueDate));
         }
     }
 
