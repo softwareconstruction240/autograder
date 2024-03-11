@@ -4,48 +4,48 @@
       "name": "Naming",
       "value": 25,
       "reporters": [
-        "[PackageName]",
-        "[TypeName]",
-        "[MethodName]",
-        "[ConstantName]",
-        "[MemberName]",
-        "[LocalVariableName]",
-        "[RecordComponentName]",
-        "[ParameterName]",
-        "[LambdaParameterName]",
-        "[StaticVariableName]",
-        "[LocalFinalVariableName]",
-        "[PatternVariableName]",
-        "[RecordTypeParameterName]",
-        "[MethodTypeParameterName]",
-        "[ClassTypeParameterName]",
-        "[InterfaceTypeParameterName]"
+        "PackageName",
+        "TypeName",
+        "MethodName",
+        "ConstantName",
+        "MemberName",
+        "LocalVariableName",
+        "RecordComponentName",
+        "ParameterName",
+        "LambdaParameterName",
+        "StaticVariableName",
+        "LocalFinalVariableName",
+        "PatternVariableName",
+        "RecordTypeParameterName",
+        "MethodTypeParameterName",
+        "ClassTypeParameterName",
+        "InterfaceTypeParameterName"
       ]
     },
     {
       "name": "Code Decomposition",
       "value": 30,
       "reporters": [
-        "[DuplicateLines]",
-        "[DuplicateBlock]",
-        "[MethodLength]",
-        "[FileLength]"
+        "DuplicateLines",
+        "DuplicateBlock",
+        "MethodLength",
+        "FileLength"
       ]
     },
     {
       "name": "Code Readability",
       "value": 30,
       "reporters": [
-        "[UnusedMethodReporter]",
-        "[CommentedCode]",
-        "[NoCodeInFile]"
+        "UnusedMethodReporter",
+        "CommentedCode",
+        "NoCodeInFile"
       ]
     },
     {
       "name": "Package Structure",
       "value": 15,
       "reporters": [
-        "[FilesPerPackage]"
+        "FilesPerPackage"
       ]
     }
   ]

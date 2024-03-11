@@ -56,7 +56,7 @@ public class QualityAnalyzer {
         for (String line : lines) {
             String trimmed = line.trim();
             if (trimmed.startsWith("[ERROR]")) {
-                String cause = trimmed.substring(trimmed.lastIndexOf('['));
+                String cause = trimmed.substring(trimmed.lastIndexOf('[') + 1, trimmed.lastIndexOf(']'));
                 if (!errors.containsKey(cause)) {
                     errors.put(cause, new ArrayList<>());
                 }
