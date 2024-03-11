@@ -89,6 +89,7 @@ public class DateTimeUtils {
      */
     public Set<LocalDate> initializePublicHolidays(String encodedPublicHolidays, String dateEncodingFormat) {
         publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat);
+        // TODO: Validate that some holidays are configured for the current calendar year and throw an error otherwise
         return publicHolidays;
     }
 
