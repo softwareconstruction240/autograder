@@ -19,6 +19,7 @@ class DateTimeUtilsTest {
         DateTimeUtils dateTimeUtils = new DateTimeUtils();
         dateTimeUtils.initializePublicHolidays();
 
+        // See images: days-late-without-holidays (1&2)
         String dueDateStr = "2024-03-07 11:59:00 PM -07:00";
         ExpectedDaysLate[] expectedDaysLate = {
                 // On time submissions
@@ -74,6 +75,7 @@ class DateTimeUtilsTest {
         DateTimeUtils standardDateTimeUtils = new DateTimeUtils();
         standardDateTimeUtils.initializePublicHolidays(getMultilinePublicHolidaysConfiguration());
 
+        // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
         ExpectedDaysLate[] commonExpectedDaysLate = {
                 // Early & on-time
@@ -105,6 +107,7 @@ class DateTimeUtilsTest {
         };
         validateExpectedDaysLate(commonDueDate, commonExpectedDaysLate, standardDateTimeUtils);
 
+        // See image: days-late-with-holidays-due-on-holiday
         // This edge case is professor approved
         String holidayDueDate = "2024-06-19 11:59:00 PM -07:00";
         ExpectedDaysLate[] holidayExpectedDaysLate = {
@@ -140,6 +143,7 @@ class DateTimeUtilsTest {
         validateExpectedDaysLate(holidayDueDate, holidayExpectedDaysLate, standardDateTimeUtils);
 
 
+        // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
         DateTimeUtils customDateTimeUtils = new DateTimeUtils();
         customDateTimeUtils.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
@@ -181,6 +185,7 @@ class DateTimeUtilsTest {
         validateExpectedDaysLate(fridayHolidayDueDate, fridayHolidayAndConsecutiveHolidays, customDateTimeUtils);
 
 
+        // See image: days-late-with-holidays-holidays-on-weekends
         DateTimeUtils customDateTimeUtils2 = new DateTimeUtils();
         customDateTimeUtils2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;");
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
