@@ -20,5 +20,3 @@ jobs:
 
       - name: Test with Maven
         run: mvn test
-
-      # cache miss test
