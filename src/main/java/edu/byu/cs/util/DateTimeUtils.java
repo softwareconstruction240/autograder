@@ -33,7 +33,12 @@ public class DateTimeUtils {
     }
 
     /**
-     * Gets the number of days late the submission is. This excludes weekends and public holidays
+     * Gets the number of days late the submission is. This excludes weekends and public holidays.
+     *
+     * In the event that the due date also happens to be a holiday, the assignment not receive
+     * a late penalty until AFTER the holiday and weekends following it. While this behavior
+     * may be surprising, it can be controlled by professors being careful to never assign a
+     * due date on a holiday. This behavior is illustrated in the provided test cases.
      *
      * @param handInDate the date the submission was handed in
      * @param dueDate    the due date of the phase
