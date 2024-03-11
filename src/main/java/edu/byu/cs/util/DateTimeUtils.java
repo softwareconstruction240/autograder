@@ -1,5 +1,8 @@
 package edu.byu.cs.util;
 
+import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -25,7 +28,7 @@ public class DateTimeUtils {
      * @param includeTime whether the time is included
      * @return a string formatted like "yyyy-MM-dd HH:mm:ss"
      */
-    public static String getDateString(long timestamp, boolean includeTime) {
+    public static String getDateString(@NonNull long timestamp, boolean includeTime) {
         ZonedDateTime zonedDateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneId.of("America/Denver"));
         String pattern = includeTime ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
@@ -44,7 +47,7 @@ public class DateTimeUtils {
      * @param dueDate    the due date of the phase
      * @return the number of days late or 0 if the submission is not late
      */
-    public int getNumDaysLate(ZonedDateTime handInDate, ZonedDateTime dueDate) {
+    public int getNumDaysLate(@NonNull ZonedDateTime handInDate, @NonNull ZonedDateTime dueDate) {
         if (publicHolidays == null) {
             throw new RuntimeException("Public Holidays have not yet been initialized. "
                     + "Call `dateTimeUtils.initializePublicHolidays()` before attempting to count the days late.");
@@ -77,7 +80,7 @@ public class DateTimeUtils {
      *
      * @param encodedPublicHolidays A string representing the encoded data.
      */
-    public Set<LocalDate> initializePublicHolidays(String encodedPublicHolidays) {
+    public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays) {
         return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy");
     }
 
@@ -89,10 +92,15 @@ public class DateTimeUtils {
      *
      * @see #interpretPublicHolidays(String, String)
      *
-     * @param encodedPublicHolidays A string representing the configured data
+     * @param encodedPublicHolidays @non-nullable A string representing the configured data
      * @param dateEncodingFormat A string representing the intended date format within the data
      */
-    public Set<LocalDate> initializePublicHolidays(String encodedPublicHolidays, String dateEncodingFormat) {
+    public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, @NonNull String dateEncodingFormat) {
+        if (encodedPublicHolidays == null || dateEncodingFormat == null) {
+            throw new RuntimeException("Error initializing public holidays. Received null as a parameter. " +
+                    "If some data isn't available, explicitly call the no argument initializer instead.");
+        }
+
         publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat);
         // TODO: Validate that some holidays are configured for the current calendar year and throw an error otherwise
         return publicHolidays;
@@ -146,7 +154,7 @@ public class DateTimeUtils {
      *                           This will be interpreted by {@link DateTimeFormatter}.
      * @return A {@code Set<Date>} that will be used to efficiently comparing against this dataset
      */
-    private Set<LocalDate> interpretPublicHolidays(String encodedPublicHolidays, String dateEncodingFormat) {
+    private Set<LocalDate> interpretPublicHolidays(@Nullable String encodedPublicHolidays, @NonNull String dateEncodingFormat) {
         String[] dateStrings;
         if (encodedPublicHolidays == null) {
             dateStrings = new String[]{};
@@ -171,7 +179,7 @@ public class DateTimeUtils {
         }
         return holidays.toArray(new String[0]);
     }
-    private Set<LocalDate> parsePublicHolidayStrings(String dateFormat, String[] holidayDateStrings) {
+    private Set<LocalDate> parsePublicHolidayStrings(@NonNull String dateFormat, String[] holidayDateStrings) {
         Set<LocalDate> publicHolidays = new HashSet<>();
         var parser = DateTimeFormatter.ofPattern(dateFormat);
         for (var holidayDateString : holidayDateStrings) {
@@ -196,7 +204,7 @@ public class DateTimeUtils {
      * @param zonedDateTime the date to check
      * @return true if the date is a public holiday, false otherwise
      */
-    private boolean isPublicHoliday(ZonedDateTime zonedDateTime) {
+    private boolean isPublicHoliday(@NonNull ZonedDateTime zonedDateTime) {
         if (publicHolidays == null) {
 //            return false; // Holidays have not been initialized
             throw new RuntimeException("Holiday settings have not been initialized properly");
