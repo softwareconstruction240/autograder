@@ -66,8 +66,8 @@ public class DateTimeUtils {
      *
      * @param encodedPublicHolidays A string representing the encoded data.
      */
-    public void initializePublicHolidays(String encodedPublicHolidays) {
-        initializePublicHolidays(encodedPublicHolidays, "MM/DD/YYYY");
+    public Set<LocalDate> initializePublicHolidays(String encodedPublicHolidays) {
+        return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy");
     }
 
     /**
@@ -106,6 +106,9 @@ public class DateTimeUtils {
      * and the rest of the line will be ignored as a comment.
      * Any line that does not contain a date format at the beginning
      * (i.e. an empty line) will be ignored and not considered for interpretation.
+     * Lines beginning with `#` are always ignored as a comment; however, a comment
+     * need not begin with a special symbol. Lines where a date cannot be interpreted
+     * from the first word will simply be skipped.
      * <br>
      *
      * The input should be only one of the two approaches. It should either be a single-line entry with
@@ -148,8 +151,14 @@ public class DateTimeUtils {
         Set<LocalDate> publicHolidays = new HashSet<>();
         var parser = DateTimeFormatter.ofPattern(dateFormat);
         for (var holidayDateString : holidayDateStrings) {
+            if (holidayDateString.isEmpty()) {
+                continue; // Empty line
+            }
+            if (holidayDateString.charAt(0) == '#') {
+                continue; // Explicitly marked as a comment
+            }
             try {
-                publicHolidays.add(LocalDate.from(parser.parse(holidayDateString)));
+                publicHolidays.add(parser.parse(holidayDateString, LocalDate::from));
             } catch (DateTimeParseException e) {
                 System.out.println("Skipping unrecognized date string: " + holidayDateString);
             }
