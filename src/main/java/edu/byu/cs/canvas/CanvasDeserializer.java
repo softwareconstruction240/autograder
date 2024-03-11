@@ -2,6 +2,7 @@ package edu.byu.cs.canvas;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
@@ -27,6 +28,10 @@ public class CanvasDeserializer<T> {
 
         @Override
         public ZonedDateTime read(JsonReader jsonReader) throws IOException {
+            if(jsonReader.peek() == JsonToken.NULL) {
+                jsonReader.nextNull();
+                return null;
+            }
             ZonedDateTime utc = ZonedDateTime.parse(jsonReader.nextString());
             return utc.withZoneSameInstant(ZoneId.of("America/Denver"));
         }
@@ -38,7 +43,7 @@ public class CanvasDeserializer<T> {
                                                               JsonDeserializationContext jsonDeserializationContext)
                 throws JsonParseException {
             Map<String, Map<String, Object>> map = jsonDeserializationContext.deserialize(jsonElement, Map.class);
-            Map<String, CanvasIntegration.RubricItem> items = new HashMap<>();
+            Map<String, CanvasIntegration.RubricAssessmentItem> items = new HashMap<>();
             for (var entry : map.entrySet()) {
                 String key = entry.getKey();
                 Map<String, Object> value = entry.getValue();
@@ -49,7 +54,7 @@ public class CanvasDeserializer<T> {
 
                 float score = (points == null) ? 0 : points.floatValue();
 
-                items.put(key, new CanvasIntegration.RubricItem(comments, score));
+                items.put(key, new CanvasIntegration.RubricAssessmentItem(comments, score));
             }
             return new CanvasIntegration.RubricAssessment(items);
         }

@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.time.ZonedDateTime;
@@ -42,29 +40,33 @@ public class CanvasIntegration {
         sectionIDs.put(5, 25971);
     }
 
-    private record Enrollment(EnrollmentType type) {
+    private enum EnrollmentType {
+        StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
 
     }
 
-    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
+    private record Enrollment(EnrollmentType type) {}
 
-    }
+    private record CanvasUser(Integer id, String sortable_name, String login_id, Enrollment[] enrollments) {}
 
-    public record RubricItem(String comments, float points) {}
+    public record RubricAssessmentItem(String comments, Float points) {}
 
-    public record RubricAssessment(Map<String, RubricItem> items) {}
+    public record RubricAssessment(Map<String, RubricAssessmentItem> items) {}
 
-    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {
+    public record CanvasSubmission(String url, RubricAssessment rubric_assessment) {}
 
-    }
 
-    private record CanvasSubmissionUser(String url, CanvasUser user) {
 
-    }
+    private record CanvasSubmissionUser(String url, CanvasUser user) {}
 
-    private record CanvasAssignment(ZonedDateTime due_at) {
+    public record CanvasAssignment(Integer id, String name, ZonedDateTime due_at,
+                                   List<CanvasAssignmentRubricItem> rubric) {}
 
-    }
+    public record CanvasAssignmentRubricItem(String id, Float points, String description) {}
+
+    private record CanvasResponse<T>(T body, Map<String, List<String>> headers, int responseCode) {}
+
+
 
     /**
      * Queries canvas for the user with the given netId
@@ -78,7 +80,7 @@ public class CanvasIntegration {
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 null,
-                CanvasUser[].class);
+                CanvasUser[].class).body();
 
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
@@ -139,7 +141,7 @@ public class CanvasIntegration {
                     "GET",
                     baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
                     null,
-                    CanvasSubmissionUser[].class);
+                    CanvasSubmissionUser[].class).body();
             batchSize = batch.length;
             allSubmissions.addAll(Arrays.asList(batch));
             pageIndex++;
@@ -193,7 +195,7 @@ public class CanvasIntegration {
     public static void submitGrade(int userId, int assignmentNum, Map<String, Float> grades, Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, assignmentNum);
         if(submission.rubric_assessment() != null) {
-            for(Map.Entry<String, CanvasIntegration.RubricItem> entry : submission.rubric_assessment().items().entrySet()) {
+            for(Map.Entry<String, RubricAssessmentItem> entry : submission.rubric_assessment().items().entrySet()) {
                 grades.putIfAbsent(entry.getKey(), entry.getValue().points());
                 rubricComments.putIfAbsent(entry.getKey(), entry.getValue().comments());
             }
@@ -239,7 +241,7 @@ public class CanvasIntegration {
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
                 null,
                 CanvasSubmission.class
-        );
+        ).body();
     }
 
     /**
@@ -264,14 +266,14 @@ public class CanvasIntegration {
     }
 
 
-    public static User getTestStudent() throws CanvasException {
+    public static User getTestStudent(int courseNumber) throws CanvasException {
         String testStudentName = "Test%20Student";
 
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
+                "/courses/" + courseNumber + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
                 null,
-                CanvasUser[].class);
+                CanvasUser[].class).body();
 
         if (users.length == 0)
             throw new CanvasException("Test Student not found in Canvas");
@@ -291,13 +293,17 @@ public class CanvasIntegration {
         );
     }
 
+    public static User getTestStudent() throws CanvasException {
+        return getTestStudent(COURSE_NUMBER);
+    }
+
     public static ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
                 null,
                 CanvasAssignment[].class
-        )[0];
+        ).body()[0];
 
         if (assignment == null || assignment.due_at() == null)
             throw new CanvasException("Unable to get due date for assignment");
@@ -305,9 +311,10 @@ public class CanvasIntegration {
         return assignment.due_at();
     }
 
-    private enum EnrollmentType {
-        StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
-
+    public static List<CanvasAssignment> getAssignmentsForClass(int courseId) throws CanvasException {
+        int testStudentId = getTestStudent(courseId).canvasUserId();
+        String path = "/users/" + testStudentId + "/courses/" + courseId + "/assignments";
+        return makePaginatedCanvasRequest("GET", path, CanvasAssignment.class);
     }
 
     /**
@@ -321,7 +328,8 @@ public class CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+    private static <T> CanvasResponse<T> makeCanvasRequest(String method, String path, Object request,
+                                                           Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -346,11 +354,42 @@ public class CanvasIntegration {
             if (https.getResponseCode() < 200 || https.getResponseCode() >= 300) {
                 throw new CanvasException("Response from canvas wasn't 2xx, was " + https.getResponseCode());
             }
-
-            return readBody(https, responseClass);
-        } catch (Exception ex) {
+            return new CanvasResponse<>(readBody(https, responseClass), https.getHeaderFields(), https.getResponseCode());
+        } catch (IOException | URISyntaxException ex) {
             throw new CanvasException("Exception while contacting canvas", ex);
         }
+    }
+
+    /**
+     * Sends a request to canvas and returns the requested response
+     *
+     * @param method        The request method to use (e.g. "GET", "PUT", etc.)
+     * @param path          The path to the endpoint to use (e.g. "/courses/12345")
+     * @param responseClass The class of the response to return
+     * @param <T>           The type of the response to return
+     * @return The list containing the responses from canvas
+     * @throws CanvasException If there is an error while contacting canvas
+     */
+    private static <T> List<T> makePaginatedCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
+        List<T> list = new ArrayList<>();
+        while (path != null) {
+            @SuppressWarnings("unchecked")
+            CanvasResponse<T[]> response = makeCanvasRequest(method, path, null,
+                    (Class<T[]>) responseClass.arrayType());
+            list.addAll(Arrays.asList(response.body()));
+            List<String> links = response.headers().get("Link");
+            path = (links != null) ? getNextPath(links.getFirst()) : null;
+        }
+        return list;
+    }
+
+    private static String getNextPath(String wholeLink) {
+        for(String group : wholeLink.split(",")) {
+            if (group.contains("rel=\"next\"")) {
+                return group.substring(group.indexOf("/api/v1") + 7, group.indexOf('>'));
+            }
+        }
+        return null;
     }
 
     /**
