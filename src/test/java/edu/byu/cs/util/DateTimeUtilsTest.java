@@ -3,8 +3,11 @@ package edu.byu.cs.util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,6 +69,73 @@ class DateTimeUtilsTest {
         for (var expectedResult : expectedDaysLate) {
             handInTime = ZonedDateTime.parse(expectedResult.handInDate, formatter);
             Assertions.assertEquals(expectedResult.daysLate, dateTimeUtils.getNumDaysLate(handInTime, dueDate));
+        }
+    }
+
+    @Test
+    void initializePublicHolidaysSingleLine() {
+        String encodedPublicHolidays = " " // Leading whitespace
+                    + "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;" // Delimited with ";"
+                    + "This isn't a date, you silly goose! " // Invalid date should be skipped
+                    + "7/4/2024,7/24/2024,9/2/2024,11/27/2024,11/28/2024,11/29/2024," // Delimited with ","
+                    + "16 sep 2024," // This date shouldn't be accepted since it's in the wrong format
+                    + ";, " // Multiple consecutive delimiters
+                    + "12/24/2024 12/25/2024 12/31/2024 " // Delimited with " "
+                    + "1/1/2025;"; // Has trailing delimiter
+
+        validateExpectedHolidays(encodedPublicHolidays);
+    }
+    @Test
+    void initializePublicHolidaysMultiLine() {
+        String encodedPublicHolidays =
+                """
+                1/1/2024 New Years
+                1/15/2024 MLK Jr's day
+                2/19/2024 President's Day
+                3/15/2024 Spring day
+                        4/25/2024 Commencement          Extra indentation shouldn't mess anything up
+                5/27/2024 Memorial day
+                6/19/2024 Juneteenth
+                
+                This is just a comment.
+                The following date should not be accepted: 7/1/2024
+                7/4/2024 July 4th
+                7/24/2024 Pioneer day
+                # Comments beginning with '#' should be specifically ignored
+                
+                The following dates have comments following a tab character "\t"
+                9/2/2024        Labor day
+                # 9/16/2024     My birthday doesn't count as a holiday
+                11/27/2024      No classes
+                11/28/2024      Thanksgiving
+                11/29/2024      Thanksgiving holiday
+                12/24/2024      Christmas Eve
+                12/25/2024      Christmas Day
+                12/31/2024      New Years Holiday
+                1/1/2025        New Years Holiday
+                """;
+
+        validateExpectedHolidays(encodedPublicHolidays);
+    }
+    private void validateExpectedHolidays(String encodedPublicHolidays) {
+        DateTimeUtils dateTimeUtils = new DateTimeUtils();
+        var initializedPublicHolidays = dateTimeUtils.initializePublicHolidays(encodedPublicHolidays);
+
+        Assertions.assertEquals(17, initializedPublicHolidays.size(),
+                "Set does not have the right number of public holidays");
+
+        LocalDate[] sampleExpectedHolidays = {
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 15),
+                LocalDate.of(2024, 4, 25),
+                LocalDate.of(2024, 6, 19),
+                LocalDate.of(2024, 9, 2),
+                LocalDate.of(2024, 12, 25),
+                LocalDate.of(2025, 1, 1),
+        };
+        for (var expectedHoliday : sampleExpectedHolidays) {
+            Assertions.assertTrue(initializedPublicHolidays.contains(expectedHoliday),
+                    "Expected holiday not found in resulting set: " + expectedHoliday.toString());
         }
     }
 
