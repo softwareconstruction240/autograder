@@ -1,0 +1,21 @@
+name: Maven Test
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+
+      - name: Test with Maven
+        run: mvn test
