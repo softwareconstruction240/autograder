@@ -29,9 +29,6 @@ public class QualityAnalyzer {
         }
     }
 
-    private Map<String, List<String>> errors;
-    private List<String> warnings;
-
     public QualityAnalysis runQualityChecks(File stageRepo) {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
@@ -41,17 +38,17 @@ public class QualityAnalyzer {
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
         output = output.replaceAll(stageRepo.getPath(), "");
 
-        parseOutput(output);
-        float score = getScore();
-        String results = getResults();
-        String notes = getNotes();
+        QualityOutput qualityOutput = parseOutput(output);
+        float score = getScore(qualityOutput);
+        String results = getResults(qualityOutput);
+        String notes = getNotes(qualityOutput);
         return new QualityAnalysis(score, results, notes);
     }
 
 
-    private void parseOutput(String output) {
-        errors = new HashMap<>();
-        warnings = new ArrayList<>();
+    private QualityOutput parseOutput(String output) {
+        Map<String, List<String>> errors = new HashMap<>();
+        List<String> warnings = new ArrayList<>();
         String[] lines = output.split("\n");
         for (String line : lines) {
             String trimmed = line.trim();
@@ -66,26 +63,27 @@ public class QualityAnalyzer {
                 warnings.add(trimmed);
             }
         }
+        return new QualityOutput(errors, warnings);
     }
 
-    private float getScore() {
+    private float getScore(QualityOutput output) {
         float totalPoints = 0;
         float earnedPoints = 0;
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             totalPoints += category.value();
-            if(categoryPasses(category)) earnedPoints += category.value();
+            if(categoryPasses(category, output)) earnedPoints += category.value();
         }
         return earnedPoints / totalPoints;
     }
 
-    private String getResults() {
+    private String getResults(QualityOutput output) {
         StringBuilder resultsBuilder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             StringBuilder categoryResultsBuilder = new StringBuilder();
             for(String reporter : category.reporters()) {
                 StringBuilder reporterResultsBuilder = new StringBuilder();
-                if (errors.containsKey(reporter)) {
-                    errors.get(reporter).forEach(s -> reporterResultsBuilder.append("\t\t").append(s).append("\n"));
+                if (output.errors().containsKey(reporter)) {
+                    output.errors().get(reporter).forEach(s -> reporterResultsBuilder.append("\t\t").append(s).append("\n"));
                 }
                 if (!reporterResultsBuilder.isEmpty()) {
                     categoryResultsBuilder.append("\t").append(reporter).append(":\n")
@@ -97,9 +95,9 @@ public class QualityAnalyzer {
             }
         }
 
-        if(!warnings.isEmpty()) {
+        if(!output.warnings().isEmpty()) {
             resultsBuilder.append("Warnings:\n");
-            warnings.forEach(s -> resultsBuilder.append("\t").append(s).append("\n"));
+            output.warnings().forEach(s -> resultsBuilder.append("\t").append(s).append("\n"));
         }
 
         if (resultsBuilder.isEmpty()) resultsBuilder.append("Good job!");
@@ -107,25 +105,27 @@ public class QualityAnalyzer {
         return resultsBuilder.toString();
     }
 
-    private String getNotes() {
+    private String getNotes(QualityOutput output) {
         StringBuilder builder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
-            boolean categoryPasses = categoryPasses(category);
+            boolean categoryPasses = categoryPasses(category, output);
             builder.append((categoryPasses) ? "✓" : "✗").append(" ").append(category.name()).append("\n");
         }
         return builder.toString();
     }
 
 
-    private boolean categoryPasses(QualityRubricCategory category) {
+    private boolean categoryPasses(QualityRubricCategory category, QualityOutput output) {
         for(String reporter : category.reporters()) {
-            if(errors.containsKey(reporter)) return false;
+            if(output.errors().containsKey(reporter)) return false;
         }
         return true;
     }
 
 
     public record QualityAnalysis(float score, String results, String notes) {}
+
+    private record QualityOutput(Map<String, List<String>> errors, List<String> warnings) {}
 
     private record QualityRubricCategory(String name, float value, Set<String> reporters) {}
 
