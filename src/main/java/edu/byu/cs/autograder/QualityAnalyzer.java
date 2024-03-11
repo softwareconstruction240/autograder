@@ -29,6 +29,12 @@ public class QualityAnalyzer {
         }
     }
 
+    /**
+     * Runs quality checks for a repository
+     *
+     * @param stageRepo file to the repo to check
+     * @return QualityAnalysis object containing score, results, and notes
+     */
     public QualityAnalysis runQualityChecks(File stageRepo) {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
@@ -39,13 +45,18 @@ public class QualityAnalyzer {
         output = output.replaceAll(stageRepo.getPath(), "");
 
         QualityOutput qualityOutput = parseOutput(output);
-        float score = getScore(qualityOutput);
+        float score = evaluateScore(qualityOutput);
         String results = getResults(qualityOutput);
         String notes = getNotes(qualityOutput);
         return new QualityAnalysis(score, results, notes);
     }
 
-
+    /**
+     * Parses the checkstyle process output string
+     *
+     * @param output String of checkstyle process output
+     * @return QualityOutput containing errors and warnings from quality analysis
+     */
     private QualityOutput parseOutput(String output) {
         Map<String, List<String>> errors = new HashMap<>();
         List<String> warnings = new ArrayList<>();
@@ -66,28 +77,40 @@ public class QualityAnalyzer {
         return new QualityOutput(errors, warnings);
     }
 
-    private float getScore(QualityOutput output) {
+    /**
+     * Evaluates the score for a quality analysis
+     *
+     * @param output errors and warnings from quality analysis
+     * @return the score as a float from 0 to 1
+     */
+    private float evaluateScore(QualityOutput output) {
         float totalPoints = 0;
         float earnedPoints = 0;
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             totalPoints += category.value();
-            if(categoryPasses(category, output)) earnedPoints += category.value();
+            if (categoryPasses(category, output)) earnedPoints += category.value();
         }
         return earnedPoints / totalPoints;
     }
 
+    /**
+     * Creates a string with the output of each error and warning
+     *
+     * @param output errors and warnings from quality analysis
+     * @return a String of each quality error--grouped into categories--and each warning
+     */
     private String getResults(QualityOutput output) {
         StringBuilder resultsBuilder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             StringBuilder categoryResultsBuilder = new StringBuilder();
-            for(String reporter : category.reporters()) {
+            for (String reporter : category.reporters()) {
                 StringBuilder reporterResultsBuilder = new StringBuilder();
                 if (output.errors().containsKey(reporter)) {
-                    output.errors().get(reporter).forEach(s -> reporterResultsBuilder.append("\t\t").append(s).append("\n"));
+                    output.errors().get(reporter)
+                            .forEach(s -> reporterResultsBuilder.append("\t\t").append(s).append("\n"));
                 }
                 if (!reporterResultsBuilder.isEmpty()) {
-                    categoryResultsBuilder.append("\t").append(reporter).append(":\n")
-                            .append(reporterResultsBuilder);
+                    categoryResultsBuilder.append("\t").append(reporter).append(":\n").append(reporterResultsBuilder);
                 }
             }
             if (!categoryResultsBuilder.isEmpty()) {
@@ -95,7 +118,7 @@ public class QualityAnalyzer {
             }
         }
 
-        if(!output.warnings().isEmpty()) {
+        if (!output.warnings().isEmpty()) {
             resultsBuilder.append("Warnings:\n");
             output.warnings().forEach(s -> resultsBuilder.append("\t").append(s).append("\n"));
         }
@@ -105,6 +128,12 @@ public class QualityAnalyzer {
         return resultsBuilder.toString();
     }
 
+    /**
+     * Creates a string with the output of each category
+     *
+     * @param output errors and warnings from quality analysis
+     * @return a String of displaying each category and if it passed or not
+     */
     private String getNotes(QualityOutput output) {
         StringBuilder builder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
@@ -114,15 +143,27 @@ public class QualityAnalyzer {
         return builder.toString();
     }
 
-
+    /**
+     * Determines if a particular category had any quality errors
+     *
+     * @param category category to check
+     * @param output   errors and warnings from quality analysis
+     * @return false if an error was present for the category, false otherwise
+     */
     private boolean categoryPasses(QualityRubricCategory category, QualityOutput output) {
-        for(String reporter : category.reporters()) {
-            if(output.errors().containsKey(reporter)) return false;
+        for (String reporter : category.reporters()) {
+            if (output.errors().containsKey(reporter)) return false;
         }
         return true;
     }
 
-
+    /**
+     * Analysis output
+     *
+     * @param score   the score as a float from 0 to 1
+     * @param results a String of each quality error--grouped into categories--and each warning
+     * @param notes   a String of displaying each category and if it passed or not
+     */
     public record QualityAnalysis(float score, String results, String notes) {}
 
     private record QualityOutput(Map<String, List<String>> errors, List<String> warnings) {}
