@@ -60,7 +60,8 @@ public class DateTimeUtils {
         publicHolidays = new HashSet<>();
     }
     /**
-     * Initializes our public holidays with the default date format `MM/DD/YYYY`.
+     * Initializes our public holidays with a common formatting string
+     * that will accept strings matching this example: "9/16/2024"
      *
      * @see #initializePublicHolidays(String, String)
      *
