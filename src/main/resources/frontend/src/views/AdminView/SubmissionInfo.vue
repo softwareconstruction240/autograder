@@ -22,16 +22,10 @@ const testResults = ref<TestResult | undefined>(undefined);
 const textResults = ref<string | undefined>(undefined);
 
 const openResults = (event: CellClickedEvent) => {
-  console.log(event.data)
-  console.log(event.data.results.testResults)
   if (event.data.results.testResults) {
     testResults.value = event.data.results.testResults
-    console.log("EXAM")
-    console.log(event.data.results.testResults)
   } else {
     textResults.value = event.data.results.textResults
-    console.log("TEXT")
-    console.log(event.data.results.textResults)
   }
 }
 
