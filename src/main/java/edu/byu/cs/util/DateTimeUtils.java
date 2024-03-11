@@ -94,32 +94,44 @@ public class DateTimeUtils {
     }
 
     /**
+     * <h1>Public Holiday Decoding</h1>
      * Interprets a string of encoded public holidays and returns a set of objects that
      * can be used to efficiently query against the dataset.
      * <br>
      *
+     * <h2>Encoding Approaches</h2>
+     * The input should be only one of the two approaches. It should either be a single-line entry with
+     * zero or more dates, or it should be a multi-line string which can include comments following the date string.
+     * <br>
+     *
+     * <h3>Single Line Encoding</h3>
      * Dates can be stored on a single line, separated by any combination of the following:
-     *  - spaces " "
-     *  - commas ",", OR
-     *  - semicolon ";"
+     * <ul>
+     *  <li>spaces " ", or</li>
+     *  <li>commas ",", or </li>
+     *  <li>semicolon ";" </li>
+     * </ul>
      * <br>
      *
      * Each word will be interpreted individually, and any that do not parse into a date properly
      * will be excluded individually.
      * <br>
      *
+     * <h3>Multi-line Encoding</h3>
      * Additionally, the dates can each appear on a separate line.
      * Only the first word of the line will be interpreted as a date,
      * and the rest of the line will be ignored as a comment.
      * Any line that does not contain a date format at the beginning
      * (i.e. an empty line) will be ignored and not considered for interpretation.
-     * Lines beginning with `#` are always ignored as a comment; however, a comment
+     * Lines beginning with {@code #} are always ignored as a comment; however, a comment
      * need not begin with a special symbol. Lines where a date cannot be interpreted
      * from the first word will simply be skipped.
      * <br>
      *
-     * The input should be only one of the two approaches. It should either be a single-line entry with
-     * zero or more dates, or it should be a multi-line string which can include comments following the date string.
+     * <h2>Encoding Date Formats</h2>
+     * Since both approaches use whitespace to delimit words, no acceptable date format can ever contain
+     * a whitespace character. This is the only restraint for the multi-line approach; however,
+     * however, in the single line approach, the format cannot contain any of the delimiting characters.
      * <br>
      *
      * @param encodedPublicHolidays A string representing the public holidays.
