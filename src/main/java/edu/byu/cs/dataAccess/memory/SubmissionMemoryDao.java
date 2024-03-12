@@ -53,6 +53,12 @@ public class SubmissionMemoryDao implements SubmissionDao {
     }
 
     @Override
+    public Collection<Submission> getLatestSubmissionBatch(int batchSize) {
+        //TODO: Implement
+        throw new RuntimeException("NOT IMPLEMENTED YET");
+    }
+
+    @Override
     public void removeSubmissionsByNetId(String netId) {
         submissions.removeIf(submission -> submission.netId().equals(netId));
     }
