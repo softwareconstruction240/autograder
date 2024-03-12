@@ -148,7 +148,7 @@ public class QualityAnalyzer {
      *
      * @param category category to check
      * @param output   errors and warnings from quality analysis
-     * @return false if an error was present for the category, false otherwise
+     * @return false if an error was present for the category, true otherwise
      */
     private boolean categoryPasses(QualityRubricCategory category, QualityOutput output) {
         for (String reporter : category.reporters()) {
