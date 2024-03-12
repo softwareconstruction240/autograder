@@ -208,7 +208,7 @@ public class SubmissionController {
 
     public static Route latestSubmissionsBatchGet = (req, res) -> {
         int count = Integer.parseInt(req.params(":count"));
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions();
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getLatestSubmissionBatch(count);
 
         res.status(200);
         res.type("application/json");
