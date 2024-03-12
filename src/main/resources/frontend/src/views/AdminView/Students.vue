@@ -8,7 +8,7 @@ import {testStudentModeGet, usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import {nameCellRender, renderRepoLinkCell} from "@/utils/tableUtils";
+import {renderRepoLinkCell, standardColSettings} from "@/utils/tableUtils";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
@@ -22,14 +22,21 @@ onMounted(async () => {
   const userData = await usersGet();
   studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
   var dataToShow: any = []
-  studentData.forEach(student => {dataToShow.push(student)})
+  studentData.forEach(student => {
+    dataToShow.push( {
+          name: student.firstName + " " + student.lastName,
+          netId: student.netId,
+          repoUrl: student.repoUrl
+        }
+    )
+  })
   rowData.value = dataToShow
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: 'name', flex: 2, sortable: true, filter: true, cellRenderer: nameCellRender, onCellClicked: cellClickHandler },
-  { headerName: "BYU netID", field: "netId", flex: 1, sortable: true, filter: true, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, filter: true, cellRenderer: renderRepoLinkCell }
+  { headerName: "Student Name", field: "name", flex: 2, onCellClicked: cellClickHandler },
+  { headerName: "BYU netID", field: "netId", flex: 1, onCellClicked: cellClickHandler },
+  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, cellRenderer: renderRepoLinkCell }
 ])
 const rowData = reactive({
   value: []
@@ -58,6 +65,7 @@ const activateTestStudentMode = async () => {
       style="height: 75vh"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
+      :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <PopUp

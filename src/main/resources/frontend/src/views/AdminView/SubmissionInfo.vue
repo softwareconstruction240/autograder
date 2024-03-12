@@ -5,7 +5,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import {loadRubricRows} from "@/utils/tableUtils";
+import {standardColSettings, loadRubricRows, wrappingColSettings} from "@/utils/tableUtils";
 import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
 import {
   generateClickableLink,
@@ -30,10 +30,10 @@ const openResults = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Category", field: 'category', sortable: true, filter: true, flex:1 },
-  { headerName: "Criteria", field: "criteria", sortable: true, filter: true, flex:2, wrapText: true, autoHeight:true, cellStyle: {"wordBreak": "normal", "lineHeight": "unset"} },
-  { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:2, onCellClicked: openResults,  wrapText: true, autoHeight:true, cellStyle: {"wordBreak": "normal", "lineHeight": "unset"}},
-  { headerName: "Points", field: "points", sortable: true, filter: true, flex:1, onCellClicked: openResults }
+  { headerName: "Category", field: 'category', flex:1 },
+  { headerName: "Criteria", field: "criteria", ...wrappingColSettings, flex:2 },
+  { headerName: "Notes", field: "notes", ...wrappingColSettings, flex:2, sortable: false, onCellClicked: openResults },
+  { headerName: "Points", field: "points", flex:1, onCellClicked: openResults }
 ])
 const rowData = reactive({
   value: [] = loadRubricRows(submission)
@@ -63,6 +63,7 @@ const rowData = reactive({
       style="height: 30vh; width: 65vw"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
+      :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <ResultsPopup

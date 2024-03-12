@@ -1,21 +1,12 @@
 import type { ValueGetterParams } from 'ag-grid-community'
-import {useAdminStore} from "@/stores/admin";
 import type {RubricItem, RubricItemResults, Submission} from "@/types/types";
-import {onRenderTracked} from "vue";
-import {generateClickableLink, nameFromNetId, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
+import {generateClickableLink, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
  */
 export const renderPhaseCell = (params: ValueGetterParams):string => {
     return params.data.phase.toLowerCase().replace("phase", "")
-}
-
-/**
- * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "netId"
- */
-export const nameCellRender = (params: ValueGetterParams) => {
-    return nameFromNetId(params.data.netId)
 }
 
 /**
@@ -37,6 +28,17 @@ export const renderRepoLinkCell = (params: ValueGetterParams):string => {
  */
 export const renderScoreCell = (params: ValueGetterParams):string => {
     return scoreToPercentage(params.data.score)
+}
+
+export const standardColSettings = {
+    sortable: true,
+    filter: true,
+    autoHeight:true,
+}
+
+export const wrappingColSettings = {
+    wrapText: true,
+    cellStyle: {"wordBreak": "normal", "lineHeight": "unset"}
 }
 
 type RubricRow = {

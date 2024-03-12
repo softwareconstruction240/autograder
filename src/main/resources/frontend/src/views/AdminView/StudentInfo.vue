@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type {Rubric, Submission, User} from "@/types/types";
+import type {Submission, User} from "@/types/types";
 import {onMounted, reactive, ref} from "vue";
 import {submissionsForUserGet} from "@/services/adminService";
 import { AgGridVue } from 'ag-grid-vue3';
 import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
-import {renderPhaseCell, renderScoreCell, renderTimestampCell} from "@/utils/tableUtils";
+import {renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings} from "@/utils/tableUtils";
 import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
 import {generateClickableLink} from "../../utils/utils";
 
@@ -36,10 +35,10 @@ const cellClickHandler = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: "time", sortable: true, filter: true, flex:1, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: "score", sortable: true, filter: true, flex:1, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:5, onCellClicked: cellClickHandler }
+  { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: "timestamp", sort: 'desc', sortedAt: 0, flex:1, cellRenderer: renderTimestampCell},
+  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: "notes", flex:5, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({
   value: []
@@ -56,6 +55,7 @@ const rowData = reactive({
       style="height: 35vh; width: 75vw"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
+      :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <PopUp
