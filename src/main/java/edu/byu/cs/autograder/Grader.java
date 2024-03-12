@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -237,8 +238,9 @@ public abstract class Grader implements Runnable {
 
         String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
 
-        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword)) {
-            connection.createStatement().executeUpdate(
+        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword);
+                Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(
                     "DROP DATABASE IF EXISTS " + dbName
             );
         } catch (SQLException e) {

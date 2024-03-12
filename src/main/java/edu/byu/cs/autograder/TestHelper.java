@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A helper class for running common test operations
@@ -176,14 +177,14 @@ public class TestHelper {
         Set<String> testFileNames = new HashSet<>();
         try {
             Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
-            Files.walk(testDirectoryPath)
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        String fileName = path.getFileName().toString();
-                        if (fileName.endsWith(".java")) {
-                            testFileNames.add(fileName);
-                        }
-                    });
+            try(Stream<Path> stream = Files.walk(testDirectoryPath)) {
+                stream.filter(Files::isRegularFile).forEach(path -> {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.endsWith(".java")) {
+                        testFileNames.add(fileName);
+                    }
+                });
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
