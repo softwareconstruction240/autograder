@@ -4,6 +4,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class PhaseZeroGrader extends PassoffTestGrader {
     /**
@@ -16,6 +17,11 @@ public class PhaseZeroGrader extends PassoffTestGrader {
      */
     public PhaseZeroGrader(String netId, String repoUrl, Observer observer) throws IOException {
         super("./phases/phase0", netId, repoUrl, observer, Phase.Phase0);
+    }
+
+    @Override
+    protected Set<String> getPackagesToTest() {
+        return Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
     }
 
     @Override

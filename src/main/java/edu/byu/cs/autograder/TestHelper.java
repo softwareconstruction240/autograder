@@ -1,9 +1,8 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
 
 /**
  * A helper class for running common test operations
@@ -60,25 +58,41 @@ public class TestHelper {
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
         // absolute path to student's chess jar
-        String chessJarWithDeps;
+
         try {
+
+            /* Find files to compile */
+            List<String> findCommands = getFindCommands(excludedTests);
+
+            ProcessBuilder findProcessBuilder = new ProcessBuilder()
+                    .directory(testsLocation)
+                    .command(findCommands);
+
+            String findOutput = ProcessUtils.runProcess(findProcessBuilder)[0].replace("\n", " ");
+
+            /* Compile files */
+            String chessJarWithDeps;
             chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar")
                     .getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
-        List<String> commands = getCompileCommands(stagePath, excludedTests, chessJarWithDeps);
+            String sharedJarWithDeps = new File(stageRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
+                    .getCanonicalPath();
 
-        ProcessBuilder processBuilder =
-                new ProcessBuilder()
-                        .directory(testsLocation)
-//                        .inheritIO() // TODO: implement better logging
-                        .command(commands);
+            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps + ":" + sharedJarWithDeps);
 
-        try {
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
+            ProcessBuilder compileProcessBuilder =
+                    new ProcessBuilder()
+                            .directory(testsLocation)
+                            .inheritIO() // TODO: implement better logging
+                            .command(compileCommands);
+
+            compileProcessBuilder.redirectInput(ProcessBuilder.Redirect.PIPE);
+
+            Process compileProcess = compileProcessBuilder.start();
+            compileProcess.getOutputStream().write(findOutput.getBytes());
+            compileProcess.getOutputStream().close();
+
+            if (compileProcess.waitFor() != 0) {
                 throw new RuntimeException("exited with non-zero exit code");
             }
         } catch (IOException | InterruptedException e) {
@@ -86,29 +100,24 @@ public class TestHelper {
         }
     }
 
-    private static List<String> getCompileCommands(String stagePath, Set<String> excludedTests, String chessJarWithDeps) {
+    private static List<String> getFindCommands(Set<String> excludedTests) {
         List<String> commands = new ArrayList<>();
         commands.add("find");
         commands.add(".");
         commands.add("-name");
         commands.add("*.java");
 
-        if (!excludedTests.isEmpty())
-            commands.add("-not");
+        return commands;
+    }
 
-        for (String excludedTest : excludedTests) {
-            commands.add("-name");
-            commands.add(excludedTest);
-        }
-
-        commands.add("-exec");
+    private static List<String> getCompileCommands(String stagePath, String chessJarWithDeps) {
+        List<String> commands = new ArrayList<>();
+        commands.add("xargs");
         commands.add("javac");
         commands.add("-d");
         commands.add(stagePath + "/tests");
         commands.add("-cp");
         commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
-        commands.add("{}");
-        commands.add(";");
         return commands;
     }
 
@@ -117,32 +126,44 @@ public class TestHelper {
      *
      * @param uberJar          The jar file containing the compiled classes to be tested.
      * @param compiledTests    The directory containing the compiled test classes.
+     * @param packagesToTest   A set of packages to test. Example: {"package1", "package2"}
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> extraCreditTests) {
+    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest, Set<String> extraCreditTests) {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
 
         String uberJarPath = uberJar.getAbsolutePath();
 
+        List<String> commands = getRunCommands(packagesToTest, uberJarPath);
+
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .directory(compiledTests)
-                .command("java",
-                        "-jar",
-                        standaloneJunitJarPath,
-                        "--class-path",
-                        ".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath,
-                        "--scan-class-path",
-                        "--details=testfeed");
+                .command(commands);
 
-        String output = ProcessUtils.runProcess(processBuilder);
+        String output = ProcessUtils.runProcess(processBuilder)[0];
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
         return testAnalyzer.parse(output.split("\n"), extraCreditTests);
     }
 
+    private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
+        List<String> commands = new ArrayList<>();
+        commands.add("java");
+        commands.add("-jar");
+        commands.add(standaloneJunitJarPath);
+        commands.add("--class-path");
+        commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add("--details=testfeed");
+
+        for (String packageToTest : packagesToTest) {
+            commands.add("-p");
+            commands.add(packageToTest);
+        }
+        return commands;
+    }
 
 
     /**
@@ -167,5 +188,15 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
         return testFileNames;
+    }
+
+    public static boolean checkIfPassedPassoffTests(Rubric rubric) {
+        boolean passed = true;
+
+        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
+            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
+                passed = false;
+
+        return passed;
     }
 }

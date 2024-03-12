@@ -20,11 +20,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -89,8 +95,19 @@ public abstract class Grader implements Runnable {
      */
     private final int requiredCommits;
 
-    protected final String PASSOFF_TESTS_NAME = "Passoff Tests";
-    protected final String CUSTOM_TESTS_NAME = "Custom Tests";
+    /**
+     * The max number of days that the late penalty should be applied for.
+     */
+    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
+
+    /**
+     * The penalty to be applied per day to a late submission.
+     * This is out of 1. So putting 0.1 would be a 10% deduction per day
+     */
+    private static final float PER_DAY_LATE_PENALTY = 0.1F;
+
+    protected static final String PASSOFF_TESTS_NAME = "Passoff Tests";
+    protected static final String CUSTOM_TESTS_NAME = "Custom Tests";
 
     protected Observer observer;
 
@@ -130,6 +147,11 @@ public abstract class Grader implements Runnable {
             fetchRepo();
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
+
+            injectDatabaseConfig();
+            cleanupDatabase();
+            modifyPoms();
+
             packageRepo();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
@@ -141,7 +163,7 @@ public abstract class Grader implements Runnable {
             compileTests();
             Rubric.Results passoffResults = null;
             if(rubricConfig.passoffTests() != null) {
-                passoffResults = runTests();
+                passoffResults = runTests(getPackagesToTest());
             }
             Rubric.Results customTestsResults = null;
             if(rubricConfig.unitTests() != null) {
@@ -163,8 +185,29 @@ public abstract class Grader implements Runnable {
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
             rubric = annotateRubric(rubric);
 
-            Submission submission = saveResults(rubric, numCommits);
-            observer.notifyDone(submission);
+            int daysLate = calculateLateDays(rubric);
+            float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
+            Submission thisSubmission;
+
+            // prevent score from being saved to canvas if it will lower their score
+            if(rubric.passed()) {
+                float highestScore = getCanvasScore();
+
+                // prevent score from being saved to canvas if it will lower their score
+                if (thisScore <= highestScore) {
+                    String notes = "Submission did not improve current score. (" + (highestScore * 100) +
+                            "%) Score not saved to Canvas.\n";
+                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
+                } else {
+                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                    sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
+                }
+            }
+            else {
+                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+            }
+
+            observer.notifyDone(thisSubmission);
 
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
@@ -172,6 +215,98 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             FileUtils.removeDirectory(new File(stagePath));
+        }
+    }
+
+    private void cleanupDatabase() {
+        String dbPropertiesPath = new File("./phases/phase4/resources/db.properties").getAbsolutePath();
+        Properties dbProperties = new Properties();
+        try (InputStream input = Files.newInputStream(Path.of(dbPropertiesPath))) {
+            dbProperties.load(input);
+
+        } catch (IOException ex) {
+            LOGGER.error("Error loading properties file", ex);
+            System.exit(1);
+        }
+
+        String dbHost = dbProperties.getProperty("db.host");
+        String dbPort = dbProperties.getProperty("db.port");
+        String dbUser = dbProperties.getProperty("db.user");
+        String dbPassword = dbProperties.getProperty("db.password");
+        String dbName = dbProperties.getProperty("db.name");
+
+        String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
+
+        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword)) {
+            connection.createStatement().executeUpdate(
+                    "DROP DATABASE IF EXISTS " + dbName
+            );
+        } catch (SQLException e) {
+            LOGGER.error("Failed to cleanup database", e);
+            throw new RuntimeException("Failed to cleanup environment", e);
+        }
+    }
+
+    protected abstract Set<String> getPackagesToTest();
+
+    private void modifyPoms() {
+        File serverPom = new File(stageRepo, "server/pom.xml");
+        try {
+            removeLineFromFile(serverPom, "<scope>test</scope>");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to modify server pom.xml", e);
+        }
+    }
+
+    public static void removeLineFromFile(File file, String searchText) throws IOException {
+        Path path = file.toPath();
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+
+        int indexToRemove = -1;
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains(searchText)) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove != -1) {
+            lines.remove(indexToRemove);
+
+            Files.write(path, lines, StandardCharsets.UTF_8);
+            System.out.println("Removed: " + searchText);
+        }
+    }
+
+    void injectDatabaseConfig() {
+        File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
+        if (dbProperties.exists())
+            dbProperties.delete();
+
+        File dbPropertiesSource = new File("./phases/phase4/resources/db.properties");
+        try {
+            Files.copy(dbPropertiesSource.toPath(), dbProperties.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * gets the score stored in canvas for the current user and phase
+     * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
+     */
+    private float getCanvasScore() {
+        User user = DaoService.getUserDao().getUser(netId);
+
+        int userId = user.canvasUserId();
+
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        try {
+            CanvasIntegration.CanvasSubmission submission = CanvasIntegration.getSubmission(userId, assignmentNum);
+            int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
+            return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
+        } catch (CanvasException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -194,14 +329,7 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    /**
-     * Saves the results of the grading to the database and to Canvas if the submission passed
-     *
-     * @param rubric the rubric for the phase
-     */
-    private Submission saveResults(Rubric rubric, int numCommits) {
-        String headHash = getHeadHash();
-
+    private int calculateLateDays(Rubric rubric) {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
@@ -213,16 +341,30 @@ public abstract class Grader implements Runnable {
             throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
 
-        // penalize at most 5 days
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        int numDaysLate = Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), 5);
-        float score = getScore(rubric);
-        score -= numDaysLate * 0.1F;
-        if (score < 0) score = 0;
+        return Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+    }
 
-        String notes = "";
+    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) {
+        float score = getScore(rubric);
+        score -= numDaysLate * PER_DAY_LATE_PENALTY;
+        if (score < 0) score = 0;
+        return score;
+    }
+
+    /**
+     * Saves the results of the grading to the database if the submission passed
+     *
+     * @param rubric the rubric for the phase
+     */
+    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes) {
+        String headHash = getHeadHash();
+
         if (numDaysLate > 0)
-            notes = numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+            notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+
+        // FIXME: this is code duplication from calculateLateDays()
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -231,19 +373,14 @@ public abstract class Grader implements Runnable {
                 headHash,
                 handInDate.toInstant(),
                 phase,
-                passed(rubric),
+                rubric.passed(),
                 score,
                 numCommits,
                 notes,
                 rubric
         );
 
-        if (submission.passed()) {
-            sendToCanvas(submission, 1 - (numDaysLate * 0.1F));
-        }
-
         submissionDao.insertSubmission(submission);
-
         return submission;
     }
 
@@ -258,25 +395,10 @@ public abstract class Grader implements Runnable {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Map<String, Float> scores = new HashMap<>();
         Map<String, String> comments = new HashMap<>();
-        if(rubricConfig.passoffTests() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.PASSOFF_TESTS);
-            Rubric.Results results = submission.rubric().passoffTests().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-        if(rubricConfig.unitTests() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.UNIT_TESTS);
-            Rubric.Results results = submission.rubric().unitTests().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-        if(rubricConfig.quality() != null) {
-            String id = getCanvasRubricId(Rubric.RubricType.QUALITY);
-            Rubric.Results results = submission.rubric().quality().results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
 
+        convertToCanvasFormat(submission.rubric().passoffTests(), lateAdjustment, rubricConfig.passoffTests(), scores, comments, Rubric.RubricType.PASSOFF_TESTS);
+        convertToCanvasFormat(submission.rubric().unitTests(), lateAdjustment, rubricConfig.unitTests(), scores, comments, Rubric.RubricType.UNIT_TESTS);
+        convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
 
         try {
             CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
@@ -285,6 +407,17 @@ public abstract class Grader implements Runnable {
             throw new RuntimeException("Error contacting canvas to record scores");
         }
 
+    }
+
+    private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
+                                       RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
+                                       Map<String, String> comments, Rubric.RubricType rubricType) {
+        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
+            String id = getCanvasRubricId(rubricType);
+            Rubric.Results results = rubricItem.results();
+            scores.put(id, results.score() * lateAdjustment);
+            comments.put(id, results.notes());
+        }
     }
 
     private String getHeadHash() {
@@ -394,7 +527,7 @@ public abstract class Grader implements Runnable {
     /**
      * Runs the tests on the student code
      */
-    protected abstract Rubric.Results runTests();
+    protected abstract Rubric.Results runTests(Set<String> packagesToTest);
 
     /**
      * Gets the score for the phase

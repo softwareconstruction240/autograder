@@ -8,6 +8,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
@@ -148,7 +149,7 @@ public class SubmissionController {
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      */
-    private static Submission getMostRecentSubmission(String netId, Phase phase) {
+    public static Submission getMostRecentSubmission(String netId, Phase phase) {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 
@@ -206,11 +207,9 @@ public class SubmissionController {
     };
 
     public static Route submissionsActiveGet = (req, res) -> {
-        Collection<String> inQueue = DaoService.getQueueDao().getAll().stream().map(QueueItem::netId).toList();
+        List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
 
-        Collection<String> currentlyGrading = TrafficController.sessions.keySet()
-                .stream()
-                .filter(netId -> !inQueue.contains(netId)).toList();
+        List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
 
 
         res.status(200);
@@ -220,6 +219,20 @@ public class SubmissionController {
                 "currentlyGrading", currentlyGrading,
                 "inQueue", inQueue
         ));
+    };
+
+    public static Route studentSubmissionsGet = (req, res) -> {
+        String netId = req.params(":netId");
+
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Collection<Submission> submissions = submissionDao.getSubmissionsForUser(netId);
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submissions);
     };
 
     /**
@@ -293,7 +306,7 @@ public class SubmissionController {
             case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
             case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case Phase4 -> null;
+            case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
             case Phase6 -> null;
         };
     }

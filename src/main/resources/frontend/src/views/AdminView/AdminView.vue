@@ -8,6 +8,10 @@ import {testStudentModeGet} from "@/services/adminService";
 import QueueStatus from "@/views/AdminView/QueueStatus.vue";
 import Analytics from "@/views/AdminView/Analytics.vue";
 import HonorChecker from "@/views/AdminView/HonorChecker.vue";
+import {useAdminStore} from "@/stores/admin";
+import Students from "@/views/AdminView/Students.vue";
+
+useAdminStore().updateUsers();
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
@@ -28,6 +32,9 @@ const activateTestStudentMode = async () => {
     <Tabs>
       <Tab title="Submissions">
         <SubmissionsView/>
+      </Tab>
+      <Tab title="Students">
+        <Students/>
       </Tab>
       <Tab disabled title="Exceptions">
         <Exceptions/>

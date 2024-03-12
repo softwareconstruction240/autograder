@@ -72,14 +72,14 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runTests() {
+    protected Rubric.Results runTests(Set<String> packagesToTest) {
         observer.update("Running tests...");
 
         TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
                 new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
                 stageTestsPath,
-                extraCreditTests
-        );
+                packagesToTest,
+                extraCreditTests);
 
         results.testName = PASSOFF_TESTS_NAME;
 
@@ -160,13 +160,10 @@ public abstract class PassoffTestGrader extends Grader {
 
         QualityAnalyzer analyzer = new QualityAnalyzer();
 
-        QualityAnalyzer.QualityAnalysis analysis = analyzer.runQualityChecks(stageRepo);
+        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(stageRepo);
 
-        float score = analyzer.getScore(analysis);
-        String results = analyzer.getResults(analysis);
-        String notes = analyzer.getNotes(analysis);
-
-        return new Rubric.Results(notes, score, rubricConfig.quality().points(), null, results);
+        return new Rubric.Results(quality.notes(), quality.score(),
+                rubricConfig.quality().points(), null, quality.results());
     }
 
     @Override
