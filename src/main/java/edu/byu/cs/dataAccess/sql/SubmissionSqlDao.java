@@ -97,6 +97,11 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
+    public Collection<Submission> getLatestSubmissionBatch(int batchSize) {
+        return null;
+    }
+
+    @Override
     public void removeSubmissionsByNetId(String netId) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(

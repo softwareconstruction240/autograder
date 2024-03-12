@@ -39,6 +39,13 @@ public interface SubmissionDao {
     Collection<Submission> getAllLatestSubmissions();
 
     /**
+     * Gets the most recent batch of submissions
+     * @param batchSize number of submissions to return
+     * @return
+     */
+    Collection<Submission> getLatestSubmissionBatch(int batchSize);
+
+    /**
      * Removes all submissions for the given netId
      * <br/><strong>Note: this will likely only be used for the test student</strong>
      *

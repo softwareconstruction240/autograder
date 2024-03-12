@@ -206,6 +206,18 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
+    public static Route latestSubmissionsBatchGet = (req, res) -> {
+        int count = Integer.parseInt(req.params(":count"));
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions();
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submissions);
+    };
+
     public static Route submissionsActiveGet = (req, res) -> {
         List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
 
