@@ -8,6 +8,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
@@ -218,6 +219,20 @@ public class SubmissionController {
                 "currentlyGrading", currentlyGrading,
                 "inQueue", inQueue
         ));
+    };
+
+    public static Route studentSubmissionsGet = (req, res) -> {
+        String netId = req.params(":netId");
+
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Collection<Submission> submissions = submissionDao.getSubmissionsForUser(netId);
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submissions);
     };
 
     /**
