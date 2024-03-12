@@ -9,7 +9,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import PopUp from "@/components/PopUp.vue";
 import {renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings} from "@/utils/tableUtils";
 import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
-import {generateClickableLink} from "../../utils/utils";
+import {generateClickableLink} from "@/utils/utils";
 
 const { student } = defineProps<{
   student: User;

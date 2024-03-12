@@ -12,7 +12,7 @@ import {
   nameFromNetId,
   readableTimestamp,
   scoreToPercentage
-} from "../../utils/utils";
+} from "@/utils/utils";
 
 const { submission } = defineProps<{
   submission: Submission;
