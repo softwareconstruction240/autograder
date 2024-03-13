@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -94,6 +95,7 @@ public abstract class Grader implements Runnable {
      * The required number of commits (since the last phase) to be able to pass off
      */
     private final int requiredCommits;
+    private final int requiredDaysWithCommits;
 
     /**
      * The max number of days that the late penalty should be applied for.
@@ -134,6 +136,7 @@ public abstract class Grader implements Runnable {
         this.stageRepo = new File(stagePath, "repo");
 
         this.requiredCommits = 10;
+        this.requiredDaysWithCommits = 3;
 
         this.observer = observer;
     }
@@ -145,7 +148,8 @@ public abstract class Grader implements Runnable {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
             fetchRepo();
-            int numCommits = verifyRegularCommits();
+            CommitVerificationResult commitVerificationResult = verifyRegularCommits();
+            int numCommits = commitVerificationResult.numCommits;
             verifyProjectStructure();
 
             injectDatabaseConfig();
@@ -187,10 +191,10 @@ public abstract class Grader implements Runnable {
 
             int daysLate = calculateLateDays(rubric);
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
-            Submission thisSubmission;
 
             // prevent score from being saved to canvas if it will lower their score
-            if(rubric.passed()) {
+            Submission thisSubmission;
+            if(rubric.passed() && commitVerificationResult.verified) {
                 float highestScore = getCanvasScore();
 
                 // prevent score from being saved to canvas if it will lower their score
@@ -202,8 +206,7 @@ public abstract class Grader implements Runnable {
                     thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
                     sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
                 }
-            }
-            else {
+            } else {
                 thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
             }
 
@@ -456,27 +459,53 @@ public abstract class Grader implements Runnable {
      *
      * @return the number of commits since the last passoff
      */
-    private int verifyRegularCommits() {
+    private CommitVerificationResult verifyRegularCommits() {
         observer.update("Verifying commits...");
 
         try (Git git = Git.open(stageRepo)) {
             Iterable<RevCommit> commits = git.log().all().call();
-            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
-            long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
-            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
-            int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
-//            if (numCommits < requiredCommits) {
-//                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
-//                LOGGER.error("Insufficient commits to pass off.");
-//                throw new RuntimeException("Not enough commits to pass off");
-//            }
+            CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(commits);
+            CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
 
-            return numCommits;
+            if (commitVerificationResult.verified) {
+                observer.update("Passed commit verification.");
+            } else {
+                observer.update("Failed commit verification. Continuing with grading anyways.");
+            }
+            return commitVerificationResult;
         } catch (IOException | GitAPIException e) {
-            observer.notifyError("Failed to count commits: " + e.getMessage());
-            LOGGER.error("Failed to count commits", e);
-            throw new RuntimeException("Failed to count commits: " + e.getMessage());
+            observer.notifyError("Failed to verify commits: " + e.getMessage());
+            LOGGER.error("Failed to verify commits", e);
+            throw new RuntimeException("Failed to verify commits: " + e.getMessage());
         }
+    }
+    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Iterable<RevCommit> commits) {
+        Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
+        long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
+        return CommitAnalytics.countCommitsByDay(commits, timestamp, Instant.now().getEpochSecond());
+    }
+    private CommitVerificationResult commitsPassRequirements(CommitAnalytics.CommitsByDay commitsByDay) {
+        boolean verified = true;
+        int numCommits = commitsByDay.totalCommits();
+        int daysWithCommits = commitsByDay.dayMap().size();
+        ArrayList<String> errorMessages = new ArrayList<>();
+
+        // Assert conditions
+        if (numCommits < requiredCommits) {
+            verified = false;
+            errorMessages.add("Not enough commits to pass off (" + numCommits + "/" + requiredCommits + ").");
+        }
+        if (daysWithCommits < requiredDaysWithCommits) {
+            verified = false;
+            errorMessages.add("Did not commit on enough days to pass off (" + numCommits + "/" + requiredCommits + ").");
+        }
+
+        return new CommitVerificationResult(
+                verified,
+                numCommits,
+                daysWithCommits,
+                String.join("\n", errorMessages)
+        );
     }
 
     /**
