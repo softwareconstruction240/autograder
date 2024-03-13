@@ -78,6 +78,11 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions() {
+        return getAllLatestSubmissions(-1);
+    }
+
+    @Override
+    public Collection<Submission> getAllLatestSubmissions(int batchSize) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
@@ -88,7 +93,12 @@ public class SubmissionSqlDao implements SubmissionDao {
                                 FROM submission
                                 GROUP BY net_id, phase
                             )
-                            """);
+                            ORDER BY timestamp DESC
+                            """ +
+                            (batchSize == -1 ? "" : "LIMIT ?"));
+            if (batchSize != -1) {
+                statement.setInt(1, batchSize);
+            }
             return getSubmissionsFromQuery(statement);
 
         } catch (Exception e) {
