@@ -34,7 +34,7 @@ onMounted(async () => {
       notes: submission.notes,
       netId: submission.netId,
       submission: submission
-        }
+      }
     )
   })
   rowData.value = dataToShow
