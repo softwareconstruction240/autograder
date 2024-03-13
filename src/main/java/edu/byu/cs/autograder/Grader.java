@@ -575,4 +575,11 @@ public abstract class Grader implements Runnable {
         void notifyDone(Submission submission);
     }
 
+    private record CommitVerificationResult(
+            boolean verified,
+            int numCommits,
+            int numDays,
+            String failureMessage
+    ) { }
+
 }

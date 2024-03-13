@@ -22,36 +22,28 @@ import java.util.*;
  */
 public class CommitAnalytics {
 
+    public record CommitsByDay(Map<String, Integer> dayMap, int totalCommits) { }
+
     /**
-     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day
+     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day,
+     * counting only commits within the bounds presented.
      *
      * @param commits the collection of commits
      * @param lowerBound the lower bound timestamp in Unix seconds
      * @param upperBound the upper bound timestamp in Unix seconds
-     * @return the map
+     * @return A map of strings representing dates to the number of commits on that day
      */
-    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
+    public static CommitsByDay countCommitsByDay(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
         Map<String, Integer> days = new TreeMap<>();
+        int totalCommits = 0;
         for (RevCommit rc : commits) {
             if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
+
             String dayKey = DateTimeUtils.getDateString(rc.getCommitTime(), false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
+            totalCommits += 1;
         }
-        return days;
-    }
-
-    /**
-     * Counts the total commits in the given map
-     *
-     * @param days a map of day represented as "yyyy-mm-dd" to integer
-     * @return the total of the map's values
-     */
-    public static int getTotalCommits(Map<String, Integer> days) {
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : days.entrySet()) {
-            total += entry.getValue();
-        }
-        return total;
+        return new CommitsByDay(days, totalCommits);
     }
 
     private record CommitDatum(
