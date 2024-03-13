@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -96,6 +95,7 @@ public abstract class Grader implements Runnable {
      */
     private final int requiredCommits;
     private final int requiredDaysWithCommits;
+    private final int commitVerificationPenaltyPct;
 
     /**
      * The max number of days that the late penalty should be applied for.
@@ -137,6 +137,7 @@ public abstract class Grader implements Runnable {
 
         this.requiredCommits = 10;
         this.requiredDaysWithCommits = 3;
+        this.commitVerificationPenaltyPct = 10;
 
         this.observer = observer;
     }
@@ -193,7 +194,9 @@ public abstract class Grader implements Runnable {
 
             // prevent score from being saved to canvas if it will lower their score
             Submission thisSubmission;
-            if(rubric.passed() && commitVerificationResult.verified) {
+            if (!commitVerificationResult.verified) {
+                thisSubmission = saveResults(rubric, daysLate, thisScore, commitVerificationResult.failureMessage());
+            } else if(rubric.passed()) {
                 float highestScore = getCanvasScore();
 
                 // prevent score from being saved to canvas if it will lower their score
@@ -491,11 +494,18 @@ public abstract class Grader implements Runnable {
         // Assert conditions
         if (numCommits < requiredCommits) {
             verified = false;
-            errorMessages.add("Not enough commits to pass off (" + numCommits + "/" + requiredCommits + ").");
+            errorMessages.add(String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits));
         }
         if (daysWithCommits < requiredDaysWithCommits) {
             verified = false;
-            errorMessages.add("Did not commit on enough days to pass off (" + numCommits + "/" + requiredCommits + ").");
+            errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", numCommits, requiredCommits));
+        }
+
+        // Add additional explanatory message
+        if (!verified) {
+            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
+                    + "you will need to talk to a TA to receive a score. ");
+            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
 
         return new CommitVerificationResult(
