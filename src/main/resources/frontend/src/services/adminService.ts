@@ -66,9 +66,10 @@ export const userPatch = async (user: UserPatch)=> {
     }
 }
 
-export const submissionsLatestGet = async (): Promise<Submission[]> => {
+export const submissionsLatestGet = async (batchSize?: number): Promise<Submission[]> => {
+    batchSize = batchSize ? batchSize : -1
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/latest', {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/latest/' + batchSize, {
             method: 'GET',
             credentials: 'include'
         });

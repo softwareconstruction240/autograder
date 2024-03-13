@@ -20,25 +20,36 @@ import {nameFromNetId} from "@/utils/utils";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
+const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
+let allSubmissionsLoaded = false;
 
 onMounted(async () => {
-  const submissionsData = await submissionsLatestGet();
-  submissionsData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
+  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
+  //submissionsData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
+  loadSubmissionsToTable(submissionsData)
+})
+
+const loadAllSubmissions = async () => {
+  loadSubmissionsToTable( await submissionsLatestGet() )
+  allSubmissionsLoaded = true;
+}
+
+const loadSubmissionsToTable = (submissionsData : Submission[]) => {
   var dataToShow: any = []
   submissionsData.forEach(submission => {
     dataToShow.push( {
-      name: nameFromNetId(submission.netId),
-      phase: submission.phase,
-      timestamp: submission.timestamp,
-      score: submission.score,
-      notes: submission.notes,
-      netId: submission.netId,
-      submission: submission
-      }
+          name: nameFromNetId(submission.netId),
+          phase: submission.phase,
+          timestamp: submission.timestamp,
+          score: submission.score,
+          notes: submission.notes,
+          netId: submission.netId,
+          submission: submission
+        }
     )
   })
   rowData.value = dataToShow
-})
+}
 
 const notesCellClicked = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data.submission
@@ -64,11 +75,20 @@ const rowData = reactive({
 <template>
   <ag-grid-vue
       class="ag-theme-quartz"
-      style="height: 75vh"
+      style="height: 65vh"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
       :defaultColDef="standardColSettings"
   ></ag-grid-vue>
+
+  <div class="container">
+    <p v-if="allSubmissionsLoaded">All latest submissions are loaded</p>
+    <p v-else>Currently only the {{DEFAULT_SUBMISSIONS_TO_LOAD}} most recent latest submssions are loaded</p>
+    <button id="loadMore" @click="loadAllSubmissions">
+      <span v-if="allSubmissionsLoaded">Reload submissions list</span>
+      <span v-else>Load all latest submissions</span>
+    </button>
+  </div>
 
   <PopUp
       v-if="selectedSubmission"
@@ -85,4 +105,18 @@ const rowData = reactive({
 </template>
 
 <style scoped>
+.container {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  align-items: center;
+}
+
+#loadMore {
+  font-size: medium;
+}
 </style>
