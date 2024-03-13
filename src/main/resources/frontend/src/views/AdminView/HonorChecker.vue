@@ -42,7 +42,6 @@ const triggerDownload = (data: Blob, filename: string) => {
 
 <template>
   <div class="container">
-    <h3>Honor Checker Download</h3>
     <p class="desc">If you are a professor who wants to run the honor checker on your section, you've come to the
         right place! The honor checker itself is located elsewhere, but below, you can download .zip files of your section(s).
         Each .zip file contains a directory for every student containing their source code.</p>

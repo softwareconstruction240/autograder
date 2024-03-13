@@ -83,7 +83,6 @@ const stopAudio = () => {
 
 <template>
   <div class="container">
-    <h3>Analytics Download</h3>
     <p class="desc">Downloading commit analytics CSV data can be done in one of two ways: downloading a cached version,
         which was compiled at the timestamp below, or updating the data. Updating the data takes around 90 seconds.
         By default, the data is sorted by section and then by netID.</p>

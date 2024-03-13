@@ -1,44 +1,49 @@
 <script setup lang="ts">
-import type {Submission, User} from "@/types/types";
+import type {Rubric, Submission, User} from "@/types/types";
 import {onMounted, reactive, ref} from "vue";
 import {submissionsForUserGet} from "@/services/adminService";
 import { AgGridVue } from 'ag-grid-vue3';
 import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import RubricTable from "@/views/PhaseView/RubricTable.vue";
 import PopUp from "@/components/PopUp.vue";
-import {renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings} from "@/utils/tableUtils";
-import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
-import {generateClickableLink} from "@/utils/utils";
 
 const { student } = defineProps<{
   student: User;
 }>();
 
 const studentSubmissions = ref<Submission[]>([])
-const selectedSubmission = ref<Submission | null>(null);
+
+const selectedRubric = ref<Rubric | null>(null);
 
 onMounted(async () => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
   var dataToShow: any = []
   studentSubmissions.value.forEach(submission => {
-    dataToShow.push( submission )
+    dataToShow.push(
+        {
+          phase: submission.phase,
+          time: submission.timestamp,
+          score: (submission.score * 100) + "%",
+          notes: submission.notes,
+          rubric: submission.rubric,
+          passed: submission.passed
+        }
+    )
   })
   rowData.value = dataToShow
 });
 
 const cellClickHandler = (event: CellClickedEvent) => {
-  selectedSubmission.value = event.data;
-  console.log("meme")
-  console.log(event.data)
-  console.log(selectedSubmission.value?.score)
+  selectedRubric.value = event.data.rubric;
 }
 
 const columnDefs = reactive([
-  { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: "timestamp", sort: 'desc', sortedAt: 0, flex:1, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: "notes", flex:5, onCellClicked: cellClickHandler }
+  { headerName: "Phase", field: 'phase', sortable: true, filter: true, flex:1},
+  { headerName: "Timestamp", field: "time", sortable: true, filter: true, flex:2 },
+  { headerName: "Score", field: "score", sortable: true, filter: true, flex:1 },
+  { headerName: "Notes", field: "notes", sortable: true, filter: true, flex:5, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({
   value: []
@@ -48,20 +53,19 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p>Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
+  <p>Github Repo: <a :href=student.repoUrl target="_blank">{{student.repoUrl}}</a> </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"
-      style="height: 35vh; width: 75vw"
+      style="height: 35vh; width: 60vw"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
-      :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <PopUp
-      v-if="selectedSubmission"
-      @closePopUp="selectedSubmission = null">
-    <SubmissionInfo :submission="selectedSubmission"/>
+      v-if="selectedRubric"
+      @closePopUp="selectedRubric = null">
+    <RubricTable :rubric="selectedRubric"/>
   </PopUp>
 </template>
 

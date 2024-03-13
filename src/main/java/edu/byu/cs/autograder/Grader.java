@@ -111,8 +111,6 @@ public abstract class Grader implements Runnable {
 
     protected Observer observer;
 
-    private DateTimeUtils dateTimeUtils;
-
     /**
      * Creates a new grader
      *
@@ -138,19 +136,6 @@ public abstract class Grader implements Runnable {
         this.requiredCommits = 10;
 
         this.observer = observer;
-
-        this.initializeDateUtils();
-    }
-
-    private void initializeDateUtils() {
-        this.dateTimeUtils = new DateTimeUtils();
-        dateTimeUtils.initializePublicHolidays(getEncodedPublicHolidays());
-    }
-    private String getEncodedPublicHolidays() {
-        // FIXME: Return from some dynamic location like a configuration file or a configurable table
-        return "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;"
-         + "7/4/2024;7/24/2024;9/2/2024;11/27/2024;11/28/2024;11/29/2024;12/24/2024;12/25/2024;12/31/2024;"
-         + "1/1/2025;";
     }
 
     public void run() {
@@ -357,7 +342,7 @@ public abstract class Grader implements Runnable {
         }
 
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        return Math.min(dateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+        return Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
     }
 
     private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) {
