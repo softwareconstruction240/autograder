@@ -7,6 +7,10 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.time.Instant;
 
+/**
+ * Note that the `numCommits` field has been deprecated and should be removed from tables.
+ * It is no longer being populated with values.
+ * */
 public record Submission(
         String netId,
         String repoUrl,
@@ -15,7 +19,7 @@ public record Submission(
         Phase phase,
         Boolean passed,
         Float score,
-        Integer numCommits,
+        @Deprecated Integer numCommits,
         String notes,
         Rubric rubric
 ) {

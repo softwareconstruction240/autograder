@@ -149,7 +149,6 @@ public abstract class Grader implements Runnable {
             Thread.sleep(1000);
             fetchRepo();
             CommitVerificationResult commitVerificationResult = verifyRegularCommits();
-            int numCommits = commitVerificationResult.numCommits;
             verifyProjectStructure();
 
             injectDatabaseConfig();
@@ -201,17 +200,16 @@ public abstract class Grader implements Runnable {
                 if (thisScore <= highestScore) {
                     String notes = "Submission did not improve current score. (" + (highestScore * 100) +
                             "%) Score not saved to Canvas.\n";
-                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
+                    thisSubmission = saveResults(rubric, daysLate, thisScore, notes);
                 } else {
-                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                    thisSubmission = saveResults(rubric, daysLate, thisScore, "");
                     sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
                 }
             } else {
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                thisSubmission = saveResults(rubric, daysLate, thisScore, "");
             }
 
             observer.notifyDone(thisSubmission);
-
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
 
@@ -360,7 +358,7 @@ public abstract class Grader implements Runnable {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes) {
+    private Submission saveResults(Rubric rubric, int numDaysLate, float score, String notes) {
         String headHash = getHeadHash();
 
         if (numDaysLate > 0)
@@ -378,7 +376,7 @@ public abstract class Grader implements Runnable {
                 phase,
                 rubric.passed(),
                 score,
-                numCommits,
+                0,
                 notes,
                 rubric
         );
