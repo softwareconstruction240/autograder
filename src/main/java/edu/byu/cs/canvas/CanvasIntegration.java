@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ConfigProperties;
+import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -166,7 +167,12 @@ public class CanvasIntegration {
      * @param comment       The comment to submit on the assignment
      * @throws CanvasException If there is an error with Canvas
      */
-    public static void submitGrade(int userId, int assignmentNum, Float grade, String comment) throws CanvasException {
+    public static void submitGrade(
+            int userId,
+            int assignmentNum,
+            @Nullable Float grade,
+            @Nullable String comment
+    ) throws CanvasException {
         if(grade == null && comment == null)
             throw new IllegalArgumentException("grade and comment should not both be null");
         StringBuilder path = new StringBuilder();
