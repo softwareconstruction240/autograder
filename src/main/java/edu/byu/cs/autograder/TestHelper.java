@@ -53,7 +53,7 @@ public class TestHelper {
      * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
     void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests) {
-
+        if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
