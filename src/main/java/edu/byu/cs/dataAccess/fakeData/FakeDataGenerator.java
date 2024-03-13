@@ -115,7 +115,7 @@ public class FakeDataGenerator {
 
     private Instant getRandomTime() {
         long nowMillis = System.currentTimeMillis();
-        long offset = random.nextLong() % (1000000000);
+        long offset = random.nextLong() % (86400000) * randomNumberHelper(7);
         return Instant.ofEpochMilli(nowMillis - offset);
     }
 
