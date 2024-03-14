@@ -196,7 +196,9 @@ public class SubmissionController {
     };
 
     public static Route latestSubmissionsGet = (req, res) -> {
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions();
+        String countString = req.params(":count");
+        int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
 
         res.status(200);
         res.type("application/json");
