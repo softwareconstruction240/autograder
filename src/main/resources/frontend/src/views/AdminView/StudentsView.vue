@@ -9,6 +9,7 @@ import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import {renderRepoLinkCell, standardColSettings} from "@/utils/tableUtils";
+import Panel from "@/components/Panel.vue";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
@@ -49,7 +50,7 @@ const activateTestStudentMode = async () => {
 </script>
 
 <template>
-  <div class="test-student-mode-container">
+  <Panel class="test-student-mode-container">
     <div>
       <p>Use "Test Student Mode" to use the autograder as the course's test student</p>
       <p>- you will need to log out and back in again to return to admin mode</p>
@@ -58,7 +59,7 @@ const activateTestStudentMode = async () => {
     <div>
       <button @click="activateTestStudentMode">Go to Test Student Mode</button>
     </div>
-  </div>
+  </Panel>
 
   <ag-grid-vue
       class="ag-theme-quartz"
@@ -78,13 +79,6 @@ const activateTestStudentMode = async () => {
 
 <style scoped>
 .test-student-mode-container {
-  align-items: center;
-  margin: 10px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f2f2f2;
-  cursor: pointer;
   display: grid;
   grid-template-columns: 3fr 1fr;
 }

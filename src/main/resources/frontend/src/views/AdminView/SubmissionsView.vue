@@ -33,8 +33,8 @@ onMounted(async () => {
       score: submission.score,
       notes: submission.notes,
       netId: submission.netId,
-      passed: submission.passed,
-      approved: submission.score > 0.5, // TODO: make it actually what its called
+      passed: submission.score > 0.5, //TODO: put back as actual variable
+      approved: submission.score > 0.2, // TODO: make it actually what its called
       submission: submission
       }
     )

@@ -17,7 +17,7 @@ import {
   readableTimestamp,
   scoreToPercentage
 } from "@/utils/utils";
-import PopUp from "@/components/PopUp.vue";
+import Panel from "@/components/Panel.vue";
 
 const { submission } = defineProps<{
   submission: Submission;
@@ -61,11 +61,11 @@ const rowData = reactive({
         <button>Approve with no penalty</button>
       </div>
     </div>
-    <div>
+    <Panel>
       <p><span class="info-label">GitHub Repo: </span><span v-html="generateClickableLink(submission.repoUrl)"/></p>
       <p class="info-label">Submission Notes:</p>
       <p id="notes-field">{{submission.notes}}</p>
-    </div>
+    </Panel>
   </div>
   <ag-grid-vue
       class="ag-theme-quartz"
