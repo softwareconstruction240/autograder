@@ -206,7 +206,7 @@ public abstract class Grader implements Runnable {
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
             rubric = annotateRubric(rubric);
 
-            int daysLate = calculateLateDays(rubric);
+            int daysLate = calculateLateDays();
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
             Submission thisSubmission;
 
@@ -276,19 +276,6 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    void injectDatabaseConfig() {
-        File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
-        if (dbProperties.exists())
-            dbProperties.delete();
-
-        File dbPropertiesSource = new File("./phases/phase4/resources/db.properties");
-        try {
-            Files.copy(dbPropertiesSource.toPath(), dbProperties.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     /**
      * gets the score stored in canvas for the current user and phase
      * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
@@ -327,7 +314,7 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    private int calculateLateDays(Rubric rubric) {
+    private int calculateLateDays() {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
