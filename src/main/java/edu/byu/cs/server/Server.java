@@ -3,7 +3,9 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ConfigProperties;
+import edu.byu.cs.util.ResourceUtils;
 
+import java.io.File;
 import java.io.IOException;
 
 import static edu.byu.cs.controller.AdminController.*;
@@ -16,6 +18,7 @@ public class Server {
 
 
     public static void main(String[] args) {
+        ResourceUtils.copyResourceFiles("phases", new File(""));
 
         port(8080);
 
@@ -64,6 +67,8 @@ public class Server {
                 patch("/user/:netId", userPatch);
 
                 get("/submissions/latest", latestSubmissionsGet);
+
+                get("/submissions/latest/:count", latestSubmissionsGet);
 
                 get("/test_mode", testModeGet);
 
