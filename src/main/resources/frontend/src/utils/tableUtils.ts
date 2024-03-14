@@ -1,6 +1,8 @@
 import type { ValueGetterParams } from 'ag-grid-community'
 import type {RubricItem, RubricItemResults, Submission} from "@/types/types";
 import {generateClickableLink, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
+import '@/assets/fontawesome/css/fontawesome.css'
+import '@/assets/fontawesome/css/solid.css'
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
@@ -26,8 +28,26 @@ export const renderRepoLinkCell = (params: ValueGetterParams):string => {
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "score"
  */
-export const renderScoreCell = (params: ValueGetterParams):string => {
-    return scoreToPercentage(params.data.score)
+export const renderScoreCell = (params: ValueGetterParams) => {
+    const cellElement = document.createElement("div");
+    cellElement.textContent = scoreToPercentage(params.data.score);
+    const iconElement = document.createElement("i");
+
+    if (!params.data.approved) {
+        cellElement.style.fontWeight = "bold"
+        iconElement.classList.add("fa-solid", "fa-circle-exclamation");
+        iconElement.style.color = "red";
+    } else if (params.data.passed) {
+        iconElement.classList.add("fa-solid", "fa-check");
+        iconElement.style.color = "green";
+    } else {
+        iconElement.classList.add("fa-solid", "fa-ban");
+        iconElement.style.color = "grey"
+    }
+
+    iconElement.style.paddingLeft = "5px";
+    cellElement.append(iconElement)
+    return cellElement
 }
 
 export const standardColSettings = {

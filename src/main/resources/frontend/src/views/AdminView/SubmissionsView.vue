@@ -33,6 +33,8 @@ onMounted(async () => {
       score: submission.score,
       notes: submission.notes,
       netId: submission.netId,
+      passed: submission.passed,
+      approved: submission.score > 0.5, // TODO: make it actually what its called
       submission: submission
       }
     )
@@ -40,7 +42,7 @@ onMounted(async () => {
   rowData.value = dataToShow
 })
 
-const notesCellClicked = (event: CellClickedEvent) => {
+const openSubmissionInfo = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data.submission
 }
 
@@ -52,8 +54,8 @@ const columnDefs = reactive([
   { headerName: "Name", field: 'name', flex:2, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: notesCellClicked },
+  { headerName: "Score", field: 'score', flex:1, cellRenderer: renderScoreCell, onCellClicked: openSubmissionInfo },
+  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: openSubmissionInfo },
 ])
 const rowData = reactive({
   value: []

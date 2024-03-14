@@ -44,6 +44,7 @@ export type Submission = {
     notes: string,
     rubric: Rubric,
     passed: boolean,
+    approved: true
 }
 
 export type User = {
