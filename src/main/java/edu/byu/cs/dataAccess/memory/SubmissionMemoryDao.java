@@ -4,7 +4,6 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -57,7 +56,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
                 }
             });
 
-            batchSize += -1;
+            batchSize -= 1;
             if (batchSize == 0) { break; }
         }
 

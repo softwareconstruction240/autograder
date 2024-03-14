@@ -95,8 +95,8 @@ public class SubmissionSqlDao implements SubmissionDao {
                             )
                             ORDER BY timestamp DESC
                             """ +
-                            (batchSize == -1 ? "" : "LIMIT ?"));
-            if (batchSize != -1) {
+                            (batchSize < 0 ? "LIMIT ?" : ""));
+            if (batchSize < 0) {
                 statement.setInt(1, batchSize);
             }
             return getSubmissionsFromQuery(statement);

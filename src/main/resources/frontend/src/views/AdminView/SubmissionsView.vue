@@ -25,7 +25,6 @@ let allSubmissionsLoaded = false;
 
 onMounted(async () => {
   const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
-  //submissionsData.sort((a, b) => b.timestamp.localeCompare(a.timestamp)) // Sort by timestamp descending
   loadSubmissionsToTable(submissionsData)
 })
 

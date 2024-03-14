@@ -41,7 +41,7 @@ public interface SubmissionDao {
     /**
      * Gets the X most recent latest submissions
      *
-     * @param batchSize defines how many submissions to return. Set batchSize to -1 to get All submissions
+     * @param batchSize defines how many submissions to return. Set batchSize to a negative int to get All submissions
      * @return the most recent X submissions
      */
     Collection<Submission> getAllLatestSubmissions(int batchSize);
