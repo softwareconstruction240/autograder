@@ -18,12 +18,12 @@ import java.util.Collection;
 public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public void insertSubmission(Submission submission) {
-        try (var connection = SqlDb.getConnection()) {
+        try (var connection = SqlDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(
                     """
                     INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """);
+                    """)) {
             statement.setString(1, submission.netId());
             statement.setString(2, submission.repoUrl());
             statement.setTimestamp(3, Timestamp.from(submission.timestamp()));
@@ -78,6 +78,11 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions() {
+        return getAllLatestSubmissions(-1);
+    }
+
+    @Override
+    public Collection<Submission> getAllLatestSubmissions(int batchSize) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
@@ -88,7 +93,12 @@ public class SubmissionSqlDao implements SubmissionDao {
                                 FROM submission
                                 GROUP BY net_id, phase
                             )
-                            """);
+                            ORDER BY timestamp DESC
+                            """ +
+                            (batchSize >= 0 ? "LIMIT ?" : ""));
+            if (batchSize >= 0) {
+                statement.setInt(1, batchSize);
+            }
             return getSubmissionsFromQuery(statement);
 
         } catch (Exception e) {
@@ -98,12 +108,12 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public void removeSubmissionsByNetId(String netId) {
-        try (var connection = SqlDb.getConnection()) {
+        try (var connection = SqlDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(
                     """
                             DELETE FROM submission
                             WHERE net_id = ?
-                            """);
+                            """)) {
             statement.setString(1, netId);
             statement.executeUpdate();
 
@@ -134,53 +144,46 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public float getBestScoreForPhase(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection()) {
+        try (var connection = SqlDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(
                     """
                             SELECT max(score) as highestScore
                             FROM submission
                             WHERE net_id = ? AND phase = ?
-                            """);
+                            """)) {
             statement.setString(1, netId);
             statement.setString(2, phase.toString());
-            ResultSet rows = statement.executeQuery();
-            rows.next();
-            return rows.getFloat("highestScore");
+            try(ResultSet rows = statement.executeQuery()) {
+                rows.next();
+                return rows.getFloat("highestScore");
+            }
         } catch (Exception e) {
             throw new DataAccessException("Error getting highest score", e);
         }
     }
 
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
-        ResultSet rows = statement.executeQuery();
+        try(ResultSet rows = statement.executeQuery()) {
 
-        Collection<Submission> submissions = new ArrayList<>();
-        while (rows.next()) {
-            String netId = rows.getString("net_id");
-            String repoUrl = rows.getString("repo_url");
-            String headHash = rows.getString("head_hash");
-            Instant timestamp = rows.getTimestamp("timestamp").toInstant();
-            Phase phase = Phase.valueOf(rows.getString("phase"));
-            Boolean passed = rows.getBoolean("passed");
-            float score = rows.getFloat("score");
-            Integer numCommits = rows.getInt("num_commits");
-            String notes = rows.getString("notes");
-            Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
+            Collection<Submission> submissions = new ArrayList<>();
+            while (rows.next()) {
+                String netId = rows.getString("net_id");
+                String repoUrl = rows.getString("repo_url");
+                String headHash = rows.getString("head_hash");
+                Instant timestamp = rows.getTimestamp("timestamp").toInstant();
+                Phase phase = Phase.valueOf(rows.getString("phase"));
+                Boolean passed = rows.getBoolean("passed");
+                float score = rows.getFloat("score");
+                Integer numCommits = rows.getInt("num_commits");
+                String notes = rows.getString("notes");
+                Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
 
-            submissions.add(new Submission(
-                    netId,
-                    repoUrl,
-                    headHash,
-                    timestamp,
-                    phase,
-                    passed,
-                    score,
-                    numCommits,
-                    notes,
-                    rubric
-            ));
+                submissions.add(
+                        new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes,
+                                rubric));
+            }
+
+            return submissions;
         }
-
-        return submissions;
     }
 }

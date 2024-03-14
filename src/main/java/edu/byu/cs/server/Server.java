@@ -65,6 +65,8 @@ public class Server {
 
                 get("/submissions/latest", latestSubmissionsGet);
 
+                get("/submissions/latest/:count", latestSubmissionsGet);
+
                 get("/test_mode", testModeGet);
 
                 get("/submissions/active", submissionsActiveGet);
