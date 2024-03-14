@@ -43,7 +43,7 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         new TestHelper().compileTests(
                 stageRepo,
                 "server",
-                new File(stageRepo, "server/src/test/java"),
+                new File(stageRepo, "server/src/test/java/serviceTests"),
                 stagePath,
                 excludedTests);
 
