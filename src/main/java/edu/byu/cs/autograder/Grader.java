@@ -156,7 +156,7 @@ public abstract class Grader implements Runnable {
     public void run() {
         observer.notifyStarted();
         Collection<String> existingDatabaseNames = new HashSet<>();
-        boolean finished = false;
+        boolean finishedCleaningDatabase = false;
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
@@ -189,7 +189,7 @@ public abstract class Grader implements Runnable {
 
             dbHelper.cleanupDatabase();
             dbHelper.assertNoExtraDatabases(existingDatabaseNames, dbHelper.getExistingDatabaseNames());
-            finished = true;
+            finishedCleaningDatabase = true;
 
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;
@@ -235,7 +235,7 @@ public abstract class Grader implements Runnable {
 
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
-            if(!finished) {
+            if(!finishedCleaningDatabase) {
                 dbHelper.cleanupDatabase();
                 Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
                 currentDatabaseNames.removeAll(existingDatabaseNames);
