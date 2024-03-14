@@ -34,8 +34,8 @@ onMounted(async () => {
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: "name", flex: 2, onCellClicked: cellClickHandler },
-  { headerName: "BYU netID", field: "netId", flex: 1, onCellClicked: cellClickHandler },
+  { headerName: "Student Name", field: "name", flex: 2, minWidth: 150, onCellClicked: cellClickHandler },
+  { headerName: "BYU netID", field: "netId", flex: 1, minWidth: 75, onCellClicked: cellClickHandler },
   { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, cellRenderer: renderRepoLinkCell }
 ])
 const rowData = reactive({

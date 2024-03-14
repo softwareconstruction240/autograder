@@ -51,10 +51,10 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Name", field: 'name', flex:2, onCellClicked: nameCellClicked },
+  { headerName: "Name", field: 'name', flex:2, minWidth: 100, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, cellRenderer: renderScoreCell, onCellClicked: openSubmissionInfo },
+  { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell, onCellClicked: openSubmissionInfo },
   { headerName: "Notes", field: 'notes', flex:5, onCellClicked: openSubmissionInfo },
 ])
 const rowData = reactive({
