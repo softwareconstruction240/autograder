@@ -16,10 +16,7 @@ import static spark.Spark.*;
 
 public class Server {
 
-
-    public static void main(String[] args) {
-        ResourceUtils.copyResourceFiles("phases", new File(""));
-
+    public static void setupEndpoints() {
         port(8080);
 
         webSocket("/ws", WebSocketController.class);
@@ -97,6 +94,13 @@ public class Server {
             return null;
         });
         init();
+    }
+
+
+    public static void main(String[] args) {
+        ResourceUtils.copyResourceFiles("phases", new File(""));
+
+        setupEndpoints();
 
         try {
             SubmissionController.reRunSubmissionsInQueue();
