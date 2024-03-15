@@ -127,6 +127,18 @@ public class Server {
             if (cmd.hasOption("canvas-token")) {
                 properties.setProperty("canvas-token", cmd.getOptionValue("canvas-token"));
             }
+            if (cmd.hasOption("student-db-host")) {
+                properties.setProperty("student-db-host", cmd.getOptionValue("student-db-host"));
+            }
+            if (cmd.hasOption("student-db-port")) {
+                properties.setProperty("student-db-port", cmd.getOptionValue("student-db-port"));
+            }
+            if (cmd.hasOption("student-db-user")) {
+                properties.setProperty("student-db-user", cmd.getOptionValue("student-db-user"));
+            }
+            if (cmd.hasOption("student-db-pass")) {
+                properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
+            }
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line arguments");
         }
