@@ -121,9 +121,6 @@ public class Server {
             if (cmd.hasOption("frontend-url")) {
                 properties.setProperty("frontend-url", cmd.getOptionValue("frontend-url"));
             }
-            if (cmd.hasOption("backend-url")) {
-                properties.setProperty("backend-url", cmd.getOptionValue("backend-url"));
-            }
             if (cmd.hasOption("cas-callback-url")) {
                 properties.setProperty("cas-callback-url", cmd.getOptionValue("cas-callback-url"));
             }
