@@ -1,11 +1,10 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.*;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,16 +12,25 @@ import java.util.Properties;
 
 public class DatabaseHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
-    private static String dbHost;
-    private static String dbPort;
-    private static String dbUser;
-    private static String dbPassword;
-    private static boolean needsLoad = true;
+    private static String HOST;
+    private static String PORT;
+    private static String USER;
+    private static String PASS;
 
     private final String databaseName;
 
     public DatabaseHelper(long salt) {
         this.databaseName = "chessdb" + salt;
+        loadProperties();
+    }
+
+    private void loadProperties() {
+        if(HOST == null) {
+            HOST = ApplicationProperties.studentDbHost();
+            PORT = ApplicationProperties.studentDbPort();
+            USER = ApplicationProperties.studentDbUser();
+            PASS = ApplicationProperties.studentDbPass();
+        }
     }
 
     public void injectDatabaseConfig(File stageRepo) {
@@ -30,18 +38,17 @@ public class DatabaseHelper {
         if (dbPropertiesFile.exists())
             dbPropertiesFile.delete();
 
-        File dbPropertiesSource = new File("./phases/libs/db.properties");
         Properties dbProperties = new Properties();
         try {
-            dbProperties.load(Files.newInputStream(dbPropertiesSource.getAbsoluteFile().toPath()));
-            System.out.println("loaded");
             dbProperties.put("db.name", databaseName);
-            try(ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            dbProperties.put("db.host", HOST);
+            dbProperties.put("db.port", PORT);
+            dbProperties.put("db.user", USER);
+            dbProperties.put("db.pass", PASS);
+            try(FileOutputStream os = new FileOutputStream(dbPropertiesFile.getAbsolutePath())) {
                 dbProperties.store(os, "");
-                InputStream is = new ByteArrayInputStream(os.toByteArray());
-                Files.copy(is, dbPropertiesFile.toPath());
+                os.flush();
             }
-            System.out.println("injected");
         } catch (IOException e) {
             throw new RuntimeException("Could add db config", e);
         }
@@ -98,24 +105,7 @@ public class DatabaseHelper {
     }
 
     private Connection getConnection() throws SQLException {
-        if(needsLoad) {
-            String dbPropertiesPath = new File("./phases/libs/db.properties").getAbsolutePath();
-            Properties dbProperties = new Properties();
-            try (InputStream input = Files.newInputStream(Path.of(dbPropertiesPath))) {
-                dbProperties.load(input);
-            } catch (IOException ex) {
-                LOGGER.error("Error loading properties file", ex);
-                System.exit(1);
-            }
-
-            dbHost = dbProperties.getProperty("db.host");
-            dbPort = dbProperties.getProperty("db.port");
-            dbUser = dbProperties.getProperty("db.user");
-            dbPassword = dbProperties.getProperty("db.password");
-            needsLoad = false;
-        }
-        String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
-
-        return DriverManager.getConnection(connectionString, dbUser, dbPassword);
+        String connectionString = "jdbc:mysql://" + HOST + ":" + PORT;
+        return DriverManager.getConnection(connectionString, USER, PASS);
     }
 }
