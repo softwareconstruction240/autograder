@@ -1,4 +1,4 @@
-name: ci
+name: Docker Hub Deployment
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       -
         name: Set up QEMU
