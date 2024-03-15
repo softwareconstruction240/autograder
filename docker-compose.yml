@@ -16,7 +16,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: always
     ports:
       - "8080:8080"
     command: ["java", "-Dlog4j2.configurationFile=log4j.properties", "-Dlog4j2.debug=false", "-jar", "/app/target/automatico-1.0-SNAPSHOT.jar",
@@ -27,8 +26,11 @@ services:
         "--frontend-url", "changeme",
         "--cas-callback-url", "changeme",
         "--canvas-token", "changeme",
+        "--student-db-host", "changeme",
+        "--student-db-port", "changeme",
+        "--student-db-user", "changeme",
+        "--student-db-pass", "changeme",
     ]
-
 
 volumes:
     db-data:
