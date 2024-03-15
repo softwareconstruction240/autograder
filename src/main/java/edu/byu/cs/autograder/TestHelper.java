@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream
 
 /**
  * A helper class for running common test operations
@@ -52,7 +53,7 @@ public class TestHelper {
      * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
     void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests) {
-
+        if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
@@ -178,14 +179,14 @@ public class TestHelper {
         Set<String> testFileNames = new HashSet<>();
         try {
             Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
-            Files.walk(testDirectoryPath)
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        String fileName = path.getFileName().toString();
-                        if (fileName.endsWith(".java")) {
-                            testFileNames.add(fileName);
-                        }
-                    });
+            try(Stream<Path> stream = Files.walk(testDirectoryPath)) {
+                stream.filter(Files::isRegularFile).forEach(path -> {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.endsWith(".java")) {
+                        testFileNames.add(fileName);
+                    }
+                });
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

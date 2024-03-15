@@ -17,11 +17,6 @@ RUN cd src/main/resources/frontend && \
 
 RUN mvn clean package
 
-ENV DB_URL=db:3306
-ENV DB_USER=root
-ENV DB_PASSWORD=root
-ENV DB_NAME=autograder
-
 EXPOSE 8080
 
 CMD ["java", "-Dlog4j2.configurationFile=log4j.properties", "-Dlog4j2.debug=false", "-jar", "/app/target/automatico-1.0-SNAPSHOT.jar"]

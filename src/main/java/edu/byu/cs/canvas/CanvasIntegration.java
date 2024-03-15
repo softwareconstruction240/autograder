@@ -3,7 +3,8 @@ package edu.byu.cs.canvas;
 import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ConfigProperties;
+import edu.byu.cs.properties.ApplicationProperties;
+import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class CanvasIntegration {
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
 
-    private static final String AUTHORIZATION_HEADER = ConfigProperties.canvasAuthorizationHeader();
+    private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
     // FIXME: set this dynamically or pull from config
     private static final int COURSE_NUMBER = 24410;
@@ -166,12 +167,27 @@ public class CanvasIntegration {
      * @param comment       The comment to submit on the assignment
      * @throws CanvasException If there is an error with Canvas
      */
-    public static void submitGrade(int userId, int assignmentNum, float grade, String comment) throws CanvasException {
-        String encodedComment = URLEncoder.encode(comment, Charset.defaultCharset());
+    public static void submitGrade(
+            int userId,
+            int assignmentNum,
+            @Nullable Float grade,
+            @Nullable String comment
+    ) throws CanvasException {
+        if(grade == null && comment == null)
+            throw new IllegalArgumentException("grade and comment should not both be null");
+        StringBuilder path = new StringBuilder();
+        path.append("/courses/").append(COURSE_NUMBER).append("/assignments/").append(assignmentNum)
+                .append("/submissions/").append(userId).append("?");
+        if(grade != null) path.append("submission[posted_grade]=").append(grade).append("&");
+        if(comment != null) {
+            String encodedComment = URLEncoder.encode(comment, Charset.defaultCharset());
+            path.append("comment[text_comment]=").append(encodedComment);
+        }
+        else path.deleteCharAt(path.length() - 1);
+
         makeCanvasRequest(
                 "PUT",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
-                        "?submission[posted_grade]=" + grade + "&comment[text_comment]=" + encodedComment,
+                path.toString(),
                 null,
                 null);
     }

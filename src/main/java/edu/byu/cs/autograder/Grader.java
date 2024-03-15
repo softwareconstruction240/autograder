@@ -18,15 +18,10 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -83,6 +78,8 @@ public abstract class Grader implements Runnable {
      */
     private final String repoUrl;
 
+    private final DatabaseHelper dbHelper;
+
 
     /**
      * The path for the student repo (child of stagePath)
@@ -111,6 +108,8 @@ public abstract class Grader implements Runnable {
 
     protected Observer observer;
 
+    private DateTimeUtils dateTimeUtils;
+
     /**
      * Creates a new grader
      *
@@ -128,19 +127,36 @@ public abstract class Grader implements Runnable {
         this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
         this.passoffDependenciesPath = new File(libsDir, "passoff-dependencies.jar").getCanonicalPath();
 
-        this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + Instant.now().getEpochSecond()).getCanonicalPath();
+        long salt = Instant.now().getEpochSecond();
+        this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
 
         this.repoUrl = repoUrl;
         this.stageRepo = new File(stagePath, "repo");
 
+        this.dbHelper = new DatabaseHelper(salt);
+
         this.requiredCommits = 10;
 
         this.observer = observer;
+
+        this.initializeDateUtils();
+    }
+
+    private void initializeDateUtils() {
+        this.dateTimeUtils = new DateTimeUtils();
+        dateTimeUtils.initializePublicHolidays(getEncodedPublicHolidays());
+    }
+    private String getEncodedPublicHolidays() {
+        // FIXME: Return from some dynamic location like a configuration file or a configurable table
+        return "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;"
+         + "7/4/2024;7/24/2024;9/2/2024;11/27/2024;11/28/2024;11/29/2024;12/24/2024;12/25/2024;12/31/2024;"
+         + "1/1/2025;";
     }
 
     public void run() {
         observer.notifyStarted();
-
+        Collection<String> existingDatabaseNames = new HashSet<>();
+        boolean finishedCleaningDatabase = false;
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
@@ -148,8 +164,9 @@ public abstract class Grader implements Runnable {
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
 
-            injectDatabaseConfig();
-            cleanupDatabase();
+            existingDatabaseNames = dbHelper.getExistingDatabaseNames();
+            dbHelper.injectDatabaseConfig(stageRepo);
+
             modifyPoms();
 
             packageRepo();
@@ -170,6 +187,10 @@ public abstract class Grader implements Runnable {
                 customTestsResults = runCustomTests();
             }
 
+            dbHelper.cleanupDatabase();
+            dbHelper.assertNoExtraDatabases(existingDatabaseNames, dbHelper.getExistingDatabaseNames());
+            finishedCleaningDatabase = true;
+
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;
             Rubric.RubricItem customTestsItem = null;
@@ -185,7 +206,7 @@ public abstract class Grader implements Runnable {
             rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
             rubric = annotateRubric(rubric);
 
-            int daysLate = calculateLateDays(rubric);
+            int daysLate = calculateLateDays();
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
             Submission thisSubmission;
 
@@ -214,36 +235,13 @@ public abstract class Grader implements Runnable {
 
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
+            if(!finishedCleaningDatabase) {
+                dbHelper.cleanupDatabase();
+                Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
+                currentDatabaseNames.removeAll(existingDatabaseNames);
+                dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
+            }
             FileUtils.removeDirectory(new File(stagePath));
-        }
-    }
-
-    private void cleanupDatabase() {
-        String dbPropertiesPath = new File("./phases/phase4/resources/db.properties").getAbsolutePath();
-        Properties dbProperties = new Properties();
-        try (InputStream input = Files.newInputStream(Path.of(dbPropertiesPath))) {
-            dbProperties.load(input);
-
-        } catch (IOException ex) {
-            LOGGER.error("Error loading properties file", ex);
-            System.exit(1);
-        }
-
-        String dbHost = dbProperties.getProperty("db.host");
-        String dbPort = dbProperties.getProperty("db.port");
-        String dbUser = dbProperties.getProperty("db.user");
-        String dbPassword = dbProperties.getProperty("db.password");
-        String dbName = dbProperties.getProperty("db.name");
-
-        String connectionString = "jdbc:mysql://" + dbHost + ":" + dbPort;
-
-        try (Connection connection = DriverManager.getConnection(connectionString, dbUser, dbPassword)) {
-            connection.createStatement().executeUpdate(
-                    "DROP DATABASE IF EXISTS " + dbName
-            );
-        } catch (SQLException e) {
-            LOGGER.error("Failed to cleanup database", e);
-            throw new RuntimeException("Failed to cleanup environment", e);
         }
     }
 
@@ -275,19 +273,6 @@ public abstract class Grader implements Runnable {
 
             Files.write(path, lines, StandardCharsets.UTF_8);
             System.out.println("Removed: " + searchText);
-        }
-    }
-
-    void injectDatabaseConfig() {
-        File dbProperties = new File(stageRepo, "server/src/main/resources/db.properties");
-        if (dbProperties.exists())
-            dbProperties.delete();
-
-        File dbPropertiesSource = new File("./phases/phase4/resources/db.properties");
-        try {
-            Files.copy(dbPropertiesSource.toPath(), dbProperties.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -329,7 +314,7 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    private int calculateLateDays(Rubric rubric) {
+    private int calculateLateDays() {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
@@ -342,7 +327,7 @@ public abstract class Grader implements Runnable {
         }
 
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        return Math.min(DateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+        return Math.min(dateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
     }
 
     private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) {

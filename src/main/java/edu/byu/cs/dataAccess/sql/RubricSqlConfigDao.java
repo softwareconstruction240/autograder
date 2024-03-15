@@ -41,17 +41,15 @@ public class RubricSqlConfigDao implements RubricConfigDao {
     }
 
     private RubricConfig.RubricConfigItem getRubricItem(Phase phase, Rubric.RubricType type) throws DataAccessException {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM rubric_config WHERE phase = ? AND type = ?");
+        try (var connection = SqlDb.getConnection();
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM rubric_config WHERE phase = ? AND type = ?")) {
             statement.setString(1, phase.name());
             statement.setString(2, type.toString());
-            ResultSet results = statement.executeQuery();
-            if (results.next()) {
-                return new RubricConfig.RubricConfigItem(
-                        results.getString("category"),
-                        results.getString("criteria"),
-                        results.getInt("points")
-                );
+            try(ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    return new RubricConfig.RubricConfigItem(results.getString("category"),
+                            results.getString("criteria"), results.getInt("points"));
+                }
             }
         } catch (Exception e) {
             throw new DataAccessException("Error getting rubric item", e);

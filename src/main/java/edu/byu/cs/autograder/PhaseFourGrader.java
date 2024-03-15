@@ -48,7 +48,7 @@ public class PhaseFourGrader extends PassoffTestGrader {
         new TestHelper().compileTests(
                 stageRepo,
                 "server",
-                new File(stageRepo, "server/src/test/java/dataAccessTests"),
+                new File(stageRepo, "server/src/test/java/"),
                 stagePath,
                 excludedTests);
 
