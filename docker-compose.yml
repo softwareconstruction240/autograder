@@ -13,9 +13,7 @@ services:
     ports:
       - "3306:3306"
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: pawlh/cs240-autograder:latest
     ports:
       - "8080:8080"
     command: ["java", "-Dlog4j2.configurationFile=log4j.properties", "-Dlog4j2.debug=false", "-jar", "/app/target/automatico-1.0-SNAPSHOT.jar",
@@ -31,6 +29,11 @@ services:
         "--student-db-user", "changeme",
         "--student-db-pass", "changeme",
     ]
+  watchtower:
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    image: containrrr/watchtower
 
 volumes:
     db-data:
