@@ -39,7 +39,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
   }
 
   if (node.passed === undefined && node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-      result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
+      result += `<br/>${indent} <hr> <h2>Program Error Output</h2>   <span class="failure">${node.errorMessage}</span>`;
   }
 
   return result;
