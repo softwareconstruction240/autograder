@@ -44,7 +44,7 @@ public class DatabaseHelper {
             dbProperties.put("db.host", HOST);
             dbProperties.put("db.port", PORT);
             dbProperties.put("db.user", USER);
-            dbProperties.put("db.pass", PASS);
+            dbProperties.put("db.password", PASS);
             try(FileOutputStream os = new FileOutputStream(dbPropertiesFile.getAbsolutePath())) {
                 dbProperties.store(os, "");
                 os.flush();
