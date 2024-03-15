@@ -48,4 +48,20 @@ public class ApplicationProperties {
     public static String canvasAPIToken() {
         return "Bearer " + mustGet("canvas-token");
     }
+
+    public static String studentDbHost() {
+        return mustGet("student-db-host");
+    }
+
+    public static String studentDbPort() {
+        return mustGet("student-db-port");
+    }
+
+    public static String studentDbUser() {
+        return mustGet("student-db-user");
+    }
+
+    public static String studentDbPass() {
+        return mustGet("student-db-pass");
+    }
 }
