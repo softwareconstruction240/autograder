@@ -155,6 +155,10 @@ public class Server {
         options.addOption(null, "frontend-url", true, "Frontend URL");
         options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
         options.addOption(null, "canvas-token", true, "Canvas Token");
+        options.addOption(null, "student-db-host", true, "Student DB Host");
+        options.addOption(null, "student-db-port", true, "Student DB Port");
+        options.addOption(null, "student-db-user", true, "Student DB User");
+        options.addOption(null, "student-db-pass", true, "Student DB Password");
         return options;
     }
 
