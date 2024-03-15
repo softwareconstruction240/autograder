@@ -60,6 +60,9 @@ public class HonorCheckerCompiler {
                     }
                 };
                 FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
+
+                FileUtils.zipDirectory(repoPath.getPath(), repoPath.getPath() + ".zip");
+                FileUtils.removeDirectory(repoPath);
             }
 
             FileUtils.zipDirectory(tmpDir, zipFilePath);
