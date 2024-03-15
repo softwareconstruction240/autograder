@@ -140,7 +140,7 @@ public class Server {
                 properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
             }
         } catch (ParseException e) {
-            throw new RuntimeException("Error parsing command line arguments");
+            throw new RuntimeException("Error parsing command line arguments", e);
         }
 
         ApplicationProperties.loadProperties(properties);
