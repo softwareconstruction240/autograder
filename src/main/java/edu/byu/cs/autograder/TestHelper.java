@@ -4,13 +4,12 @@ import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream
+import java.util.stream.Stream;
 
 /**
  * A helper class for running common test operations
