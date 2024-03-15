@@ -19,8 +19,16 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    environment:
-      - CANVAS_AUTHORIZATION_KEY=
+    command: ["java", "-Dlog4j2.configurationFile=log4j.properties", "-Dlog4j2.debug=false", "-jar", "/app/target/automatico-1.0-SNAPSHOT.jar",
+        "--db-url", "changeme",
+        "--db-name", "changeme",
+        "--db-user", "changeme",
+        "--db-pass", "changeme",
+        "--frontend-url", "changeme",
+        "--cas-callback-url", "changeme",
+        "--canvas-token", "changeme",
+    ]
+
 
 volumes:
     db-data:
