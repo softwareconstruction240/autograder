@@ -35,6 +35,7 @@ public class HonorCheckerCompiler {
 
         try {
             for (User student : students) {
+                if (student.firstName().equals("Test") && student.lastName().equals("Student")) continue;
                 File repoPath = new File(tmpDir, student.netId());
 
                 CloneCommand cloneCommand = Git.cloneRepository()
