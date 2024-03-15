@@ -16,7 +16,7 @@ public class ApplicationProperties {
     private static String mustGet(String propertyName) {
         String value = INSTANCE.properties.getProperty(propertyName);
         if (value == null)
-            throw new RuntimeException("Property " + propertyName + " not found in config.properties");
+            throw new RuntimeException("Property " + propertyName + " not found");
         return INSTANCE.properties.getProperty(propertyName);
     }
 
