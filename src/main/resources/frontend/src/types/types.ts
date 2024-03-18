@@ -1,4 +1,4 @@
-export type Phase = '0' | '1' | '3' | '4' | '6';
+export type Phase = '0' | '1' | '3' | '4' | '5' | '6';
 
 export type TestResult = {
     testName: string,
