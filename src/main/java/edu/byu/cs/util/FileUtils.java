@@ -161,4 +161,16 @@ public class FileUtils {
             }
         }
     }
+
+    /**
+     * Replace newFile with oldFile
+     * @param oldFile file to be replaced
+     * @param newFile new file to take place of oldFile
+     */
+    public static void replaceFile(File oldFile, File newFile) {
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
+        newFile.renameTo(oldFile);
+    }
 }
