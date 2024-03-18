@@ -42,7 +42,7 @@ public class PhaseFiveGrader extends PassoffTestGrader {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
-                "server",
+                "client",
                 new File(stageRepo, "client/src/test/java/"),
                 stagePath,
                 excludedTests);
