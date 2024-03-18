@@ -177,9 +177,10 @@ public abstract class Grader implements Runnable {
                 qualityResults = runQualityChecks();
             }
 
-            compileTests();
+
             Rubric.Results passoffResults = null;
             if(rubricConfig.passoffTests() != null) {
+                compileTests();
                 passoffResults = runTests(getPackagesToTest());
             }
             Rubric.Results customTestsResults = null;
