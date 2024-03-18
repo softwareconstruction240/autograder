@@ -250,10 +250,12 @@ public abstract class Grader implements Runnable {
 
     private void modifyPoms() {
         File serverPom = new File(stageRepo, "server/pom.xml");
+        File clientPom = new File(stageRepo, "client/pom.xml");
         try {
             removeLineFromFile(serverPom, "<scope>test</scope>");
+            removeLineFromFile(clientPom, "<scope>test</scope>");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to modify server pom.xml", e);
+            throw new RuntimeException("Failed to modify pom.xml", e);
         }
     }
 
@@ -273,7 +275,6 @@ public abstract class Grader implements Runnable {
             lines.remove(indexToRemove);
 
             Files.write(path, lines, StandardCharsets.UTF_8);
-            System.out.println("Removed: " + searchText);
         }
     }
 
