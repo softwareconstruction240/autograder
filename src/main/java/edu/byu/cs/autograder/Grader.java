@@ -249,33 +249,20 @@ public abstract class Grader implements Runnable {
     protected abstract Set<String> getPackagesToTest();
 
     private void modifyPoms() {
-        File serverPom = new File(stageRepo, "server/pom.xml");
-        File clientPom = new File(stageRepo, "client/pom.xml");
-        try {
-            removeLineFromFile(serverPom, "<scope>test</scope>");
-            removeLineFromFile(clientPom, "<scope>test</scope>");
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to modify pom.xml", e);
-        }
-    }
+        File oldRootPom = new File(stageRepo, "pom.xml");
+        File oldServerPom = new File(stageRepo, "server/pom.xml");
+        File oldClientPom = new File(stageRepo, "client/pom.xml");
+        File oldSharedPom = new File(stageRepo, "shared/pom.xml");
 
-    public static void removeLineFromFile(File file, String searchText) throws IOException {
-        Path path = file.toPath();
-        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        File newRootPom = new File(phasesPath, "pom/pom.xml");
+        File newServerPom = new File(phasesPath, "pom/server/pom.xml");
+        File newClientPom = new File(phasesPath, "pom/client/pom.xml");
+        File newSharedPom = new File(phasesPath, "pom/shared/pom.xml");
 
-        int indexToRemove = -1;
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).contains(searchText)) {
-                indexToRemove = i;
-                break;
-            }
-        }
-
-        if (indexToRemove != -1) {
-            lines.remove(indexToRemove);
-
-            Files.write(path, lines, StandardCharsets.UTF_8);
-        }
+        FileUtils.replaceFile(oldRootPom, newRootPom);
+        FileUtils.replaceFile(oldServerPom, newServerPom);
+        FileUtils.replaceFile(oldClientPom, newClientPom);
+        FileUtils.replaceFile(oldSharedPom, newSharedPom);
     }
 
     /**
