@@ -54,8 +54,8 @@ public class SubmissionController {
 //            halt(400, "That doesn't look like a valid git url");
 //            return;
 //        }
-        if (!Arrays.asList(0, 1, 3, 4, 6).contains(request.phase())) {
-            halt(400, "Valid phases are 0, 1, 3, 4, or 6");
+        if (!Arrays.asList(0, 1, 3, 4, 5, 6).contains(request.phase())) {
+            halt(400, "Valid phases are 0, 1, 3, 4, 5, or 6");
             return null;
         }
 
@@ -309,6 +309,7 @@ public class SubmissionController {
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
             case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
             case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
+            case Phase5 -> null;
             case Phase6 -> null;
         };
     }
