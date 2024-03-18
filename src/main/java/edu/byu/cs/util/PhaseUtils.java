@@ -9,6 +9,8 @@ public class PhaseUtils {
     private static final int PHASE1_ASSIGNMENT_NUMBER = 880446;
     private static final int PHASE3_ASSIGNMENT_NUMBER = 880448;
     private static final int PHASE4_ASSIGNMENT_NUMBER = 880449;
+
+    private static final int PHASE5_ASSIGNMENT_NUMBER = 0;
     private static final int PHASE6_ASSIGNMENT_NUMBER = 880451;
 
     /**
@@ -23,7 +25,8 @@ public class PhaseUtils {
             case Phase1 -> Phase.Phase0;
             case Phase3 -> Phase.Phase1;
             case Phase4 -> Phase.Phase3;
-            case Phase6 -> Phase.Phase4;
+            case Phase5 -> Phase.Phase4;
+            case Phase6 -> Phase.Phase5;
         };
     }
 
@@ -39,6 +42,7 @@ public class PhaseUtils {
             case Phase1 -> "1";
             case Phase3 -> "3";
             case Phase4 -> "4";
+            case Phase5 -> "5";
             case Phase6 -> "6";
         };
     }
@@ -55,6 +59,7 @@ public class PhaseUtils {
             case "1" -> Phase.Phase1;
             case "3" -> Phase.Phase3;
             case "4" -> Phase.Phase4;
+            case "5" -> Phase.Phase5;
             case "6" -> Phase.Phase6;
             default -> null;
         };
@@ -72,6 +77,7 @@ public class PhaseUtils {
             case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
             case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
             case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
+            case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
             case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
         };
     }
@@ -85,7 +91,7 @@ public class PhaseUtils {
     public static float getTotalPoints(Phase phase) {
         // FIXME
         return switch (phase) {
-            case Phase0, Phase1, Phase4 -> 125.0F;
+            case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
             case Phase3 -> 180.0F;
             case Phase6 -> 155.0F;
         };
