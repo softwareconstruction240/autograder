@@ -39,4 +39,4 @@ build/
 *.class
 ./tmp-*
 logs/
-phases/
+/phases/
