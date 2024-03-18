@@ -5,5 +5,6 @@ public enum Phase {
     Phase1,
     Phase3,
     Phase4,
+    Phase5,
     Phase6,
 }
