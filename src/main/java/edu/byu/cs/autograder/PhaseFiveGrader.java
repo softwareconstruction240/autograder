@@ -29,7 +29,7 @@ public class PhaseFiveGrader extends PassoffTestGrader {
      * @throws IOException if an IO error occurs
      */
     public PhaseFiveGrader(String netId, String repoUrl, Observer observer) throws IOException {
-        super(null, netId, repoUrl, observer, Phase.Phase5);
+        super("./phases/phase5", netId, repoUrl, observer, Phase.Phase5);
     }
 
     @Override
