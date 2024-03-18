@@ -213,7 +213,7 @@ public abstract class Grader implements Runnable {
                 float highestScore = getCanvasScore();
 
                 // prevent score from being saved to canvas if it will lower their score
-                if (thisScore <= highestScore) {
+                if (thisScore <= highestScore && phase != Phase.Phase5 && phase != Phase.Phase6) {
                     String notes = "Submission did not improve current score. (" + (highestScore * 100) +
                             "%) Score not saved to Canvas.\n";
                     thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
