@@ -19,9 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -130,7 +127,7 @@ public abstract class Grader implements Runnable {
         long salt = Instant.now().getEpochSecond();
         this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
 
-        this.repoUrl = repoUrl;
+        this.repoUrl = "https://github.com/pawlh/Winter2024Chess.git";
         this.stageRepo = new File(stagePath, "repo");
 
         this.dbHelper = new DatabaseHelper(salt);
@@ -259,10 +256,10 @@ public abstract class Grader implements Runnable {
         File newClientPom = new File(phasesPath, "pom/client/pom.xml");
         File newSharedPom = new File(phasesPath, "pom/shared/pom.xml");
 
-        FileUtils.replaceFile(oldRootPom, newRootPom);
-        FileUtils.replaceFile(oldServerPom, newServerPom);
-        FileUtils.replaceFile(oldClientPom, newClientPom);
-        FileUtils.replaceFile(oldSharedPom, newSharedPom);
+        FileUtils.copyFile(oldRootPom, newRootPom);
+        FileUtils.copyFile(oldServerPom, newServerPom);
+        FileUtils.copyFile(oldClientPom, newClientPom);
+        FileUtils.copyFile(oldSharedPom, newSharedPom);
     }
 
     /**
