@@ -21,7 +21,7 @@ public class PhaseFiveGrader extends PassoffTestGrader {
     private static final int MIN_UNIT_TESTS = 7;
 
     /**
-     * Creates a new grader for phase 3
+     * Creates a new grader for phase 5
      *
      * @param netId    the netId of the student
      * @param repoUrl  the url of the student repo
