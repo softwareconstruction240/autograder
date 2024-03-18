@@ -10,7 +10,7 @@ public class PhaseUtils {
     private static final int PHASE3_ASSIGNMENT_NUMBER = 880448;
     private static final int PHASE4_ASSIGNMENT_NUMBER = 880449;
 
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 0;
+    private static final int PHASE5_ASSIGNMENT_NUMBER = 880450;
     private static final int PHASE6_ASSIGNMENT_NUMBER = 880451;
 
     /**
