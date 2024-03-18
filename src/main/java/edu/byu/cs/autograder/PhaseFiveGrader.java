@@ -102,9 +102,8 @@ public class PhaseFiveGrader extends PassoffTestGrader {
     @Override
     protected String getCanvasRubricId(Rubric.RubricType type) {
         return switch (type) {
-            case PASSOFF_TESTS -> "_5202";
-            case UNIT_TESTS -> "90344_776";
-            case QUALITY -> "_3003";
+            case UNIT_TESTS -> "_8849";
+            default -> throw new RuntimeException(String.format("No %s item for this phase", type));
         };
     }
 }
