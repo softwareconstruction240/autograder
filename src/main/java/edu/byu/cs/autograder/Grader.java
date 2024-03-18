@@ -127,7 +127,7 @@ public abstract class Grader implements Runnable {
         long salt = Instant.now().getEpochSecond();
         this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
 
-        this.repoUrl = "https://github.com/pawlh/Winter2024Chess.git";
+        this.repoUrl = repoUrl;
         this.stageRepo = new File(stagePath, "repo");
 
         this.dbHelper = new DatabaseHelper(salt);
