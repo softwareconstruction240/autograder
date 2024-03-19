@@ -129,7 +129,8 @@ public class TestHelper {
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest, Set<String> extraCreditTests) {
+    TestAnalyzer.TestAnalysis runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
+                                     Set<String> extraCreditTests) {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -145,6 +146,9 @@ public class TestHelper {
         ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
         String output = processOutput.stdOut();
         String error = processOutput.stdErr();
+
+        System.out.println("out\n" + output);
+        System.out.println("error\n" + error);
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
         return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
