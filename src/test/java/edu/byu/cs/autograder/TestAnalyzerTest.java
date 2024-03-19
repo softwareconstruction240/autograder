@@ -285,4 +285,42 @@ class TestAnalyzerTest {
         assertEquals("EnPassantTests", root.children.get("EnPassantTests").ecCategory);
         assertNull(root.children.get("ChessGameTests").ecCategory);
     }
+
+    @Test
+    @DisplayName("No parseable output")
+    void parse__nothing() {
+        String testOutput =
+                """
+                
+                Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+                
+                """;
+
+        String errorOutput =
+                """
+                        java.io.IOException: Failed to bind to /0.0.0.0:8080
+                               at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349)
+                               at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310)
+                               at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80)
+                               at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234)
+                               at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:72)
+                               at org.eclipse.jetty.server.Server.doStart(Server.java:386)
+                               at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:72)
+                               at spark.embeddedserver.jetty.EmbeddedJettyServer.ignite(EmbeddedJettyServer.java:149)
+                               at spark.Service.lambda$init$2(Service.java:632)
+                               at java.base/java.lang.Thread.run(Thread.java:1583)
+                        Caused by: java.net.BindException: Address already in use
+                               at java.base/sun.nio.ch.Net.bind0(Native Method)
+                               at java.base/sun.nio.ch.Net.bind(Net.java:565)
+                               at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+                               at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+                               at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+                               at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:345)
+                               ... 9 more
+                """;
+
+        TestAnalyzer.TestAnalysis analysis = new TestAnalyzer().parse(testOutput.split("\n"), extraCreditTests, errorOutput);
+        assertNull(analysis.root());
+        assertEquals(errorOutput, analysis.error());
+    }
 }
