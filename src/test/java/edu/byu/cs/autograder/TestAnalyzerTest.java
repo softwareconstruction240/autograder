@@ -28,7 +28,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -66,7 +66,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -117,7 +117,7 @@ class TestAnalyzerTest {
 
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(3, root.children.get("PawnMoveTests").children.size());
@@ -151,7 +151,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -187,7 +187,7 @@ class TestAnalyzerTest {
                 [        47 tests failed          ]
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -219,7 +219,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals(2, root.numTestsPassed);
         assertEquals(1, root.numTestsFailed);
@@ -242,7 +242,7 @@ class TestAnalyzerTest {
                 [32mJUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: SUCCESSFUL[0m
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("QueenMoveTests").children.size());
@@ -277,7 +277,7 @@ class TestAnalyzerTest {
         extraCreditTests.add("CastlingTests");
         extraCreditTests.add("EnPassantTests");
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(4, root.numTestsPassed);
         assertEquals(6, root.numExtraCreditPassed);
