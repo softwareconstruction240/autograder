@@ -456,28 +456,22 @@ public abstract class Grader implements Runnable {
     protected void packageRepo() {
         observer.update("Packaging repo...");
 
-        String[] commands = new String[]{"package"};
-
-        for (String command : commands) {
-            observer.update("  Running maven " + command + " command...");
-            ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.directory(stageRepo);
-            processBuilder.command("mvn", command, "-DskipTests");
-            try {
-                processBuilder.inheritIO();
-                Process process = processBuilder.start();
-                if (process.waitFor() != 0) {
-                    observer.notifyError("Failed to " + command + " repo");
-                    LOGGER.error("Failed to " + command + " repo");
-                    throw new RuntimeException("Failed to " + command + " repo");
-                }
-            } catch (IOException | InterruptedException ex) {
-                observer.notifyError("Failed to " + command + " repo: " + ex.getMessage());
-                LOGGER.error("Failed to " + command + " repo", ex);
-                throw new RuntimeException("Failed to " + command + " repo", ex);
+        observer.update("  Running maven package command...");
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.directory(stageRepo);
+        processBuilder.command("mvn", "package", "-DskipTests");
+        try {
+            processBuilder.inheritIO();
+            Process process = processBuilder.start();
+            if (process.waitFor() != 0) {
+                observer.notifyError("Failed to package repo");
+                LOGGER.error("Failed to package repo");
+                throw new RuntimeException("Failed to package repo");
             }
-
-            observer.update("  Successfully ran maven " + command + " command");
+        } catch (IOException | InterruptedException ex) {
+            observer.notifyError("Failed to package repo: " + ex.getMessage());
+            LOGGER.error("Failed to package repo", ex);
+            throw new RuntimeException("Failed to package repo", ex);
         }
 
         observer.update("Successfully packaged repo");
