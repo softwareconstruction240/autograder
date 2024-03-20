@@ -5,6 +5,7 @@ import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
+import spark.RouteGroup;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,17 +66,19 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
 
-                get("/submissions/latest", latestSubmissionsGet);
+                path("/submissions", () -> {
+                    get("/latest", latestSubmissionsGet);
 
-                get("/submissions/latest/:count", latestSubmissionsGet);
+                    get("/latest/:count", latestSubmissionsGet);
+
+                    get("/active", submissionsActiveGet);
+
+                    get("/student/:netID", studentSubmissionsGet);
+
+                    post("/rerun", submissionsReRunPost);
+                });
 
                 get("/test_mode", testModeGet);
-
-                get("/submissions/active", submissionsActiveGet);
-
-                get("/submissions/student/:netID", studentSubmissionsGet);
-
-                post("/submissions/rerun", submissionsReRunPost);
 
                 get("/analytics/commit", commitAnalyticsGet);
 
