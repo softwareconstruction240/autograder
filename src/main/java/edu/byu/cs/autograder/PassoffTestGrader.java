@@ -54,7 +54,7 @@ public abstract class PassoffTestGrader extends Grader {
         this.module = switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4 -> "server";
-            case Phase6 -> "client";
+            case Phase5, Phase6 -> "client";
         };
     }
 

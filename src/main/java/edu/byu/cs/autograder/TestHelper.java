@@ -4,13 +4,11 @@ import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -69,7 +67,7 @@ public class TestHelper {
                     .directory(testsLocation)
                     .command(findCommands);
 
-            String findOutput = ProcessUtils.runProcess(findProcessBuilder)[0].replace("\n", " ");
+            String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
             /* Compile files */
             String chessJarWithDeps;
@@ -144,10 +142,12 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(commands);
 
-        String output = ProcessUtils.runProcess(processBuilder)[0];
+        ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
+        String output = processOutput.stdOut();
+        String error = processOutput.stdErr();
 
         TestAnalyzer testAnalyzer = new TestAnalyzer();
-        return testAnalyzer.parse(output.split("\n"), extraCreditTests);
+        return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
@@ -155,6 +155,7 @@ public class TestHelper {
         commands.add("java");
         commands.add("-jar");
         commands.add(standaloneJunitJarPath);
+        commands.add("execute");
         commands.add("--class-path");
         commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
         commands.add("--details=testfeed");
@@ -199,5 +200,11 @@ public class TestHelper {
                 passed = false;
 
         return passed;
+    }
+
+    private static String removeSparkLines(String errorOutput) {
+        List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
+        lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
+        return String.join("\n", lines);
     }
 }

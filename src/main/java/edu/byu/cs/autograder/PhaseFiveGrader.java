@@ -14,27 +14,27 @@ import java.util.Set;
 
 import static edu.byu.cs.autograder.TestHelper.checkIfPassedPassoffTests;
 
-public class PhaseThreeGrader extends PassoffTestGrader {
+public class PhaseFiveGrader extends PassoffTestGrader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseThreeGrader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseFiveGrader.class);
 
-    private static final int MIN_UNIT_TESTS = 13;
+    private static final int MIN_UNIT_TESTS = 12;
 
     /**
-     * Creates a new grader for phase 3
+     * Creates a new grader for phase 5
      *
      * @param netId    the netId of the student
      * @param repoUrl  the url of the student repo
      * @param observer the observer to notify of updates
      * @throws IOException if an IO error occurs
      */
-    public PhaseThreeGrader(String netId, String repoUrl, Observer observer) throws IOException {
-        super("./phases/phase3", netId, repoUrl, observer, Phase.Phase3);
+    public PhaseFiveGrader(String netId, String repoUrl, Observer observer) throws IOException {
+        super("./phases/phase5", netId, repoUrl, observer, Phase.Phase5);
     }
 
     @Override
     protected Set<String> getPackagesToTest() {
-        return Set.of("passoffTests.serverTests");
+        return Set.of();
     }
 
     @Override
@@ -42,8 +42,8 @@ public class PhaseThreeGrader extends PassoffTestGrader {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
-                "server",
-                new File(stageRepo, "server/src/test/java/"),
+                "client",
+                new File(stageRepo, "client/src/test/java/"),
                 stagePath,
                 excludedTests);
 
@@ -53,15 +53,15 @@ public class PhaseThreeGrader extends PassoffTestGrader {
             TestAnalyzer.TestNode.countTests(results);
         } else
             results = new TestHelper().runJUnitTests(
-                    new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
+                    new File(stageRepo, "/client/target/client-jar-with-dependencies.jar"),
                     new File(stagePath, "tests"),
-                    Set.of("serviceTests"),
+                    Set.of("clientTests"),
                     new HashSet<>());
 
         if (results == null) {
             results = new TestAnalyzer.TestNode();
             TestAnalyzer.TestNode.countTests(results);
-            LOGGER.error("Tests failed to run for " + netId + " in phase 3");
+            LOGGER.error("Tests failed to run for " + netId + " in phase 5");
         }
 
         results.testName = CUSTOM_TESTS_NAME;
@@ -102,9 +102,8 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     @Override
     protected String getCanvasRubricId(Rubric.RubricType type) {
         return switch (type) {
-            case PASSOFF_TESTS -> "_5202";
-            case UNIT_TESTS -> "90344_776";
-            case QUALITY -> "_3003";
+            case UNIT_TESTS -> "_8849";
+            default -> throw new RuntimeException(String.format("No %s item for this phase", type));
         };
     }
 }

@@ -3,7 +3,7 @@ package edu.byu.cs.canvas;
 import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ConfigProperties;
+import edu.byu.cs.properties.ApplicationProperties;
 import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -23,7 +23,7 @@ public class CanvasIntegration {
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
 
-    private static final String AUTHORIZATION_HEADER = ConfigProperties.canvasAuthorizationHeader();
+    private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
     // FIXME: set this dynamically or pull from config
     private static final int COURSE_NUMBER = 24410;
