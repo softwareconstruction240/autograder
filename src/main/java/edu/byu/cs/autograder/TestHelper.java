@@ -147,9 +147,6 @@ public class TestHelper {
         String output = processOutput.stdOut();
         String error = processOutput.stdErr();
 
-        System.out.println("out\n" + output);
-        System.out.println("error\n" + error);
-
         TestAnalyzer testAnalyzer = new TestAnalyzer();
         return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
     }
