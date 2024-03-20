@@ -348,7 +348,8 @@ public abstract class Grader implements Runnable {
                 score,
                 numCommits,
                 notes,
-                rubric
+                rubric,
+                DaoService.getUserDao().getUser(netId).role() == User.Role.ADMIN
         );
 
         submissionDao.insertSubmission(submission);

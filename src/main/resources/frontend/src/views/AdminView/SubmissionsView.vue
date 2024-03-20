@@ -34,6 +34,7 @@ onMounted(async () => { await resetPage() })
 const resetPage = async () => {
   runningAdminRepo.value = false;
   selectedSubmission.value = null;
+  allSubmissionsLoaded = false;
   const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
   loadSubmissionsToTable(submissionsData);
 }
@@ -53,6 +54,7 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
           score: submission.score,
           notes: submission.notes,
           netId: submission.netId,
+          admin: submission.admin,
           submission: submission
         }
     )
@@ -113,6 +115,7 @@ const adminSubmit = async (phase: Phase) => {
         <a @click="adminSubmit('1')">Phase 1</a>
         <a @click="adminSubmit('3')">Phase 3</a>
         <a @click="adminSubmit('4')">Phase 4</a>
+        <a @click="adminSubmit('5')">Phase 5</a>
       </template>
     </Dropdown>
   </div>
@@ -150,7 +153,7 @@ const adminSubmit = async (phase: Phase) => {
     v-if="runningAdminRepo"
     @closePopUp="resetPage">
     <div v-if="!selectedSubmission">
-      <h3 style="width: 80vw">Running Grader As Admin</h3>
+      <h3 style="width: 70vw">Running Grader As Admin</h3>
       <p>Github Repo: <span v-html="generateClickableLink(adminRepo)"/></p>
       <LiveStatus @show-results="adminDoneGrading"/>
     </div>
