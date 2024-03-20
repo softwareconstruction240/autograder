@@ -16,19 +16,27 @@ import {
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
-import {nameFromNetId} from "@/utils/utils";
+import {generateClickableLink, nameFromNetId} from "@/utils/utils";
 import {adminSubmissionPost} from "@/services/submissionService";
 import Dropdown from "@/components/Dropdown.vue";
+import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
+const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
+let adminRepo = ""
 
-onMounted(async () => {
+
+onMounted(async () => { await resetPage() })
+
+const resetPage = async () => {
+  runningAdminRepo.value = false;
+  selectedSubmission.value = null;
   const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
-  loadSubmissionsToTable(submissionsData)
-})
+  loadSubmissionsToTable(submissionsData);
+}
 
 const loadAllSubmissions = async () => {
   loadSubmissionsToTable( await submissionsLatestGet() )
@@ -56,6 +64,11 @@ const notesCellClicked = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data.submission
 }
 
+const adminDoneGrading = async () => {
+  let data = await submissionsLatestGet(1)
+  selectedSubmission.value = data[0]
+}
+
 const nameCellClicked = (event: CellClickedEvent) => {
   selectedStudent.value = useAdminStore().usersByNetId[event.data.netId];
 }
@@ -71,32 +84,35 @@ const rowData = reactive({
   value: []
 })
 
-const adminSubmission = (phase: Phase) => {
+const adminSubmit = async (phase: Phase) => {
   if (adminRepo == "") {
     alert("Please enter a repo url")
     return
   }
-  adminSubmissionPost(phase, adminRepo)
-  console.log("memes")
+  try {
+    await adminSubmissionPost(phase, adminRepo)
+    runningAdminRepo.value = true;
+  } catch (error) {
+    if (error instanceof Error) { alert("Error running grader: " + error.message) }
+    else { alert("Unknown error running grader") }
+  }
 }
-
-let adminRepo = ""
 </script>
 
 
 <template>
 
-  <div class="dropdown">
-    <input v-model="adminRepo" type="text"/>
+  <div class="adminSubmission">
+    <input v-model="adminRepo" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
     <Dropdown>
       <template v-slot:dropdown-parent>
         <button>Grade Repo</button>
       </template>
       <template v-slot:dropdown-items>
-        <a @click="adminSubmission('0')">Phase 0</a>
-        <a @click="adminSubmission('1')">Phase 1</a>
-        <a @click="adminSubmission('3')">Phase 3</a>
-        <a @click="adminSubmission('4')">Phase 4</a>
+        <a @click="adminSubmit('0')">Phase 0</a>
+        <a @click="adminSubmit('1')">Phase 1</a>
+        <a @click="adminSubmit('3')">Phase 3</a>
+        <a @click="adminSubmit('4')">Phase 4</a>
       </template>
     </Dropdown>
   </div>
@@ -130,9 +146,31 @@ let adminRepo = ""
     <StudentInfo :student="selectedStudent"></StudentInfo>
   </PopUp>
 
+  <PopUp
+    v-if="runningAdminRepo"
+    @closePopUp="resetPage">
+    <div v-if="!selectedSubmission">
+      <h3 style="width: 80vw">Running Grader As Admin</h3>
+      <p>Github Repo: <span v-html="generateClickableLink(adminRepo)"/></p>
+      <LiveStatus @show-results="adminDoneGrading"/>
+    </div>
+    <SubmissionInfo
+        v-if="selectedSubmission"
+        :submission="selectedSubmission"/>
+  </PopUp>
+
 </template>
 
 <style scoped>
+#repoUrlInput {
+  flex-grow: 1;
+  padding: 10px;
+  margin-right: 10px;
+}
+.adminSubmission {
+  display: flex;
+  padding: 10px;
+}
 .container {
   padding: 10px;
   display: grid;
