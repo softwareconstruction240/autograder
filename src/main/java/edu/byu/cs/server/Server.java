@@ -63,6 +63,8 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
 
+                post("/submit", adminRepoSubmitPost);
+
                 get("/submissions/latest", latestSubmissionsGet);
 
                 get("/submissions/latest/:count", latestSubmissionsGet);

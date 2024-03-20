@@ -47,6 +47,21 @@ public class SubmissionController {
         return "";
     };
 
+    public static Route adminRepoSubmitPost = (req, res) -> {
+
+        GradeRequest request = validateAndUnpackRequest(req);
+        if (request == null) { return null; }
+
+        User user = req.session().attribute("user");
+
+        LOGGER.info("Admin " + user.netId() + " submitted phase " + request.phase() + " on repo " + request.repoUrl() + " for test grading");
+
+        startGrader(user.netId(), request.getPhase(), request.repoUrl());
+
+        res.status(200);
+        return "";
+    };
+
     private static void startGrader(String netId, Phase phase, String repoUrl) {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
@@ -127,8 +142,8 @@ public class SubmissionController {
             return null;
         }
 
-        if (user.repoUrl() == null) {
-            halt(400, "You must provide a repo url");
+        if (user.repoUrl() == null && user.role() == User.Role.STUDENT) {
+            halt(400, "Student has no provided repo url");
             return null;
         }
 

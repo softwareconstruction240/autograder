@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Submission, User} from "@/types/types";
+import type {Phase, Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
@@ -17,6 +17,8 @@ import {
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
 import {nameFromNetId} from "@/utils/utils";
+import {adminSubmissionPost} from "@/services/submissionService";
+import Dropdown from "@/components/Dropdown.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
@@ -68,10 +70,37 @@ const columnDefs = reactive([
 const rowData = reactive({
   value: []
 })
+
+const adminSubmission = (phase: Phase) => {
+  if (adminRepo == "") {
+    alert("Please enter a repo url")
+    return
+  }
+  adminSubmissionPost(phase, adminRepo)
+  console.log("memes")
+}
+
+let adminRepo = ""
 </script>
 
 
 <template>
+
+  <div class="dropdown">
+    <input v-model="adminRepo" type="text"/>
+    <Dropdown>
+      <template v-slot:dropdown-parent>
+        <button>Grade Repo</button>
+      </template>
+      <template v-slot:dropdown-items>
+        <a @click="adminSubmission('0')">Phase 0</a>
+        <a @click="adminSubmission('1')">Phase 1</a>
+        <a @click="adminSubmission('3')">Phase 3</a>
+        <a @click="adminSubmission('4')">Phase 4</a>
+      </template>
+    </Dropdown>
+  </div>
+
   <ag-grid-vue
       class="ag-theme-quartz"
       style="height: 65vh"

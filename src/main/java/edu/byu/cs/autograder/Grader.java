@@ -205,8 +205,8 @@ public abstract class Grader implements Runnable {
             float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
             Submission thisSubmission;
 
-            // prevent score from being saved to canvas if it will lower their score
-            if(rubric.passed()) {
+            // prevent score from being saved to canvas if it will lower their score, or if they're an admin
+            if(rubric.passed() && DaoService.getUserDao().getUser(netId).role() == User.Role.STUDENT) {
                 float highestScore = getCanvasScore();
 
                 // prevent score from being saved to canvas if it will lower their score
