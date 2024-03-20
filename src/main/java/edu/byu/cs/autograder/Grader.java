@@ -11,6 +11,7 @@ import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -461,14 +462,13 @@ public abstract class Grader implements Runnable {
         processBuilder.directory(stageRepo);
         processBuilder.command("mvn", "package", "-DskipTests");
         try {
-            processBuilder.inheritIO();
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
+            ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
+            if (output.statusCode() != 0) {
                 observer.notifyError("Failed to package repo");
                 LOGGER.error("Failed to package repo");
                 throw new RuntimeException("Failed to package repo");
             }
-        } catch (IOException | InterruptedException ex) {
+        } catch (ProcessUtils.ProcessException ex) {
             observer.notifyError("Failed to package repo: " + ex.getMessage());
             LOGGER.error("Failed to package repo", ex);
             throw new RuntimeException("Failed to package repo", ex);
