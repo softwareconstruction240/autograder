@@ -17,7 +17,7 @@ public class ProcessUtils {
      * @param processBuilder process to run
      * @return output from process standard out
      */
-    public static String[] runProcess(ProcessBuilder processBuilder) {
+    public static ProcessOutput runProcess(ProcessBuilder processBuilder) {
         try (ExecutorService processOutputExecutor = Executors.newFixedThreadPool(2)){
 
             Process process = processBuilder.start();
@@ -39,7 +39,7 @@ public class ProcessUtils {
             String output = processOutputFuture.get(1000, TimeUnit.MILLISECONDS);
             String error = processErrorFuture.get(1000, TimeUnit.MILLISECONDS);
 
-            return new String[]{output, error};
+            return new ProcessOutput(output, error, process.waitFor());
         } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
@@ -65,4 +65,6 @@ public class ProcessUtils {
             return sb.toString();
         }
     }
+
+    public record ProcessOutput(String stdOut, String stdErr, int statusCode){}
 }

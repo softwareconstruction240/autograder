@@ -1,7 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.properties.DbProperties;
+import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,13 +12,13 @@ import java.sql.Statement;
 
 public class SqlDb {
 
-    private static final String DB_URL = DbProperties.dbUrl();
+    private static final String DB_URL = ApplicationProperties.dbUrl();
 
-    private static final String DB_USER = DbProperties.dbUser();
+    private static final String DB_USER = ApplicationProperties.dbUser();
 
-    private static final String DB_PASSWORD = DbProperties.dbPassword();
+    private static final String DB_PASSWORD = ApplicationProperties.dbPass();
 
-    private static final String DB_NAME = DbProperties.dbName();
+    private static final String DB_NAME = ApplicationProperties.dbName();
 
     private static final String CONNECTION_STRING = "jdbc:mysql://" + DB_URL;
 

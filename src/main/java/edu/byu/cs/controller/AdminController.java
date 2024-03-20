@@ -10,6 +10,7 @@ import edu.byu.cs.model.User;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -130,6 +131,9 @@ public class AdminController {
                 while ((bytesRead = fis.read(buffer)) != -1) {
                     os.write(buffer, 0, bytesRead);
                 }
+
+                fis.close();
+                new File(filePath).delete();
 
                 res.status(200);
                 return res.raw();

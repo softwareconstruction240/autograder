@@ -116,7 +116,6 @@ public class SubmissionController {
 
     private static GradeRequest validateAndUnpackRequest(Request req) {
         User user = req.session().attribute("user");
-
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
@@ -317,6 +316,7 @@ public class SubmissionController {
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
             case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
             case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
+            case Phase5 -> new PhaseFiveGrader(netId, repoUrl, observer);
             case Phase6 -> null;
         };
     }
