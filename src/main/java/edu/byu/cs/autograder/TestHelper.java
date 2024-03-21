@@ -55,7 +55,8 @@ public class TestHelper {
      * @param stagePath     The path to the stage directory
      * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests) {
+    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests)
+            throws GradingException {
         if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
@@ -92,11 +93,11 @@ public class TestHelper {
 
             if (compileOutput.statusCode() != 0) {
                 LOGGER.error("Error compiling tests: " + compileOutput.stdErr());
-                throw new RuntimeException("Error compiling tests: " + compileOutput.stdErr());
+                throw new GradingException("Error compiling tests:", compileOutput.stdErr());
             }
         } catch (IOException | ProcessUtils.ProcessException e) {
             LOGGER.error("Error compiling tests", e);
-            throw new RuntimeException("Error compiling tests", e);
+            throw new GradingException("Error compiling tests", e);
         }
     }
 
@@ -130,7 +131,8 @@ public class TestHelper {
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest, Set<String> extraCreditTests) {
+    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest, Set<String> extraCreditTests)
+            throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -152,7 +154,7 @@ public class TestHelper {
             return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
-            throw new RuntimeException("Error running tests", e);
+            throw new GradingException("Error running tests", e);
         }
     }
 
@@ -180,7 +182,7 @@ public class TestHelper {
      *
      * @return A set of the names of all the test files in the phases directory
      */
-    Set<String> getTestFileNames(File testDirectory) {
+    Set<String> getTestFileNames(File testDirectory) throws GradingException {
         Set<String> testFileNames = new HashSet<>();
         try {
             Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
@@ -193,7 +195,7 @@ public class TestHelper {
                 });
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new GradingException(e);
         }
         return testFileNames;
     }

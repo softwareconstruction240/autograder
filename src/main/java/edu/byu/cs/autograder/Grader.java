@@ -491,17 +491,17 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the tests
      */
-    protected abstract Rubric.Results runCustomTests();
+    protected abstract Rubric.Results runCustomTests() throws GradingException;
 
     /**
      * Compiles the test files with the student code
      */
-    protected abstract void compileTests();
+    protected abstract void compileTests() throws GradingException;
 
     /**
      * Runs the tests on the student code
      */
-    protected abstract Rubric.Results runTests(Set<String> packagesToTest);
+    protected abstract Rubric.Results runTests(Set<String> packagesToTest) throws GradingException;
 
     /**
      * Gets the score for the phase

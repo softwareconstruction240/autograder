@@ -19,7 +19,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("All tests pass")
-    void parse__all_tests_pass() {
+    void parse__all_tests_pass() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -41,7 +41,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("All tests fail")
-    void parse__all_tests_fail() {
+    void parse__all_tests_fail() throws GradingException {
         String testsFailingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnCaptureBlack() :: STARTED
@@ -79,7 +79,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Some tests pass, some fail")
-    void parse__some_pass_some_fail() {
+    void parse__some_pass_some_fail() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -141,7 +141,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Test input starts with non-test content")
-    void parse__starts_with_non_test_content() {
+    void parse__starts_with_non_test_content() throws GradingException {
         String testsPassingInput =
                 """
                 Thanks for using JUnit! Support its development at https://junit.org/sponsoring
@@ -164,7 +164,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Test input ends with non-test content")
-    void parse__ends_with_non_test_content() {
+    void parse__ends_with_non_test_content() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -200,7 +200,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Counts are correct")
-    void TestNode__counts_are_correct() {
+    void TestNode__counts_are_correct() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -233,7 +233,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Escape code are ignored")
-    void parse__escape_codes_are_ignored() {
+    void parse__escape_codes_are_ignored() throws GradingException {
         String testsPassingInput =
                 """
                 Unit Jupiter > QueenMoveTests > queenMoveUntilEdge() :: STARTED
@@ -250,7 +250,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Extra credit all successful")
-    void parse__ec_all_success() {
+    void parse__ec_all_success() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > CastlingTests > Cannot Castle in Check :: STARTED

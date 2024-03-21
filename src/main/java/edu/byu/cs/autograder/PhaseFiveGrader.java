@@ -38,7 +38,7 @@ public class PhaseFiveGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,

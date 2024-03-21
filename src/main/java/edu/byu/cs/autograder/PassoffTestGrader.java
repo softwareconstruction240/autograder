@@ -59,20 +59,20 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         // no unit tests for this phase
         return null;
     }
 
     @Override
-    protected void compileTests() {
+    protected void compileTests() throws GradingException {
         observer.update("Compiling tests...");
         new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
         observer.update("Finished compiling tests.");
     }
 
     @Override
-    protected Rubric.Results runTests(Set<String> packagesToTest) {
+    protected Rubric.Results runTests(Set<String> packagesToTest) throws GradingException {
         observer.update("Running tests...");
 
         TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
