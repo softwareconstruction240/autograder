@@ -486,7 +486,9 @@ public abstract class Grader implements Runnable {
         String[] split = output.split("\n");
         StringBuilder builder = new StringBuilder();
         for(int i = 0; i < split.length && !split[i].contains("[ERROR] -> [Help 1]"); i++) {
-            if(split[i].contains("[ERROR]")) builder.append(split[i]).append("\n");
+            if(split[i].contains("[ERROR]")) {
+                builder.append(split[i].replace(stageRepo.getAbsolutePath(), "")).append("\n");
+            }
         }
         return builder.toString();
     }
