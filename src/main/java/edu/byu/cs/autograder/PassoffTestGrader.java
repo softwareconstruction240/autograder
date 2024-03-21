@@ -167,7 +167,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric annotateRubric(Rubric rubric) {
+    protected Rubric annotateRubric(Rubric rubric) throws GradingException {
         return new Rubric(
                 rubric.passoffTests(),
                 rubric.unitTests(),

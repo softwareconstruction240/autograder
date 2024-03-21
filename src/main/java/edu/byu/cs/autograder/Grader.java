@@ -387,7 +387,8 @@ public abstract class Grader implements Runnable {
 
     private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
                                        RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
-                                       Map<String, String> comments, Rubric.RubricType rubricType) {
+                                       Map<String, String> comments, Rubric.RubricType rubricType)
+            throws GradingException {
         if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
             String id = getCanvasRubricId(rubricType);
             Rubric.Results results = rubricItem.results();
@@ -527,7 +528,7 @@ public abstract class Grader implements Runnable {
         return score / totalPossiblePoints;
     }
 
-    protected abstract boolean passed(Rubric rubric);
+    protected abstract boolean passed(Rubric rubric) throws GradingException;
 
     /**
      * Annotates the rubric with notes and passed status
@@ -535,9 +536,9 @@ public abstract class Grader implements Runnable {
      * @param rubric the rubric to annotate
      * @return the annotated rubric
      */
-    protected abstract Rubric annotateRubric(Rubric rubric);
+    protected abstract Rubric annotateRubric(Rubric rubric) throws GradingException;
 
-    protected abstract String getCanvasRubricId(Rubric.RubricType type);
+    protected abstract String getCanvasRubricId(Rubric.RubricType type) throws GradingException;
 
     public interface Observer {
         void notifyStarted();
