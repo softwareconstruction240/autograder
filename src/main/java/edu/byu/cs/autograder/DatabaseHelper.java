@@ -33,7 +33,7 @@ public class DatabaseHelper {
         }
     }
 
-    public void injectDatabaseConfig(File stageRepo) {
+    public void injectDatabaseConfig(File stageRepo) throws GradingException {
         File dbPropertiesFile = new File(stageRepo, "server/src/main/resources/db.properties");
         if (dbPropertiesFile.exists())
             dbPropertiesFile.delete();
@@ -50,11 +50,11 @@ public class DatabaseHelper {
                 os.flush();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Could add db config", e);
+            throw new GradingException("Could add db config", e);
         }
     }
 
-    public Collection<String> getExistingDatabaseNames() {
+    public Collection<String> getExistingDatabaseNames() throws GradingException {
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement("SHOW DATABASES");
              ResultSet rs = ps.executeQuery()) {
@@ -65,22 +65,22 @@ public class DatabaseHelper {
             return databaseNames;
         } catch (SQLException e) {
             LOGGER.error("Could not find database names", e);
-            throw new RuntimeException("Failed to setup environment", e);
+            throw new GradingException("Failed to setup environment", e);
         }
     }
 
-    public void cleanupDatabase() {
+    public void cleanupDatabase() throws GradingException {
         try (Connection connection = getConnection()) {
             connection.createStatement().executeUpdate(
                     "DROP DATABASE IF EXISTS " + databaseName
             );
         } catch (SQLException e) {
             LOGGER.error("Failed to cleanup database", e);
-            throw new RuntimeException("Failed to cleanup environment", e);
+            throw new GradingException("Failed to cleanup environment", e);
         }
     }
 
-    public void cleanUpExtraDatabases(Collection<String> databaseNames) {
+    public void cleanUpExtraDatabases(Collection<String> databaseNames) throws GradingException {
         try (Connection connection = getConnection()) {
             for (String databaseName : databaseNames) {
                 try (PreparedStatement ps = connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName)) {
@@ -89,17 +89,17 @@ public class DatabaseHelper {
             }
         } catch (SQLException e) {
             LOGGER.error("Could not clean up databases", e);
-            throw new RuntimeException("Failed to clean up db", e);
+            throw new GradingException("Failed to clean up db", e);
         }
     }
 
     public void assertNoExtraDatabases(Collection<String> previousDatabaseNames,
-                                        Collection<String> currentDatabaseNames) {
+                                        Collection<String> currentDatabaseNames) throws GradingException {
         Collection<String> extraDatabaseNames = new HashSet<>(currentDatabaseNames);
         extraDatabaseNames.removeAll(previousDatabaseNames);
         if(!extraDatabaseNames.isEmpty()) {
             cleanUpExtraDatabases(extraDatabaseNames);
-            throw new RuntimeException("Code created extra databases: " + extraDatabaseNames +
+            throw new GradingException("Code created extra databases: " + extraDatabaseNames +
                     ". Only use the database name from db.properties");
         }
     }

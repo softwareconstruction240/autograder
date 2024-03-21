@@ -238,10 +238,14 @@ public abstract class Grader implements Runnable {
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             if(!finishedCleaningDatabase) {
-                dbHelper.cleanupDatabase();
-                Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
-                currentDatabaseNames.removeAll(existingDatabaseNames);
-                dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
+                try {
+                    dbHelper.cleanupDatabase();
+                    Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
+                    currentDatabaseNames.removeAll(existingDatabaseNames);
+                    dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
+                } catch (GradingException e) {
+                    LOGGER.error("Error cleaning up after user " + netId + " and repository " + repoUrl, e);
+                }
             }
             FileUtils.removeDirectory(new File(stagePath));
         }
