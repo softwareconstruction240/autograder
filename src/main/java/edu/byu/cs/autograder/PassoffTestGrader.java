@@ -153,7 +153,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runQualityChecks() {
+    protected Rubric.Results runQualityChecks() throws GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         if(rubricConfig.quality() == null) return null;
         observer.update("Running code quality...");

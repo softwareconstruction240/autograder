@@ -294,7 +294,7 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the quality checks as a CanvasIntegration.RubricItem
      */
-    protected abstract Rubric.Results runQualityChecks();
+    protected abstract Rubric.Results runQualityChecks() throws GradingException;
 
     /**
      * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
