@@ -229,9 +229,12 @@ public abstract class Grader implements Runnable {
 
             observer.notifyDone(thisSubmission);
 
-        } catch (Exception e) {
+        } catch (GradingException ge) {
+            observer.notifyError(ge.getMessage(), ge.getDetails());
+            LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, ge);
+        }
+        catch (Exception e) {
             observer.notifyError(e.getMessage());
-
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             if(!finishedCleaningDatabase) {
@@ -541,6 +544,7 @@ public abstract class Grader implements Runnable {
         void update(String message);
 
         void notifyError(String message);
+        void notifyError(String message, String details);
 
         void notifyDone(Submission submission);
     }
