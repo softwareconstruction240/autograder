@@ -288,7 +288,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("No parseable output")
-    void parse__nothing() {
+    void parse__nothing() throws GradingException {
         String testOutput =
                 """
                 
