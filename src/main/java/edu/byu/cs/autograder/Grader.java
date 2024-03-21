@@ -464,17 +464,22 @@ public abstract class Grader implements Runnable {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                observer.notifyError("Failed to package repo");
-                LOGGER.error("Failed to package repo");
-                throw new RuntimeException("Failed to package repo");
+                throw new RuntimeException("Failed to package repo: " + getMavenError(output.stdOut()));
             }
         } catch (ProcessUtils.ProcessException ex) {
-            observer.notifyError("Failed to package repo: " + ex.getMessage());
-            LOGGER.error("Failed to package repo", ex);
             throw new RuntimeException("Failed to package repo", ex);
         }
 
         observer.update("Successfully packaged repo");
+    }
+
+    private String getMavenError(String output) { //why doesn't maven use std error?!?
+        String[] split = output.split("\n");
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < split.length && !split[i].contains("[ERROR] -> [Help 1]"); i++) {
+            if(split[i].contains("[ERROR]")) builder.append(split[i]).append("\n");
+        }
+        return builder.toString();
     }
 
     /**
