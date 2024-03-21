@@ -50,7 +50,7 @@ const rowData = reactive({
 <template>
   <ag-grid-vue
       class="ag-theme-quartz"
-      style="height: 30vh; width: 65vw"
+      style="height: 65vh"
       :columnDefs="columnDefs"
       :rowData="rowData.value"
       :defaultColDef="standardColSettings"
