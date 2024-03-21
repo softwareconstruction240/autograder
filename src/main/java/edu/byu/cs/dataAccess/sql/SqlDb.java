@@ -59,6 +59,7 @@ public class SqlDb {
                                 `notes` TEXT,
                                 `results` JSON,
                                 `rubric` JSON,
+                                `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
                                     FOREIGN KEY (`net_id`)
