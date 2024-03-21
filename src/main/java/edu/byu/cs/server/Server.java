@@ -13,6 +13,8 @@ import java.util.Properties;
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
+import static edu.byu.cs.controller.LogsController.logGet;
+import static edu.byu.cs.controller.LogsController.logsGet;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
@@ -67,17 +69,25 @@ public class Server {
 
                 post("/submit", adminRepoSubmitPost);
 
-                get("/submissions/latest", latestSubmissionsGet);
+              path("/submissions", () -> {
+                    get("/latest", latestSubmissionsGet);
 
-                get("/submissions/latest/:count", latestSubmissionsGet);
+                    get("/latest/:count", latestSubmissionsGet);
+
+                    get("/active", submissionsActiveGet);
+
+                    get("/student/:netID", studentSubmissionsGet);
+
+                    post("/rerun", submissionsReRunPost);
+                });
+
+                path("/logs", () -> {
+                    get("", logsGet);
+
+                    get("/:log", logGet);
+                });
 
                 get("/test_mode", testModeGet);
-
-                get("/submissions/active", submissionsActiveGet);
-
-                get("/submissions/student/:netID", studentSubmissionsGet);
-
-                post("/submissions/rerun", submissionsReRunPost);
 
                 get("/analytics/commit", commitAnalyticsGet);
 
