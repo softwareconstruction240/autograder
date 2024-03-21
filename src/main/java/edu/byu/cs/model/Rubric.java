@@ -45,7 +45,7 @@ public record Rubric(
             String notes,
             Float score,
             Integer possiblePoints,
-            TestAnalyzer.TestNode testResults,
+            TestAnalyzer.TestAnalysis testResults,
             String textResults
     ) {
     }
