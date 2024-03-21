@@ -457,7 +457,7 @@ public abstract class Grader implements Runnable {
     /**
      * Packages the student repo into a jar
      */
-    protected void packageRepo() {
+    protected void packageRepo() throws GradingException {
         observer.update("Packaging repo...");
 
         observer.update("  Running maven package command...");
@@ -467,10 +467,10 @@ public abstract class Grader implements Runnable {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                throw new RuntimeException("Failed to package repo: " + getMavenError(output.stdOut()));
+                throw new GradingException("Failed to package repo: ", getMavenError(output.stdOut()));
             }
         } catch (ProcessUtils.ProcessException ex) {
-            throw new RuntimeException("Failed to package repo", ex);
+            throw new GradingException("Failed to package repo", ex);
         }
 
         observer.update("Successfully packaged repo");
