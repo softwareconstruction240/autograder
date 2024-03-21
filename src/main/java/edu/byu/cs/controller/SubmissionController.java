@@ -12,6 +12,7 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
@@ -317,13 +318,12 @@ public class SubmissionController {
     public static String getRemoteHeadHash(String repoUrl) {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
+            ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
+            if (output.statusCode() != 0) {
                 throw new RuntimeException("exited with non-zero exit code");
             }
-            String output = new String(process.getInputStream().readAllBytes());
-            return output.split("\\s+")[0];
-        } catch (IOException | InterruptedException e) {
+            return output.stdOut().split("\\s+")[0];
+        } catch (ProcessUtils.ProcessException e) {
             throw new RuntimeException(e);
         }
     }

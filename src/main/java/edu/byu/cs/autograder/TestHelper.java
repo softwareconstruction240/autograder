@@ -3,6 +3,8 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +17,8 @@ import java.util.stream.Stream;
  * A helper class for running common test operations
  */
 public class TestHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
     /**
      * The path to the standalone JUnit jar
@@ -82,19 +86,16 @@ public class TestHelper {
             ProcessBuilder compileProcessBuilder =
                     new ProcessBuilder()
                             .directory(testsLocation)
-                            .inheritIO() // TODO: implement better logging
                             .command(compileCommands);
 
-            compileProcessBuilder.redirectInput(ProcessBuilder.Redirect.PIPE);
+            ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            Process compileProcess = compileProcessBuilder.start();
-            compileProcess.getOutputStream().write(findOutput.getBytes());
-            compileProcess.getOutputStream().close();
-
-            if (compileProcess.waitFor() != 0) {
-                throw new RuntimeException("exited with non-zero exit code");
+            if (compileOutput.statusCode() != 0) {
+                LOGGER.error("Error compiling tests: " + compileOutput.stdErr());
+                throw new RuntimeException("Error compiling tests: " + compileOutput.stdErr());
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | ProcessUtils.ProcessException e) {
+            LOGGER.error("Error compiling tests", e);
             throw new RuntimeException("Error compiling tests", e);
         }
     }
@@ -142,12 +143,17 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(commands);
 
-        ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
-        String output = processOutput.stdOut();
-        String error = processOutput.stdErr();
+        try {
+            ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
+            String output = processOutput.stdOut();
+            String error = processOutput.stdErr();
 
-        TestAnalyzer testAnalyzer = new TestAnalyzer();
-        return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
+            TestAnalyzer testAnalyzer = new TestAnalyzer();
+            return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
+        } catch (ProcessUtils.ProcessException e) {
+            LOGGER.error("Error running tests", e);
+            throw new RuntimeException("Error running tests", e);
+        }
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
