@@ -26,5 +26,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
 
+      - name: Install Deps
+        run: yarn --cwd src/main/resources/frontend
+
       - name: Run Type Checks
-        run: yarn run type-check
+        run: yarn --cwd src/main/resources/frontend run type-check
