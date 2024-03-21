@@ -1,15 +1,20 @@
 export type Phase = '0' | '1' | '3' | '4' | '5' | '6';
 
-export type TestResult = {
+export type TestNode = {
     testName: string,
     passed: boolean,
     ecCategory: string,
     errorMessage: string,
-    children: TestResult[],
+    children: TestNode[],
     numTestsPassed: number,
     numTestsFailed: number,
     numExtraCreditPassed: number,
     numExtraCreditFailed: number,
+}
+
+export type TestResult = {
+    root: TestNode,
+    error: string
 }
 
 export type RubricItemResults = {
