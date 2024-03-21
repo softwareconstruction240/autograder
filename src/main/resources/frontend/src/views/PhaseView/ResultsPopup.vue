@@ -2,7 +2,7 @@
 
 import PopUp from "@/components/PopUp.vue";
 import {defineEmits} from "vue";
-import type {TestResult} from "@/types/types";
+import type {TestNode, TestResult} from "@/types/types";
 
 defineProps<{
   testResults?: TestResult | undefined;
@@ -13,7 +13,13 @@ defineEmits({
   closePopUp: null,
 });
 
-const prettifyResults = (node: TestResult, indent: string) => {
+const prettifyResults = (result: TestResult) => {
+  let output = prettifyResultsNode(result.root, '');
+  if(result.error) output += `<br/> <hr> <h2>Program Error Output</h2>   <span class="failure">${result.error}</span>`;
+  return output;
+}
+
+const prettifyResultsNode = (node: TestNode, indent: string) => {
   if (!node) return "";
 
   let result = indent + node.testName;
@@ -34,12 +40,8 @@ const prettifyResults = (node: TestResult, indent: string) => {
 
   for (const key in node.children) {
     if (node.children.hasOwnProperty(key)) {
-      result += prettifyResults(node.children[key], indent + "&nbsp;&nbsp;&nbsp;&nbsp;");
+      result += prettifyResultsNode(node.children[key], indent + "&nbsp;&nbsp;&nbsp;&nbsp;");
     }
-  }
-
-  if (node.passed === undefined && node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-      result += `<br/>${indent} <hr> <h2>Program Error Output</h2>   <span class="failure">${node.errorMessage}</span>`;
   }
 
   return result;
@@ -51,7 +53,7 @@ const prettifyResults = (node: TestResult, indent: string) => {
   <PopUp @closePopUp="$emit('closePopUp')">
     <div class="results-popup">
       <h2>Results</h2>
-      <div style="white-space: pre" v-if="testResults" v-html="prettifyResults(testResults, '')"></div>
+      <div style="white-space: pre" v-if="testResults" v-html="prettifyResults(testResults)"></div>
       <div style="white-space: pre" v-if="textResults" v-html="textResults.replace(/\n/g, '<br />')"></div>
     </div>
   </PopUp>

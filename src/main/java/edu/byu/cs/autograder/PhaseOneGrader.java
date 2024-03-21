@@ -33,7 +33,7 @@ public class PhaseOneGrader extends PassoffTestGrader {
         if (rubric.passoffTests() == null || rubric.passoffTests().results() == null || rubric.passoffTests().results().testResults() == null)
             throw new GradingException("Passoff tests are null");
 
-        return rubric.passoffTests().results().testResults().numTestsFailed == 0;
+        return rubric.passoffTests().results().testResults().root().numTestsFailed == 0;
     }
 
     @Override
