@@ -3,6 +3,7 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.GitHelper;
+import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.Instant;
-import java.util.*;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -66,7 +66,7 @@ public class Grader implements Runnable {
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             Rubric.Results qualityResults = null;
             if(rubricConfig.quality() != null) {
-                qualityResults = runQualityChecks();
+                qualityResults = new QualityGrader(gradingContext).runQualityChecks();
             }
 
             Rubric.Results passoffResults = null;
@@ -114,30 +114,13 @@ public class Grader implements Runnable {
     }
 
 
-    /**
-     * Runs quality checks on the student's code
-     *
-     * @return the results of the quality checks as a CanvasIntegration.RubricItem
-     */
-    protected Rubric.Results runQualityChecks() throws GradingException {
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-        if(rubricConfig.quality() == null) return null;
-        observer.update("Running code quality...");
-
-        QualityAnalyzer analyzer = new QualityAnalyzer();
-
-        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(gradingContext.stageRepo());
-
-        return new Rubric.Results(quality.notes(), quality.score(),
-                rubricConfig.quality().points(), null, quality.results());
-    }
-
     public interface Observer {
         void notifyStarted();
 
         void update(String message);
 
         void notifyError(String message);
+
         void notifyError(String message, String details);
 
         void notifyDone(Submission submission);

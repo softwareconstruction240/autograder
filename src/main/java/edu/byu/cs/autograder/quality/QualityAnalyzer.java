@@ -1,6 +1,7 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.quality;
 
 import com.google.gson.Gson;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.File;
