@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
@@ -100,9 +101,20 @@ public class Scorer {
         try {
             CanvasIntegration.CanvasSubmission submission =
                     CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            float prevPoints = totalPoints(submission.rubric_assessment());
-            float newPoints = totalPoints(assessment);
-            return newPoints <= prevPoints || (submission.score() != null && newPoints <= submission.score());
+            float prevPoints = (submission.score() != null) ? submission.score() : 0;
+            CanvasIntegration.RubricAssessment compareAssessment = assessment;
+
+            if(submission.rubric_assessment() != null) {
+                prevPoints = Math.max(prevPoints, totalPoints(submission.rubric_assessment()));
+
+                HashMap<String, CanvasIntegration.RubricItem> compareItems = new HashMap<>();
+                compareItems.putAll(submission.rubric_assessment().items());
+                compareItems.putAll(assessment.items());
+                compareAssessment = new CanvasIntegration.RubricAssessment(compareItems);
+            }
+
+            float newPoints = totalPoints(compareAssessment);
+            return newPoints <= prevPoints;
         } catch (CanvasException e) {
             LOGGER.error("Exception from canvas", e);
             return true;
