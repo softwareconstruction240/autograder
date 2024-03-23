@@ -66,7 +66,7 @@ public class SubmissionController {
         }
 
         // check for updated repoUrl
-        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
+        String newRepoUrl = CanvasIntegration.getCanvasIntegration().getGitRepo(user.canvasUserId());
         if (!newRepoUrl.equals(user.repoUrl())) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
             DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);

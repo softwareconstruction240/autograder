@@ -283,7 +283,8 @@ public abstract class Grader implements Runnable {
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
         try {
-            CanvasIntegration.CanvasSubmission submission = CanvasIntegration.getSubmission(userId, assignmentNum);
+            CanvasIntegration.CanvasSubmission submission =
+                    CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
             int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
             return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
         } catch (CanvasException e) {
@@ -317,7 +318,7 @@ public abstract class Grader implements Runnable {
 
         ZonedDateTime dueDate;
         try {
-            dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            dueDate = CanvasIntegration.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
@@ -383,7 +384,7 @@ public abstract class Grader implements Runnable {
         convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
 
         try {
-            CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
+            CanvasIntegration.getCanvasIntegration().submitGrade(userId, assignmentNum, scores, comments, submission.notes());
         } catch (CanvasException e) {
             LOGGER.error("Error submitting to canvas for user " + submission.netId(), e);
             throw new GradingException("Error contacting canvas to record scores");
