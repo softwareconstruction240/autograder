@@ -41,7 +41,7 @@ public class CasController {
 
         if (user == null) {
             try {
-                user = CanvasIntegration.getUser(netId);
+                user = CanvasIntegration.getCanvasIntegration().getUser(netId);
             } catch (CanvasException e) {
                 LOGGER.error("Couldn't create user from Canvas", e);
 

@@ -1,5 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.test;
 
+import edu.byu.cs.autograder.GradingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

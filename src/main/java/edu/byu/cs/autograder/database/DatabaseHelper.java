@@ -1,5 +1,7 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.database;
 
+import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +21,38 @@ public class DatabaseHelper {
 
     private final String databaseName;
 
-    public DatabaseHelper(long salt) {
+    private final GradingContext gradingContext;
+
+    private Collection<String> existingDatabaseNames;
+    private boolean finished = false;
+
+    public DatabaseHelper(long salt, GradingContext gradingContext) {
+        this.gradingContext = gradingContext;
         this.databaseName = "chessdb" + salt;
         loadProperties();
+    }
+
+    public void setUp() throws GradingException {
+        existingDatabaseNames = getExistingDatabaseNames();
+        injectDatabaseConfig(gradingContext.stageRepo());
+    }
+
+    public void finish() throws GradingException {
+        cleanupDatabase();
+        finished = true;
+        assertNoExtraDatabases(existingDatabaseNames, getExistingDatabaseNames());
+    }
+
+    public void cleanUp() {
+        if (!finished) {
+            try {
+                Collection<String> currentDatabaseNames = getExistingDatabaseNames();
+                currentDatabaseNames.removeAll(existingDatabaseNames);
+                cleanUpExtraDatabases(currentDatabaseNames);
+            } catch (GradingException e) {
+                LOGGER.error("Error cleaning up after user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
+            }
+        }
     }
 
     private void loadProperties() {
@@ -33,7 +64,7 @@ public class DatabaseHelper {
         }
     }
 
-    public void injectDatabaseConfig(File stageRepo) throws GradingException {
+    private void injectDatabaseConfig(File stageRepo) throws GradingException {
         File dbPropertiesFile = new File(stageRepo, "server/src/main/resources/db.properties");
         if (dbPropertiesFile.exists())
             dbPropertiesFile.delete();
@@ -54,7 +85,7 @@ public class DatabaseHelper {
         }
     }
 
-    public Collection<String> getExistingDatabaseNames() throws GradingException {
+    private Collection<String> getExistingDatabaseNames() throws GradingException {
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement("SHOW DATABASES");
              ResultSet rs = ps.executeQuery()) {
@@ -69,7 +100,7 @@ public class DatabaseHelper {
         }
     }
 
-    public void cleanupDatabase() throws GradingException {
+    private void cleanupDatabase() throws GradingException {
         try (Connection connection = getConnection()) {
             connection.createStatement().executeUpdate(
                     "DROP DATABASE IF EXISTS " + databaseName
@@ -80,7 +111,7 @@ public class DatabaseHelper {
         }
     }
 
-    public void cleanUpExtraDatabases(Collection<String> databaseNames) throws GradingException {
+    private void cleanUpExtraDatabases(Collection<String> databaseNames) throws GradingException {
         try (Connection connection = getConnection()) {
             for (String databaseName : databaseNames) {
                 try (PreparedStatement ps = connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName)) {
@@ -93,7 +124,7 @@ public class DatabaseHelper {
         }
     }
 
-    public void assertNoExtraDatabases(Collection<String> previousDatabaseNames,
+    private void assertNoExtraDatabases(Collection<String> previousDatabaseNames,
                                         Collection<String> currentDatabaseNames) throws GradingException {
         Collection<String> extraDatabaseNames = new HashSet<>(currentDatabaseNames);
         extraDatabaseNames.removeAll(previousDatabaseNames);

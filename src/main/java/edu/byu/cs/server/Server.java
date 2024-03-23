@@ -149,6 +149,9 @@ public class Server {
             if (cmd.hasOption("student-db-pass")) {
                 properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
             }
+            if (cmd.hasOption("use-canvas")) {
+                properties.setProperty("use-canvas", cmd.getOptionValue("use-canvas"));
+            }
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line arguments", e);
         }
@@ -169,6 +172,7 @@ public class Server {
         options.addOption(null, "student-db-port", true, "Student DB Port");
         options.addOption(null, "student-db-user", true, "Student DB User");
         options.addOption(null, "student-db-pass", true, "Student DB Password");
+        options.addOption(null, "use-canvas", true, "Using Canvas");
         return options;
     }
 

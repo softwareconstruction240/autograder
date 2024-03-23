@@ -2,6 +2,7 @@ package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
@@ -113,14 +114,14 @@ public class CommitAnalytics {
 
         Map<Integer, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
-        Map<Integer, Integer> sectionIDs = CanvasIntegration.sectionIDs;
+        Map<Integer, Integer> sectionIDs = CanvasIntegrationImpl.sectionIDs;
         for (Map.Entry<Integer, Integer> i : sectionIDs.entrySet()) {
 
             Collection<User> students;
             Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
 
             try {
-                students = CanvasIntegration.getAllStudentsBySection(i.getValue());
+                students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(i.getValue());
             } catch (CanvasException e) {
                 throw new RuntimeException("Canvas Exception: " + e.getMessage());
             }
