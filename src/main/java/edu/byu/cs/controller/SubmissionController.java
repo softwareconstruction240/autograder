@@ -311,14 +311,7 @@ public class SubmissionController {
             }
         };
 
-        return switch (phase) {
-            case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
-            case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
-            case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
-            case Phase5 -> new PhaseFiveGrader(netId, repoUrl, observer);
-            case Phase6 -> null;
-        };
+        return new PassoffTestGrader(netId, repoUrl, observer, phase);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {

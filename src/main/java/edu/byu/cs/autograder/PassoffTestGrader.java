@@ -4,6 +4,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public abstract class PassoffTestGrader extends Grader {
+public class PassoffTestGrader extends Grader {
     private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
@@ -42,35 +43,102 @@ public abstract class PassoffTestGrader extends Grader {
     /**
      * Creates a new grader for phase X
      *
-     * @param phaseResources the path to the phase resources
      * @param netId          the netId of the student
      * @param repoUrl        the url of the student repo
      * @param observer       the observer to notify of updates
      * @param phase          the phase to grade
      * @throws IOException if an IO error occurs
      */
-    public PassoffTestGrader(String phaseResources, String netId, String repoUrl, Observer observer, Phase phase) throws IOException {
+    public PassoffTestGrader(String netId, String repoUrl, Observer observer, Phase phase)
+            throws IOException {
         super(repoUrl, netId, observer, phase);
-        this.stageTestsPath = new File(stagePath + "/tests");
-        this.phaseTests = new File(phaseResources);
+        this.stageTestsPath = new File(gradingContext.stagePath() + "/tests");
+        this.phaseTests = new File("./phases/phase" + PhaseUtils.getPhaseAsString(phase));
         // FIXME
         this.module = switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4 -> "server";
             case Phase5, Phase6 -> "client";
         };
+
+        initializeExtraCredit();
+    }
+
+    private void initializeExtraCredit() {
+        if(gradingContext.phase() == Phase.Phase1) {
+            extraCreditTests.add("CastlingTests");
+            extraCreditTests.add("EnPassantTests");
+            extraCreditValue = .04f;
+        }
     }
 
     @Override
     protected Rubric.Results runCustomTests() throws GradingException {
-        // no unit tests for this phase
-        return null;
+        Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
+        new TestHelper().compileTests(gradingContext.stageRepo(), module,
+                new File(gradingContext.stageRepo(), module + "/src/test/java/"), gradingContext.stagePath(),
+                excludedTests);
+
+        TestAnalyzer.TestAnalysis results;
+        if (!new File(gradingContext.stagePath(), "tests").exists()) {
+            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), null);
+            TestAnalyzer.TestNode.countTests(results.root());
+        } else results = new TestHelper().runJUnitTests(
+                new File(gradingContext.stageRepo(), "/" + module + "/target/server-jar-with-dependencies.jar"),
+                new File(gradingContext.stagePath(), "tests"),
+                unitTestPackages(gradingContext.phase()),
+                new HashSet<>());
+
+        if (results.root() == null) {
+            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
+            TestAnalyzer.TestNode.countTests(results.root());
+            LOGGER.error("Tests failed to run for " + gradingContext.netId() + " in phase " +
+                    PhaseUtils.getPhaseAsString(gradingContext.phase()));
+        }
+
+        results.root().testName = CUSTOM_TESTS_NAME;
+
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+
+        return new Rubric.Results(getUnitTestNotes(results.root()), getUnitTestScore(results.root()),
+                rubricConfig.unitTests().points(), results, null);
+    }
+
+    protected float getUnitTestScore(TestAnalyzer.TestNode testResults) throws GradingException {
+        float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
+
+        if (totalTests == 0) return 0;
+
+        int minTests = minUnitTests(gradingContext.phase());
+
+        if (totalTests < minTests) return (float) testResults.numTestsPassed / minTests;
+
+        return testResults.numTestsPassed / totalTests;
+    }
+
+    private int minUnitTests(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> 13;
+            case Phase4 -> 18;
+            case Phase5 -> 12;
+        };
+    }
+
+    private Set<String> unitTestPackages(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> Set.of("serviceTests");
+            case Phase4 -> Set.of("dataAccessTests");
+            case Phase5 -> Set.of("clientTests");
+        };
     }
 
     @Override
     protected void compileTests() throws GradingException {
         observer.update("Compiling tests...");
-        new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
+        new TestHelper().compileTests(gradingContext.stageRepo(), module, phaseTests, gradingContext.stagePath(),
+                new HashSet<>());
         observer.update("Finished compiling tests.");
     }
 
@@ -79,31 +147,30 @@ public abstract class PassoffTestGrader extends Grader {
         observer.update("Running tests...");
 
         TestAnalyzer.TestAnalysis results = new TestHelper().runJUnitTests(
-                new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
-                stageTestsPath,
-                packagesToTest,
-                extraCreditTests);
+                new File(gradingContext.stageRepo(), "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
+                stageTestsPath, packagesToTest, extraCreditTests);
 
         if (results.root() == null) {
             results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
             TestAnalyzer.TestNode.countTests(results.root());
-            LOGGER.error("Passoff tests failed to run for " + netId + " in phase " + phase);
+            LOGGER.error("Passoff tests failed to run for " + gradingContext.netId() + " in phase " +
+                    gradingContext.phase());
         }
 
         results.root().testName = PASSOFF_TESTS_NAME;
 
         float score = getPassoffScore(results.root());
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
 
-        return new Rubric.Results(getNotes(results.root()), score, rubricConfig.passoffTests().points(), results, null);
+        return new Rubric.Results(getPassoffTestNotes(results.root()), score, rubricConfig.passoffTests().points(),
+                results, null);
     }
 
     protected float getPassoffScore(TestAnalyzer.TestNode testResults) {
         float totalStandardTests = testResults.numTestsFailed + testResults.numTestsPassed;
         float totalECTests = testResults.numExtraCreditPassed + testResults.numExtraCreditFailed;
 
-        if (totalStandardTests == 0)
-            return 0;
+        if (totalStandardTests == 0) return 0;
 
         float score = testResults.numTestsPassed / totalStandardTests;
         if (totalECTests == 0) return score;
@@ -140,50 +207,41 @@ public abstract class PassoffTestGrader extends Grader {
         return scores;
     }
 
-    protected String getNotes(TestAnalyzer.TestNode results) {
+    protected String getPassoffTestNotes(TestAnalyzer.TestNode results) {
 
         StringBuilder notes = new StringBuilder();
 
-        if (results == null)
-            return "No tests were run";
+        if (results == null) return "No tests were run";
 
-        if (results.numTestsFailed == 0)
-            notes.append("All required tests passed");
-        else
-            notes.append("Some required tests failed");
+        if (results.numTestsFailed == 0) notes.append("All required tests passed");
+        else notes.append("Some required tests failed");
 
         Map<String, Float> ecScores = getECScores(results);
-        float totalECPoints = ecScores.values().stream().reduce(0f, Float::sum) * extraCreditValue ;
+        float totalECPoints = ecScores.values().stream().reduce(0f, Float::sum) * extraCreditValue;
 
-        if (totalECPoints > 0f)
-            notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
+        if (totalECPoints > 0f) notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
 
         return notes.toString();
     }
 
-    @Override
-    protected Rubric.Results runQualityChecks() throws GradingException {
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        if(rubricConfig.quality() == null) return null;
-        observer.update("Running code quality...");
+    protected String getUnitTestNotes(TestAnalyzer.TestNode testResults) throws GradingException {
+        if (testResults.numTestsPassed + testResults.numTestsFailed < minUnitTests(gradingContext.phase()))
+            return "Not enough tests: each " + codeUnderTest(gradingContext.phase()) +
+                    " method should have a positive and negative test";
 
-        QualityAnalyzer analyzer = new QualityAnalyzer();
-
-        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(stageRepo);
-
-        return new Rubric.Results(quality.notes(), quality.score(),
-                rubricConfig.quality().points(), null, quality.results());
+        return switch (testResults.numTestsFailed) {
+            case 0 -> "All tests passed";
+            case 1 -> "1 test failed";
+            default -> testResults.numTestsFailed + " tests failed";
+        };
     }
 
-    @Override
-    protected Rubric annotateRubric(Rubric rubric) throws GradingException {
-        return new Rubric(
-                rubric.passoffTests(),
-                rubric.unitTests(),
-                rubric.quality(),
-                passed(rubric),
-                rubric.notes()
-        );
+    private String codeUnderTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> "service";
+            case Phase4 -> "dao";
+            case Phase5 -> "server facade";
+        };
     }
-
 }
