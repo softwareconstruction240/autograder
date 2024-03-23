@@ -312,7 +312,7 @@ public class SubmissionController {
             }
         };
 
-        return new Grader(netId, repoUrl, observer, phase);
+        return new Grader(repoUrl, netId, observer, phase);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {
