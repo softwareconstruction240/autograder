@@ -1,17 +1,12 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.autograder.compile.CompileHelper;
+import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.util.FileUtils;
-import edu.byu.cs.util.ProcessUtils;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
