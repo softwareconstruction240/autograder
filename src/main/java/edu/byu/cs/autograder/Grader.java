@@ -98,7 +98,8 @@ public class Grader implements Runnable {
             observer.notifyDone(submission);
 
         } catch (GradingException ge) {
-            observer.notifyError(ge.getMessage(), ge.getDetails());
+            if(ge.getDetails() == null) observer.notifyError(ge.getMessage());
+            else observer.notifyError(ge.getMessage(), ge.getDetails());
             String notification =
                     "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
             if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
