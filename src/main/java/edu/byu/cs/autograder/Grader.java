@@ -45,17 +45,15 @@ public abstract class Grader implements Runnable {
         long salt = Instant.now().getEpochSecond();
         String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
         File stageRepo = new File(stagePath, "repo");
-        this.dbHelper = new DatabaseHelper(salt);
         int requiredCommits = 10;
         this.observer = observer;
         this.gradingContext =
                 new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits);
+        this.dbHelper = new DatabaseHelper(salt, gradingContext);
     }
 
     public void run() {
         observer.notifyStarted();
-        Collection<String> existingDatabaseNames = new HashSet<>();
-        boolean finishedCleaningDatabase = false;
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
@@ -63,8 +61,7 @@ public abstract class Grader implements Runnable {
             int numCommits = verifyRegularCommits();
             verifyProjectStructure();
 
-            existingDatabaseNames = dbHelper.getExistingDatabaseNames();
-            dbHelper.injectDatabaseConfig(gradingContext.stageRepo());
+            dbHelper.setUp();
 
             modifyPoms();
 
@@ -87,9 +84,7 @@ public abstract class Grader implements Runnable {
                 customTestsResults = runCustomTests();
             }
 
-            dbHelper.cleanupDatabase();
-            dbHelper.assertNoExtraDatabases(existingDatabaseNames, dbHelper.getExistingDatabaseNames());
-            finishedCleaningDatabase = true;
+            dbHelper.finish();
 
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;
@@ -119,16 +114,7 @@ public abstract class Grader implements Runnable {
             observer.notifyError(e.getMessage());
             LOGGER.error("Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
         } finally {
-            if(!finishedCleaningDatabase) {
-                try {
-                    dbHelper.cleanupDatabase();
-                    Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
-                    currentDatabaseNames.removeAll(existingDatabaseNames);
-                    dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
-                } catch (GradingException e) {
-                    LOGGER.error("Error cleaning up after user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
-                }
-            }
+            dbHelper.cleanUp();
             FileUtils.removeDirectory(new File(gradingContext.stagePath()));
         }
     }
