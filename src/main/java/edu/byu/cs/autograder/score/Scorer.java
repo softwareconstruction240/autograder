@@ -35,6 +35,8 @@ public class Scorer {
     }
 
     public Submission score(Rubric rubric, int numCommits) throws GradingException {
+        gradingContext.observer().update("Grading...");
+
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
