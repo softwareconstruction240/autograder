@@ -30,7 +30,7 @@ public class QualityAnalyzer {
     }
 
 
-    public QualityOutput runQualityChecks(File stageRepo) {
+    public QualityOutput runQualityChecks(File stageRepo) throws GradingException {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
 
@@ -46,7 +46,7 @@ public class QualityAnalyzer {
             String notes = getNotes(analysis);
             return new QualityOutput(score, results, notes);
         } catch (ProcessUtils.ProcessException e) {
-            throw new RuntimeException("Error running code quality", e);
+            throw new GradingException("Error running code quality", e);
         }
     }
 

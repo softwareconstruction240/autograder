@@ -172,7 +172,7 @@ public class TestAnalyzer {
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestAnalysis parse(String[] inputLines, Set<String> extraCreditTests, String error) {
+    public TestAnalysis parse(String[] inputLines, Set<String> extraCreditTests, String error) throws GradingException {
         this.ecCategories = extraCreditTests;
 
         for (String line : inputLines) {
@@ -254,9 +254,9 @@ public class TestAnalyzer {
      *
      * @param line an error message from a failed test
      */
-    private void handleErrorMessage(String line) {
+    private void handleErrorMessage(String line) throws GradingException {
         if (lastFailingTest == null) {
-            throw new RuntimeException("Error message without a test: " + line);
+            throw new GradingException("Error message without a test: " + line);
         }
 
         if (lastFailingTest.errorMessage == null)
