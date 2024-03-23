@@ -14,6 +14,6 @@ import java.io.File;
  * @param requiredCommits The required number of commits (since the last phase) to be able to pass off
  */
 public record GradingContext(String netId, Phase phase, String phasesPath, String stagePath, String repoUrl,
-                             File stageRepo, int requiredCommits) {
+                             File stageRepo, int requiredCommits, Grader.Observer observer) {
 
 }

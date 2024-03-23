@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.analytics.CommitAnalytics;
+import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
@@ -28,6 +29,8 @@ public abstract class Grader implements Runnable {
 
     private final DatabaseHelper dbHelper;
 
+    private final GitHelper gitHelper;
+
     protected final GradingContext gradingContext;
 
     protected Observer observer;
@@ -48,8 +51,9 @@ public abstract class Grader implements Runnable {
         int requiredCommits = 10;
         this.observer = observer;
         this.gradingContext =
-                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits);
+                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits, observer);
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
+        this.gitHelper = new GitHelper(gradingContext);
     }
 
     public void run() {
@@ -57,8 +61,7 @@ public abstract class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            fetchRepo();
-            int numCommits = verifyRegularCommits();
+            int numCommits = gitHelper.setUp();
             verifyProjectStructure();
 
             dbHelper.setUp();
@@ -176,56 +179,6 @@ public abstract class Grader implements Runnable {
         }
     }
 
-
-    /**
-     * Fetches the student repo and puts it in the given local path
-     */
-    private void fetchRepo() throws GradingException {
-        observer.update("Fetching repo...");
-
-        CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(gradingContext.repoUrl())
-                .setDirectory(gradingContext.stageRepo());
-
-        try (Git git = cloneCommand.call()) {
-            LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
-        } catch (GitAPIException e) {
-            observer.notifyError("Failed to clone repo: " + e.getMessage());
-            LOGGER.error("Failed to clone repo", e);
-            throw new GradingException("Failed to clone repo: ",  e.getMessage());
-        }
-
-        observer.update("Successfully fetched repo");
-    }
-
-    /**
-     * Counts the commits since the last passoff and halts progress if there are less than the required amount
-     *
-     * @return the number of commits since the last passoff
-     */
-    private int verifyRegularCommits() throws GradingException {
-        observer.update("Verifying commits...");
-
-        try (Git git = Git.open(gradingContext.stageRepo())) {
-            Iterable<RevCommit> commits = git.log().all().call();
-            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(gradingContext.netId(),
-                    gradingContext.phase());
-            long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
-            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
-            int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
-//            if (numCommits < requiredCommits) {
-//                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
-//                LOGGER.error("Insufficient commits to pass off.");
-//                throw new GradingException("Not enough commits to pass off");
-//            }
-
-            return numCommits;
-        } catch (IOException | GitAPIException e) {
-            observer.notifyError("Failed to count commits: " + e.getMessage());
-            LOGGER.error("Failed to count commits", e);
-            throw new GradingException("Failed to count commits: ", e.getMessage());
-        }
-    }
 
     /**
      * Packages the student repo into a jar
