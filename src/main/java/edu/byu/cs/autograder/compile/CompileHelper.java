@@ -37,9 +37,9 @@ public class CompileHelper {
         File oldSharedPom = new File(gradingContext.stageRepo(), "shared/pom.xml");
 
         File newRootPom = new File(gradingContext.phasesPath(), "pom/pom.xml");
-        File newServerPom = new File(gradingContext.stageRepo(), "pom/server/pom.xml");
-        File newClientPom = new File(gradingContext.stageRepo(), "pom/client/pom.xml");
-        File newSharedPom = new File(gradingContext.stageRepo(), "pom/shared/pom.xml");
+        File newServerPom = new File(gradingContext.phasesPath(), "pom/server/pom.xml");
+        File newClientPom = new File(gradingContext.phasesPath(), "pom/client/pom.xml");
+        File newSharedPom = new File(gradingContext.phasesPath(), "pom/shared/pom.xml");
 
         FileUtils.copyFile(oldRootPom, newRootPom);
         FileUtils.copyFile(oldServerPom, newServerPom);
