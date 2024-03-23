@@ -13,7 +13,20 @@ import java.io.File;
  * @param stageRepo       The path for the student repo (child of stagePath)
  * @param requiredCommits The required number of commits (since the last phase) to be able to pass off
  */
-public record GradingContext(String netId, Phase phase, String phasesPath, String stagePath, String repoUrl,
-                             File stageRepo, int requiredCommits, Grader.Observer observer) {
+public record GradingContext(
+        String netId,
+        Phase phase,
+        String phasesPath,
+        String stagePath,
+        String repoUrl,
+        File stageRepo,
 
-}
+        // Commit Configuration
+        int requiredCommits,
+
+        int requiredDaysWithCommits,
+        int commitVerificationPenaltyPct,
+
+        // Observer
+        Grader.Observer observer
+) { }

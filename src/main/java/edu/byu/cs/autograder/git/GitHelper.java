@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitAnalytics;
+import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
@@ -14,15 +15,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
 
-    public GitHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
+    public GitHelper(GradingContext gradingContext) {
+        this.gradingContext = gradingContext;
+    }
 
-    public int setUp() throws GradingException {
+    public CommitVerificationResult setUp() throws GradingException {
         fetchRepo();
         return verifyRegularCommits();
     }
@@ -53,27 +57,68 @@ public class GitHelper {
      *
      * @return the number of commits since the last passoff
      */
-    private int verifyRegularCommits() throws GradingException {
-        gradingContext.observer().update("Verifying commits...");
+    private CommitVerificationResult verifyRegularCommits() throws GradingException {
+        var observer = gradingContext.observer();
+        var stageRepo = gradingContext.stageRepo();
+        observer.update("Verifying commits...");
 
-        try (Git git = Git.open(gradingContext.stageRepo())) {
+        try (Git git = Git.open(stageRepo)) {
             Iterable<RevCommit> commits = git.log().all().call();
-            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(gradingContext.netId(),
-                    gradingContext.phase());
-            long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
-            Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
-            int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
-//            if (numCommits < requiredCommits) {
-//                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
-//                LOGGER.error("Insufficient commits to pass off.");
-//                throw new GradingException("Not enough commits to pass off");
-//            }
+            CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(commits);
+            CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
 
-            return numCommits;
+            if (commitVerificationResult.verified()) {
+                observer.update("Passed commit verification.");
+            } else {
+                observer.update("Failed commit verification. Continuing with grading anyways.");
+            }
+            return commitVerificationResult;
         } catch (IOException | GitAPIException e) {
-            gradingContext.observer().notifyError("Failed to count commits: " + e.getMessage());
-            LOGGER.error("Failed to count commits", e);
-            throw new GradingException("Failed to count commits: ", e.getMessage());
+            observer.notifyError("Failed to verify commits: " + e.getMessage());
+            LOGGER.error("Failed to verify commits", e);
+            throw new GradingException("Failed to verify commits: " + e.getMessage());
         }
     }
+    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Iterable<RevCommit> commits) {
+        var netId = gradingContext.netId();
+        var phase = gradingContext.phase();
+        Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
+        long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
+        return CommitAnalytics.countCommitsByDay(commits, timestamp, Instant.now().getEpochSecond());
+    }
+    private CommitVerificationResult commitsPassRequirements(CommitAnalytics.CommitsByDay commitsByDay) {
+        int requiredCommits = gradingContext.requiredCommits();
+        int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
+        int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
+
+        boolean verified = true;
+        int numCommits = commitsByDay.totalCommits();
+        int daysWithCommits = commitsByDay.dayMap().size();
+        ArrayList<String> errorMessages = new ArrayList<>();
+
+        // Assert conditions
+        if (numCommits < requiredCommits) {
+            verified = false;
+            errorMessages.add(String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits));
+        }
+        if (daysWithCommits < requiredDaysWithCommits) {
+            verified = false;
+            errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", numCommits, requiredCommits));
+        }
+
+        // Add additional explanatory message
+        if (!verified) {
+            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
+                    + "you will need to talk to a TA to receive a score. ");
+            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
+        }
+
+        return new CommitVerificationResult(
+                verified,
+                numCommits,
+                daysWithCommits,
+                String.join("\n", errorMessages)
+        );
+    }
+
 }

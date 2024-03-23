@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
@@ -22,7 +23,7 @@ import java.util.Map;
 
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
-    
+
     /**
      * The penalty to be applied per day to a late submission.
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
@@ -34,8 +35,9 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
-    public Submission score(Rubric rubric, int numCommits) throws GradingException {
+    public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException {
         gradingContext.observer().update("Grading...");
+        var phase = gradingContext.phase();
 
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
@@ -45,22 +47,24 @@ public class Scorer {
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if(rubric.passed()) {
+        if (!commitVerificationResult.verified()) {
+            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+        } else if(rubric.passed()) {
             float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
-            if (thisScore <= highestScore && gradingContext.phase() != Phase.Phase5 && gradingContext.phase() != Phase.Phase6) {
+            if (thisScore <= highestScore && phase != Phase.Phase5 && phase != Phase.Phase6) {
                 String notes = "Submission did not improve current score. (" + (highestScore * 100) +
                         "%) Score not saved to Canvas.\n";
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
+                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
             } else {
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
                 sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
             }
+        } else {
+            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
         }
-        else {
-            thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-        }
+
         return thisSubmission;
     }
 
@@ -146,7 +150,7 @@ public class Scorer {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
+    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
             throws GradingException {
         String headHash = getHeadHash();
 
@@ -165,7 +169,7 @@ public class Scorer {
                 gradingContext.phase(),
                 rubric.passed(),
                 score,
-                numCommits,
+                commitVerificationResult.numCommits(),
                 notes,
                 rubric
         );
