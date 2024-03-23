@@ -95,7 +95,7 @@ public class CanvasUtils {
         if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
             Rubric.Results results = rubricItem.results();
             items.put(getCanvasRubricId(rubricType, phase),
-                    new CanvasIntegration.RubricItem(results.notes(), results.score() * lateAdjustment));
+                    new CanvasIntegration.RubricItem(results.notes(), results.score() * (1 - lateAdjustment)));
         }
         return new CanvasIntegration.RubricAssessment(items);
     }
