@@ -12,6 +12,7 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
@@ -54,8 +55,8 @@ public class SubmissionController {
 //            halt(400, "That doesn't look like a valid git url");
 //            return;
 //        }
-        if (!Arrays.asList(0, 1, 3, 4, 6).contains(request.phase())) {
-            halt(400, "Valid phases are 0, 1, 3, 4, or 6");
+        if (!Arrays.asList(0, 1, 3, 4, 5, 6).contains(request.phase())) {
+            halt(400, "Valid phases are 0, 1, 3, 4, 5, or 6");
             return null;
         }
 
@@ -196,7 +197,9 @@ public class SubmissionController {
     };
 
     public static Route latestSubmissionsGet = (req, res) -> {
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions();
+        String countString = req.params(":count");
+        int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
+        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
 
         res.status(200);
         res.type("application/json");
@@ -274,9 +277,15 @@ public class SubmissionController {
 
             @Override
             public void notifyError(String message) {
+                notifyError(message, "");
+            }
+
+            @Override
+            public void notifyError(String message, String details) {
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "error",
-                        "message", message
+                        "message", message,
+                        "details", details
                 ));
 
                 TrafficController.sessions.remove(netId);
@@ -307,6 +316,7 @@ public class SubmissionController {
             case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
             case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
             case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
+            case Phase5 -> new PhaseFiveGrader(netId, repoUrl, observer);
             case Phase6 -> null;
         };
     }
@@ -314,13 +324,12 @@ public class SubmissionController {
     public static String getRemoteHeadHash(String repoUrl) {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
-            Process process = processBuilder.start();
-            if (process.waitFor() != 0) {
+            ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
+            if (output.statusCode() != 0) {
                 throw new RuntimeException("exited with non-zero exit code");
             }
-            String output = new String(process.getInputStream().readAllBytes());
-            return output.split("\\s+")[0];
-        } catch (IOException | InterruptedException e) {
+            return output.stdOut().split("\\s+")[0];
+        } catch (ProcessUtils.ProcessException e) {
             throw new RuntimeException(e);
         }
     }

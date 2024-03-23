@@ -161,4 +161,20 @@ public class FileUtils {
             }
         }
     }
+
+    /**
+     * Replace newFile with oldFile
+     * @param oldFile file to be replaced
+     * @param newFile new file to take place of oldFile
+     */
+    public static void copyFile(File oldFile, File newFile) {
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
+        try {
+            Files.copy(newFile.toPath(), oldFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to copy file: " + e.getMessage());
+        }
+    }
 }

@@ -11,7 +11,7 @@ const selectedTestResults = ref<TestResult | undefined>(undefined);
 const selectedTextResults = ref<string | undefined>(undefined);
 
 const failedTests = (testResults: TestResult) => {
-  return testResults.numTestsFailed > 0 || testResults.numTestsPassed === 0;
+  return testResults.root.numTestsFailed > 0 || testResults.root.numTestsPassed === 0;
 }
 
 </script>

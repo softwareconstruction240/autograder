@@ -1,49 +1,52 @@
 package edu.byu.cs.dataAccess.sql;
 
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.properties.DbProperties;
+import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class SqlDb {
 
-    private static final String DB_URL = DbProperties.dbUrl();
-    private static final String DB_USER = DbProperties.dbUser();
-    private static final String DB_PASSWORD = DbProperties.dbPassword();
+    private static final String DB_URL = ApplicationProperties.dbUrl();
 
-    private static final String DB_NAME = DbProperties.dbName();
+    private static final String DB_USER = ApplicationProperties.dbUser();
+
+    private static final String DB_PASSWORD = ApplicationProperties.dbPass();
+
+    private static final String DB_NAME = ApplicationProperties.dbName();
 
     private static final String CONNECTION_STRING = "jdbc:mysql://" + DB_URL;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlDb.class);
 
     static {
-        try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD)) {
-            connection.createStatement().executeUpdate(
-                    "CREATE DATABASE IF NOT EXISTS " + DB_NAME
-            );
+        try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
+             Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
             connection.setCatalog(DB_NAME);
 
-            connection.createStatement().executeUpdate(
-                    """
-                            CREATE TABLE IF NOT EXISTS `user` (
-                              `net_id` varchar(20) NOT NULL,
-                              `canvas_user_id` int NOT NULL,
-                              `first_name` varchar(50) NOT NULL,
-                              `last_name` varchar(50) NOT NULL,
-                              `repo_url` varchar(200),
-                              `role` varchar(15) NOT NULL,
-                              PRIMARY KEY (`net_id`)
-                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
-            connection.createStatement().executeUpdate(
-                    """
-                            CREATE TABLE IF NOT EXISTS `submission` (
+            try (Statement createUserTableStatement = connection.createStatement()) {
+                createUserTableStatement.executeUpdate("""
+                        CREATE TABLE IF NOT EXISTS `user` (
+                          `net_id` varchar(20) NOT NULL,
+                          `canvas_user_id` int NOT NULL,
+                          `first_name` varchar(50) NOT NULL,
+                          `last_name` varchar(50) NOT NULL,
+                          `repo_url` varchar(200),
+                          `role` varchar(15) NOT NULL,
+                          PRIMARY KEY (`net_id`)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                        """);
+            }
+            try (Statement createSubmissionTableStatement = connection.createStatement()) {
+                createSubmissionTableStatement.executeUpdate("""
+                            
+                        CREATE TABLE IF NOT EXISTS `submission` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
                                 `net_id` VARCHAR(20) NOT NULL,
                                 `repo_url` VARCHAR(200) NOT NULL,
@@ -63,22 +66,26 @@ public class SqlDb {
                                     ON DELETE CASCADE
                                     ON UPDATE CASCADE
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
-            connection.createStatement().executeUpdate(
-                    """
-                            CREATE TABLE IF NOT EXISTS `queue` (
+                            
+                                   """);
+            }
+            try (Statement createQueueTableStatement = connection.createStatement()) {
+                createQueueTableStatement.executeUpdate("""
+                            
+                        CREATE TABLE IF NOT EXISTS `queue` (
                                 `net_id` VARCHAR(20) NOT NULL,
                                 `phase` VARCHAR(9) NOT NULL,
                                 `time_added` DATETIME NOT NULL,
                                 `started` BOOL,
                                 PRIMARY KEY (`net_id`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
-            connection.createStatement().executeUpdate(
-                    """
-                            CREATE TABLE IF NOT EXISTS `rubric_config` (
+                            
+                                   """);
+            }
+            try (Statement createRubricConfigTableStatement = connection.createStatement()) {
+                createRubricConfigTableStatement.executeUpdate("""
+                            
+                        CREATE TABLE IF NOT EXISTS `rubric_config` (
                                 `phase` VARCHAR(9) NOT NULL,
                                 `type` VARCHAR(15) NOT NULL,
                                 `category` TEXT NOT NULL,
@@ -86,8 +93,9 @@ public class SqlDb {
                                 `points` INT NOT NULL,
                                 PRIMARY KEY (`phase`, `type`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            """);
-
+                            
+                                   """);
+            }
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);

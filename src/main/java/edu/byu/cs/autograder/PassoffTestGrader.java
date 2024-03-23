@@ -4,12 +4,15 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public abstract class PassoffTestGrader extends Grader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassoffTestGrader.class);
 
     /**
      * The path where the official tests are stored
@@ -54,39 +57,45 @@ public abstract class PassoffTestGrader extends Grader {
         this.module = switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4 -> "server";
-            case Phase6 -> "client";
+            case Phase5, Phase6 -> "client";
         };
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         // no unit tests for this phase
         return null;
     }
 
     @Override
-    protected void compileTests() {
+    protected void compileTests() throws GradingException {
         observer.update("Compiling tests...");
         new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
         observer.update("Finished compiling tests.");
     }
 
     @Override
-    protected Rubric.Results runTests(Set<String> packagesToTest) {
+    protected Rubric.Results runTests(Set<String> packagesToTest) throws GradingException {
         observer.update("Running tests...");
 
-        TestAnalyzer.TestNode results = new TestHelper().runJUnitTests(
+        TestAnalyzer.TestAnalysis results = new TestHelper().runJUnitTests(
                 new File(stageRepo, "/" + module + "/target/" + module + "-jar-with-dependencies.jar"),
                 stageTestsPath,
                 packagesToTest,
                 extraCreditTests);
 
-        results.testName = PASSOFF_TESTS_NAME;
+        if (results.root() == null) {
+            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
+            TestAnalyzer.TestNode.countTests(results.root());
+            LOGGER.error("Passoff tests failed to run for " + netId + " in phase " + phase);
+        }
 
-        float score = getPassoffScore(results);
+        results.root().testName = PASSOFF_TESTS_NAME;
+
+        float score = getPassoffScore(results.root());
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        return new Rubric.Results(getNotes(results), score, rubricConfig.passoffTests().points(), results, null);
+        return new Rubric.Results(getNotes(results.root()), score, rubricConfig.passoffTests().points(), results, null);
     }
 
     protected float getPassoffScore(TestAnalyzer.TestNode testResults) {
@@ -153,7 +162,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runQualityChecks() {
+    protected Rubric.Results runQualityChecks() throws GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         if(rubricConfig.quality() == null) return null;
         observer.update("Running code quality...");
@@ -167,7 +176,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric annotateRubric(Rubric rubric) {
+    protected Rubric annotateRubric(Rubric rubric) throws GradingException {
         return new Rubric(
                 rubric.passoffTests(),
                 rubric.unitTests(),

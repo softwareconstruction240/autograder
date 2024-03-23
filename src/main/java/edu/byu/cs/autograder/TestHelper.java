@@ -3,19 +3,22 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * A helper class for running common test operations
  */
 public class TestHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 
     /**
      * The path to the standalone JUnit jar
@@ -52,8 +55,9 @@ public class TestHelper {
      * @param stagePath     The path to the stage directory
      * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests) {
-
+    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests)
+            throws GradingException {
+        if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
@@ -68,7 +72,7 @@ public class TestHelper {
                     .directory(testsLocation)
                     .command(findCommands);
 
-            String findOutput = ProcessUtils.runProcess(findProcessBuilder)[0].replace("\n", " ");
+            String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
             /* Compile files */
             String chessJarWithDeps;
@@ -83,20 +87,17 @@ public class TestHelper {
             ProcessBuilder compileProcessBuilder =
                     new ProcessBuilder()
                             .directory(testsLocation)
-                            .inheritIO() // TODO: implement better logging
                             .command(compileCommands);
 
-            compileProcessBuilder.redirectInput(ProcessBuilder.Redirect.PIPE);
+            ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            Process compileProcess = compileProcessBuilder.start();
-            compileProcess.getOutputStream().write(findOutput.getBytes());
-            compileProcess.getOutputStream().close();
-
-            if (compileProcess.waitFor() != 0) {
-                throw new RuntimeException("exited with non-zero exit code");
+            if (compileOutput.statusCode() != 0) {
+                LOGGER.error("Error compiling tests: " + compileOutput.stdErr());
+                throw new GradingException("Error compiling tests:", compileOutput.stdErr());
             }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Error compiling tests", e);
+        } catch (IOException | ProcessUtils.ProcessException e) {
+            LOGGER.error("Error compiling tests", e);
+            throw new GradingException("Error compiling tests", e);
         }
     }
 
@@ -130,7 +131,8 @@ public class TestHelper {
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalyzer.TestNode runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest, Set<String> extraCreditTests) {
+    TestAnalyzer.TestAnalysis runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
+                                     Set<String> extraCreditTests) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -143,10 +145,17 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(commands);
 
-        String output = ProcessUtils.runProcess(processBuilder)[0];
+        try {
+            ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
+            String output = processOutput.stdOut();
+            String error = processOutput.stdErr();
 
-        TestAnalyzer testAnalyzer = new TestAnalyzer();
-        return testAnalyzer.parse(output.split("\n"), extraCreditTests);
+            TestAnalyzer testAnalyzer = new TestAnalyzer();
+            return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
+        } catch (ProcessUtils.ProcessException e) {
+            LOGGER.error("Error running tests", e);
+            throw new GradingException("Error running tests", e);
+        }
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
@@ -154,6 +163,7 @@ public class TestHelper {
         commands.add("java");
         commands.add("-jar");
         commands.add(standaloneJunitJarPath);
+        commands.add("execute");
         commands.add("--class-path");
         commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
         commands.add("--details=testfeed");
@@ -172,20 +182,20 @@ public class TestHelper {
      *
      * @return A set of the names of all the test files in the phases directory
      */
-    Set<String> getTestFileNames(File testDirectory) {
+    Set<String> getTestFileNames(File testDirectory) throws GradingException {
         Set<String> testFileNames = new HashSet<>();
         try {
             Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
-            Files.walk(testDirectoryPath)
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        String fileName = path.getFileName().toString();
-                        if (fileName.endsWith(".java")) {
-                            testFileNames.add(fileName);
-                        }
-                    });
+            try(Stream<Path> stream = Files.walk(testDirectoryPath)) {
+                stream.filter(Files::isRegularFile).forEach(path -> {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.endsWith(".java")) {
+                        testFileNames.add(fileName);
+                    }
+                });
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new GradingException(e);
         }
         return testFileNames;
     }
@@ -198,5 +208,11 @@ public class TestHelper {
                 passed = false;
 
         return passed;
+    }
+
+    private static String removeSparkLines(String errorOutput) {
+        List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
+        lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
+        return String.join("\n", lines);
     }
 }

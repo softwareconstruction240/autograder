@@ -38,19 +38,19 @@ public class PhaseThreeGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
                 "server",
-                new File(stageRepo, "server/src/test/java"),
+                new File(stageRepo, "server/src/test/java/"),
                 stagePath,
                 excludedTests);
 
-        TestAnalyzer.TestNode results;
+        TestAnalyzer.TestAnalysis results;
         if (!new File(stagePath, "tests").exists()) {
-            results = new TestAnalyzer.TestNode();
-            TestAnalyzer.TestNode.countTests(results);
+            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), null);
+            TestAnalyzer.TestNode.countTests(results.root());
         } else
             results = new TestHelper().runJUnitTests(
                     new File(stageRepo, "/server/target/server-jar-with-dependencies.jar"),
@@ -58,17 +58,19 @@ public class PhaseThreeGrader extends PassoffTestGrader {
                     Set.of("serviceTests"),
                     new HashSet<>());
 
-        if (results == null) {
-            results = new TestAnalyzer.TestNode();
-            TestAnalyzer.TestNode.countTests(results);
+        if (results.root() == null) {
+            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
+            TestAnalyzer.TestNode.countTests(results.root());
             LOGGER.error("Tests failed to run for " + netId + " in phase 3");
         }
 
-        results.testName = CUSTOM_TESTS_NAME;
+        results.root().testName = CUSTOM_TESTS_NAME;
 
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        return new Rubric.Results(getNotes(results), getUnitTestScore(results), rubricConfig.unitTests().points(), results, null);
+        return new Rubric.Results(getNotes(results.root()), getUnitTestScore(results.root()),
+                rubricConfig.unitTests().points(),
+                results, null);
     }
 
     @Override

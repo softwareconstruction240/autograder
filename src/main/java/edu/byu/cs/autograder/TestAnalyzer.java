@@ -11,6 +11,8 @@ import java.util.Set;
  */
 public class TestAnalyzer {
 
+    public record TestAnalysis(TestNode root, String error) {}
+
     public static class TestNode implements Comparable<TestNode>, Cloneable {
         String testName;
         Boolean passed;
@@ -170,7 +172,7 @@ public class TestAnalyzer {
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestNode parse(String[] inputLines, Set<String> extraCreditTests) {
+    public TestAnalysis parse(String[] inputLines, Set<String> extraCreditTests, String error) throws GradingException {
         this.ecCategories = extraCreditTests;
 
         for (String line : inputLines) {
@@ -203,10 +205,11 @@ public class TestAnalyzer {
                 handleErrorMessage(line);
         }
 
-        if (root != null)
+        if (root != null) {
             TestNode.countTests(root);
+        }
 
-        return root;
+        return new TestAnalysis(root, error);
     }
 
     /**
@@ -251,14 +254,14 @@ public class TestAnalyzer {
      *
      * @param line an error message from a failed test
      */
-    private void handleErrorMessage(String line) {
+    private void handleErrorMessage(String line) throws GradingException {
         if (lastFailingTest == null) {
-            throw new RuntimeException("Error message without a test: " + line);
+            throw new GradingException("Error message without a test: " + line);
         }
 
         if (lastFailingTest.errorMessage == null)
             lastFailingTest.errorMessage = "";
 
-        lastFailingTest.errorMessage += line;
+        lastFailingTest.errorMessage += (line + "\n");
     }
 }

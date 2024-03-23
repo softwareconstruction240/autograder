@@ -2,21 +2,25 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
-import edu.byu.cs.properties.ConfigProperties;
+import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.util.ResourceUtils;
+import org.apache.commons.cli.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
+import static edu.byu.cs.controller.LogsController.logGet;
+import static edu.byu.cs.controller.LogsController.logsGet;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
 public class Server {
 
-
-    public static void main(String[] args) {
-
+    public static void setupEndpoints() {
         port(8080);
 
         webSocket("/ws", WebSocketController.class);
@@ -28,7 +32,7 @@ public class Server {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
             response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
             response.header("Access-Control-Allow-Credentials", "true");
-            response.header("Access-Control-Allow-Origin", ConfigProperties.frontendAppUrl());
+            response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
         });
 
         path("/auth", () -> {
@@ -63,15 +67,25 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
 
-                get("/submissions/latest", latestSubmissionsGet);
+                path("/submissions", () -> {
+                    get("/latest", latestSubmissionsGet);
+
+                    get("/latest/:count", latestSubmissionsGet);
+
+                    get("/active", submissionsActiveGet);
+
+                    get("/student/:netID", studentSubmissionsGet);
+
+                    post("/rerun", submissionsReRunPost);
+                });
+
+                path("/logs", () -> {
+                    get("", logsGet);
+
+                    get("/:log", logGet);
+                });
 
                 get("/test_mode", testModeGet);
-
-                get("/submissions/active", submissionsActiveGet);
-
-                get("/submissions/student/:netID", studentSubmissionsGet);
-
-                post("/submissions/rerun", submissionsReRunPost);
 
                 get("/analytics/commit", commitAnalyticsGet);
 
@@ -92,6 +106,77 @@ public class Server {
             return null;
         });
         init();
+    }
+
+    private static void setupProperties(String[] args) {
+        Options options = getOptions();
+
+        Properties properties = new Properties();
+
+        CommandLineParser parser = new DefaultParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            if (cmd.hasOption("db-url")) {
+                properties.setProperty("db-url", cmd.getOptionValue("db-url"));
+            }
+            if (cmd.hasOption("db-name")) {
+                properties.setProperty("db-name", cmd.getOptionValue("db-name"));
+            }
+            if (cmd.hasOption("db-user")) {
+                properties.setProperty("db-user", cmd.getOptionValue("db-user"));
+            }
+            if (cmd.hasOption("db-pass")) {
+                properties.setProperty("db-pass", cmd.getOptionValue("db-pass"));
+            }
+            if (cmd.hasOption("frontend-url")) {
+                properties.setProperty("frontend-url", cmd.getOptionValue("frontend-url"));
+            }
+            if (cmd.hasOption("cas-callback-url")) {
+                properties.setProperty("cas-callback-url", cmd.getOptionValue("cas-callback-url"));
+            }
+            if (cmd.hasOption("canvas-token")) {
+                properties.setProperty("canvas-token", cmd.getOptionValue("canvas-token"));
+            }
+            if (cmd.hasOption("student-db-host")) {
+                properties.setProperty("student-db-host", cmd.getOptionValue("student-db-host"));
+            }
+            if (cmd.hasOption("student-db-port")) {
+                properties.setProperty("student-db-port", cmd.getOptionValue("student-db-port"));
+            }
+            if (cmd.hasOption("student-db-user")) {
+                properties.setProperty("student-db-user", cmd.getOptionValue("student-db-user"));
+            }
+            if (cmd.hasOption("student-db-pass")) {
+                properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
+            }
+        } catch (ParseException e) {
+            throw new RuntimeException("Error parsing command line arguments", e);
+        }
+
+        ApplicationProperties.loadProperties(properties);
+    }
+
+    private static Options getOptions() {
+        Options options = new Options();
+        options.addOption(null, "db-url", true, "Database URL");
+        options.addOption(null, "db-name", true, "Database Name");
+        options.addOption(null, "db-user", true, "Database User");
+        options.addOption(null, "db-pass", true, "Database Password");
+        options.addOption(null, "frontend-url", true, "Frontend URL");
+        options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
+        options.addOption(null, "canvas-token", true, "Canvas Token");
+        options.addOption(null, "student-db-host", true, "Student DB Host");
+        options.addOption(null, "student-db-port", true, "Student DB Port");
+        options.addOption(null, "student-db-user", true, "Student DB User");
+        options.addOption(null, "student-db-pass", true, "Student DB Password");
+        return options;
+    }
+
+
+    public static void main(String[] args) {
+        ResourceUtils.copyResourceFiles("phases", new File(""));
+        setupProperties(args);
+        setupEndpoints();
 
         try {
             SubmissionController.reRunSubmissionsInQueue();

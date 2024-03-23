@@ -29,18 +29,18 @@ public class PhaseOneGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected boolean passed(Rubric rubric) {
+    protected boolean passed(Rubric rubric) throws GradingException {
         if (rubric.passoffTests() == null || rubric.passoffTests().results() == null || rubric.passoffTests().results().testResults() == null)
-            throw new RuntimeException("Passoff tests are null");
+            throw new GradingException("Passoff tests are null");
 
-        return rubric.passoffTests().results().testResults().numTestsFailed == 0;
+        return rubric.passoffTests().results().testResults().root().numTestsFailed == 0;
     }
 
     @Override
-    protected String getCanvasRubricId(Rubric.RubricType type) {
+    protected String getCanvasRubricId(Rubric.RubricType type) throws GradingException {
         return switch (type) {
             case PASSOFF_TESTS -> "_1958";
-            case UNIT_TESTS, QUALITY -> throw new RuntimeException(String.format("No %s item for this phase", type));
+            case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
         };
     }
 }
