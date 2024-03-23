@@ -1,9 +1,16 @@
 package edu.byu.cs.autograder.score;
 
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.model.Phase;
+import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -17,10 +24,30 @@ import java.util.Set;
  * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
  */
 public class LateDayCalculator {
+    /**
+     * The max number of days that the late penalty should be applied for.
+     */
+    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
     private Set<LocalDate> publicHolidays;
 
     public LateDayCalculator() {
         initializePublicHolidays(getEncodedPublicHolidays());
+    }
+
+    public int calculateLateDays(Phase phase, String netId) throws GradingException {
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+
+        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+
+        ZonedDateTime dueDate;
+        try {
+            dueDate = CanvasIntegration.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+        } catch (CanvasException e) {
+            throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+        }
+
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+        return Math.min(getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
     }
 
     /**

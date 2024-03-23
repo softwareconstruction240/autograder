@@ -1,16 +1,10 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.analytics.CommitAnalytics;
-import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasUtils;
+import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.SubmissionDao;
-import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
-import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -21,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -31,82 +23,14 @@ import java.util.*;
 public abstract class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
 
-    /**
-     * The netId of the student
-     */
-    protected final String netId;
-
-    /**
-     * The phase to grade
-     */
-    protected final Phase phase;
-
-    /**
-     * The path where the official tests are stored
-     */
-    protected final String phasesPath;
-
-    /**
-     * The path where JUnit jars are stored
-     */
-    protected final String libsDir;
-
-    /**
-     * The path to the standalone JUnit jar
-     */
-    protected final String standaloneJunitJarPath;
-
-    /**
-     * The path to the JUnit Jupiter API jar
-     */
-    protected final String junitJupiterApiJarPath;
-
-    /**
-     * The path to the passoff dependencies jar
-     */
-    protected final String passoffDependenciesPath;
-
-    /**
-     * The path for the student repo to be put in and tested
-     */
-    protected final String stagePath;
-
-    /**
-     * The url of the student repo
-     */
-    private final String repoUrl;
-
-    private final DatabaseHelper dbHelper;
-
-
-    /**
-     * The path for the student repo (child of stagePath)
-     */
-
-    protected final File stageRepo;
-
-    /**
-     * The required number of commits (since the last phase) to be able to pass off
-     */
-    private final int requiredCommits;
-
-    /**
-     * The max number of days that the late penalty should be applied for.
-     */
-    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
-
-    /**
-     * The penalty to be applied per day to a late submission.
-     * This is out of 1. So putting 0.1 would be a 10% deduction per day
-     */
-    private static final float PER_DAY_LATE_PENALTY = 0.1F;
-
     protected static final String PASSOFF_TESTS_NAME = "Passoff Tests";
     protected static final String CUSTOM_TESTS_NAME = "Custom Tests";
 
-    protected Observer observer;
+    private final DatabaseHelper dbHelper;
 
-    private DateTimeUtils dateTimeUtils;
+    protected final GradingContext gradingContext;
+
+    protected Observer observer;
 
     /**
      * Creates a new grader
@@ -117,38 +41,15 @@ public abstract class Grader implements Runnable {
      * @param phase    the phase to grade
      */
     public Grader(String repoUrl, String netId, Observer observer, Phase phase) throws IOException {
-        this.netId = netId;
-        this.phase = phase;
-        this.phasesPath = new File("./phases").getCanonicalPath();
-        this.libsDir = new File(phasesPath, "libs").getCanonicalPath();
-        this.standaloneJunitJarPath = new File(libsDir, "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
-        this.junitJupiterApiJarPath = new File(libsDir, "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
-        this.passoffDependenciesPath = new File(libsDir, "passoff-dependencies.jar").getCanonicalPath();
-
+        String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
-        this.stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
-
-        this.repoUrl = repoUrl;
-        this.stageRepo = new File(stagePath, "repo");
-
+        String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
+        File stageRepo = new File(stagePath, "repo");
         this.dbHelper = new DatabaseHelper(salt);
-
-        this.requiredCommits = 10;
-
+        int requiredCommits = 10;
         this.observer = observer;
-
-        this.initializeDateUtils();
-    }
-
-    private void initializeDateUtils() {
-        this.dateTimeUtils = new DateTimeUtils();
-        dateTimeUtils.initializePublicHolidays(getEncodedPublicHolidays());
-    }
-    private String getEncodedPublicHolidays() {
-        // FIXME: Return from some dynamic location like a configuration file or a configurable table
-        return "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;"
-         + "7/4/2024;7/24/2024;9/2/2024;11/27/2024;11/28/2024;11/29/2024;12/24/2024;12/25/2024;12/31/2024;"
-         + "1/1/2025;";
+        this.gradingContext =
+                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits);
     }
 
     public void run() {
@@ -163,13 +64,13 @@ public abstract class Grader implements Runnable {
             verifyProjectStructure();
 
             existingDatabaseNames = dbHelper.getExistingDatabaseNames();
-            dbHelper.injectDatabaseConfig(stageRepo);
+            dbHelper.injectDatabaseConfig(gradingContext.stageRepo());
 
             modifyPoms();
 
             packageRepo();
 
-            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             Rubric.Results qualityResults = null;
             if(rubricConfig.quality() != null) {
                 qualityResults = runQualityChecks();
@@ -202,42 +103,21 @@ public abstract class Grader implements Runnable {
                 customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
 
             Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
-            rubric = CanvasUtils.decimalScoreToPoints(phase, rubric);
-            rubric = annotateRubric(rubric);
 
-            int daysLate = calculateLateDays();
-            float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
-            Submission thisSubmission;
+            Submission submission = new Scorer(gradingContext).score(rubric, numCommits);
 
-            // prevent score from being saved to canvas if it will lower their score
-            if(rubric.passed()) {
-                float highestScore = getCanvasScore();
-
-                // prevent score from being saved to canvas if it will lower their score
-                if (thisScore <= highestScore && phase != Phase.Phase5 && phase != Phase.Phase6) {
-                    String notes = "Submission did not improve current score. (" + (highestScore * 100) +
-                            "%) Score not saved to Canvas.\n";
-                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
-                } else {
-                    thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-                    sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
-                }
-            }
-            else {
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-            }
-
-            observer.notifyDone(thisSubmission);
+            observer.notifyDone(submission);
 
         } catch (GradingException ge) {
             observer.notifyError(ge.getMessage(), ge.getDetails());
-            String notification = "Error running grader for user " + netId + " and repository " + repoUrl;
+            String notification =
+                    "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
             if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
             LOGGER.error(notification, ge);
         }
         catch (Exception e) {
             observer.notifyError(e.getMessage());
-            LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
+            LOGGER.error("Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
         } finally {
             if(!finishedCleaningDatabase) {
                 try {
@@ -246,25 +126,33 @@ public abstract class Grader implements Runnable {
                     currentDatabaseNames.removeAll(existingDatabaseNames);
                     dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
                 } catch (GradingException e) {
-                    LOGGER.error("Error cleaning up after user " + netId + " and repository " + repoUrl, e);
+                    LOGGER.error("Error cleaning up after user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
                 }
             }
-            FileUtils.removeDirectory(new File(stagePath));
+            FileUtils.removeDirectory(new File(gradingContext.stagePath()));
         }
     }
 
-    protected abstract Set<String> getPackagesToTest();
+    private Set<String> getPackagesToTest() throws GradingException {
+        return switch (gradingContext.phase()) {
+            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
+            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
+            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
+            case Phase5 -> throw new GradingException("No passoff tests for this phase");
+            case Phase6 -> throw new GradingException("Not implemented");
+        };
+    }
 
     private void modifyPoms() {
-        File oldRootPom = new File(stageRepo, "pom.xml");
-        File oldServerPom = new File(stageRepo, "server/pom.xml");
-        File oldClientPom = new File(stageRepo, "client/pom.xml");
-        File oldSharedPom = new File(stageRepo, "shared/pom.xml");
+        File oldRootPom = new File(gradingContext.stageRepo(), "pom.xml");
+        File oldServerPom = new File(gradingContext.stageRepo(), "server/pom.xml");
+        File oldClientPom = new File(gradingContext.stageRepo(), "client/pom.xml");
+        File oldSharedPom = new File(gradingContext.stageRepo(), "shared/pom.xml");
 
-        File newRootPom = new File(phasesPath, "pom/pom.xml");
-        File newServerPom = new File(phasesPath, "pom/server/pom.xml");
-        File newClientPom = new File(phasesPath, "pom/client/pom.xml");
-        File newSharedPom = new File(phasesPath, "pom/shared/pom.xml");
+        File newRootPom = new File(gradingContext.phasesPath(), "pom/pom.xml");
+        File newServerPom = new File(gradingContext.stageRepo(), "pom/server/pom.xml");
+        File newClientPom = new File(gradingContext.stageRepo(), "pom/client/pom.xml");
+        File newSharedPom = new File(gradingContext.stageRepo(), "pom/shared/pom.xml");
 
         FileUtils.copyFile(oldRootPom, newRootPom);
         FileUtils.copyFile(oldServerPom, newServerPom);
@@ -273,146 +161,35 @@ public abstract class Grader implements Runnable {
     }
 
     /**
-     * gets the score stored in canvas for the current user and phase
-     * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
-     */
-    private float getCanvasScore() throws GradingException {
-        User user = DaoService.getUserDao().getUser(netId);
-
-        int userId = user.canvasUserId();
-
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-        try {
-            CanvasIntegration.CanvasSubmission submission =
-                    CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
-            return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
-        } catch (CanvasException e) {
-            throw new GradingException(e);
-        }
-    }
-
-    /**
      * Runs quality checks on the student's code
      *
      * @return the results of the quality checks as a CanvasIntegration.RubricItem
      */
-    protected abstract Rubric.Results runQualityChecks() throws GradingException;
+    protected Rubric.Results runQualityChecks() throws GradingException {
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        if(rubricConfig.quality() == null) return null;
+        observer.update("Running code quality...");
+
+        QualityAnalyzer analyzer = new QualityAnalyzer();
+
+        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(gradingContext.stageRepo());
+
+        return new Rubric.Results(quality.notes(), quality.score(),
+                rubricConfig.quality().points(), null, quality.results());
+    }
 
     /**
      * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
      * which is checked by looking for a pom.xml file
      */
     private void verifyProjectStructure() throws GradingException {
-        File pomFile = new File(stageRepo, "pom.xml");
+        File pomFile = new File(gradingContext.stageRepo(), "pom.xml");
         if (!pomFile.exists()) {
             observer.notifyError("Project is not structured correctly. Your project should be at the top level of your git repository.");
             throw new GradingException("No pom.xml file found");
         }
     }
 
-    private int calculateLateDays() throws GradingException {
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-
-        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
-
-        ZonedDateTime dueDate;
-        try {
-            dueDate = CanvasIntegration.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
-        } catch (CanvasException e) {
-            throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
-        }
-
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-        return Math.min(dateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
-    }
-
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
-        float score = getScore(rubric);
-        score -= numDaysLate * PER_DAY_LATE_PENALTY;
-        if (score < 0) score = 0;
-        return score;
-    }
-
-    /**
-     * Saves the results of the grading to the database if the submission passed
-     *
-     * @param rubric the rubric for the phase
-     */
-    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
-            throws GradingException {
-        String headHash = getHeadHash();
-
-        if (numDaysLate > 0)
-            notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
-
-        // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
-
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = new Submission(
-                netId,
-                repoUrl,
-                headHash,
-                handInDate.toInstant(),
-                phase,
-                rubric.passed(),
-                score,
-                numCommits,
-                notes,
-                rubric
-        );
-
-        submissionDao.insertSubmission(submission);
-        return submission;
-    }
-
-    private void sendToCanvas(Submission submission, float lateAdjustment) throws GradingException {
-        UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(netId);
-
-        int userId = user.canvasUserId();
-
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        Map<String, Float> scores = new HashMap<>();
-        Map<String, String> comments = new HashMap<>();
-
-        convertToCanvasFormat(submission.rubric().passoffTests(), lateAdjustment, rubricConfig.passoffTests(), scores, comments, Rubric.RubricType.PASSOFF_TESTS);
-        convertToCanvasFormat(submission.rubric().unitTests(), lateAdjustment, rubricConfig.unitTests(), scores, comments, Rubric.RubricType.UNIT_TESTS);
-        convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
-
-        try {
-            CanvasIntegration.getCanvasIntegration().submitGrade(userId, assignmentNum, scores, comments, submission.notes());
-        } catch (CanvasException e) {
-            LOGGER.error("Error submitting to canvas for user " + submission.netId(), e);
-            throw new GradingException("Error contacting canvas to record scores");
-        }
-
-    }
-
-    private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
-                                       RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
-                                       Map<String, String> comments, Rubric.RubricType rubricType)
-            throws GradingException {
-        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
-            String id = getCanvasRubricId(rubricType);
-            Rubric.Results results = rubricItem.results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
-        }
-    }
-
-    private String getHeadHash() throws GradingException {
-        String headHash;
-        try (Git git = Git.open(stageRepo)) {
-            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
-        } catch (IOException e) {
-            throw new GradingException("Failed to get head hash: " + e.getMessage());
-        }
-        return headHash;
-    }
 
     /**
      * Fetches the student repo and puts it in the given local path
@@ -421,8 +198,8 @@ public abstract class Grader implements Runnable {
         observer.update("Fetching repo...");
 
         CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(repoUrl)
-                .setDirectory(stageRepo);
+                .setURI(gradingContext.repoUrl())
+                .setDirectory(gradingContext.stageRepo());
 
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
@@ -443,9 +220,10 @@ public abstract class Grader implements Runnable {
     private int verifyRegularCommits() throws GradingException {
         observer.update("Verifying commits...");
 
-        try (Git git = Git.open(stageRepo)) {
+        try (Git git = Git.open(gradingContext.stageRepo())) {
             Iterable<RevCommit> commits = git.log().all().call();
-            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
+            Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(gradingContext.netId(),
+                    gradingContext.phase());
             long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
             Map<String, Integer> commitHistory = CommitAnalytics.handleCommits(commits, timestamp, Instant.now().getEpochSecond());
             int numCommits = CommitAnalytics.getTotalCommits(commitHistory);
@@ -471,7 +249,7 @@ public abstract class Grader implements Runnable {
 
         observer.update("  Running maven package command...");
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(stageRepo);
+        processBuilder.directory(gradingContext.stageRepo());
         processBuilder.command("mvn", "package", "-DskipTests");
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
@@ -499,7 +277,7 @@ public abstract class Grader implements Runnable {
             }
 
             if(line.contains("[ERROR]")) {
-                String trimLine = line.replace(stageRepo.getAbsolutePath(), "");
+                String trimLine = line.replace(gradingContext.stageRepo().getAbsolutePath(), "");
                 builder.append(trimLine).append("\n");
             }
         }
@@ -522,42 +300,6 @@ public abstract class Grader implements Runnable {
      * Runs the tests on the student code
      */
     protected abstract Rubric.Results runTests(Set<String> packagesToTest) throws GradingException;
-
-    /**
-     * Gets the score for the phase
-     *
-     * @return the score
-     */
-    protected float getScore(Rubric rubric) throws GradingException {
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
-
-        if (totalPossiblePoints == 0)
-            throw new GradingException("Total possible points for phase " + phase + " is 0");
-
-        float score = 0;
-        if (rubric.passoffTests() != null)
-            score += rubric.passoffTests().results().score();
-
-        if (rubric.unitTests() != null)
-            score += rubric.unitTests().results().score();
-
-        if (rubric.quality() != null)
-            score += rubric.quality().results().score();
-
-        return score / totalPossiblePoints;
-    }
-
-    protected abstract boolean passed(Rubric rubric) throws GradingException;
-
-    /**
-     * Annotates the rubric with notes and passed status
-     *
-     * @param rubric the rubric to annotate
-     * @return the annotated rubric
-     */
-    protected abstract Rubric annotateRubric(Rubric rubric) throws GradingException;
-
-    protected abstract String getCanvasRubricId(Rubric.RubricType type) throws GradingException;
 
     public interface Observer {
         void notifyStarted();
