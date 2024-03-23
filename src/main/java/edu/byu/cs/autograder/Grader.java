@@ -229,16 +229,26 @@ public abstract class Grader implements Runnable {
 
             observer.notifyDone(thisSubmission);
 
-        } catch (Exception e) {
+        } catch (GradingException ge) {
+            if(ge.getDetails() == null) observer.notifyError(ge.getMessage());
+            else observer.notifyError(ge.getMessage(), ge.getDetails());
+            String notification = "Error running grader for user " + netId + " and repository " + repoUrl;
+            if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
+            LOGGER.error(notification, ge);
+        }
+        catch (Exception e) {
             observer.notifyError(e.getMessage());
-
             LOGGER.error("Error running grader for user " + netId + " and repository " + repoUrl, e);
         } finally {
             if(!finishedCleaningDatabase) {
-                dbHelper.cleanupDatabase();
-                Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
-                currentDatabaseNames.removeAll(existingDatabaseNames);
-                dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
+                try {
+                    dbHelper.cleanupDatabase();
+                    Collection<String> currentDatabaseNames = dbHelper.getExistingDatabaseNames();
+                    currentDatabaseNames.removeAll(existingDatabaseNames);
+                    dbHelper.cleanUpExtraDatabases(currentDatabaseNames);
+                } catch (GradingException e) {
+                    LOGGER.error("Error cleaning up after user " + netId + " and repository " + repoUrl, e);
+                }
             }
             FileUtils.removeDirectory(new File(stagePath));
         }
@@ -267,7 +277,7 @@ public abstract class Grader implements Runnable {
      * gets the score stored in canvas for the current user and phase
      * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
      */
-    private float getCanvasScore() {
+    private float getCanvasScore() throws GradingException {
         User user = DaoService.getUserDao().getUser(netId);
 
         int userId = user.canvasUserId();
@@ -278,7 +288,7 @@ public abstract class Grader implements Runnable {
             int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
             return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
         } catch (CanvasException e) {
-            throw new RuntimeException(e);
+            throw new GradingException(e);
         }
     }
 
@@ -287,21 +297,21 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the quality checks as a CanvasIntegration.RubricItem
      */
-    protected abstract Rubric.Results runQualityChecks();
+    protected abstract Rubric.Results runQualityChecks() throws GradingException;
 
     /**
      * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
      * which is checked by looking for a pom.xml file
      */
-    private void verifyProjectStructure() {
+    private void verifyProjectStructure() throws GradingException {
         File pomFile = new File(stageRepo, "pom.xml");
         if (!pomFile.exists()) {
             observer.notifyError("Project is not structured correctly. Your project should be at the top level of your git repository.");
-            throw new RuntimeException("No pom.xml file found");
+            throw new GradingException("No pom.xml file found");
         }
     }
 
-    private int calculateLateDays() {
+    private int calculateLateDays() throws GradingException {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
@@ -310,14 +320,14 @@ public abstract class Grader implements Runnable {
         try {
             dueDate = CanvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
-            throw new RuntimeException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+            throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
 
         ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
         return Math.min(dateTimeUtils.getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
     }
 
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) {
+    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
         float score = getScore(rubric);
         score -= numDaysLate * PER_DAY_LATE_PENALTY;
         if (score < 0) score = 0;
@@ -329,7 +339,8 @@ public abstract class Grader implements Runnable {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes) {
+    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
+            throws GradingException {
         String headHash = getHeadHash();
 
         if (numDaysLate > 0)
@@ -357,7 +368,7 @@ public abstract class Grader implements Runnable {
         return submission;
     }
 
-    private void sendToCanvas(Submission submission, float lateAdjustment) {
+    private void sendToCanvas(Submission submission, float lateAdjustment) throws GradingException {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(netId);
 
@@ -377,14 +388,15 @@ public abstract class Grader implements Runnable {
             CanvasIntegration.submitGrade(userId, assignmentNum, scores, comments, submission.notes());
         } catch (CanvasException e) {
             LOGGER.error("Error submitting to canvas for user " + submission.netId(), e);
-            throw new RuntimeException("Error contacting canvas to record scores");
+            throw new GradingException("Error contacting canvas to record scores");
         }
 
     }
 
     private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
                                        RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
-                                       Map<String, String> comments, Rubric.RubricType rubricType) {
+                                       Map<String, String> comments, Rubric.RubricType rubricType)
+            throws GradingException {
         if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
             String id = getCanvasRubricId(rubricType);
             Rubric.Results results = rubricItem.results();
@@ -393,12 +405,12 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    private String getHeadHash() {
+    private String getHeadHash() throws GradingException {
         String headHash;
         try (Git git = Git.open(stageRepo)) {
             headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to get head hash: " + e.getMessage());
+            throw new GradingException("Failed to get head hash: " + e.getMessage());
         }
         return headHash;
     }
@@ -406,7 +418,7 @@ public abstract class Grader implements Runnable {
     /**
      * Fetches the student repo and puts it in the given local path
      */
-    private void fetchRepo() {
+    private void fetchRepo() throws GradingException {
         observer.update("Fetching repo...");
 
         CloneCommand cloneCommand = Git.cloneRepository()
@@ -418,7 +430,7 @@ public abstract class Grader implements Runnable {
         } catch (GitAPIException e) {
             observer.notifyError("Failed to clone repo: " + e.getMessage());
             LOGGER.error("Failed to clone repo", e);
-            throw new RuntimeException("Failed to clone repo: " + e.getMessage());
+            throw new GradingException("Failed to clone repo: ",  e.getMessage());
         }
 
         observer.update("Successfully fetched repo");
@@ -429,7 +441,7 @@ public abstract class Grader implements Runnable {
      *
      * @return the number of commits since the last passoff
      */
-    private int verifyRegularCommits() {
+    private int verifyRegularCommits() throws GradingException {
         observer.update("Verifying commits...");
 
         try (Git git = Git.open(stageRepo)) {
@@ -441,21 +453,21 @@ public abstract class Grader implements Runnable {
 //            if (numCommits < requiredCommits) {
 //                observer.notifyError("Not enough commits to pass off. (" + numCommits + "/" + requiredCommits + ")");
 //                LOGGER.error("Insufficient commits to pass off.");
-//                throw new RuntimeException("Not enough commits to pass off");
+//                throw new GradingException("Not enough commits to pass off");
 //            }
 
             return numCommits;
         } catch (IOException | GitAPIException e) {
             observer.notifyError("Failed to count commits: " + e.getMessage());
             LOGGER.error("Failed to count commits", e);
-            throw new RuntimeException("Failed to count commits: " + e.getMessage());
+            throw new GradingException("Failed to count commits: ", e.getMessage());
         }
     }
 
     /**
      * Packages the student repo into a jar
      */
-    protected void packageRepo() {
+    protected void packageRepo() throws GradingException {
         observer.update("Packaging repo...");
 
         observer.update("  Running maven package command...");
@@ -465,17 +477,34 @@ public abstract class Grader implements Runnable {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                observer.notifyError("Failed to package repo");
-                LOGGER.error("Failed to package repo");
-                throw new RuntimeException("Failed to package repo");
+                throw new GradingException("Failed to package repo: ", getMavenError(output.stdOut()));
             }
         } catch (ProcessUtils.ProcessException ex) {
-            observer.notifyError("Failed to package repo: " + ex.getMessage());
-            LOGGER.error("Failed to package repo", ex);
-            throw new RuntimeException("Failed to package repo", ex);
+            throw new GradingException("Failed to package repo", ex);
         }
 
         observer.update("Successfully packaged repo");
+    }
+
+    /**
+     * Retrieves maven error output from maven package stdout
+     *
+     * @param output A string containing maven standard output
+     * @return A string containing maven package error lines
+     */
+    private String getMavenError(String output) {
+        StringBuilder builder = new StringBuilder();
+        for (String line : output.split("\n")) {
+            if (line.contains("[ERROR] -> [Help 1]")) {
+                break;
+            }
+
+            if(line.contains("[ERROR]")) {
+                String trimLine = line.replace(stageRepo.getAbsolutePath(), "");
+                builder.append(trimLine).append("\n");
+            }
+        }
+        return builder.toString();
     }
 
     /**
@@ -483,28 +512,28 @@ public abstract class Grader implements Runnable {
      *
      * @return the results of the tests
      */
-    protected abstract Rubric.Results runCustomTests();
+    protected abstract Rubric.Results runCustomTests() throws GradingException;
 
     /**
      * Compiles the test files with the student code
      */
-    protected abstract void compileTests();
+    protected abstract void compileTests() throws GradingException;
 
     /**
      * Runs the tests on the student code
      */
-    protected abstract Rubric.Results runTests(Set<String> packagesToTest);
+    protected abstract Rubric.Results runTests(Set<String> packagesToTest) throws GradingException;
 
     /**
      * Gets the score for the phase
      *
      * @return the score
      */
-    protected float getScore(Rubric rubric) {
+    protected float getScore(Rubric rubric) throws GradingException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
 
         if (totalPossiblePoints == 0)
-            throw new RuntimeException("Total possible points for phase " + phase + " is 0");
+            throw new GradingException("Total possible points for phase " + phase + " is 0");
 
         float score = 0;
         if (rubric.passoffTests() != null)
@@ -519,7 +548,7 @@ public abstract class Grader implements Runnable {
         return score / totalPossiblePoints;
     }
 
-    protected abstract boolean passed(Rubric rubric);
+    protected abstract boolean passed(Rubric rubric) throws GradingException;
 
     /**
      * Annotates the rubric with notes and passed status
@@ -527,9 +556,9 @@ public abstract class Grader implements Runnable {
      * @param rubric the rubric to annotate
      * @return the annotated rubric
      */
-    protected abstract Rubric annotateRubric(Rubric rubric);
+    protected abstract Rubric annotateRubric(Rubric rubric) throws GradingException;
 
-    protected abstract String getCanvasRubricId(Rubric.RubricType type);
+    protected abstract String getCanvasRubricId(Rubric.RubricType type) throws GradingException;
 
     public interface Observer {
         void notifyStarted();
@@ -537,6 +566,7 @@ public abstract class Grader implements Runnable {
         void update(String message);
 
         void notifyError(String message);
+        void notifyError(String message, String details);
 
         void notifyDone(Submission submission);
     }

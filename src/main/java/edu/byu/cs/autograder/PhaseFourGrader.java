@@ -43,7 +43,7 @@ public class PhaseFourGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         Set<String> excludedTests = new TestHelper().getTestFileNames(phaseTests);
         new TestHelper().compileTests(
                 stageRepo,
@@ -101,11 +101,11 @@ public class PhaseFourGrader extends PassoffTestGrader {
     }
 
     @Override
-    protected String getCanvasRubricId(Rubric.RubricType type) {
+    protected String getCanvasRubricId(Rubric.RubricType type) throws GradingException {
         return switch (type) {
             case PASSOFF_TESTS -> "_2614";
             case UNIT_TESTS -> "_930";
-            default -> throw new RuntimeException(String.format("No %s item for this phase", type));
+            default -> throw new GradingException(String.format("No %s item for this phase", type));
         };
     }
 }

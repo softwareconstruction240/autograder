@@ -62,20 +62,20 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runCustomTests() {
+    protected Rubric.Results runCustomTests() throws GradingException {
         // no unit tests for this phase
         return null;
     }
 
     @Override
-    protected void compileTests() {
+    protected void compileTests() throws GradingException {
         observer.update("Compiling tests...");
         new TestHelper().compileTests(stageRepo, module, phaseTests, stagePath, new HashSet<>());
         observer.update("Finished compiling tests.");
     }
 
     @Override
-    protected Rubric.Results runTests(Set<String> packagesToTest) {
+    protected Rubric.Results runTests(Set<String> packagesToTest) throws GradingException {
         observer.update("Running tests...");
 
         TestAnalyzer.TestAnalysis results = new TestHelper().runJUnitTests(
@@ -162,7 +162,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric.Results runQualityChecks() {
+    protected Rubric.Results runQualityChecks() throws GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         if(rubricConfig.quality() == null) return null;
         observer.update("Running code quality...");
@@ -176,7 +176,7 @@ public abstract class PassoffTestGrader extends Grader {
     }
 
     @Override
-    protected Rubric annotateRubric(Rubric rubric) {
+    protected Rubric annotateRubric(Rubric rubric) throws GradingException {
         return new Rubric(
                 rubric.passoffTests(),
                 rubric.unitTests(),

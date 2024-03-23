@@ -284,9 +284,15 @@ public class SubmissionController {
 
             @Override
             public void notifyError(String message) {
+                notifyError(message, "");
+            }
+
+            @Override
+            public void notifyError(String message, String details) {
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "error",
-                        "message", message
+                        "message", message,
+                        "details", details
                 ));
 
                 TrafficController.sessions.remove(netId);
