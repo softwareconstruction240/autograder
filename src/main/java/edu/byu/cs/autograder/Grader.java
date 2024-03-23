@@ -484,12 +484,22 @@ public abstract class Grader implements Runnable {
         observer.update("Successfully packaged repo");
     }
 
-    private String getMavenError(String output) { //why doesn't maven use std error?!?
-        String[] split = output.split("\n");
+    /**
+     * Retrieves maven error output from maven package stdout
+     *
+     * @param output A string containing maven standard output
+     * @return A string containing maven package error lines
+     */
+    private String getMavenError(String output) {
         StringBuilder builder = new StringBuilder();
-        for(int i = 0; i < split.length && !split[i].contains("[ERROR] -> [Help 1]"); i++) {
-            if(split[i].contains("[ERROR]")) {
-                builder.append(split[i].replace(stageRepo.getAbsolutePath(), "")).append("\n");
+        for (String line : output.split("\n")) {
+            if (line.contains("[ERROR] -> [Help 1]")) {
+                break;
+            }
+
+            if(line.contains("[ERROR]")) {
+                String trimLine = line.replace(stageRepo.getAbsolutePath(), "");
+                builder.append(trimLine).append("\n");
             }
         }
         return builder.toString();
