@@ -1,5 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.test;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;

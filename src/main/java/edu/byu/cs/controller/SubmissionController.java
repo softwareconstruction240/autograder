@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.test.TestGrader;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
@@ -311,7 +312,7 @@ public class SubmissionController {
             }
         };
 
-        return new PassoffTestGrader(netId, repoUrl, observer, phase);
+        return new Grader(netId, repoUrl, observer, phase);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {

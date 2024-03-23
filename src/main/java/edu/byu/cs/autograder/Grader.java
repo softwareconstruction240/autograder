@@ -4,6 +4,8 @@ import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.score.Scorer;
+import edu.byu.cs.autograder.test.PassoffTestGrader;
+import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.util.FileUtils;
@@ -17,11 +19,8 @@ import java.util.*;
 /**
  * A template for fetching, compiling, and running student code
  */
-public abstract class Grader implements Runnable {
+public class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
-
-    protected static final String PASSOFF_TESTS_NAME = "Passoff Tests";
-    protected static final String CUSTOM_TESTS_NAME = "Custom Tests";
 
     private final DatabaseHelper dbHelper;
 
@@ -70,15 +69,13 @@ public abstract class Grader implements Runnable {
                 qualityResults = runQualityChecks();
             }
 
-
             Rubric.Results passoffResults = null;
             if(rubricConfig.passoffTests() != null) {
-                compileTests();
-                passoffResults = runTests(getPackagesToTest());
+                passoffResults = new PassoffTestGrader(gradingContext).runTests();
             }
             Rubric.Results customTestsResults = null;
             if(rubricConfig.unitTests() != null) {
-                customTestsResults = runCustomTests();
+                customTestsResults = new UnitTestGrader(gradingContext).runTests();
             }
 
             dbHelper.finish();
@@ -116,16 +113,6 @@ public abstract class Grader implements Runnable {
         }
     }
 
-    private Set<String> getPackagesToTest() throws GradingException {
-        return switch (gradingContext.phase()) {
-            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
-            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
-            case Phase5 -> throw new GradingException("No passoff tests for this phase");
-            case Phase6 -> throw new GradingException("Not implemented");
-        };
-    }
-
 
     /**
      * Runs quality checks on the student's code
@@ -144,24 +131,6 @@ public abstract class Grader implements Runnable {
         return new Rubric.Results(quality.notes(), quality.score(),
                 rubricConfig.quality().points(), null, quality.results());
     }
-
-
-    /**
-     * Run the unit tests written by the student. This approach is destructive as it will delete non-unit tests
-     *
-     * @return the results of the tests
-     */
-    protected abstract Rubric.Results runCustomTests() throws GradingException;
-
-    /**
-     * Compiles the test files with the student code
-     */
-    protected abstract void compileTests() throws GradingException;
-
-    /**
-     * Runs the tests on the student code
-     */
-    protected abstract Rubric.Results runTests(Set<String> packagesToTest) throws GradingException;
 
     public interface Observer {
         void notifyStarted();
