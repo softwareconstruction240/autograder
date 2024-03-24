@@ -33,18 +33,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
-    // FIXME: set this dynamically or pull from config
-    public static final Map<Integer, Integer> sectionIDs;
-
-    static {
-        sectionIDs = new HashMap<>();
-        sectionIDs.put(1, 26512);
-        sectionIDs.put(2, 26513);
-        sectionIDs.put(3, 25972);
-        sectionIDs.put(4, 25496);
-        sectionIDs.put(5, 25971);
-    }
-
     private record Enrollment(EnrollmentType type) {
 
     }
