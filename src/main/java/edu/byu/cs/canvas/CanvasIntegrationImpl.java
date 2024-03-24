@@ -1,6 +1,7 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
@@ -296,6 +297,14 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             throw new CanvasException("Unable to get due date for assignment");
 
         return assignment.due_at();
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return makeCanvasRequest("GET",
+                "/courses/" + COURSE_NUMBER + "/sections",
+                null,
+                CanvasSection[].class);
     }
 
     private enum EnrollmentType {

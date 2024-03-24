@@ -1,5 +1,6 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.User;
@@ -58,5 +59,10 @@ public class FakeCanvasIntegration implements CanvasIntegration{
     @Override
     public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
         return null;
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return new CanvasSection[]{new CanvasSection(0, "Fake Section")};
     }
 }
