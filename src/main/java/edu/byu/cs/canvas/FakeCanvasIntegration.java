@@ -1,5 +1,6 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.User;
 

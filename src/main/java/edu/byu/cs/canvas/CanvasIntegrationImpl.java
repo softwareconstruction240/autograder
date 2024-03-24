@@ -1,6 +1,8 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -184,7 +186,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                             Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, assignmentNum);
         if(submission.rubric_assessment() != null) {
-            for(Map.Entry<String, CanvasIntegrationImpl.RubricItem> entry : submission.rubric_assessment().items().entrySet()) {
+            for(Map.Entry<String, CanvasRubricItem> entry : submission.rubric_assessment().items().entrySet()) {
                 grades.putIfAbsent(entry.getKey(), entry.getValue().points());
                 rubricComments.putIfAbsent(entry.getKey(), entry.getValue().comments());
             }

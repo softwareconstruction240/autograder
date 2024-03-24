@@ -1,5 +1,6 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.eclipse.jgit.annotations.Nullable;
@@ -14,12 +15,6 @@ public interface CanvasIntegration {
         if(ApplicationProperties.useCanvas()) return new CanvasIntegrationImpl();
         else return new FakeCanvasIntegration();
     }
-
-    record RubricItem(String comments, float points) {}
-
-    record RubricAssessment(Map<String, RubricItem> items) {}
-
-    record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {}
 
 
     /**

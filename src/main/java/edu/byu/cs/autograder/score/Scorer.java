@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
@@ -132,7 +133,7 @@ public class Scorer {
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
         try {
-            CanvasIntegration.CanvasSubmission submission =
+            CanvasSubmission submission =
                     CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
             int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
             return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
