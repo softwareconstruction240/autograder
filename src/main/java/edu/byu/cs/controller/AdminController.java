@@ -2,7 +2,9 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
@@ -122,7 +124,7 @@ public class AdminController {
         res.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
 
         try {
-            filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
+            filePath = HonorCheckerCompiler.compileSection(sectionStr);
             try (FileInputStream fis = new FileInputStream(filePath);
                  OutputStream os = res.raw().getOutputStream()) {
 
@@ -139,6 +141,18 @@ public class AdminController {
                 return res.raw();
             }
         } catch (Exception e) {
+            res.status(500);
+            return e.getMessage();
+        }
+    };
+
+    public static Route sectionsGet = (req, res) -> {
+        try {
+            CanvasSection[] sections = CanvasIntegration.getCanvasIntegration().getAllSections();
+            res.type("application/json");
+            res.status(200);
+            return new Gson().toJson(sections);
+        } catch (CanvasException e) {
             res.status(500);
             return e.getMessage();
         }
