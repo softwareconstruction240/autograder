@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
-    
+
     /**
      * The penalty to be applied per day to a late submission.
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
@@ -212,8 +212,4 @@ public class Scorer {
             throw new GradingException("Error contacting canvas to record scores");
         }
     }
-
-
-
-
 }

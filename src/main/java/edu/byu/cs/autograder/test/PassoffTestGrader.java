@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
 import java.util.*;
@@ -47,14 +48,7 @@ public class PassoffTestGrader extends TestGrader {
 
     @Override
     protected Set<String> packagesToTest() throws GradingException {
-        return switch (gradingContext.phase()) {
-            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
-            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
-            case Phase5 -> throw new GradingException("No passoff tests for this phase");
-            case Phase6 -> throw new GradingException("Not implemented");
-        };
-
+        return PhaseUtils.passoffPackagesToTest(gradingContext.phase());
     }
 
     @Override
