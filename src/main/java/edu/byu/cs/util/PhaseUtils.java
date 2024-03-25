@@ -127,4 +127,13 @@ public class PhaseUtils {
             case Phase5 -> "server facade";
         };
     }
+
+    public static int minUnitTests(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> 13;
+            case Phase4 -> 18;
+            case Phase5 -> 12;
+        };
+    }
 }
