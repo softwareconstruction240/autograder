@@ -92,7 +92,7 @@ public class Scorer {
 
     private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
         float score = getScore(rubric);
-        score -= numDaysLate * PER_DAY_LATE_PENALTY;
+        score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
         if (score < 0) score = 0;
         return score;
     }
