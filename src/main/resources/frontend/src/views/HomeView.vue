@@ -1,10 +1,10 @@
 <script setup lang="ts">
 
-import Tabs from "@/components/tabs/Tabs.vue";
-import Tab from "@/components/tabs/Tab.vue";
-import PhaseView from "@/views/PhaseView/PhaseView.vue";
-import {onMounted} from "vue";
+import { onMounted, ref } from 'vue'
 import {useSubmissionStore} from "@/stores/submissions";
+import OptionSelector from '@/components/OptionSelector.vue'
+import type { Phase } from '@/types/types'
+import { uiConfig } from '@/stores/uiConfig'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -14,36 +14,28 @@ onMounted(async () => {
   }, 5000);
 })
 
+const selectedPhase = ref<Phase | null>(null);
+
+const selectPhase = (phase: Phase) => {
+  selectedPhase.value = phase
+}
+
 </script>
 
 <template>
-  <div>
-    <h3 id="instruction-text">Select a phase from below to submit code, view test results, and review past attempts</h3>
-  </div>
-  <Tabs>
-    <Tab title="Phase 0">
-      <PhaseView phase-title="Phase 0: Chess piece move rules" phaseDescription="For this phase you must pass all of the provided automated tests." phase="0" />
-    </Tab>
-    <Tab title="Phase 1">
-      <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." phase="1" />
-    </Tab>
-    <Tab title="Phase 3">
-      <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." phase="3" />
-    </Tab>
-    <Tab title="Phase 4">
-      <PhaseView phase-title="Phase 4: SQL DAOs" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." phase="4" />
-    </Tab>
-    <Tab title="Phase 5">
-      <PhaseView phase-title="Phase 5: Chess Client" phaseDescription="For this phase you must pass all of the unit tests that you were required to write." phase="5" />
-    </Tab>
-    <Tab title="Phase 6" disabled>Phase 6 content</Tab>
-  </Tabs>
+  <OptionSelector
+    :options="['0','1','3','4','5','6']"
+  @optionSelected="value => selectPhase(value)"/>
+
+  <h3 v-if="selectedPhase" v-html="uiConfig.getPhaseName(selectedPhase)"/>
+  <h3 v-else>Please select a phase</h3>
 </template>
 
 <style scoped>
-#instruction-text {
-  text-align: center;
-  margin-top: 5px;
-  margin-bottom: 15px;
+* {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>

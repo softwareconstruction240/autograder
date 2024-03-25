@@ -23,10 +23,10 @@
 
 /* semantic color variables for this project */
 :root {
-    --color-background: #d7d7d7;
+    --color-background: #0d0e17;
 
     --color--surface--background: #F6F6F5;
-    --color--surface--text: var(--vt-c-black);
+    --color--surface--text: #e4edff;
     --color--surface--action: var(--vt-c-indigo);
 
     --color--secondary--background: #2E3439;
@@ -71,8 +71,7 @@ body {
     min-height: 100vh;
     color: var(--color--surface--text);
     background: var(--color-background);
-    transition: color 0.5s,
-    background-color 0.5s;
+    transition: background-color 0.3s;
     line-height: 1.6;
     font-family: Inter,
     -apple-system,
