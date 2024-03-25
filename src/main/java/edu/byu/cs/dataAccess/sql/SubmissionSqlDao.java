@@ -21,8 +21,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric, admin)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """)) {
             statement.setString(1, submission.netId());
             statement.setString(2, submission.repoUrl());
@@ -35,6 +35,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(9, submission.notes());
             statement.setString(10, "{}");
             statement.setString(11, new Gson().toJson(submission.rubric()));
+            statement.setBoolean(12, submission.admin());
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
@@ -46,7 +47,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
+                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
                     FROM submission
                     WHERE net_id = ? AND phase = ?
                     """);
@@ -64,7 +65,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
+                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
                     FROM submission
                     WHERE net_id = ?
                     """);
@@ -86,7 +87,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
+                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
                             FROM submission
                             WHERE timestamp IN (
                                 SELECT MAX(timestamp)
@@ -127,7 +128,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
+                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
                             FROM submission
                             WHERE net_id = ? AND phase = ? AND passed = 1
                             ORDER BY timestamp
@@ -177,10 +178,11 @@ public class SubmissionSqlDao implements SubmissionDao {
                 Integer numCommits = rows.getInt("num_commits");
                 String notes = rows.getString("notes");
                 Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
+                Boolean admin = rows.getBoolean("admin");
 
                 submissions.add(
                         new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes,
-                                rubric));
+                                rubric, admin));
             }
 
             return submissions;

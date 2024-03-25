@@ -67,6 +67,8 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
 
+                post("/submit", adminRepoSubmitPost);
+
                 path("/submissions", () -> {
                     get("/latest", latestSubmissionsGet);
 

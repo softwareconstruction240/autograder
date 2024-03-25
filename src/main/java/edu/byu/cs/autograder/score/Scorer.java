@@ -45,7 +45,7 @@ public class Scorer {
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if(rubric.passed()) {
+        if(rubric.passed() && !gradingContext.admin()) {
             float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
@@ -149,16 +149,17 @@ public class Scorer {
     private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
             throws GradingException {
         String headHash = getHeadHash();
+        String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
         // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(gradingContext.netId()).timeAdded().atZone(ZoneId.of("America/Denver"));
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
-                gradingContext.netId(),
+                netId,
                 gradingContext.repoUrl(),
                 headHash,
                 handInDate.toInstant(),
@@ -167,7 +168,8 @@ public class Scorer {
                 score,
                 numCommits,
                 notes,
-                rubric
+                rubric,
+                gradingContext.admin()
         );
 
         submissionDao.insertSubmission(submission);
