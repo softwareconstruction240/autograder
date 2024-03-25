@@ -26,7 +26,9 @@ const selectedStudent = ref<User | null>(null);
 const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
-let adminRepo = ""
+let adminRepo = reactive( {
+  value: ""
+})
 
 
 onMounted(async () => { await resetPage() })
@@ -87,12 +89,12 @@ const rowData = reactive({
 })
 
 const adminSubmit = async (phase: Phase) => {
-  if (adminRepo == "") {
+  if (adminRepo.value == "") {
     alert("Please enter a repo url")
     return
   }
   try {
-    await adminSubmissionPost(phase, adminRepo)
+    await adminSubmissionPost(phase, adminRepo.value)
     runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) { alert("Error running grader: " + error.message) }
@@ -105,8 +107,8 @@ const adminSubmit = async (phase: Phase) => {
 <template>
 
   <div class="adminSubmission">
-    <input v-model="adminRepo" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
-    <Dropdown>
+    <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
+    <Dropdown :disabled="!adminRepo.value.includes('github.com/')">
       <template v-slot:dropdown-parent>
         <button>Grade Repo</button>
       </template>
@@ -154,7 +156,7 @@ const adminSubmit = async (phase: Phase) => {
     @closePopUp="resetPage">
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
-      <p>Github Repo: <span v-html="generateClickableLink(adminRepo)"/></p>
+      <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
       <LiveStatus @show-results="adminDoneGrading"/>
     </div>
     <SubmissionInfo

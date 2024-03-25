@@ -69,7 +69,7 @@ public class Server {
 
                 post("/submit", adminRepoSubmitPost);
 
-              path("/submissions", () -> {
+                path("/submissions", () -> {
                     get("/latest", latestSubmissionsGet);
 
                     get("/latest/:count", latestSubmissionsGet);

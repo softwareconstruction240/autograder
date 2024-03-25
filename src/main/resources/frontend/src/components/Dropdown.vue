@@ -1,9 +1,12 @@
 <script setup lang="ts">
+const { disabled } = defineProps<{
+  disabled: boolean;
+}>();
 
 </script>
 
 <template>
-  <div class="dropdown">
+  <div :class="{ 'dropdown-main': !disabled, 'disabled-dropdown': disabled }">
     <slot name="dropdown-parent" />
     <div class="dropdown-content">
       <slot name="dropdown-items" />
@@ -12,12 +15,6 @@
 </template>
 
 <style>
-/* The container <div> - needed to position the dropdown content */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
@@ -43,5 +40,13 @@
 }
 
 /* Show the dropdown menu on hover */
-.dropdown:hover .dropdown-content {display: block;}
+.dropdown-main:hover .dropdown-content {display: block;}
+
+/* grey out the button when disabled */
+.disabled-dropdown {
+  opacity: 40%;
+  cursor: not-allowed;
+}
+
+.dropdown-main:hover .disabled-dropdown .dropdown-content {display: none}
 </style>
