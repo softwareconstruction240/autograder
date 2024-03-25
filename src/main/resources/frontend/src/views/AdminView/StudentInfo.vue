@@ -29,15 +29,12 @@ onMounted(async () => {
 
 const cellClickHandler = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data;
-  console.log("meme")
-  console.log(event.data)
-  console.log(selectedSubmission.value?.score)
 }
 
 const columnDefs = reactive([
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: "timestamp", sort: 'desc', sortedAt: 0, flex:1, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell, onCellClicked: cellClickHandler },
   { headerName: "Notes", field: "notes", flex:5, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({

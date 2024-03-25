@@ -2,6 +2,7 @@
 import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {getQueueStatus} from "@/services/adminService";
 import { reRunSubmissionsPost } from '@/services/submissionService'
+import Panel from "@/components/Panel.vue";
 
 const currentlyGrading = ref<string[]>([]);
 const inQueue = ref<string[]>([]);
@@ -37,7 +38,7 @@ const reRunQueue = async () => {
 
 <template>
   <div class="container">
-    <div class="grading-queue">
+    <Panel class="grading-queue">
       <div>
         <h3>Currently Grading</h3>
         <ul v-if="currentlyGrading.length > 0">
@@ -52,7 +53,7 @@ const reRunQueue = async () => {
         </ol>
         <p v-else>No submissions in queue</p>
       </div>
-    </div>
+    </Panel>
     <div>
       <div id="queue-refresh">
         <p>This re-runs every submission in the queue. Used if something has gone wrong.</p>
@@ -72,11 +73,6 @@ const reRunQueue = async () => {
 }
 
 .grading-queue {
-margin: 10px;
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 5px;
-background-color: #f2f2f2;
 cursor: pointer;
 }
 
