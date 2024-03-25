@@ -53,6 +53,7 @@ const select = (option: String) => {
   justify-content: center;
   align-items: center;
   border: 2px solid #54555b;
+  border-radius: 10px;
   transition: background-color, border-color;
   transition-duration: 0.2s;
 }

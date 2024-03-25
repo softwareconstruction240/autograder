@@ -25,5 +25,5 @@ const roundTwoDecimals = (num: number) => {
 }
 
 export const generateClickableLink = (link: string) => {
-  return '<a id="repo-link" style="color: darkblue; font-style: italic;" href="' + link + '" target="_blank">' + link + '</a>'
+  return '<a href="' + link + '" target="_blank">' + link.split("://")[1] + '</a>'
 }

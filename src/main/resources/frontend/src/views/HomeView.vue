@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {useSubmissionStore} from "@/stores/submissions";
 import OptionSelector from '@/components/OptionSelector.vue'
 import type { Phase } from '@/types/types'
@@ -31,7 +31,7 @@ const selectPhase = (phase: Phase) => {
   <h3 v-else v-html="uiConfig.getPhaseName(selectedPhase)"/>
   <a
     target="_blank"
-    :href="uiConfig.getPhaseSpecLink(selectedPhase)">
+    :href="uiConfig.getSpecLink(selectedPhase)">
     <span v-if="selectedPhase">Review phase specs on Github</span>
     <span v-else>Review project specs on Github</span>
   </a>

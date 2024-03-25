@@ -18,7 +18,7 @@ const getPhaseName = (phase: Phase) => {
   }
 }
 
-const getPhaseSpecLink = (phase: Phase | null) => {
+const getSpecLink = (phase: Phase | null) => {
   switch (phase) {
     case '0':
       return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/0-chess-moves/chess-moves.md"
@@ -39,6 +39,6 @@ const getPhaseSpecLink = (phase: Phase | null) => {
 
 export const uiConfig = {
   getPhaseName: getPhaseName,
-  getPhaseSpecLink: getPhaseSpecLink,
+  getSpecLink: getSpecLink,
 }
 

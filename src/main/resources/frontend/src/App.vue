@@ -6,12 +6,17 @@ import { logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
+import { generateClickableLink } from './utils/utils'
 
-const greeting = computed(() => {
+const identity = computed(() => {
   if (useAuthStore().isLoggedIn) {
-    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `
+    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId}`
   }
 });
+
+const user = computed( () => {
+  return useAuthStore().user
+})
 
 const logOut = async () => {
   try {
@@ -33,6 +38,20 @@ const logOut = async () => {
   <main>
     <router-view/>
   </main>
+  <footer>
+    <div class="footer" v-if="user">
+      <div id="userInfo">
+        <p>{{identity}}</p>
+        <span v-html="generateClickableLink(user.repoUrl)"/>
+      </div>
+      <div id="actions">
+        <button @click="logOut">Logout</button>
+      </div>
+    </div>
+    <div class="footer" v-else>
+      Idk, maybe something down here
+    </div>
+  </footer>
 
 
 <!--  <header>-->
@@ -52,6 +71,24 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #36373F;
+  padding: 15px 25px;
+  overflow-x: hidden;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#userInfo {
+  overflow: hidden; /* Hide content that overflows */
+  white-space: nowrap;
+  margin-right: 10px;
 }
 #class_number {
   font-size: 75px;
