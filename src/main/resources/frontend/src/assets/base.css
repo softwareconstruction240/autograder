@@ -142,3 +142,8 @@ button[disabled] {
 .failure {
     color: red;
 }
+
+a {
+    color: #85c0e4;
+    font-style: italic;
+}

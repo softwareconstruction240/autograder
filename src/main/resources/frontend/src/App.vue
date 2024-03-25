@@ -6,7 +6,6 @@ import { logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
-import OptionSelector from '@/components/OptionSelector.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {

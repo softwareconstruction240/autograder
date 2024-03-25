@@ -18,7 +18,27 @@ const getPhaseName = (phase: Phase) => {
   }
 }
 
+const getPhaseSpecLink = (phase: Phase | null) => {
+  switch (phase) {
+    case '0':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/0-chess-moves/chess-moves.md"
+    case '1':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/1-chess-game/chess-game.md"
+    case '3':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/3-web-api/web-api.md"
+    case '4':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/4-database/database.md"
+    case '5':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/5-pregame/pregame.md"
+    case '6':
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/6-gameplay/gameplay.md"
+    default:
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/chess.md#readme"
+  }
+}
+
 export const uiConfig = {
-  getPhaseName: getPhaseName
+  getPhaseName: getPhaseName,
+  getPhaseSpecLink: getPhaseSpecLink,
 }
 
