@@ -38,12 +38,7 @@ public abstract class TestGrader {
         this.gradingContext = gradingContext;
         this.stageTestsPath = new File(gradingContext.stagePath() + "/tests");
         this.phaseTests = new File("./phases/phase" + PhaseUtils.getPhaseAsString(gradingContext.phase()));
-        // FIXME
-        this.module = switch (gradingContext.phase()) {
-            case Phase0, Phase1 -> "shared";
-            case Phase3, Phase4, Phase6 -> "server";
-            case Phase5 -> "client";
-        };
+        this.module = PhaseUtils.getModuleUnderTest(gradingContext.phase());
     }
 
 
