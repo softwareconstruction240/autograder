@@ -51,7 +51,7 @@ public class UnitTestGrader extends TestGrader {
 
         if (totalTests == 0) return 0;
 
-        int minTests = minUnitTests();
+        int minTests = PhaseUtils.minUnitTests(gradingContext.phase());
 
         if (totalTests < minTests) return (float) testResults.numTestsPassed / minTests;
 
@@ -60,8 +60,8 @@ public class UnitTestGrader extends TestGrader {
 
     @Override
     protected String getNotes(TestAnalyzer.TestNode testResults) throws GradingException {
-        if (testResults.numTestsPassed + testResults.numTestsFailed < minUnitTests())
-            return "Not enough tests: each " + codeUnderTest() +
+        if (testResults.numTestsPassed + testResults.numTestsFailed < PhaseUtils.minUnitTests(gradingContext.phase()))
+            return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
 
         return switch (testResults.numTestsFailed) {
@@ -76,12 +76,4 @@ public class UnitTestGrader extends TestGrader {
         return config.unitTests();
     }
 
-
-    private String codeUnderTest() throws GradingException {
-        return PhaseUtils.unitTestCodeUnderTest(gradingContext.phase());
-    }
-
-    private int minUnitTests() throws GradingException {
-        return PhaseUtils.minUnitTests(gradingContext.phase());
-    }
 }
