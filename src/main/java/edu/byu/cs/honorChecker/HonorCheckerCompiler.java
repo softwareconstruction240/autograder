@@ -2,6 +2,7 @@ package edu.byu.cs.honorChecker;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -20,7 +21,7 @@ public class HonorCheckerCompiler {
      * @return the path to the .zip file
      */
     public static String compileSection(int section) {
-        int sectionID = CanvasIntegration.sectionIDs.get(section);
+        int sectionID = CanvasIntegrationImpl.sectionIDs.get(section);
         String tmpDir = "tmp-section-" + section;
         String zipFilePath = "section-" + section + ".zip";
 
@@ -28,7 +29,7 @@ public class HonorCheckerCompiler {
 
         Collection<User> students;
         try {
-            students = CanvasIntegration.getAllStudentsBySection(sectionID);
+            students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(sectionID);
         } catch (CanvasException e) {
             throw new RuntimeException("Canvas Exception: " + e.getMessage());
         }

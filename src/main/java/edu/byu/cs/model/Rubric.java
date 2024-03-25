@@ -1,6 +1,6 @@
 package edu.byu.cs.model;
 
-import edu.byu.cs.autograder.TestAnalyzer;
+import edu.byu.cs.autograder.test.TestAnalyzer;
 
 /**
  * Represents the rubric for a Canvas assignment. Some rubrics may have null values for some fields.

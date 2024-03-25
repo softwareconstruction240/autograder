@@ -1,6 +1,10 @@
 package edu.byu.cs.util;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
+
+import java.util.Set;
 
 public class PhaseUtils {
 
@@ -94,6 +98,76 @@ public class PhaseUtils {
             case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
             case Phase3 -> 180.0F;
             case Phase6 -> 155.0F;
+        };
+    }
+
+    public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
+            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
+            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
+            case Phase5 -> throw new GradingException("No passoff tests for this phase");
+            case Phase6 -> throw new GradingException("Not implemented");
+        };
+    }
+
+    public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> Set.of("serviceTests");
+            case Phase4 -> Set.of("dataAccessTests");
+            case Phase5 -> Set.of("clientTests");
+        };
+    }
+
+    public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> "service";
+            case Phase4 -> "dao";
+            case Phase5 -> "server facade";
+        };
+    }
+
+    public static int minUnitTests(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> 13;
+            case Phase4 -> 18;
+            case Phase5 -> 12;
+        };
+    }
+
+    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1 -> switch (type) {
+                case PASSOFF_TESTS -> "_1958";
+                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase3 -> switch (type) {
+                case PASSOFF_TESTS -> "_5202";
+                case UNIT_TESTS -> "90344_776";
+                case QUALITY -> "_3003";
+            };
+            case Phase4 -> switch (type) {
+                case PASSOFF_TESTS -> "_2614";
+                case UNIT_TESTS -> "_930";
+                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase5 -> switch (type) {
+                case UNIT_TESTS -> "_8849";
+                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
+        };
+    }
+
+    public static String getModuleUnderTest(Phase phase) {
+        //FIXME : Not sure what's wrong with this but there was a empty fixme comment when I refactored -Michael
+        return switch (phase) {
+            case Phase0, Phase1 -> "shared";
+            case Phase3, Phase4, Phase6 -> "server";
+            case Phase5 -> "client";
         };
     }
 }

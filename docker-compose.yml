@@ -28,6 +28,7 @@ services:
         "--student-db-port", "changeme",
         "--student-db-user", "changeme",
         "--student-db-pass", "changeme",
+        "--use-canvas", "true",
     ]
   watchtower:
     container_name: watchtower

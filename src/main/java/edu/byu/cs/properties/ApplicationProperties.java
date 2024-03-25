@@ -17,7 +17,14 @@ public class ApplicationProperties {
         String value = INSTANCE.properties.getProperty(propertyName);
         if (value == null)
             throw new RuntimeException("Property " + propertyName + " not found");
-        return INSTANCE.properties.getProperty(propertyName);
+        return value;
+    }
+
+    private static String get(String propertyName, String defaultValue) {
+        String value = INSTANCE.properties.getProperty(propertyName);
+        if (value == null)
+            return defaultValue;
+        return value;
     }
 
     public static String dbUrl() {
@@ -63,5 +70,9 @@ public class ApplicationProperties {
 
     public static String studentDbPass() {
         return mustGet("student-db-pass");
+    }
+
+    public static boolean useCanvas() {
+        return Boolean.parseBoolean(get("use-canvas", "true"));
     }
 }
