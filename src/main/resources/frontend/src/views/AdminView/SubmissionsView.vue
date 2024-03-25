@@ -89,10 +89,6 @@ const rowData = reactive({
 })
 
 const adminSubmit = async (phase: Phase) => {
-  if (adminRepo.value == "") {
-    alert("Please enter a repo url")
-    return
-  }
   try {
     await adminSubmissionPost(phase, adminRepo.value)
     runningAdminRepo.value = true;
