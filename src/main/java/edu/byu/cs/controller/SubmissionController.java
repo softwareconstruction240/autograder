@@ -43,7 +43,7 @@ public class SubmissionController {
 
         LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
 
-        startGrader(user.netId(), request.getPhase(), user.repoUrl());
+        startGrader(user.netId(), request.getPhase(), user.repoUrl(), false);
 
         res.status(200);
         return "";
@@ -58,13 +58,13 @@ public class SubmissionController {
 
         LOGGER.info("Admin " + user.netId() + " submitted phase " + request.phase() + " on repo " + request.repoUrl() + " for test grading");
 
-        startGrader(user.netId(), request.getPhase(), request.repoUrl());
+        startGrader(user.netId(), request.getPhase(), request.repoUrl(), true);
 
         res.status(200);
         return "";
     };
 
-    private static void startGrader(String netId, Phase phase, String repoUrl) {
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
                         netId,
@@ -77,7 +77,7 @@ public class SubmissionController {
         TrafficController.sessions.put(netId, new ArrayList<>());
 
         try {
-            Grader grader = getGrader(netId, phase, repoUrl);
+            Grader grader = getGrader(netId, phase, repoUrl, adminSubmission);
 
             TrafficController.getInstance().addGrader(grader);
 
@@ -252,10 +252,11 @@ public class SubmissionController {
      *
      * @param netId the netId of the user
      * @param phase the phase to grade
+     * @param adminSubmission if the grader should run in admin mode
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, Phase phase, String repoUrl) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -320,7 +321,7 @@ public class SubmissionController {
             }
         };
 
-        return new Grader(repoUrl, netId, observer, phase);
+        return new Grader(repoUrl, netId, observer, phase, adminSubmission);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {
@@ -365,7 +366,8 @@ public class SubmissionController {
             TrafficController.getInstance().addGrader(
                     getGrader(queueItem.netId(),
                             queueItem.phase(),
-                            currentUser.repoUrl() ));
+                            currentUser.repoUrl(),
+                            currentUser.role() == User.Role.ADMIN));
         }
     }
 }

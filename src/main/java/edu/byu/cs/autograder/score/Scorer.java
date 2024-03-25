@@ -45,7 +45,7 @@ public class Scorer {
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if(rubric.passed()) {
+        if(rubric.passed() && !gradingContext.admin()) {
             float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
@@ -169,7 +169,7 @@ public class Scorer {
                 numCommits,
                 notes,
                 rubric,
-                DaoService.getUserDao().getUser(netId).role() == User.Role.ADMIN
+                gradingContext.admin()
         );
 
         submissionDao.insertSubmission(submission);
