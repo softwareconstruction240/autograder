@@ -69,7 +69,7 @@ public class AdminController {
     };
 
     public static Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasIntegration.getTestStudent();
+        User latestTestStudent = CanvasIntegration.getCanvasIntegration().getTestStudent();
 
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser("test");

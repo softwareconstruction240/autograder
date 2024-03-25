@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
@@ -90,7 +91,8 @@ public class SubmissionController {
     }
 
     private static void updateRepoFromCanvas(User user, Request req) throws CanvasException {
-        String newRepoUrl = CanvasIntegration.getGitRepo(user.canvasUserId());
+        CanvasIntegration canvas = new CanvasIntegrationImpl();
+        String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
         if (!newRepoUrl.equals(user.repoUrl())) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
             DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
@@ -318,14 +320,7 @@ public class SubmissionController {
             }
         };
 
-        return switch (phase) {
-            case Phase0 -> new PhaseZeroGrader(netId, repoUrl, observer);
-            case Phase1 -> new PhaseOneGrader(netId, repoUrl, observer);
-            case Phase3 -> new PhaseThreeGrader(netId, repoUrl, observer);
-            case Phase4 -> new PhaseFourGrader(netId, repoUrl, observer);
-            case Phase5 -> new PhaseFiveGrader(netId, repoUrl, observer);
-            case Phase6 -> null;
-        };
+        return new Grader(repoUrl, netId, observer, phase);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {

@@ -1,4 +1,5 @@
-package edu.byu.cs.util;
+package edu.byu.cs.autograder.score;
+
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -6,18 +7,14 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class DateTimeUtilsTest {
+class LateDayCalculatorTest {
 
     @Test
     void getNumDaysLateWithoutHolidays() {
         // Initialize without holidays
-        DateTimeUtils dateTimeUtils = new DateTimeUtils();
-        dateTimeUtils.initializePublicHolidays();
+        LateDayCalculator lateDayCalculator = new LateDayCalculator();
+        lateDayCalculator.initializePublicHolidays();
 
         // See images: days-late-without-holidays (1&2)
         String dueDateStr = "2024-03-07 11:59:00 PM -07:00";
@@ -67,13 +64,13 @@ class DateTimeUtilsTest {
         };
 
         // Validate
-        validateExpectedDaysLate(dueDateStr, expectedDaysLate, dateTimeUtils);
+        validateExpectedDaysLate(dueDateStr, expectedDaysLate, lateDayCalculator);
     }
     @Test
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
-        DateTimeUtils standardDateTimeUtils = new DateTimeUtils();
-        standardDateTimeUtils.initializePublicHolidays(getMultilinePublicHolidaysConfiguration());
+        LateDayCalculator standardlateDayCalculator = new LateDayCalculator();
+        standardlateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration());
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -105,7 +102,7 @@ class DateTimeUtilsTest {
                 new ExpectedDaysLate("2024-03-24 02:15:00 PM -07:00", 11),
                 new ExpectedDaysLate("2024-03-25 02:15:00 PM -07:00", 11),
         };
-        validateExpectedDaysLate(commonDueDate, commonExpectedDaysLate, standardDateTimeUtils);
+        validateExpectedDaysLate(commonDueDate, commonExpectedDaysLate, standardlateDayCalculator);
 
         // See image: days-late-with-holidays-due-on-holiday
         // This edge case is professor approved
@@ -140,12 +137,12 @@ class DateTimeUtilsTest {
                 new ExpectedDaysLate("2024-07-05 02:15:00 PM -07:00", 10),
                 new ExpectedDaysLate("2024-07-06 02:15:00 PM -07:00", 11), // Weekend
         };
-        validateExpectedDaysLate(holidayDueDate, holidayExpectedDaysLate, standardDateTimeUtils);
+        validateExpectedDaysLate(holidayDueDate, holidayExpectedDaysLate, standardlateDayCalculator);
 
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
-        DateTimeUtils customDateTimeUtils = new DateTimeUtils();
-        customDateTimeUtils.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
+        LateDayCalculator customlateDayCalculator = new LateDayCalculator();
+        customlateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysLate[] fridayHolidayAndConsecutiveHolidays = {
                 // On Time
@@ -182,12 +179,12 @@ class DateTimeUtilsTest {
                 new ExpectedDaysLate("2025-01-10 02:15:00 PM -07:00", 10),
                 new ExpectedDaysLate("2025-01-11 02:15:00 PM -07:00", 11), // Weekend
         };
-        validateExpectedDaysLate(fridayHolidayDueDate, fridayHolidayAndConsecutiveHolidays, customDateTimeUtils);
+        validateExpectedDaysLate(fridayHolidayDueDate, fridayHolidayAndConsecutiveHolidays, customlateDayCalculator);
 
 
         // See image: days-late-with-holidays-holidays-on-weekends
-        DateTimeUtils customDateTimeUtils2 = new DateTimeUtils();
-        customDateTimeUtils2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;");
+        LateDayCalculator customlateDayCalculator2 = new LateDayCalculator();
+        customlateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;");
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
         ExpectedDaysLate[] holidaysOnWeekends = {
                 new ExpectedDaysLate("2028-09-14 02:15:00 PM -07:00", 0), // Due date
@@ -199,9 +196,10 @@ class DateTimeUtilsTest {
                 new ExpectedDaysLate("2028-09-20 02:15:00 PM -07:00", 3),
                 new ExpectedDaysLate("2028-09-21 02:15:00 PM -07:00", 4),
         };
-        validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customDateTimeUtils2);
+        validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customlateDayCalculator2);
     }
-    private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysLate[] expectedDaysLate, DateTimeUtils dateTimeUtils) {
+    private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
+                                          LateDayCalculator lateDayCalculator) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a z");
         ZonedDateTime dueDate = ZonedDateTime.parse(dueDateStr, formatter);
@@ -210,7 +208,7 @@ class DateTimeUtilsTest {
         ZonedDateTime handInTime;
         for (var expectedResult : expectedDaysLate) {
             handInTime = ZonedDateTime.parse(expectedResult.handInDate, formatter);
-            Assertions.assertEquals(expectedResult.daysLate, dateTimeUtils.getNumDaysLate(handInTime, dueDate));
+            Assertions.assertEquals(expectedResult.daysLate, lateDayCalculator.getNumDaysLate(handInTime, dueDate));
         }
     }
 
@@ -264,8 +262,8 @@ class DateTimeUtilsTest {
                 """;
     }
     private void validateExpectedHolidays(String encodedPublicHolidays) {
-        DateTimeUtils dateTimeUtils = new DateTimeUtils();
-        var initializedPublicHolidays = dateTimeUtils.initializePublicHolidays(encodedPublicHolidays);
+        LateDayCalculator lateDayCalculator = new LateDayCalculator();
+        var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
                 "Set does not have the right number of public holidays");

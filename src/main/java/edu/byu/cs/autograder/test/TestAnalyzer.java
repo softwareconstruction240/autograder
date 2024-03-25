@@ -1,4 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.test;
+
+import edu.byu.cs.autograder.GradingException;
 
 import java.util.HashMap;
 import java.util.Map;
