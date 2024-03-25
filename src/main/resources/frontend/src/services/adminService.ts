@@ -1,5 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
-import type {Submission, User} from "@/types/types";
+import type {CanvasSection, Submission, User} from "@/types/types";
 import type {Option} from "@/views/AdminView/Analytics.vue";
 
 export const usersGet = async (): Promise<User[]> => {
@@ -127,7 +127,7 @@ export const commitAnalyticsGet = async (option: Option): Promise<string> => {
     }
 }
 
-export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
+export const honorCheckerZipGet = async (section: string): Promise<Blob> => {
     try {
         return (await fetch(useAppConfigStore().backendUrl + '/api/admin/honorChecker/zip/' + section, {
             method: 'GET',
@@ -136,5 +136,19 @@ export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
     } catch (e) {
         console.error('Failed to get data: ', e)
         return new Blob()
+    }
+}
+
+export const sectionsGet = async (): Promise<CanvasSection[]> => {
+    try {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/sections', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        return await response.json();
+    } catch (e) {
+        console.error('Failed to get data: ', e)
+        return [];
     }
 }
