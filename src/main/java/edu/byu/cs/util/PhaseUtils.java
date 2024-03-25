@@ -118,4 +118,13 @@ public class PhaseUtils {
             case Phase5 -> Set.of("clientTests");
         };
     }
+
+    public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase3 -> "service";
+            case Phase4 -> "dao";
+            case Phase5 -> "server facade";
+        };
+    }
 }

@@ -61,7 +61,7 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected String getNotes(TestAnalyzer.TestNode testResults) throws GradingException {
         if (testResults.numTestsPassed + testResults.numTestsFailed < minUnitTests(gradingContext.phase()))
-            return "Not enough tests: each " + codeUnderTest(gradingContext.phase()) +
+            return "Not enough tests: each " + codeUnderTest() +
                     " method should have a positive and negative test";
 
         return switch (testResults.numTestsFailed) {
@@ -77,13 +77,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
 
-    private String codeUnderTest(Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> "service";
-            case Phase4 -> "dao";
-            case Phase5 -> "server facade";
-        };
+    private String codeUnderTest() throws GradingException {
+        return PhaseUtils.unitTestCodeUnderTest(gradingContext.phase());
     }
 
     private int minUnitTests(Phase phase) throws GradingException {
