@@ -2,6 +2,7 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 
 import java.util.Set;
 
@@ -134,6 +135,30 @@ public class PhaseUtils {
             case Phase3 -> 13;
             case Phase4 -> 18;
             case Phase5 -> 12;
+        };
+    }
+
+    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1 -> switch (type) {
+                case PASSOFF_TESTS -> "_1958";
+                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase3 -> switch (type) {
+                case PASSOFF_TESTS -> "_5202";
+                case UNIT_TESTS -> "90344_776";
+                case QUALITY -> "_3003";
+            };
+            case Phase4 -> switch (type) {
+                case PASSOFF_TESTS -> "_2614";
+                case UNIT_TESTS -> "_930";
+                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase5 -> switch (type) {
+                case UNIT_TESTS -> "_8849";
+                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
         };
     }
 }
