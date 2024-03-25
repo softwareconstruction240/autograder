@@ -6,7 +6,6 @@ import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.QueueDao;
@@ -91,7 +90,7 @@ public class SubmissionController {
     }
 
     private static void updateRepoFromCanvas(User user, Request req) throws CanvasException {
-        CanvasIntegration canvas = new CanvasIntegrationImpl();
+        CanvasIntegration canvas = CanvasIntegration.getCanvasIntegration();
         String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
         if (!newRepoUrl.equals(user.repoUrl())) {
             user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
