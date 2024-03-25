@@ -1,6 +1,9 @@
 package edu.byu.cs.util;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
+
+import java.util.Set;
 
 public class PhaseUtils {
 
@@ -95,5 +98,16 @@ public class PhaseUtils {
             case Phase3 -> 180.0F;
             case Phase6 -> 155.0F;
         };
+    }
+
+    public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
+            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
+            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
+            case Phase5 -> throw new GradingException("No passoff tests for this phase");
+            case Phase6 -> throw new GradingException("Not implemented");
+        };
+
     }
 }
