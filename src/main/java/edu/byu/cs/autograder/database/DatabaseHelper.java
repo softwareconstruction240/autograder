@@ -6,76 +6,68 @@ import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.*;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Properties;
 
 public class DatabaseHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
-    private static String HOST;
-    private static String PORT;
-    private static String USER;
-    private static String PASS;
+    private static final String HOST;
+    private static final String PORT;
+    private static final String ADMIN_USER;
+    private static final String ADMIN_PASS;
+    private static final String connectionString;
+
+    static {
+        HOST = ApplicationProperties.dbHost();
+        PORT = ApplicationProperties.dbPort();
+        ADMIN_USER = ApplicationProperties.dbUser();
+        ADMIN_PASS = ApplicationProperties.dbPass();
+        connectionString = "jdbc:mysql://" + HOST + ":" + PORT;
+    }
 
     private final String databaseName;
-
+    private final String studentUser;
+    private final String studentPass;
     private final GradingContext gradingContext;
-
-    private Collection<String> existingDatabaseNames;
-    private boolean finished = false;
 
     public DatabaseHelper(long salt, GradingContext gradingContext) {
         this.gradingContext = gradingContext;
-        this.databaseName = "chessdb" + salt;
-        loadProperties();
+        this.databaseName = "chessDb" + salt;
+        this.studentUser = "dbUser" + salt;
+        this.studentPass = "dbPass" + salt;
     }
 
     public void setUp() throws GradingException {
-        existingDatabaseNames = getExistingDatabaseNames();
+        createUser();
+        grantPrivileges();
         injectDatabaseConfig(gradingContext.stageRepo());
     }
 
-    public void finish() throws GradingException {
-        cleanupDatabase();
-        finished = true;
-        assertNoExtraDatabases(existingDatabaseNames, getExistingDatabaseNames());
-    }
-
     public void cleanUp() {
-        if (!finished) {
-            try {
-                Collection<String> currentDatabaseNames = getExistingDatabaseNames();
-                currentDatabaseNames.removeAll(existingDatabaseNames);
-                cleanUpExtraDatabases(currentDatabaseNames);
-            } catch (GradingException e) {
-                LOGGER.error("Error cleaning up after user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
-            }
-        }
-    }
-
-    private void loadProperties() {
-        if(HOST == null) {
-            HOST = ApplicationProperties.studentDbHost();
-            PORT = ApplicationProperties.studentDbPort();
-            USER = ApplicationProperties.studentDbUser();
-            PASS = ApplicationProperties.studentDbPass();
+        try {
+            cleanupDatabase();
+            deleteUser();
+        } catch (GradingException e) {
+            LOGGER.error("Error cleaning up after user " + gradingContext.netId() +
+                    " and repository " + gradingContext.repoUrl(), e);
         }
     }
 
     private void injectDatabaseConfig(File stageRepo) throws GradingException {
         File dbPropertiesFile = new File(stageRepo, "server/src/main/resources/db.properties");
-        if (dbPropertiesFile.exists())
-            dbPropertiesFile.delete();
+        if (dbPropertiesFile.exists() && !dbPropertiesFile.delete())
+            throw new GradingException("Could not delete previous db.properties");
 
         Properties dbProperties = new Properties();
         try {
             dbProperties.put("db.name", databaseName);
             dbProperties.put("db.host", HOST);
             dbProperties.put("db.port", PORT);
-            dbProperties.put("db.user", USER);
-            dbProperties.put("db.password", PASS);
+            dbProperties.put("db.user", studentUser);
+            dbProperties.put("db.password", studentPass);
             try(FileOutputStream os = new FileOutputStream(dbPropertiesFile.getAbsolutePath())) {
                 dbProperties.store(os, "");
                 os.flush();
@@ -85,58 +77,38 @@ public class DatabaseHelper {
         }
     }
 
-    private Collection<String> getExistingDatabaseNames() throws GradingException {
-        try (Connection connection = getConnection();
-             PreparedStatement ps = connection.prepareStatement("SHOW DATABASES");
-             ResultSet rs = ps.executeQuery()) {
-            Collection<String> databaseNames = new HashSet<>();
-            while(rs.next()) {
-                databaseNames.add(rs.getString(1));
-            }
-            return databaseNames;
-        } catch (SQLException e) {
-            LOGGER.error("Could not find database names", e);
-            throw new GradingException("Failed to setup environment", e);
-        }
+    private void createUser() throws GradingException {
+        executeUpdate("CREATE USER IF NOT EXISTS ?@'%' IDENTIFIED BY ?",
+                "Failed to setup environment",
+                studentUser, studentPass);
+    }
+
+    private void grantPrivileges() throws GradingException {
+        executeUpdate("GRANT ALL ON `" + databaseName + "`.* TO ?@'%'",
+                "Failed to setup environment",
+                studentUser);
     }
 
     private void cleanupDatabase() throws GradingException {
-        try (Connection connection = getConnection()) {
-            connection.createStatement().executeUpdate(
-                    "DROP DATABASE IF EXISTS " + databaseName
-            );
-        } catch (SQLException e) {
-            LOGGER.error("Failed to cleanup database", e);
-            throw new GradingException("Failed to cleanup environment", e);
-        }
+        executeUpdate("DROP DATABASE IF EXISTS " + databaseName, "Failed to cleanup database");
     }
 
-    private void cleanUpExtraDatabases(Collection<String> databaseNames) throws GradingException {
-        try (Connection connection = getConnection()) {
-            for (String databaseName : databaseNames) {
-                try (PreparedStatement ps = connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName)) {
-                    ps.executeUpdate();
-                }
+    private void deleteUser() throws GradingException {
+        executeUpdate("DROP USER IF EXISTS ?@'%'",
+                "Failed to cleanup environment",
+                studentUser);
+    }
+
+    private void executeUpdate(String statement, String errorMessage, String... params) throws GradingException {
+        try (Connection conn = DriverManager.getConnection(connectionString, ADMIN_USER, ADMIN_PASS);
+             PreparedStatement ps = conn.prepareStatement(statement)) {
+            for (var i = 0; i < params.length; i++) {
+                ps.setString(i + 1, params[i]);
             }
+            ps.executeUpdate();
         } catch (SQLException e) {
-            LOGGER.error("Could not clean up databases", e);
-            throw new GradingException("Failed to clean up db", e);
+            LOGGER.error(errorMessage, e);
+            throw new GradingException(errorMessage, e);
         }
-    }
-
-    private void assertNoExtraDatabases(Collection<String> previousDatabaseNames,
-                                        Collection<String> currentDatabaseNames) throws GradingException {
-        Collection<String> extraDatabaseNames = new HashSet<>(currentDatabaseNames);
-        extraDatabaseNames.removeAll(previousDatabaseNames);
-        if(!extraDatabaseNames.isEmpty()) {
-            cleanUpExtraDatabases(extraDatabaseNames);
-            throw new GradingException("Code created extra databases: " + extraDatabaseNames +
-                    ". Only use the database name from db.properties");
-        }
-    }
-
-    private Connection getConnection() throws SQLException {
-        String connectionString = "jdbc:mysql://" + HOST + ":" + PORT;
-        return DriverManager.getConnection(connectionString, USER, PASS);
     }
 }
