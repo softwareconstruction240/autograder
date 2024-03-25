@@ -2,14 +2,16 @@ package edu.byu.cs.honorChecker;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasIntegrationImpl;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class HonorCheckerCompiler {
@@ -20,8 +22,12 @@ public class HonorCheckerCompiler {
      * @param section the section number (not ID)
      * @return the path to the .zip file
      */
-    public static String compileSection(int section) {
-        int sectionID = CanvasIntegrationImpl.sectionIDs.get(section);
+    public static String compileSection(String section) throws CanvasException {
+        Optional<CanvasSection> canvasSection =
+                Arrays.stream(CanvasIntegration.getCanvasIntegration().getAllSections()).filter(
+                cs -> section.equals(cs.name())).findFirst();
+        if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
+        int sectionID = canvasSection.get().id();
         String tmpDir = "tmp-section-" + section;
         String zipFilePath = "section-" + section + ".zip";
 
