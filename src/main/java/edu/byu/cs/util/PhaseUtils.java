@@ -161,4 +161,13 @@ public class PhaseUtils {
             case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
         };
     }
+
+    public static String getModuleUnderTest(Phase phase) {
+        //FIXME : Not sure what's wrong with this but there was a empty fixme comment when I refactored -Michael
+        return switch (phase) {
+            case Phase0, Phase1 -> "shared";
+            case Phase3, Phase4, Phase6 -> "server";
+            case Phase5 -> "client";
+        };
+    }
 }
