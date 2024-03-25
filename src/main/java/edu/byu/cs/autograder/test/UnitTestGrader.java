@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
 import java.util.HashSet;
@@ -31,12 +32,7 @@ public class UnitTestGrader extends TestGrader {
 
     @Override
     protected Set<String> packagesToTest() throws GradingException {
-        return switch (gradingContext.phase()) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> Set.of("serviceTests");
-            case Phase4 -> Set.of("dataAccessTests");
-            case Phase5 -> Set.of("clientTests");
-        };
+        return PhaseUtils.unitTestPackagesToTest(gradingContext.phase());
     }
 
     @Override
@@ -55,7 +51,7 @@ public class UnitTestGrader extends TestGrader {
 
         if (totalTests == 0) return 0;
 
-        int minTests = minUnitTests(gradingContext.phase());
+        int minTests = PhaseUtils.minUnitTests(gradingContext.phase());
 
         if (totalTests < minTests) return (float) testResults.numTestsPassed / minTests;
 
@@ -64,8 +60,8 @@ public class UnitTestGrader extends TestGrader {
 
     @Override
     protected String getNotes(TestAnalyzer.TestNode testResults) throws GradingException {
-        if (testResults.numTestsPassed + testResults.numTestsFailed < minUnitTests(gradingContext.phase()))
-            return "Not enough tests: each " + codeUnderTest(gradingContext.phase()) +
+        if (testResults.numTestsPassed + testResults.numTestsFailed < PhaseUtils.minUnitTests(gradingContext.phase()))
+            return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
 
         return switch (testResults.numTestsFailed) {
@@ -80,22 +76,4 @@ public class UnitTestGrader extends TestGrader {
         return config.unitTests();
     }
 
-
-    private String codeUnderTest(Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> "service";
-            case Phase4 -> "dao";
-            case Phase5 -> "server facade";
-        };
-    }
-
-    private int minUnitTests(Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> 13;
-            case Phase4 -> 18;
-            case Phase5 -> 12;
-        };
-    }
 }

@@ -218,34 +218,10 @@ public class Scorer {
                                        Map<String, String> comments, Rubric.RubricType rubricType)
             throws GradingException {
         if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
-            String id = getCanvasRubricId(rubricType);
+            String id = PhaseUtils.getCanvasRubricId(rubricType, gradingContext.phase());
             Rubric.Results results = rubricItem.results();
             scores.put(id, results.score() * lateAdjustment);
             comments.put(id, results.notes());
         }
-    }
-
-    private String getCanvasRubricId(Rubric.RubricType type) throws GradingException {
-        return switch (gradingContext.phase()) {
-            case Phase0, Phase1 -> switch (type) {
-                case PASSOFF_TESTS -> "_1958";
-                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase3 -> switch (type) {
-                case PASSOFF_TESTS -> "_5202";
-                case UNIT_TESTS -> "90344_776";
-                case QUALITY -> "_3003";
-            };
-            case Phase4 -> switch (type) {
-                case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "_930";
-                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "_8849";
-                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
-        };
     }
 }
