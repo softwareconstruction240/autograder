@@ -1,6 +1,9 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -29,18 +32,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
-
-    // FIXME: set this dynamically or pull from config
-    public static final Map<Integer, Integer> sectionIDs;
-
-    static {
-        sectionIDs = new HashMap<>();
-        sectionIDs.put(1, 26512);
-        sectionIDs.put(2, 26513);
-        sectionIDs.put(3, 25972);
-        sectionIDs.put(4, 25496);
-        sectionIDs.put(5, 25971);
-    }
 
     private record Enrollment(EnrollmentType type) {
 
@@ -184,7 +175,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                             Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, assignmentNum);
         if(submission.rubric_assessment() != null) {
-            for(Map.Entry<String, CanvasIntegrationImpl.RubricItem> entry : submission.rubric_assessment().items().entrySet()) {
+            for(Map.Entry<String, CanvasRubricItem> entry : submission.rubric_assessment().items().entrySet()) {
                 grades.putIfAbsent(entry.getKey(), entry.getValue().points());
                 rubricComments.putIfAbsent(entry.getKey(), entry.getValue().comments());
             }
@@ -294,6 +285,14 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             throw new CanvasException("Unable to get due date for assignment");
 
         return assignment.due_at();
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return makeCanvasRequest("GET",
+                "/courses/" + COURSE_NUMBER + "/sections",
+                null,
+                CanvasSection[].class);
     }
 
     private enum EnrollmentType {

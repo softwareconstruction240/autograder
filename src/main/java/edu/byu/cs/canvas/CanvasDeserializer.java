@@ -3,6 +3,8 @@ package edu.byu.cs.canvas;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -16,7 +18,7 @@ public class CanvasDeserializer<T> {
     public T deserialize(Reader reader, Class<T> deserializeClass) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
-                .registerTypeAdapter(CanvasIntegration.RubricAssessment.class, new RubricAssessmentAdapter())
+                .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
                 .create();
         return gson.fromJson(reader, deserializeClass);
     }
@@ -32,13 +34,13 @@ public class CanvasDeserializer<T> {
         }
     }
 
-    private static class RubricAssessmentAdapter implements JsonDeserializer<CanvasIntegration.RubricAssessment> {
+    private static class RubricAssessmentAdapter implements JsonDeserializer<CanvasRubricAssessment> {
         @Override
-        public CanvasIntegration.RubricAssessment deserialize(JsonElement jsonElement, Type type,
-                                                              JsonDeserializationContext jsonDeserializationContext)
+        public CanvasRubricAssessment deserialize(JsonElement jsonElement, Type type,
+                                                  JsonDeserializationContext jsonDeserializationContext)
                 throws JsonParseException {
             Map<String, Map<String, Object>> map = jsonDeserializationContext.deserialize(jsonElement, Map.class);
-            Map<String, CanvasIntegration.RubricItem> items = new HashMap<>();
+            Map<String, CanvasRubricItem> items = new HashMap<>();
             for (var entry : map.entrySet()) {
                 String key = entry.getKey();
                 Map<String, Object> value = entry.getValue();
@@ -49,9 +51,9 @@ public class CanvasDeserializer<T> {
 
                 float score = (points == null) ? 0 : points.floatValue();
 
-                items.put(key, new CanvasIntegration.RubricItem(comments, score));
+                items.put(key, new CanvasRubricItem(comments, score));
             }
-            return new CanvasIntegration.RubricAssessment(items);
+            return new CanvasRubricAssessment(items);
         }
     }
 }

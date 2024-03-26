@@ -1,11 +1,14 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface CanvasIntegration {
@@ -14,12 +17,6 @@ public interface CanvasIntegration {
         if(ApplicationProperties.useCanvas()) return new CanvasIntegrationImpl();
         else return new FakeCanvasIntegration();
     }
-
-    record RubricItem(String comments, float points) {}
-
-    record RubricAssessment(Map<String, RubricItem> items) {}
-
-    record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {}
 
 
     /**
@@ -95,5 +92,7 @@ public interface CanvasIntegration {
     User getTestStudent() throws CanvasException;
 
     ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException;
+
+    CanvasSection[] getAllSections() throws CanvasException;
 
 }

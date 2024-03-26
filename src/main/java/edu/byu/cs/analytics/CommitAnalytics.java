@@ -2,7 +2,7 @@ package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasIntegrationImpl;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
@@ -60,7 +60,7 @@ public class CommitAnalytics {
             Phase phase,
             int commits,
             int days,
-            int section,
+            String section,
             String timestamp
     ) {}
 
@@ -70,11 +70,11 @@ public class CommitAnalytics {
      *
      * @return a serialized version of the data
      */
-    public static String generateCSV() {
+    public static String generateCSV() throws CanvasException {
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
 
-        Map<Integer, Map<String, ArrayList<Integer>>> commitInfo = compile();
+        Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile();
 
         ArrayList<CommitDatum> csvData = new ArrayList<>();
         ArrayList<Phase> phases = new ArrayList<>();
@@ -84,7 +84,7 @@ public class CommitAnalytics {
         phases.add(Phase.Phase4);
         phases.add(Phase.Phase6);
 
-        for (Map.Entry<Integer, Map<String, ArrayList<Integer>>> e : commitInfo.entrySet()) {
+        for (Map.Entry<String, Map<String, ArrayList<Integer>>> e : commitInfo.entrySet()) {
             for (Map.Entry<String, ArrayList<Integer>> entry : e.getValue().entrySet()) {
                 String netID = entry.getKey();
                 for (Phase phase : phases) {
@@ -118,18 +118,18 @@ public class CommitAnalytics {
      *
      * @return A map section to map of netID to list of timestamp
      */
-    private static Map<Integer, Map<String, ArrayList<Integer>>> compile() {
+    private static Map<String, Map<String, ArrayList<Integer>>> compile() throws CanvasException {
 
-        Map<Integer, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
+        Map<String, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
-        Map<Integer, Integer> sectionIDs = CanvasIntegrationImpl.sectionIDs;
-        for (Map.Entry<Integer, Integer> i : sectionIDs.entrySet()) {
+        CanvasSection[] sections = CanvasIntegration.getCanvasIntegration().getAllSections();
+        for (CanvasSection section: sections) {
 
             Collection<User> students;
             Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
 
             try {
-                students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(i.getValue());
+                students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(section.id());
             } catch (CanvasException e) {
                 throw new RuntimeException("Canvas Exception: " + e.getMessage());
             }
@@ -153,7 +153,7 @@ public class CommitAnalytics {
                 FileUtils.removeDirectory(repoPath);
             }
 
-            commitsBySection.put(i.getKey(), commitMap);
+            commitsBySection.put(section.name(), commitMap);
         }
 
         return commitsBySection;
