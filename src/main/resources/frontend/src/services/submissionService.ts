@@ -1,8 +1,8 @@
 import type {Phase, Submission} from "@/types/types";
 import {useAppConfigStore} from "@/stores/appConfig";
 
-export const submissionsGet = async (phase: Phase): Promise<Submission[]> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + phase, {
+export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + (phase === null ? "" : phase), {
         method: 'GET',
         credentials: 'include'
     });

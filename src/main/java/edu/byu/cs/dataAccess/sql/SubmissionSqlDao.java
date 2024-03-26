@@ -49,10 +49,10 @@ public class SubmissionSqlDao implements SubmissionDao {
                     """
                     SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
                     FROM submission
-                    WHERE net_id = ? AND phase = ?
-                    """);
+                    WHERE net_id = ?
+                    """ + (phase == null ? "" : " AND phase = ?") );
             statement.setString(1, netId);
-            statement.setString(2, phase.toString());
+            if (phase != null) { statement.setString(2, phase.toString()); }
             return getSubmissionsFromQuery(statement);
 
         } catch (Exception e) {

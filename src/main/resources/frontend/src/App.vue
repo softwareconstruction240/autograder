@@ -56,6 +56,7 @@ const toggleLightMode = () => {
     <router-view/>
   </main>
 
+  <div class="footer-spacer"/>
   <footer>
     <div class="footer" v-if="user">
       <div id="userInfo">
@@ -80,6 +81,8 @@ const toggleLightMode = () => {
 <style scoped>
 main {
   width: 100%;
+  max-width: 700px;
+  padding: 0 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,6 +99,9 @@ footer {
   justify-content: space-between;
   align-items: center;
   padding: 15px 25px;
+}
+.footer-spacer {
+  height: 100px;
 }
 #userInfo {
   overflow: hidden; /* Hide content that overflows */

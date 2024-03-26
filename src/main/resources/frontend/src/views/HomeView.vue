@@ -7,6 +7,7 @@ import type { Phase } from '@/types/types'
 import { uiConfig } from '@/stores/uiConfig'
 import { submissionPost } from '@/services/submissionService'
 import LiveStatus from '@/views/PhaseView/LiveStatus.vue'
+import SubmissionHistory from '@/views/PhaseView/SubmissionHistory.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -58,6 +59,11 @@ const submitPhase = async () => {
   <div>
     <LiveStatus v-if="openGrader"/>
   </div>
+
+  <h3>Submission History</h3>
+  <p>Click on a submission to see details</p>
+  <SubmissionHistory/>
+
 </template>
 
 <style scoped>
@@ -71,6 +77,7 @@ h3 {
   font-size: 30px;
   border-radius: 20px;
   max-width: 80vw;
+  margin: 20px;
 }
 
 </style>

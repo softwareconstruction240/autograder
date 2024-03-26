@@ -65,6 +65,7 @@ const select = (option: String) => {
   border-color: var(--plain-300);
   transition: background-color, border-color;
   transition-duration: 0.2s;
+  cursor: pointer;
 }
 
 #options > *.active {

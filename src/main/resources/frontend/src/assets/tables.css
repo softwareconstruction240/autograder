@@ -1,0 +1,30 @@
+@import './colors.css';
+
+/* This stylesheet defines the appearance of AG-Grid components */
+
+.ag-theme-quartz {
+    --ag-font-size: 15px;
+    --ag-font-family: Inter, Ubuntu, Orbitron, sans-serif;
+}
+
+.ag-theme-quartz .ag-header {
+    background-color: var(--tertiary-color);
+}
+
+.ag-theme-quartz .ag-header-group-cell {
+    font-weight: normal;
+    font-size: 18px;
+}
+
+.ag-theme-quartz .ag-header-cell {
+    font-size: 15px;
+}
+
+.ag-theme-quartz .ag-cell {
+    background-color: var(--plain-200);
+    color: var(--primary-text-color)
+}
+
+.ag-theme-quartz .ag-center-cols-viewport {
+    background-color: var(--plain-100);
+}

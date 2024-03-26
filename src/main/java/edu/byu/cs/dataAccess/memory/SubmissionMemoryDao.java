@@ -22,7 +22,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
         return submissions
                 .stream()
                 .filter(submission ->
-                        submission.netId().equals(netId) && submission.phase().equals(phase))
+                        submission.netId().equals(netId) && (phase == null || submission.phase().equals(phase)))
                 .toList();
 
     }

@@ -18,7 +18,8 @@ public interface SubmissionDao {
      * Gets all submissions for the given netId and phase
      *
      * @param netId the netId to get submissions for
-     * @param phase the phase to get submissions for
+     * @param phase the phase to get submissions for.
+     *              Setting phase to null will get all phases
      * @return all submissions for the given netId and phase
      */
     Collection<Submission> getSubmissionsForPhase(String netId, Phase phase);

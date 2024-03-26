@@ -53,6 +53,7 @@ public class Server {
             get("/submit", submitGet);
             post("/submit", submitPost);
 
+            get("/submission/", submissionXGet);
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
