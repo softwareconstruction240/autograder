@@ -78,8 +78,6 @@ public class Grader implements Runnable {
                 customTestsResults = new UnitTestGrader(gradingContext).runTests();
             }
 
-            dbHelper.finish();
-
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;
             Rubric.RubricItem customTestsItem = null;
