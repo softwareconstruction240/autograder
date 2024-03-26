@@ -40,5 +40,9 @@ const getSpecLink = (phase: Phase | null) => {
 export const uiConfig = {
   getPhaseName: getPhaseName,
   getSpecLink: getSpecLink,
+  links: {
+    helpQueue: "https://students.cs.byu.edu/~cs240ta/helpqueueDelta/",
+    canvas: "https://byu.instructure.com",
+  }
 }
 

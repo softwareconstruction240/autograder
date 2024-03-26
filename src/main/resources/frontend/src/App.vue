@@ -1,12 +1,13 @@
 <script setup lang="ts">
 
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
 import { generateClickableLink } from './utils/utils'
+import { uiConfig } from './stores/uiConfig'
 
 const identity = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -27,17 +28,34 @@ const logOut = async () => {
   }
   router.push({name: "login"})
 }
+
+/* LIGHT/DARK MODE MANAGEMENT */
+onMounted( () => {
+  lightMode.value = localStorage.getItem('isLightMode') == "true"
+  if (lightMode.value) {
+    document.body.classList.add("light-mode")
+  }
+})
+const lightMode = ref<boolean>(false)
+const toggleLightMode = () => {
+  document.body.classList.toggle("light-mode")
+  lightMode.value = !lightMode.value
+  localStorage.setItem('isLightMode', lightMode.value ? "true" : "false")
+}
+/* END LIGHT/DARK MODE MANAGEMENT */
 </script>
 
 <template>
   <header>
     <h1 id="class_number">CS 240</h1>
     <h2 id="autograder-text">AUTOGRADER</h2>
-    <p>The automatic code checker and grader for BYU's Advanced Software Construction Class</p>
+    <p id="program-description">The automatic code checker and grader for BYU's Advanced Software Construction Class</p>
   </header>
+
   <main>
     <router-view/>
   </main>
+
   <footer>
     <div class="footer" v-if="user">
       <div id="userInfo">
@@ -45,24 +63,18 @@ const logOut = async () => {
         <span v-html="generateClickableLink(user.repoUrl)"/>
       </div>
       <div id="actions">
-        <button @click="logOut">Logout</button>
+        <a target="_blank" :href="uiConfig.links.helpQueue"><button><i class="fa-solid fa-handshake-angle"/></button></a>
+        <a target="_blank" :href="uiConfig.links.canvas"><button><i class="fa-solid fa-graduation-cap"/></button></a>
+        <button @click="toggleLightMode">
+          <i v-if="lightMode" class="fa-solid fa-moon"/><i v-else class="fa-solid fa-sun"/>
+        </button>
+        <button class="primary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
     <div class="footer" v-else>
       Idk, maybe something down here
     </div>
   </footer>
-
-
-<!--  <header>-->
-<!--    <h1>CS 240 Autograder</h1>-->
-<!--    <h3>This is where you can submit your assignments and view your scores.</h3>-->
-<!--    <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>-->
-<!--    <p>{{ useAuthStore().user?.repoUrl }}</p>-->
-<!--  </header>-->
-<!--  <main>-->
-<!--    <router-view/>-->
-<!--  </main>-->
 </template>
 
 <style scoped>
@@ -76,29 +88,40 @@ footer {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: #36373F;
-  padding: 15px 25px;
+  background-color: var(--plain-200);
   overflow-x: hidden;
 }
 .footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 15px 25px;
 }
 #userInfo {
   overflow: hidden; /* Hide content that overflows */
   white-space: nowrap;
   margin-right: 10px;
+  text-align: left;
+}
+#actions > *{
+  margin: 5px;
 }
 #class_number {
   font-size: 75px;
   padding-bottom: 0;
-  margin-bottom: -20px;
+  margin: 10px 0 -10px;
+
+  line-height: 1;
 }
 #autograder-text {
-  font-size: 43px;
+  font-size: 44px;
   text-align: center;
-  padding-bottom: 1rem;
+  padding: 0;
+  margin: 0;
+}
+#program-description {
+  max-width: 500px;
+  padding: 10px 0 30px;
 }
 header {
   width: 100%;
@@ -108,41 +131,5 @@ header {
   align-items: center;
   text-align: center;
   font-family: Monaco,sans-serif;
-  margin: 1rem
 }
-
-/*
-header {
-  text-align: center;
-
-  margin-bottom: 20px;
-
-  padding: 20px;
-
-  width: 100%;
-
-  background-color: var(--color--secondary--background);
-  color: var(--color--secondary--text);
-}
-
-h1 {
-  font-weight: bold;
-}
-
-main {
-  background-color: var(--color--surface--background);
-  color: var(--color--surface--text);
-  padding: 20px;
-  border-radius: 3px;
-
-  width: 66vw;
-
-  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-}
-
-a {
-  color: white;
-  text-decoration: underline;
-  cursor: pointer;
-} */
 </style>

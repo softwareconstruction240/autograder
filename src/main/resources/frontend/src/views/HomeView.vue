@@ -38,10 +38,9 @@ const selectPhase = (phase: Phase) => {
 </template>
 
 <style scoped>
-* {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+h3 {
+  font-size: xx-large;
+  margin-top: 20px;
 }
+
 </style>

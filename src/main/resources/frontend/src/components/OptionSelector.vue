@@ -45,29 +45,31 @@ const select = (option: String) => {
 .option {
   width: 12%;
   aspect-ratio: 1/1;
-  background-color: #8d8f99;
+  background-color: var(--plain-500);
+  color: var(--plain-100);
   font-weight: bold;
   font-size: 40px;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid #54555b;
-  border-radius: 10px;
+  border: 2px solid var(--plain-400);
+  border-radius: 5px;
   transition: background-color, border-color;
   transition-duration: 0.2s;
+  margin: 0;
 }
 
 #options > *:hover {
-  background-color: #b2c4ff;
-  border-color: #85a8ff;
+  background-color: var(--plain-400);
+  border-color: var(--plain-300);
   transition: background-color, border-color;
   transition-duration: 0.2s;
 }
 
 #options > *.active {
-  background-color: #4a8dff;
-  border-color: #0080ff;
+  background-color: var(--secondary-color);
+  border-color: var(--primary-color);
 }
 
 @media screen and (max-width: 500px) {

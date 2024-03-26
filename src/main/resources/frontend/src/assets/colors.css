@@ -1,0 +1,58 @@
+/*
+    This file is just to define semantic color variables for the project
+
+    In the interest of easy adaptability, avoid defining colors outside of this file.
+    If there is a use case for a color not defined in here, add it and give it a name
+    so that it may remain consistent, be reused in other areas of the app, and changed
+    easily in the future.
+
+    Defining and using the colors here is also crucial to the functionality of dark/light mode
+ */
+
+
+/* Baseline colors, doesn't change based on light or dark */
+:root {
+    --primary-color: #005bff;
+    --secondary-color: #679eff;
+    --tertiary-color: #94baff;
+    --accent-color: #5e00ff;
+
+    --success-color: #00A000;
+    --failure-color: #FF0000;
+    --caution-color: #ffdc00;
+}
+
+/* IMPORTANT! If you define a color in dark mode, you must also define it in light mode */
+
+/* Color names with numbers:
+     The higher the number, the more it contrasts with the background.
+     For example, a 500 background should be very bright in dark mode,
+     but very dark in light mode.
+ */
+
+
+/* Colors used in DARK MODE */
+:root {
+    --app-background-color: #0d0e17;
+    --plain-100: #1b1c1e;
+    --plain-200: #313236;
+    --plain-300: #55575d;
+    --plain-400: #6a6c73;
+    --plain-500: #a2a4af;
+    --primary-text-color: #f8f8f8;
+    --secondary-text-color: #a8a8a8;
+    --link-color: #85c0e4;
+}
+
+/* Colors used in LIGHT MODE */
+:root .light-mode {
+    --app-background-color: #e0e0f3;
+    --plain-100: #e8eaee;
+    --plain-200: #6a6c73;
+    --plain-300: #55575d;
+    --plain-400: #313236;
+    --plain-500: #1b1c1e;
+    --primary-text-color: #080808;
+    --secondary-text-color: #484848;
+    --link-color: #044064;
+}
