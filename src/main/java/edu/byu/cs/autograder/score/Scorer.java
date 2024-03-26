@@ -40,12 +40,17 @@ public class Scorer {
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
+        // skip penalties if running in admin mode
+        if (gradingContext.admin()) {
+            return saveResults(rubric, numCommits, 0, getScore(rubric), "");
+        }
+
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if(rubric.passed() && !gradingContext.admin()) {
+        if(rubric.passed()) {
             float highestScore = getCanvasScore();
 
             // prevent score from being saved to canvas if it will lower their score
