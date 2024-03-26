@@ -11,7 +11,6 @@
 body {
     /* TEXT STYLING */
     font-family: Inter, Ubuntu, Orbitron, sans-serif;
-    min-height: 100vh;
     color: var(--primary-text-color);
     background: var(--app-background-color);
     transition: background-color 0.3s;
@@ -71,6 +70,11 @@ button {
 }
 
 .primary {
+    background-color: var(--primary-color);
+    border: 2px solid var(--secondary-color);
+}
+
+.secondary {
     background-color: var(--tertiary-color);
     border: 2px solid var(--secondary-color);
 }

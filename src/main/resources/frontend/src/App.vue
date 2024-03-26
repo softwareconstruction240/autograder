@@ -59,7 +59,7 @@ const toggleLightMode = () => {
   <footer>
     <div class="footer" v-if="user">
       <div id="userInfo">
-        <p>{{identity}}</p>
+        <p style="font-weight: bold">{{identity}}</p>
         <span v-html="generateClickableLink(user.repoUrl)"/>
       </div>
       <div id="actions">
@@ -68,7 +68,7 @@ const toggleLightMode = () => {
         <button @click="toggleLightMode">
           <i v-if="lightMode" class="fa-solid fa-moon"/><i v-else class="fa-solid fa-sun"/>
         </button>
-        <button class="primary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"></i></button>
+        <button class="secondary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
     <div class="footer" v-else>

@@ -5,6 +5,8 @@ import {useSubmissionStore} from "@/stores/submissions";
 import OptionSelector from '@/components/OptionSelector.vue'
 import type { Phase } from '@/types/types'
 import { uiConfig } from '@/stores/uiConfig'
+import { submissionPost } from '@/services/submissionService'
+import LiveStatus from '@/views/PhaseView/LiveStatus.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -15,9 +17,24 @@ onMounted(async () => {
 })
 
 const selectedPhase = ref<Phase | null>(null);
+const openGrader = ref<boolean>(false);
 
-const selectPhase = (phase: Phase) => {
+const selectPhase = async (phase: Phase) => {
   selectedPhase.value = phase
+  await useSubmissionStore().checkGrading()
+}
+const submitPhase = async () => {
+  if (selectedPhase.value === null) { // make typescript happy
+    console.error("submitPhase() was called without a phase selected")
+    return
+  }
+  try {
+    useSubmissionStore().currentlyGrading = true;
+    await submissionPost(selectedPhase.value);
+    openGrader.value = true;
+  } catch (e) {
+    alert(e)
+  }
 }
 
 </script>
@@ -35,12 +52,25 @@ const selectPhase = (phase: Phase) => {
     <span v-if="selectedPhase">Review phase specs on Github</span>
     <span v-else>Review project specs on Github</span>
   </a>
+
+  <button @click="submitPhase" class="submit primary" :disabled="!selectedPhase || useSubmissionStore().currentlyGrading">Submit to grader</button>
+
+  <div>
+    <LiveStatus v-if="openGrader"/>
+  </div>
 </template>
 
 <style scoped>
 h3 {
   font-size: xx-large;
   margin-top: 20px;
+}
+
+.submit {
+  padding: 20px 40px;
+  font-size: 30px;
+  border-radius: 20px;
+  max-width: 80vw;
 }
 
 </style>
