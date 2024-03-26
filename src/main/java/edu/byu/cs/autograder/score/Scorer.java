@@ -39,6 +39,11 @@ public class Scorer {
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
+        // skip penalties if running in admin mode
+        if (gradingContext.admin()) {
+            return saveResults(rubric, numCommits, 0, getScore(rubric), "");
+        }
+
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
         Submission thisSubmission;
@@ -132,7 +137,7 @@ public class Scorer {
 
     private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
         float score = getScore(rubric);
-        score -= numDaysLate * PER_DAY_LATE_PENALTY;
+        score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
         if (score < 0) score = 0;
         return score;
     }
@@ -169,16 +174,17 @@ public class Scorer {
     private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
             throws GradingException {
         String headHash = getHeadHash();
+        String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
         // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(gradingContext.netId()).timeAdded().atZone(ZoneId.of("America/Denver"));
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
-                gradingContext.netId(),
+                netId,
                 gradingContext.repoUrl(),
                 headHash,
                 handInDate.toInstant(),
@@ -187,7 +193,8 @@ public class Scorer {
                 score,
                 numCommits,
                 notes,
-                rubric
+                rubric,
+                gradingContext.admin()
         );
 
         submissionDao.insertSubmission(submission);
