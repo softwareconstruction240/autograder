@@ -21,11 +21,19 @@ export const useSubmissionStore = defineStore('submission', () => {
         currentlyGrading.value = await submitGet();
     }
 
+    const getLastSubmission = async () => {
+        const submissions = await submissionsGet(null);
+        return submissions.reduce( (prev, current) => {
+            return (prev.timestamp > current.timestamp) ? prev : current;
+        })
+    }
+
     return {
         submissionsByPhase,
         getSubmissions,
         currentlyGrading,
-        checkGrading
+        checkGrading,
+        getLastSubmission
     };
 });
 

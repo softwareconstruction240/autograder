@@ -20,7 +20,7 @@ export const scoreToPercentage = (score:number) => {
   return roundTwoDecimals(score * 100) + "%"
 }
 
-const roundTwoDecimals = (num: number) => {
+export const roundTwoDecimals = (num: number) => {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 

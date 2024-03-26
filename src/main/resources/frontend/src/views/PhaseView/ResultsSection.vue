@@ -13,6 +13,7 @@ const roundTwoDecimals = (num: number) => {
 </script>
 
 <template>
+  <p>CHEESE</p>
   <h1 v-if="submission.passed">Passed with {{roundTwoDecimals(submission.score * 100)}}%</h1>
   <h1 v-else>Failed</h1>
   <h2 v-html="submission.notes.replace('\n', '<br />')"></h2>

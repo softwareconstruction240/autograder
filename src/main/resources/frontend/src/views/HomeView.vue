@@ -3,11 +3,13 @@
 import { onMounted, ref } from 'vue'
 import {useSubmissionStore} from "@/stores/submissions";
 import OptionSelector from '@/components/OptionSelector.vue'
-import type { Phase } from '@/types/types'
+import type { Phase, Submission } from '@/types/types'
 import { uiConfig } from '@/stores/uiConfig'
 import { submissionPost } from '@/services/submissionService'
 import LiveStatus from '@/views/PhaseView/LiveStatus.vue'
 import SubmissionHistory from '@/views/PhaseView/SubmissionHistory.vue'
+import InfoPanel from '@/components/InfoPanel.vue'
+import ResultsPreview from '@/views/PhaseView/ResultsPreview.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -19,6 +21,8 @@ onMounted(async () => {
 
 const selectedPhase = ref<Phase | null>(null);
 const openGrader = ref<boolean>(false);
+const showResults = ref<boolean>(false);
+const lastSubmission = ref<Submission | null>(null);
 
 const selectPhase = async (phase: Phase) => {
   selectedPhase.value = phase
@@ -33,9 +37,16 @@ const submitPhase = async () => {
     useSubmissionStore().currentlyGrading = true;
     await submissionPost(selectedPhase.value);
     openGrader.value = true;
+    showResults.value = false;
   } catch (e) {
     alert(e)
   }
+}
+
+const handleGradingDone = async () => {
+  useSubmissionStore().currentlyGrading = false;
+  lastSubmission.value = await useSubmissionStore().getLastSubmission();
+  showResults.value = true;
 }
 
 </script>
@@ -56,13 +67,16 @@ const submitPhase = async () => {
 
   <button @click="submitPhase" class="submit primary" :disabled="!selectedPhase || useSubmissionStore().currentlyGrading">Submit to grader</button>
 
-  <div>
-    <LiveStatus v-if="openGrader"/>
-  </div>
+  <InfoPanel style="height: 300px;" v-if="openGrader">
+    <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
+    <ResultsPreview v-if="showResults" :submission="lastSubmission"/>
+  </InfoPanel>
 
-  <h3>Submission History</h3>
-  <p>Click on a submission to see details</p>
-  <SubmissionHistory/>
+  <div id="submission-history" style="width: 100%">
+    <h3>Submission History</h3>
+    <p>Click on a submission to see details</p>
+    <SubmissionHistory/>
+  </div>
 
 </template>
 
