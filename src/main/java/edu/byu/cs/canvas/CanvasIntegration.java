@@ -61,14 +61,12 @@ public interface CanvasIntegration {
      *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
-     * @param grades            A Map of rubric item id's to grades for that rubric item
-     * @param rubricComments    A Map of rubric item id's to comments to put on that rubric item
+     * @param assessment        The rubric assessment to grade with
      * @param assignmentComment A comment for the entire assignment, if necessary
      * @throws CanvasException If there is an error with Canvas
      * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
      */
-    void submitGrade(int userId, int assignmentNum, Map<String, Float> grades,
-                                   Map<String, String> rubricComments, String assignmentComment)
+    void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment)
             throws CanvasException;
 
 
