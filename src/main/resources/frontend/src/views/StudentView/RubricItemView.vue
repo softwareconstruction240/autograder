@@ -37,9 +37,12 @@ defineProps<{
 }
 
 #details {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  column-gap: 5px;
+  display: flex;
+}
+
+#details > div {
+  width: 50%;
+  margin: 0 5px;
 }
 
 #item-header {

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type {Submission, TestResult} from "@/types/types";
-import {reactive, ref} from "vue";
+import {ref} from "vue";
 import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import {loadRubricRows, wrappingColSettings} from "@/utils/tableUtils";
 import ResultsPopup from "@/views/StudentView/ResultsPopup.vue";
 import {
   generateClickableCommitLink,
@@ -29,16 +28,6 @@ const openResults = (event: CellClickedEvent) => {
     textResults.value = event.data.results.textResults
   }
 }
-
-const columnDefs = reactive([
-  { headerName: "Category", field: 'category', flex:1 },
-  { headerName: "Criteria", field: "criteria", ...wrappingColSettings, flex:2 },
-  { headerName: "Notes", field: "notes", ...wrappingColSettings, flex:2, sortable: false, onCellClicked: openResults },
-  { headerName: "Points", field: "points", flex:1, onCellClicked: openResults }
-])
-const rowData = reactive({
-  value: [] = loadRubricRows(submission)
-})
 
 </script>
 

@@ -8,6 +8,9 @@ import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
 import { generateClickableLink } from './utils/utils'
 import { uiConfig } from './stores/uiConfig'
+import PopUp from '@/components/PopUp.vue'
+
+const openMenu = ref<boolean>(false)
 
 const identity = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -63,14 +66,36 @@ const toggleLightMode = () => {
         <p style="font-weight: bold">{{identity}}</p>
         <span v-html="generateClickableLink(user.repoUrl)"/>
       </div>
+
+      <!-- This actions div appears when the window is wide enough  -->
       <div id="actions">
         <a target="_blank" :href="uiConfig.links.helpQueue"><button><i class="fa-solid fa-handshake-angle"/></button></a>
         <a target="_blank" :href="uiConfig.links.canvas"><button><i class="fa-solid fa-graduation-cap"/></button></a>
         <button @click="toggleLightMode">
           <i v-if="lightMode" class="fa-solid fa-moon"/><i v-else class="fa-solid fa-sun"/>
         </button>
-        <button class="secondary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"></i></button>
+        <button class="secondary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"/></button>
       </div>
+
+      <!--  This div is what appears when the window is too narrow    -->
+      <div id="menu">
+        <button class="secondary" @click="openMenu = true">Menu <i class="fa-solid fa-bars"/></button>
+
+        <PopUp
+          v-if="openMenu"
+          @closePopUp="openMenu = false"
+          id="menuPopUp">
+          <h2>Menu</h2>
+          <a target="_blank" :href="uiConfig.links.helpQueue"><button>Help Queue <i class="fa-solid fa-handshake-angle"/></button></a>
+          <a target="_blank" :href="uiConfig.links.canvas"><button>Canvas <i class="fa-solid fa-graduation-cap"/></button></a>
+          <button @click="toggleLightMode">
+            Toggle Light/Dark
+            <i v-if="lightMode" class="fa-solid fa-moon"/><i v-else class="fa-solid fa-sun"/>
+          </button>
+          <button class="secondary" @click="logOut">Logout <i class="fa-solid fa-right-from-bracket"/></button>
+        </PopUp>
+      </div>
+
     </div>
     <div class="footer" v-else>
       Idk, maybe something down here
@@ -110,7 +135,7 @@ footer {
   margin-right: 10px;
   text-align: left;
 }
-#actions > *{
+:is(#actions, #menu) button {
   margin: 5px;
 }
 #class_number {
@@ -138,5 +163,31 @@ header {
   align-items: center;
   text-align: center;
   font-family: Monaco,sans-serif;
+}
+#menuPopUp {
+  display: flex;
+  flex-direction: column;
+}
+#menuPopUp button {
+  width: 70%;
+  margin: 10px;
+}
+
+@media screen and (max-width: 700px) {
+  #actions {
+    display: none;
+  }
+  button {
+    width: 110px;
+  }
+}
+
+@media screen and (min-width: 701px) {
+  #actions {
+    display: flex;
+  }
+  #menu {
+    display: none;
+  }
 }
 </style>

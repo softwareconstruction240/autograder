@@ -34,10 +34,10 @@ const submitPhase = async () => {
     return
   }
   try {
-    useSubmissionStore().currentlyGrading = true;
     await submissionPost(selectedPhase.value);
-    openGrader.value = true;
+    useSubmissionStore().currentlyGrading = true;
     showResults.value = false;
+    openGrader.value = true;
   } catch (e) {
     alert(e)
   }
@@ -75,7 +75,7 @@ const handleGradingDone = async () => {
   <div id="submission-history" style="width: 100%">
     <h3>Submission History</h3>
     <p>Click on a submission to see details</p>
-    <SubmissionHistory/>
+    <SubmissionHistory :key="lastSubmission"/>
   </div>
 
 </template>
