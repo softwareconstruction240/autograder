@@ -78,3 +78,7 @@ button {
     background-color: var(--tertiary-color);
     border: 2px solid var(--secondary-color);
 }
+
+hr {
+    margin-bottom: 5px;
+}

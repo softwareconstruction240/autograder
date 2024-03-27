@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import type { Submission } from '@/types/types'
 import { renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings } from '@/utils/tableUtils'
 import { submissionsGet } from '@/services/submissionService'
 import { AgGridVue } from 'ag-grid-vue3'
+import PopUp from '@/components/PopUp.vue'
+import type { CellClickedEvent } from 'ag-grid-community'
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 
 
 onMounted(async () => { await loadSubmissions() })
+const selectedSubmission = ref<Submission | null>(null);
 
 const loadSubmissions = async () => {
   try {
@@ -31,14 +35,17 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
     )
   })
   rowData.value = dataToShow
-  console.log(rowData.value)
+}
+
+const handleSubmissionOpen = (event: CellClickedEvent) => {
+  selectedSubmission.value = event.data.submission
 }
 
 const columnDefs = reactive([
-  { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, filter: false, sortable: false, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', flex:3, sortable: false, hide: (window.innerWidth < 600) },
+  { headerName: "Phase", field: 'phase', flex:1, onCellClicked: handleSubmissionOpen, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: 'timestamp', onCellClicked: handleSubmissionOpen, sort: 'desc', sortingOrder: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
+  { headerName: "Score", field: 'score', flex:1, onCellClicked: handleSubmissionOpen, filter: false, sortable: false, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: 'notes', flex:3, onCellClicked: handleSubmissionOpen, sortable: false, hide: (window.innerWidth < 600) },
 ])
 const rowData = reactive({
   value: []
@@ -53,6 +60,12 @@ const rowData = reactive({
     :rowData="rowData.value"
     :defaultColDef="standardColSettings"
   ></ag-grid-vue>
+
+  <PopUp
+    v-if="selectedSubmission"
+    @closePopUp="selectedSubmission = null">
+    <SubmissionInfo :submission="selectedSubmission"/>
+  </PopUp>
 </template>
 
 <style scoped>

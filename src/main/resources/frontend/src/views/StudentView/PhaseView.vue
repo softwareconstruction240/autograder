@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type {Phase, Submission} from "@/types/types";
-import PastSubmissions from "@/views/PhaseView/PastSubmissions.vue";
+import PastSubmissions from "@/views/StudentView/PastSubmissions.vue";
 import {ref} from "vue";
 import {submissionPost} from "@/services/submissionService";
-import ResultsSection from "@/views/PhaseView/ResultsSection.vue";
-import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
+import ResultsSection from "@/views/StudentView/ResultsSection.vue";
+import LiveStatus from "@/views/StudentView/LiveStatus.vue";
 import {useSubmissionStore} from "@/stores/submissions";
 
 const props = defineProps<{

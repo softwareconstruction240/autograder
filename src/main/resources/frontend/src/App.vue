@@ -93,6 +93,7 @@ footer {
   width: 100%;
   background-color: var(--plain-200);
   overflow-x: hidden;
+  z-index: 10;
 }
 .footer {
   display: flex;

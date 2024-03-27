@@ -15,11 +15,11 @@ import {
   renderTimestampCell
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
+import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
 import {generateClickableLink, nameFromNetId} from "@/utils/utils";
 import {adminSubmissionPost} from "@/services/submissionService";
 import Dropdown from "@/components/Dropdown.vue";
-import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
+import LiveStatus from "@/views/StudentView/LiveStatus.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);

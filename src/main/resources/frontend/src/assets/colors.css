@@ -39,8 +39,10 @@
     --plain-300: #55575d;
     --plain-400: #6a6c73;
     --plain-500: #a2a4af;
-    --primary-text-color: #f8f8f8;
+    --opposite: #f3f3f3;
+    --primary-text-color: #eaeaea;
     --secondary-text-color: #a8a8a8;
+    --opposite-text-color: #080808;
     --link-color: #85c0e4;
 }
 
@@ -52,7 +54,9 @@
     --plain-300: #55575d;
     --plain-400: #313236;
     --plain-500: #1b1c1e;
+    --opposite: #0d0e17;
     --primary-text-color: #080808;
     --secondary-text-color: #484848;
+    --opposite-text-color: #ffffff;
     --link-color: #044064;
 }

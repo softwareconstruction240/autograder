@@ -6,10 +6,10 @@ import OptionSelector from '@/components/OptionSelector.vue'
 import type { Phase, Submission } from '@/types/types'
 import { uiConfig } from '@/stores/uiConfig'
 import { submissionPost } from '@/services/submissionService'
-import LiveStatus from '@/views/PhaseView/LiveStatus.vue'
-import SubmissionHistory from '@/views/PhaseView/SubmissionHistory.vue'
+import LiveStatus from '@/views/StudentView/LiveStatus.vue'
+import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
-import ResultsPreview from '@/views/PhaseView/ResultsPreview.vue'
+import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {

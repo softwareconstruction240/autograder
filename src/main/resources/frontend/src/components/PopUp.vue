@@ -32,16 +32,18 @@ defineEmits({
 }
 
 .popup {
-  background: #fff;
-  padding: 20px;
+  background: var(--plain-100);
+  padding: 10px;
   border-radius: 8px;
-  position: relative;
-  max-height: 80vh;
+  position: fixed;
+  max-height: 90vh;
+  max-width: 95vw;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .popup-content {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   padding: 20px;
 }
 
@@ -50,5 +52,6 @@ defineEmits({
   top: 10px;
   right: 10px;
   cursor: pointer;
+  background-color: var(--opposite);
 }
 </style>

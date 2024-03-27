@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Rubric from "@/views/PhaseView/RubricTable.vue";
+import Rubric from "@/views/StudentView/RubricTable.vue";
 import type {Submission} from "@/types/types";
 
 defineProps<{
