@@ -180,7 +180,7 @@ public class GitHelper {
         }
         if (daysWithCommits < requiredDaysWithCommits) {
             verified = false;
-            errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", numCommits, requiredCommits));
+            errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits));
         }
 
         // Add additional explanatory message
