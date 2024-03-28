@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -36,13 +37,12 @@ public class Scorer {
 
     public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException {
         gradingContext.observer().update("Grading...");
-        var phase = gradingContext.phase();
 
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
         // skip penalties if running in admin mode
-        if (gradingContext.admin()) {
+        if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
             return saveResults(rubric, commitVerificationResult, 0, getScore(rubric), "");
         }
 
@@ -53,7 +53,7 @@ public class Scorer {
         // prevent score from being saved to canvas if it will lower their score
         if (!commitVerificationResult.verified()) {
             thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
-        } else if(rubric.passed()) {
+        } else if (rubric.passed()) {
             UserDao userDao = DaoService.getUserDao();
             User user = userDao.getUser(gradingContext.netId());
             int canvasUserId = user.canvasUserId();
@@ -109,7 +109,7 @@ public class Scorer {
                                     CanvasIntegration.RubricAssessment assessment) {
         try {
             CanvasIntegration.CanvasSubmission submission =
-                    CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
+                    CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
             float prevPoints = (submission.score() != null) ? submission.score() : 0;
             CanvasIntegration.RubricAssessment compareAssessment = assessment;
 
@@ -151,7 +151,7 @@ public class Scorer {
      *
      * @return the score
      */
-    protected float getScore(Rubric rubric) throws GradingException {
+    private float getScore(Rubric rubric) throws GradingException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0)
@@ -206,7 +206,7 @@ public class Scorer {
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasIntegration.RubricAssessment assessment, String notes) throws GradingException {
         try {
-            CanvasIntegration.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
+            CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
             LOGGER.error("Error submitting to canvas for user " + gradingContext.netId(), e);
             throw new GradingException("Error contacting canvas to record scores");

@@ -131,25 +131,6 @@ public class TestAnalyzer {
                 throw new RuntimeException(e);
             }
         }
-
-        /**
-         * Bundles two TestNodes into a single TestNode
-         *
-         * @param bundleName the name of the parent TestNode
-         * @param nodes      the second TestNode
-         * @return a new TestNode that is the result of bundling a and b
-         */
-        public static TestNode bundle(String bundleName, TestNode... nodes) {
-            TestNode merged = new TestNode();
-            merged.testName = bundleName;
-
-            for (TestNode node : nodes)
-                merged.children.put(node.testName, node);
-
-            TestNode.countTests(merged);
-
-            return merged;
-        }
     }
 
     /**

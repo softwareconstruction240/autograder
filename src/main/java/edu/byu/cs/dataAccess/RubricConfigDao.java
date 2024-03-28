@@ -14,4 +14,6 @@ public interface RubricConfigDao {
     RubricConfig getRubricConfig(Phase phase);
 
     int getPhaseTotalPossiblePoints(Phase phase);
+
+    void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;
 }

@@ -22,7 +22,7 @@ public class CanvasDeserializer<T> {
     }
     private static class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
         @Override
-        public void write(JsonWriter jsonWriter, ZonedDateTime zonedDateTime) throws IOException {
+        public void write(JsonWriter jsonWriter, ZonedDateTime zonedDateTime) {
         }
 
         @Override

@@ -279,7 +279,7 @@ class LateDayCalculatorTest {
         };
         for (var expectedHoliday : sampleExpectedHolidays) {
             Assertions.assertTrue(initializedPublicHolidays.contains(expectedHoliday),
-                    "Expected holiday not found in resulting set: " + expectedHoliday.toString());
+                    "Expected holiday not found in resulting set: " + expectedHoliday);
         }
     }
 

@@ -1,8 +1,8 @@
 package edu.byu.cs.honorChecker;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -29,7 +29,7 @@ public class HonorCheckerCompiler {
 
         Collection<User> students;
         try {
-            students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(sectionID);
+            students = CanvasService.getCanvasIntegration().getAllStudentsBySection(sectionID);
         } catch (CanvasException e) {
             throw new RuntimeException("Canvas Exception: " + e.getMessage());
         }

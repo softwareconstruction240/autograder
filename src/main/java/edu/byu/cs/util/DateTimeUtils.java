@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class DateTimeUtils {
 
     /**
-     * Generates a String representation of a timestamp
+     * Generates a String representation of a timestamp in American/Denver time zone.
      *
      * @param timestamp a timestamp in Unix seconds
      * @param includeTime whether the time is included
