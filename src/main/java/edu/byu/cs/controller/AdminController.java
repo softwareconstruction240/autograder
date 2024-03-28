@@ -2,7 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
@@ -69,7 +69,7 @@ public class AdminController {
     };
 
     public static Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasIntegration.getCanvasIntegration().getTestStudent();
+        User latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
 
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser("test");

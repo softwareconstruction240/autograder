@@ -2,7 +2,7 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.PhaseUtils;
@@ -46,7 +46,7 @@ public class LateDayCalculator {
 
         ZonedDateTime dueDate;
         try {
-            dueDate = CanvasIntegration.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            dueDate = CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
