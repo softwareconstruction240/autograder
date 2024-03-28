@@ -4,42 +4,62 @@ import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Submission;
+import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
+    private Collection<Submission> passingSubmissions;
 
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
 
     public CommitVerificationResult setUp() throws GradingException {
-        fetchRepo();
-        return verifyRegularCommits();
+        var observer = gradingContext.observer();
+        File stageRepo = gradingContext.stageRepo();
+        fetchRepo(stageRepo);
+        loadPassingSubmission();
+
+        try (Git git = Git.open(stageRepo)) {
+            return verifyRegularCommits(git);
+        } catch (IOException | GitAPIException e) {
+            observer.notifyError("Failed to verify commits: " + e.getMessage());
+            LOGGER.error("Failed to verify commits", e);
+            throw new GradingException("Failed to verify commits: " + e.getMessage());
+        }
     }
 
     /**
      * Fetches the student repo and puts it in the given local path
      */
-    private void fetchRepo() throws GradingException {
+    private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(gradingContext.repoUrl())
-                .setDirectory(gradingContext.stageRepo());
+                .setDirectory(intoDirectory);
 
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
@@ -52,39 +72,85 @@ public class GitHelper {
         gradingContext.observer().update("Successfully fetched repo");
     }
 
+    private void loadPassingSubmission() {
+        passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
+    }
+    /**
+     * Returns a timestamp corresponding to the most recent commit that was giving a passing grade.
+     * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
+     * If there are no previous passing submissions, this returns the minimum Instant instead.
+     *
+     * @return An {@link Instant}.
+     * @throws GradingException When certain preconditions are not met, or when this would have returned null.
+     */
+    @NonNull
+    private Instant getMostRecentPassingCommitTimestamp(Git git) throws IOException, GradingException {
+        if (passingSubmissions == null) {
+            throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
+        }
+        if (passingSubmissions.isEmpty()) {
+            return Instant.MIN;
+        }
+
+        Instant latest = null;
+        Repository repo = git.getRepository();
+
+        Instant effectiveSubmissionTimestamp;
+        try (RevWalk revWalk = new RevWalk(repo)) {
+            for (Submission submission : passingSubmissions) {
+                effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
+                revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
+                if (latest == null || effectiveSubmissionTimestamp.isAfter(latest)) {
+                    latest = effectiveSubmissionTimestamp;
+                }
+            }
+        }
+
+        if (latest == null) {
+            throw new GradingException("After processing a non-empty set of passing submissions, our latest timestamp is null.");
+        }
+
+        return latest;
+    }
+    private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
+        try {
+            ObjectId commitId = ObjectId.fromString(submission.headHash());
+            RevCommit commit = revWalk.parseCommit(commitId);
+            return Instant.ofEpochSecond(commit.getCommitTime());
+        } catch (MissingObjectException | IncorrectObjectTypeException ex) {
+            // The commit didn't exist. It may have been garbage collected if they rebased.
+            // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
+            return submission.timestamp();
+        }
+    }
+
     /**
      * Counts the commits since the last passoff and halts progress if there are less than the required amount
      *
      * @return the number of commits since the last passoff
      */
-    private CommitVerificationResult verifyRegularCommits() throws GradingException {
+    private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
+        CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git);
+        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
+
         var observer = gradingContext.observer();
-        var stageRepo = gradingContext.stageRepo();
-        observer.update("Verifying commits...");
-
-        try (Git git = Git.open(stageRepo)) {
-            CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git);
-            CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-
-            if (commitVerificationResult.verified()) {
-                observer.update("Passed commit verification.");
-            } else {
-                observer.update("Failed commit verification. Continuing with grading anyways.");
-            }
-            return commitVerificationResult;
-        } catch (IOException | GitAPIException e) {
-            observer.notifyError("Failed to verify commits: " + e.getMessage());
-            LOGGER.error("Failed to verify commits", e);
-            throw new GradingException("Failed to verify commits: " + e.getMessage());
+        if (commitVerificationResult.verified()) {
+            observer.update("Passed commit verification.");
+        } else {
+            observer.update("Failed commit verification. Continuing with grading anyways.");
         }
+        return commitVerificationResult;
     }
-    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Git git) throws IOException, GitAPIException {
+    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Git git) throws IOException, GitAPIException, GradingException {
         Iterable<RevCommit> commits = git.log().all().call();
-        var netId = gradingContext.netId();
-        var phase = gradingContext.phase();
-        Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
-        long timestamp = submission == null ? 0L : submission.timestamp().getEpochSecond();
-        return CommitAnalytics.countCommitsByDay(commits, timestamp, Instant.now().getEpochSecond());
+
+        Instant minValidThreshold = getMostRecentPassingCommitTimestamp(git);
+        Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+
+        return CommitAnalytics.countCommitsByDay(
+                commits,
+                minValidThreshold.getEpochSecond(),
+                maxValidThreshold.getEpochSecond());
     }
     private CommitVerificationResult commitsPassRequirements(CommitAnalytics.CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
