@@ -76,13 +76,14 @@ public class GitHelper {
     }
 
     private String getHeadHash(File stageRepo) throws GradingException {
-        String headHash;
         try (Git git = Git.open(stageRepo)) {
-            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
+            return getHeadHash(git);
         } catch (IOException e) {
             throw new GradingException("Failed to get head hash: " + e.getMessage());
         }
-        return headHash;
+    }
+    private String getHeadHash(Git git) throws IOException {
+        return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
 
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
@@ -159,7 +160,7 @@ public class GitHelper {
         Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
 
         CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, minValidThreshold, maxValidThreshold);
-        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
+        CommitVerificationResult commitVerificationResult = commitsPassRequirements(git, commitHistory);
         LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
 
         var observer = gradingContext.observer();
@@ -181,7 +182,7 @@ public class GitHelper {
                 minValidThreshold.getEpochSecond(),
                 maxValidThreshold.getEpochSecond());
     }
-    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
+    private CommitVerificationResult commitsPassRequirements(Git git, CommitsByDay commitsByDay) throws IOException {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
@@ -208,6 +209,7 @@ public class GitHelper {
             errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
 
+        String headHash = getHeadHash(git);
         return new CommitVerificationResult(
                 verified,
                 numCommits,
@@ -215,7 +217,7 @@ public class GitHelper {
                 String.join("\n", errorMessages),
                 Instant.ofEpochSecond(commitsByDay.lowerBoundSeconds()),
                 Instant.ofEpochSecond(commitsByDay.upperBoundSeconds()),
-                null, // TODO: Populate with the head hash
+                headHash,
                 null // TODO: populate with the tail hash
         );
     }
