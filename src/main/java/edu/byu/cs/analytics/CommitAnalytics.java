@@ -23,8 +23,6 @@ import java.util.*;
  */
 public class CommitAnalytics {
 
-    public record CommitsByDay(Map<String, Integer> dayMap, int totalCommits) { }
-
     /**
      * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day,
      * counting only commits within the bounds presented.
