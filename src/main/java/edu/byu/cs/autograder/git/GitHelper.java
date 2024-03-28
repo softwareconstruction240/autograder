@@ -67,6 +67,7 @@ public class GitHelper {
     }
 
     private CommitVerificationResult skipCommitVerification(File stageRepo) throws GradingException {
+        LOGGER.debug("Skipping commit verification");
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
                 true,
