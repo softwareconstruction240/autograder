@@ -21,7 +21,7 @@ public class AuthController {
      * A filter that verifies that the request has a valid JWT in the Authorization header.
      * If the request is valid, the netId is added to the session for later use.
      */
-    public static Filter verifyAuthenticatedMiddleware = (req, res) -> {
+    public static final Filter verifyAuthenticatedMiddleware = (req, res) -> {
         String token = req.cookie("token");
 
         if (token == null) {
@@ -46,7 +46,7 @@ public class AuthController {
         req.session().attribute("user", user);
     };
 
-    public static Filter verifyAdminMiddleware = (req, res) -> {
+    public static final Filter verifyAdminMiddleware = (req, res) -> {
         User user = req.session().attribute("user");
 
         if (user.role() != User.Role.ADMIN) {
@@ -54,7 +54,7 @@ public class AuthController {
         }
     };
 
-    public static Route registerPost = (req, res) -> {
+    public static final Route registerPost = (req, res) -> {
         String token = req.cookie("token");
 
         if (token == null) {
@@ -97,7 +97,7 @@ public class AuthController {
         return "";
     };
 
-    public static Route meGet = (req, res) -> {
+    public static final Route meGet = (req, res) -> {
         User user = req.session().attribute("user");
 
         res.status(200);
