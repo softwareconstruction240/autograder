@@ -4,11 +4,13 @@ import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserMemoryDao implements UserDao {
 
-    private static final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final Map<String, User> users = new HashMap<>();
     @Override
     public void insertUser(User user) {
         if (users.containsKey(user.netId()))
