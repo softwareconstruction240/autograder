@@ -18,12 +18,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Calculates late days
  * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
  */
 public class LateDayCalculator {
+
+    Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
+
+
     /**
      * The max number of days that the late penalty should be applied for.
      */
@@ -207,7 +212,7 @@ public class LateDayCalculator {
             try {
                 publicHolidays.add(parser.parse(holidayDateString, LocalDate::from));
             } catch (DateTimeParseException e) {
-                System.out.println("Skipping unrecognized date string: " + holidayDateString);
+                LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
             }
         }
         return publicHolidays;
