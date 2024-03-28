@@ -73,7 +73,7 @@ public class DatabaseHelper {
                 os.flush();
             }
         } catch (IOException e) {
-            throw new GradingException("Could add db config", e);
+            throw new GradingException("Could not add db config", e);
         }
     }
 
