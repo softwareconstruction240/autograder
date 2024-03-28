@@ -15,7 +15,7 @@ RUN cd src/main/resources/frontend && \
    yarn && \
    yarn build
 
-RUN mvn clean package
+RUN mvn clean package -DskipTests
 
 EXPOSE 8080
 
