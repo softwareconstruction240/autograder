@@ -15,13 +15,6 @@ import java.util.Map;
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
 
-    @OnWebSocketConnect
-    public void onConnect(Session session) {}
-
-    @OnWebSocketClose
-    public void onClose(Session session, int statusCode, String reason) {
-    }
-
     @OnWebSocketError
     public void onError(Session session, Throwable t) {
         if (!(t instanceof CloseException))
