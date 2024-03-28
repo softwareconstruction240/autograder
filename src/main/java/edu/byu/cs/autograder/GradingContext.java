@@ -12,6 +12,7 @@ import java.io.File;
  * @param repoUrl         The url of the student repo
  * @param stageRepo       The path for the student repo (child of stagePath)
  * @param requiredCommits The required number of commits (since the last phase) to be able to pass off
+ * @param admin           If the submission is an admin submission
  */
 public record GradingContext(
         String netId,
@@ -23,10 +24,10 @@ public record GradingContext(
 
         // Commit Configuration
         int requiredCommits,
-
         int requiredDaysWithCommits,
         int commitVerificationPenaltyPct,
 
-        // Observer
-        Grader.Observer observer
+        // Others
+        Grader.Observer observer,
+        boolean admin
 ) { }

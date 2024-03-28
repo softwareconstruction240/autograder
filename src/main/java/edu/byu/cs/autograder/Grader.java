@@ -40,7 +40,7 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, Observer observer, Phase phase) throws IOException {
+    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
         // Init files
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
@@ -86,8 +86,6 @@ public class Grader implements Runnable {
             if(rubricConfig.unitTests() != null) {
                 customTestsResults = new UnitTestGrader(gradingContext).runTests();
             }
-
-            dbHelper.finish();
 
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;

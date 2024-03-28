@@ -2,7 +2,6 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.util.PhaseUtils;
 

@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
-import edu.byu.cs.autograder.test.TestGrader;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.DaoService;
@@ -16,6 +16,7 @@ import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Request;
 import spark.Route;
 
 import java.io.IOException;
@@ -30,6 +31,92 @@ public class SubmissionController {
 
     public static Route submitPost = (req, res) -> {
 
+        GradeRequest request = validateAndUnpackRequest(req);
+        if (request == null) { return null; }
+
+        User user = req.session().attribute("user");
+
+        updateRepoFromCanvas(user, req);
+
+        if (! verifyHasNewCommits(user, request.getPhase()) ) { return null; }
+
+        LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
+
+        startGrader(user.netId(), request.getPhase(), user.repoUrl(), false);
+
+        res.status(200);
+        return "";
+    };
+
+    public static Route adminRepoSubmitPost = (req, res) -> {
+
+        GradeRequest request = validateAndUnpackRequest(req);
+        if (request == null) { return null; }
+
+        User user = req.session().attribute("user");
+
+        LOGGER.info("Admin " + user.netId() + " submitted phase " + request.phase() + " on repo " + request.repoUrl() + " for test grading");
+
+        startGrader(user.netId(), request.getPhase(), request.repoUrl(), true);
+
+        res.status(200);
+        return "";
+    };
+
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) {
+        DaoService.getQueueDao().add(
+                new edu.byu.cs.model.QueueItem(
+                        netId,
+                        phase,
+                        Instant.now(),
+                        false
+                )
+        );
+
+        TrafficController.sessions.put(netId, new ArrayList<>());
+
+        try {
+            Grader grader = getGrader(netId, phase, repoUrl, adminSubmission);
+
+            TrafficController.getInstance().addGrader(grader);
+
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            halt(400, "Invalid phase");
+        } catch (Exception e) {
+            LOGGER.error("Something went wrong submitting", e);
+            halt(500, "Something went wrong");
+        }
+    }
+
+    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException {
+        CanvasIntegration canvas = CanvasIntegration.getCanvasIntegration();
+        String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
+        if (!newRepoUrl.equals(user.repoUrl())) {
+            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
+            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
+            req.session().attribute("user", user);
+        }
+    }
+
+    private static boolean verifyHasNewCommits(User user, Phase phase) {
+        String headHash;
+        try {
+            headHash = getRemoteHeadHash(user.repoUrl());
+        } catch (Exception e) {
+            LOGGER.error("Error getting remote head hash", e);
+            halt(400, "Invalid repo url");
+            return false;
+        }
+        Submission submission = getMostRecentSubmission(user.netId(), phase);
+        if (submission != null && submission.headHash().equals(headHash)) {
+            halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
+            return false;
+        }
+        return true;
+    }
+
+    private static GradeRequest validateAndUnpackRequest(Request req) {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
@@ -51,97 +138,17 @@ public class SubmissionController {
             return null;
         }
 
-        // FIXME: improve git url validation
-//        if (!request.repoUrl().matches("^https://[\\w.]+.\\w+/[\\w\\D]+/[\\w-/]+.git$")) {
-//            halt(400, "That doesn't look like a valid git url");
-//            return;
-//        }
         if (!Arrays.asList(0, 1, 3, 4, 5, 6).contains(request.phase())) {
             halt(400, "Valid phases are 0, 1, 3, 4, 5, or 6");
             return null;
         }
 
-        if (user.repoUrl() == null) {
-            halt(400, "You must provide a repo url");
+        if (user.repoUrl() == null && user.role() == User.Role.STUDENT) {
+            halt(400, "Student has no provided repo url");
             return null;
         }
 
-        // check for updated repoUrl
-        String newRepoUrl = CanvasIntegration.getCanvasIntegration().getGitRepo(user.canvasUserId());
-        if (!newRepoUrl.equals(user.repoUrl())) {
-            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
-            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user", user);
-        }
-
-        String headHash;
-        try {
-            headHash = getRemoteHeadHash(user.repoUrl());
-        } catch (Exception e) {
-            LOGGER.error("Error getting remote head hash", e);
-            halt(400, "Invalid repo url");
-            return null;
-        }
-        if (mostRecentHasMaxScore(netId, request.getPhase())) {
-            halt(400, "You have already earned the highest possible score on this phase");
-            return null;
-        }
-        Submission submission = getMostRecentSubmission(netId, request.getPhase());
-        if (submission != null && submission.headHash().equals(headHash)) {
-            halt(400, "You have already submitted this version of your code for this phase. Make a new commit before submitting again");
-            return null;
-        }
-
-        LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
-
-        DaoService.getQueueDao().add(
-                new edu.byu.cs.model.QueueItem(
-                        netId,
-                        Phase.valueOf("Phase" + request.phase()),
-                        Instant.now(),
-                        false
-                )
-        );
-
-        TrafficController.sessions.put(netId, new ArrayList<>());
-
-        try {
-            Grader grader = getGrader(netId, Phase.valueOf("Phase" + request.phase()), user.repoUrl());
-
-            TrafficController.getInstance().addGrader(grader);
-
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Invalid phase", e);
-            halt(400, "Invalid phase");
-        } catch (Exception e) {
-            LOGGER.error("Something went wrong submitting", e);
-            halt(500, "Something went wrong");
-        }
-
-        res.status(200);
-        return "";
-    };
-
-    /**
-     * checks to see if the specified student achieved the highest possible grade on the specified phase on their most recent submission
-     *
-     * @param netId netId of the student to check
-     * @param phase phase of the project to check
-     * @return true if the student's latest submission has the max score.
-     * False if the student did not score the max on their latest submission, or if they haven't submitted before at all for this phase
-     */
-    private static boolean mostRecentHasMaxScore(String netId, Phase phase) {
-//        Submission mostRecent = getMostRecentSubmission(netId, phase);
-//        if (mostRecent == null) {
-//            return false;
-//        }
-//
-//        // If they passed the required tests, and there are no extra credit tests they haven't passed,
-//        // then by definition they can't get a higher score
-//        return mostRecent.passed() && mostRecent.testResults().getNumExtraCreditFailed() == 0;
-
-        //FIXME: this needs to be reworked to use the Rubric format
-        return false;
+        return request;
     }
 
     /**
@@ -244,10 +251,11 @@ public class SubmissionController {
      *
      * @param netId the netId of the user
      * @param phase the phase to grade
+     * @param adminSubmission if the grader should run in admin mode
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, Phase phase, String repoUrl) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -312,7 +320,7 @@ public class SubmissionController {
             }
         };
 
-        return new Grader(repoUrl, netId, observer, phase);
+        return new Grader(repoUrl, netId, observer, phase, adminSubmission);
     }
 
     public static String getRemoteHeadHash(String repoUrl) {
@@ -357,7 +365,8 @@ public class SubmissionController {
             TrafficController.getInstance().addGrader(
                     getGrader(queueItem.netId(),
                             queueItem.phase(),
-                            currentUser.repoUrl() ));
+                            currentUser.repoUrl(),
+                            currentUser.role() == User.Role.ADMIN));
         }
     }
 }
