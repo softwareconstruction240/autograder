@@ -190,44 +190,32 @@ public class GitHelper {
                 lowerThreshold,
                 upperThreshold);
     }
-    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) throws IOException {
+    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
 
-        boolean verified = true;
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
-        ArrayList<String> errorMessages = new ArrayList<>();
 
-        // Assert conditions
-        if (numCommits < requiredCommits) {
-            verified = false;
-            errorMessages.add(String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits));
-        }
-        if (daysWithCommits < requiredDaysWithCommits) {
-            verified = false;
-            errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits));
-        }
-        if (commitsByDay.commitsInFuture()) {
-            verified = false;
-            errorMessages.add("Commits have been authored in the future are suspect of cheating.");
-        }
-        if (commitsByDay.commitsInOrder()) {
-            verified = false;
-            errorMessages.add("Suspicious commit history. Not all commits are in order.");
-        }
-
-
-        // Add additional explanatory message
-        if (!verified) {
-            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
-                    + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
-        }
+        CV[] assertedConditions = {
+                new CV(
+                        numCommits < requiredCommits,
+                        String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits)),
+                new CV(
+                        daysWithCommits < requiredDaysWithCommits,
+                        String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),
+                new CV(
+                        commitsByDay.commitsInFuture(),
+                        "Suspicious commit history. Some commits are authored after the hand in date."),
+                new CV(
+                        !commitsByDay.commitsInOrder(),
+                        "Suspicious commit history. Not all commits are in order.")
+        };
+        ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
 
         return new CommitVerificationResult(
-                verified,
+                errorMessages.isEmpty(),
                 numCommits,
                 daysWithCommits,
                 String.join("\n", errorMessages),
@@ -237,5 +225,26 @@ public class GitHelper {
                 commitsByDay.lowerThreshold().commitHash()
         );
     }
+
+    private static ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
+        ArrayList<String> errorMessages = new ArrayList<>();
+        for (CV assertedCondition : assertedConditions) {
+            if (!assertedCondition.fails) continue;
+            errorMessages.add(assertedCondition.errorMsg());
+        }
+
+        if (!errorMessages.isEmpty()) {
+            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
+                    + "you will need to talk to a TA to receive a score. ");
+            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
+        }
+        return errorMessages;
+    }
+
+    /** CommitValidation. Internal helper */
+    private record CV(
+            boolean fails,
+            String errorMsg
+    ) { }
 
 }
