@@ -38,7 +38,7 @@ onMounted(async () => {
     </Tab>
     <Tab title="Phase 6" disabled>Phase 6 content</Tab>
     <Tab title="Quality">
-      <PhaseView phase-title="Run only code quality (not graded)" phaseDescription="Use this to run just the code quality without running test cases. THIS DOES NOT AFFECT GRADES" phase="42" />
+      <PhaseView phase-title="Run only code quality (not graded)" phaseDescription="Use this to run just the code quality without running test cases. This is NOT graded and will NOT be submitted to Canvas." phase="42" />
     </Tab>
   </Tabs>
 </template>
