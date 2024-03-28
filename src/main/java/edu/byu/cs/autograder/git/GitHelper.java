@@ -209,6 +209,15 @@ public class GitHelper {
             verified = false;
             errorMessages.add(String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits));
         }
+        if (commitsByDay.commitsInFuture()) {
+            verified = false;
+            errorMessages.add("Commits have been authored in the future are suspect of cheating.");
+        }
+        if (commitsByDay.commitsInOrder()) {
+            verified = false;
+            errorMessages.add("Suspicious commit history. Not all commits are in order.");
+        }
+
 
         // Add additional explanatory message
         if (!verified) {
