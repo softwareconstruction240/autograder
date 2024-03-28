@@ -64,4 +64,15 @@ public interface SubmissionDao {
     Submission getFirstPassingSubmission(String netId, Phase phase);
 
     float getBestScoreForPhase(String netId, Phase phase);
+
+    /**
+     * Gets all submissions that `passed` the grading for any phase.
+     * This includes submissions that were not approved for meeting
+     * certain thresholds. Therefore, not all the submissions in this
+     * result set are necessarily in Canvas.
+     *
+     * @param netId The netId of the student to filter by
+     * @return A collection of Submission objects, or an empty collection if none.
+     */
+    Collection<Submission> getAllPassingSubmissions(String netId);
 }

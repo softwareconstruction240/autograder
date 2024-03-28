@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
@@ -33,15 +34,16 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
-    public Submission score(Rubric rubric, int numCommits) throws GradingException {
+    public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException {
         gradingContext.observer().update("Grading...");
+        var phase = gradingContext.phase();
 
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
         // skip penalties if running in admin mode
         if (gradingContext.admin()) {
-            return saveResults(rubric, numCommits, 0, getScore(rubric), "");
+            return saveResults(rubric, commitVerificationResult, 0, getScore(rubric), "");
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
@@ -49,7 +51,9 @@ public class Scorer {
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if(rubric.passed()) {
+        if (!commitVerificationResult.verified()) {
+            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+        } else if(rubric.passed()) {
             UserDao userDao = DaoService.getUserDao();
             User user = userDao.getUser(gradingContext.netId());
             int canvasUserId = user.canvasUserId();
@@ -63,15 +67,15 @@ public class Scorer {
             // prevent score from being saved to canvas if it will lower their score
             if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
                 String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
+                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
             } else {
-                thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
+                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
                 sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
             }
+        } else {
+            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
         }
-        else {
-            thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-        }
+
         return thisSubmission;
     }
 
@@ -171,7 +175,7 @@ public class Scorer {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
+    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
             throws GradingException {
         String headHash = getHeadHash();
         String netId = gradingContext.netId();
@@ -179,8 +183,7 @@ public class Scorer {
         if (numDaysLate > 0)
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
-        // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -191,7 +194,7 @@ public class Scorer {
                 gradingContext.phase(),
                 rubric.passed(),
                 score,
-                numCommits,
+                commitVerificationResult.numCommits(),
                 notes,
                 rubric,
                 gradingContext.admin()

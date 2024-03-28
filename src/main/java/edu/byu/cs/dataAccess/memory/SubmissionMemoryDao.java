@@ -5,8 +5,9 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class SubmissionMemoryDao implements SubmissionDao {
 
@@ -43,7 +44,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
-        ConcurrentHashMap<String, Submission> latestSubmissions = new ConcurrentHashMap<>();
+        HashMap<String, Submission> latestSubmissions = new HashMap<>();
         if (batchSize==0) return latestSubmissions.values();
 
         for (Submission submission : submissions) {
@@ -87,5 +88,13 @@ public class SubmissionMemoryDao implements SubmissionDao {
             if (s.score() > bestScore) { bestScore = s.score(); }
         }
         return bestScore;
+    }
+
+    @Override
+    public Collection<Submission> getAllPassingSubmissions(String netId) {
+        return submissions
+                .stream()
+                .filter(submission -> submission.passed() && submission.netId().equals(netId))
+                .collect(Collectors.toSet());
     }
 }
