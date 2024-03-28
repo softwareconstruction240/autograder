@@ -9,12 +9,14 @@ import java.util.Map;
  * @param dayMap Represents each of the calendar days,
  *               with the number of commits on that day.
  * @param totalCommits The total number of commits processed.
- * @param lowerBoundSeconds Seconds, exclusive.
- * @param upperBoundSeconds Seconds, inclusive.
+ * @param lowerThreshold The {@link CommitThreshold}, exclusive.
+ * @param upperThreshold The {@link CommitThreshold}, inclusive.
  */
 public record CommitsByDay(
         Map<String, Integer> dayMap,
         int totalCommits,
-        long lowerBoundSeconds,
-        long upperBoundSeconds
+        boolean commitsInOrder,
+        boolean commitsInFuture,
+        CommitThreshold lowerThreshold,
+        CommitThreshold upperThreshold
 ) { }

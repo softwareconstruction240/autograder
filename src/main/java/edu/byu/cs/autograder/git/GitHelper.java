@@ -163,11 +163,13 @@ public class GitHelper {
      */
     private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
         CommitThreshold mostRecentSubmission = getMostRecentPassingSubmission(git);
-        Instant minValidThreshold = mostRecentSubmission.timestamp;
-        Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+        CommitThreshold upperThreshold = new CommitThreshold(
+                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
+                getHeadHash(git)
+        );
 
-        CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, minValidThreshold, maxValidThreshold);
-        CommitVerificationResult commitVerificationResult = commitsPassRequirements(git, commitHistory);
+        CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, mostRecentSubmission, upperThreshold);
+        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
         LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
 
         var observer = gradingContext.observer();
@@ -183,13 +185,12 @@ public class GitHelper {
             CommitThreshold lowerThreshold,
             CommitThreshold upperThreshold
     ) throws IOException, GitAPIException {
-        Iterable<RevCommit> commits = git.log().all().call();
         return CommitAnalytics.countCommitsByDay(
-                commits,
-                minValidThreshold.getEpochSecond(),
-                maxValidThreshold.getEpochSecond());
+                git,
+                lowerThreshold,
+                upperThreshold);
     }
-    private CommitVerificationResult commitsPassRequirements(Git git, CommitsByDay commitsByDay) throws IOException {
+    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) throws IOException {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
@@ -216,16 +217,15 @@ public class GitHelper {
             errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
 
-        String headHash = getHeadHash(git);
         return new CommitVerificationResult(
                 verified,
                 numCommits,
                 daysWithCommits,
                 String.join("\n", errorMessages),
-                Instant.ofEpochSecond(commitsByDay.lowerBoundSeconds()),
-                Instant.ofEpochSecond(commitsByDay.upperBoundSeconds()),
-                headHash,
-                null // TODO: populate with the tail hash
+                commitsByDay.lowerThreshold().timestamp(),
+                commitsByDay.upperThreshold().timestamp(),
+                commitsByDay.upperThreshold().commitHash(),
+                commitsByDay.lowerThreshold().commitHash()
         );
     }
 
