@@ -183,8 +183,7 @@ public class Scorer {
         if (numDaysLate > 0)
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
-        // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
