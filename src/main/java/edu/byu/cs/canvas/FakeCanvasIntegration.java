@@ -9,7 +9,7 @@ import java.util.HashSet;
 
 public class FakeCanvasIntegration implements CanvasIntegration{
     @Override
-    public User getUser(String netId) throws CanvasException {
+    public User getUser(String netId) {
         User user = DaoService.getUserDao().getUser(netId);
         if(user == null) {
             user = new User(netId, 0, "FirstName", "LastName", null, User.Role.ADMIN);
@@ -18,44 +18,43 @@ public class FakeCanvasIntegration implements CanvasIntegration{
     }
 
     @Override
-    public Collection<User> getAllStudents() throws CanvasException {
+    public Collection<User> getAllStudents() {
         return new HashSet<>();
     }
 
     @Override
-    public Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
+    public Collection<User> getAllStudentsBySection(int sectionID) {
         return new HashSet<>();
     }
 
     @Override
-    public void submitGrade(int userId, int assignmentNum, Float grade, String comment) throws CanvasException {
+    public void submitGrade(int userId, int assignmentNum, Float grade, String comment) {
 
     }
 
     @Override
-    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment)
-            throws CanvasException {
+    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment) {
 
     }
 
 
     @Override
-    public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
+    public CanvasSubmission getSubmission(int userId, int assignmentNum) {
         return null;
     }
 
     @Override
-    public String getGitRepo(int userId) throws CanvasException {
+    public String getGitRepo(int userId) {
         return null;
     }
 
     @Override
-    public User getTestStudent() throws CanvasException {
+    public User getTestStudent() {
         return null;
     }
 
     @Override
-    public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
+    public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) {
         return null;
     }
 }
