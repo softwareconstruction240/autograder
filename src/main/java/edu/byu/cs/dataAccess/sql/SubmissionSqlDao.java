@@ -25,7 +25,7 @@ public class SubmissionSqlDao implements SubmissionDao {
      * the {@link SubmissionSqlDao#insertSubmission(Submission)} method <i>and</i>
      * the {@link SubmissionSqlDao#getSubmissionsFromQuery(PreparedStatement)}.
      * */
-    private static final String ALL_COLUMN_NAMES = "net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric";
+    private static final String ALL_COLUMN_NAMES = "net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin";
     /**
      * Represents a convenient beginning of most queries.
      * Usually, you will not want to use this alone, but will want to add
@@ -43,7 +43,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             PreparedStatement statement = connection.prepareStatement(
                     """
                     INSERT INTO submission (%s, results)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """.formatted(ALL_COLUMN_NAMES))) {
 
             statement.setString(1, submission.netId());
@@ -57,6 +57,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(9, submission.notes());
             statement.setString(10, new Gson().toJson(submission.rubric()));
             statement.setString(11, "{}");
+            statement.setBoolean(12, submission.admin());
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
@@ -190,10 +191,11 @@ public class SubmissionSqlDao implements SubmissionDao {
                 Integer numCommits = rows.getInt("num_commits");
                 String notes = rows.getString("notes");
                 Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
+                Boolean admin = rows.getBoolean("admin");
 
                 submissions.add(
                         new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes,
-                                rubric));
+                                rubric, admin));
             }
 
             return submissions;

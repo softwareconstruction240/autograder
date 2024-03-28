@@ -21,7 +21,8 @@ public record Submission(
         Float score,
         @Deprecated Integer numCommits,
         String notes,
-        Rubric rubric
+        Rubric rubric,
+        Boolean admin
 ) {
     public static class InstantAdapter extends TypeAdapter<Instant> {
 

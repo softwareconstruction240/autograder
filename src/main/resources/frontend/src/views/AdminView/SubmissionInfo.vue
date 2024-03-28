@@ -50,6 +50,7 @@ const rowData = reactive({
         <span v-if="submission.passed">Submission passed!</span>
         <span v-else class="failure">Submission failed</span>
       </p>
+      <p v-if="submission.admin" class="info-label">This is an admin submission</p>
     </div>
     <div>
       <p><span class="info-label">GitHub Repo: </span><span v-html="generateClickableLink(submission.repoUrl)"/></p>
