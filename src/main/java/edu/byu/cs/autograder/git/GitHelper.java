@@ -1,12 +1,13 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitAnalytics;
-import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.analytics.CommitsByDay;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Submission;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
@@ -141,8 +141,12 @@ public class GitHelper {
      * @return the number of commits since the last passoff
      */
     private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
-        CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git);
+        Instant minValidThreshold = getMostRecentPassingCommitTimestamp(git);
+        Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+
+        CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, minValidThreshold, maxValidThreshold);
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
+        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
 
         var observer = gradingContext.observer();
         if (commitVerificationResult.verified()) {
@@ -152,18 +156,18 @@ public class GitHelper {
         }
         return commitVerificationResult;
     }
-    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Git git) throws IOException, GitAPIException, GradingException {
+    private CommitsByDay analyzeCommitHistoryForSubmission(
+            Git git,
+            Instant minValidThreshold,
+            Instant maxValidThreshold
+    ) throws IOException, GitAPIException {
         Iterable<RevCommit> commits = git.log().all().call();
-
-        Instant minValidThreshold = getMostRecentPassingCommitTimestamp(git);
-        Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
-
         return CommitAnalytics.countCommitsByDay(
                 commits,
                 minValidThreshold.getEpochSecond(),
                 maxValidThreshold.getEpochSecond());
     }
-    private CommitVerificationResult commitsPassRequirements(CommitAnalytics.CommitsByDay commitsByDay) {
+    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
@@ -194,7 +198,11 @@ public class GitHelper {
                 verified,
                 numCommits,
                 daysWithCommits,
-                String.join("\n", errorMessages)
+                String.join("\n", errorMessages),
+                Instant.ofEpochSecond(commitsByDay.lowerBoundSeconds()),
+                Instant.ofEpochSecond(commitsByDay.upperBoundSeconds()),
+                null, // TODO: Populate with the head hash
+                null // TODO: populate with the tail hash
         );
     }
 
