@@ -2,7 +2,7 @@ package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
@@ -41,7 +41,7 @@ public class CasController {
 
         if (user == null) {
             try {
-                user = CanvasIntegration.getCanvasIntegration().getUser(netId);
+                user = CanvasService.getCanvasIntegration().getUser(netId);
             } catch (CanvasException e) {
                 LOGGER.error("Couldn't create user from Canvas", e);
 
