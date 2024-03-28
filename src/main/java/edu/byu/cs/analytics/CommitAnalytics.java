@@ -30,7 +30,7 @@ public class CommitAnalytics {
      * @param commits the collection of commits
      * @param lowerBound the lower bound timestamp in Unix seconds, exclusive
      * @param upperBound the upper bound timestamp in Unix seconds, inclusive
-     * @return A map of strings representing dates to the number of commits on that day
+     * @return A {@link CommitsByDay} record with the results
      */
     public static CommitsByDay countCommitsByDay(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
         Map<String, Integer> days = new TreeMap<>();
@@ -44,7 +44,7 @@ public class CommitAnalytics {
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             totalCommits += 1;
         }
-        return new CommitsByDay(days, totalCommits);
+        return new CommitsByDay(days, totalCommits, lowerBound, upperBound);
     }
 
     private record CommitDatum(
