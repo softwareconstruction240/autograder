@@ -1,22 +1,43 @@
 package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.dataAccess.sql.*;
-import edu.byu.cs.model.RubricConfig;
 
 public class DaoService {
+
+    private static UserDao userDao = new UserSqlDao();
+    private static SubmissionDao submissionDao = new SubmissionSqlDao();
+    private static QueueDao queueDao = new QueueSqlDao();
+    private static RubricConfigDao rubricConfigDao = new RubricSqlConfigDao();
+
     public static UserDao getUserDao() {
-        return new UserSqlDao();
+        return userDao;
     }
 
     public static SubmissionDao getSubmissionDao() {
-        return new SubmissionSqlDao();
+        return submissionDao;
     }
 
     public static QueueDao getQueueDao() {
-        return new QueueSqlDao();
+        return queueDao;
     }
 
     public static RubricConfigDao getRubricConfigDao() {
-        return new RubricSqlConfigDao();
+        return rubricConfigDao;
+    }
+
+    public static void setUserDao(UserDao userDao) {
+        DaoService.userDao = userDao;
+    }
+
+    public static void setSubmissionDao(SubmissionDao submissionDao) {
+        DaoService.submissionDao = submissionDao;
+    }
+
+    public static void setQueueDao(QueueDao queueDao) {
+        DaoService.queueDao = queueDao;
+    }
+
+    public static void setRubricConfigDao(RubricConfigDao rubricConfigDao) {
+        DaoService.rubricConfigDao = rubricConfigDao;
     }
 }
