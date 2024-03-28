@@ -63,8 +63,7 @@ public class GitHelper {
         observer.update("Verifying commits...");
 
         try (Git git = Git.open(stageRepo)) {
-            Iterable<RevCommit> commits = git.log().all().call();
-            CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(commits);
+            CommitAnalytics.CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git);
             CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
 
             if (commitVerificationResult.verified()) {
@@ -79,7 +78,8 @@ public class GitHelper {
             throw new GradingException("Failed to verify commits: " + e.getMessage());
         }
     }
-    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Iterable<RevCommit> commits) {
+    private CommitAnalytics.CommitsByDay analyzeCommitHistoryForSubmission(Git git) throws IOException, GitAPIException {
+        Iterable<RevCommit> commits = git.log().all().call();
         var netId = gradingContext.netId();
         var phase = gradingContext.phase();
         Submission submission = DaoService.getSubmissionDao().getFirstPassingSubmission(netId, phase);
