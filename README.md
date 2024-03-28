@@ -85,6 +85,23 @@ docker compose up db -d
 
 Go fish🐟 These instructions are not included in this file.
 
+##### Notes for Windows Development
+
+The autograder unfortunately won't work directly from Windows, so you must use Docker or WSL for your database.
+
+If you run the autograder from WSL, you can use your normal Windows MySQL for the database. (Or you can install MySQL
+for Linux from within WSL, but having both Windows and Linux MySQL servers can cause weird issues.) You can't simply
+use `localhost` as the database hostname, however, since that refers to the WSL instance. Running `echo $(hostname)`
+from a WSL terminal will tell you what your computer's host name is (ex. `LAPTOP-ABC123`). Appending `.local` to that (
+ex. `LAPTOP-ABC123.local`) gives you the hostname that WSL uses to refer to the Windows machine. Use this as
+the `--db-host` program argument.
+
+By default, MySQL users have "Limit to Host Matching" set to `localhost`, which does not allow requests coming from the
+WSL virtual machine. In MySQL Workbench, you will have to expand this to include requests coming from the WSL virtual
+machine. The easiest way to do this is to change it to `%`, which allows all hostnames (but if you do this, it is
+highly recommended that you create a new user with restricted privliges rather than using root). Another option is to
+use `wsl hotname -I` to determine WSL instance's IP address and use that, but this IP may change whenever WSL restarts.
+
 ### Getting Started
 
 NOTE: These instructions will help you set up this project in Intelli-J.
@@ -93,7 +110,8 @@ to share the learned knowledge with the people behind you.
 
 1. Clone the repo onto your local machine.
 2. Ensure that you are using the latest version of JVM. The system currently requires version 21+.
-3. Use `yarn` to install all dependencies. This must be done from the _front end_ root folder.
+3. Use `yarn` to install all dependencies. This must be done from the _front end_ root folder. (If using WSL, run this
+   from an actual WSL terminal. Windows-based shells, even POSIX ones, won't install the correct files.)
     ```bash
     cd src/main/resources/frontend
     yarn
