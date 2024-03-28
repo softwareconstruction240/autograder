@@ -95,10 +95,9 @@ ex. `LAPTOP-ABC123.local`) gives you the hostname that WSL uses to refer to the 
 the `--db-host` program argument.
 
 By default, MySQL users have "Limit to Host Matching" set to `localhost`, which does not allow requests coming from the
-WSL virtual machine. In MySQL Workbench, you will have to expand this to include requests coming from the WSL virtual
-machine. The easiest way to do this is to change it to `%`, which allows all hostnames (but if you do this, it is
-highly recommended that you create a new user with restricted privliges rather than using root). Another option is to
-use `wsl hotname -I` to determine WSL instance's IP address and use that, but this IP may change whenever WSL restarts.
+WSL virtual machine. In MySQL Workbench, you will have to expand this. The easiest way is to change it to `%`, which allows all hostnames (but it is
+highly recommended that you do only do this for a new user with restricted privileges rather than using root). Another option is to
+use `wsl hostname -I` to determine the WSL instance's IP address and use that, but this IP may change whenever WSL restarts.
 
 ### Getting Started
 
@@ -127,15 +126,7 @@ to preserve the learned knowledge for future generations.
         - Paste in the single line of parameters to the line titled "Program arguments"
     - Save & apply the changes
 6. [Enable logging](#enabling-logging) by following the instructions below
-7. **Change config properties**
-    - Navigate to the following file: `src/main/resources/config.properties`
-    - For a simple development setup, skip now to the
-      subheading [Dev Config Properties](#program-arguments-for-development)
-    - Change the value of the following three properties:
-        - `frontend_app.url`
-        - `backend_app.url`
-        - `backend_app.cas_callback_url`
-8. **Run the Autograder Locally**
+7. **Run the Autograder Locally**
     - Run your "Server" run configuration
     - Run the frontend by referencing the [section below](#running-locally)
    ```bash
@@ -149,7 +140,7 @@ values for development are provided; notice that the URLs all reference localhos
 been filled in with default values. Update these as needed to match your environment.
 
 ```
---db-user <user>
+--db-user <username>
 --db-pass <password>
 --db-host localhost
 --db-port 3306
