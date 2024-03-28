@@ -140,6 +140,10 @@ public class FileUtils {
     private static void zipDirectoryContents(File rootDirectory, File currentDirectory, ZipOutputStream zipOut) throws IOException {
         File[] files = currentDirectory.listFiles();
 
+        if (files == null) {
+            throw new RuntimeException("Unable to read current directory");
+        }
+
         for (File file : files) {
             if (file.isDirectory()) {
                 zipDirectoryContents(rootDirectory, file, zipOut);
