@@ -45,6 +45,18 @@ class ScorerTest {
         spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
         CanvasService.setCanvasIntegration(spyCanvasIntegration);
 
+        try {
+            when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                    ZonedDateTime.now().plusDays(1)
+            );
+
+            when(spyCanvasIntegration.getSubmission(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                    new CanvasIntegration.CanvasSubmission("testUrl", new CanvasIntegration.RubricAssessment(new HashMap<>()), 1f)
+            );
+        } catch (CanvasException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+
         DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
         DaoService.setUserDao(new UserMemoryDao());
         DaoService.setQueueDao(new QueueMemoryDao());
@@ -68,19 +80,7 @@ class ScorerTest {
     }
 
     @Test
-    void score() {
-        try {
-            when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                    ZonedDateTime.now().plusDays(1)
-            );
-
-            when(spyCanvasIntegration.getSubmission(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                    new CanvasIntegration.CanvasSubmission("testUrl", new CanvasIntegration.RubricAssessment(new HashMap<>()), 1f)
-            );
-        } catch (CanvasException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
-
+    void score__fullPoints() {
         Rubric phase0Rubric = getRubric(1f);
         Scorer scorer = new Scorer(gradingContext);
 
@@ -92,76 +92,110 @@ class ScorerTest {
         }
 
         assertNotNull(submission);
-        assertEquals(PASSOFF_POSSIBLE_POINTS, submission.score());
+        assertEquals(1, submission.score());
+        assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
     }
 
     @Test
-    void getScore__fullPoints() {
-        Scorer scorer = new Scorer(gradingContext);
-        Float score = null;
-        Rubric phase0Rubric = getRubric(1f);
-        try {
-            score = scorer.getScore(phase0Rubric);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
-
-        assertNotNull(score);
-        assertEquals(1f, score);
-    }
-
-    @Test
-    void getScore__partialPoints() {
+    void score__partialPoints() {
         Rubric phase0Rubric = getRubric(.5f);
-
         Scorer scorer = new Scorer(gradingContext);
-        Float score = null;
+
+        Submission submission = null;
         try {
-            score = scorer.getScore(phase0Rubric);
+            submission = scorer.score(phase0Rubric, 0);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
 
-        assertNotNull(score);
-        assertEquals(.5f, score);
+        assertNotNull(submission);
+        assertEquals(.5f, submission.score());
+        assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
     }
 
     @Test
-    void getScore__extraPoints() {
+    void score__extraPoints() {
         Rubric phase0Rubric = getRubric(1.5f);
-
         Scorer scorer = new Scorer(gradingContext);
-        Float score = null;
+
+        Submission submission = null;
         try {
-            score = scorer.getScore(phase0Rubric);
+            submission = scorer.score(phase0Rubric, 0);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
 
-        assertNotNull(score);
-        assertEquals(1.5f, score);
+        assertNotNull(submission);
+        assertEquals(1.5f, submission.score());
+        assertEquals(1.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
     }
 
     @Test
-    void getScore__noPossiblePoints() {
+    void score__noPossiblePoints__error() {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        assertThrows(GradingException.class, () -> {
-            new Scorer(gradingContext).getScore(getRubric(1f));
-        });
+        Scorer scorer = new Scorer(gradingContext);
+        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), 0));
+    }
+
+    @Test
+    void score__adminSubmission() {
+        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", null, 10, mockObserver, true);
+        Scorer scorer = new Scorer(gradingContext);
+
+        Submission submission = null;
+        try {
+            submission = scorer.score(getRubric(1f), 0);
+        } catch (GradingException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+
+        assertNotNull(submission);
+        assertTrue(submission.admin());
+
+        Mockito.verifyNoInteractions(spyCanvasIntegration);
+    }
+
+    @Test
+    void score__phaseNotGradeable() {
+        RubricConfig phase0RubricConfig = new RubricConfig(
+                Phase.Quality,
+                null,
+                null,
+                new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
+        );
+        DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+
+        gradingContext = new GradingContext("testNetId", Phase.Quality, "testPhasesPath", "testStagePath", "testRepoUrl", null, 10, mockObserver, false);
+        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
+        Scorer scorer = new Scorer(gradingContext);
+
+        Submission submission = null;
+        try {
+            Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
+            submission = scorer.score(emptyRubric, 0);
+        } catch (GradingException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+
+        assertNotNull(submission);
+        assertTrue(submission.passed());
+        assertEquals(0, submission.score());
+
+        Mockito.verifyNoInteractions(spyCanvasIntegration);
     }
 
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
      *
-     * @param expectedPercent the expected score (0-1)
+     * @param score score, 0-1
      * @return the Rubric object
      */
-    private Rubric getRubric(float expectedPercent) {
+    private Rubric getRubric(float score) {
         Rubric.Results results = new Rubric.Results(
                 "testNotes",
-                expectedPercent * PASSOFF_POSSIBLE_POINTS,
+                score,
                 PASSOFF_POSSIBLE_POINTS,
                 null,
                 "testTextResults"
