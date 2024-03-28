@@ -24,10 +24,8 @@ src/ - you know what this is for 😉
 
 ## Deployment
 
-Before running the server, two configuration files need to be modified to match your environment:
-
-1. `src/main/resources/config.properties` - contains the frontend and backend urls
-2. `src/main/resources/frontend/.env.prod` - contains the url of the backend
+Before running the server, the `src/main/resources/frontend/.env.dev` configuration file needs to match your
+environment (the default may be sufficient). It should contain the URL of the backend.
 
 ### Docker
 
@@ -104,9 +102,9 @@ use `wsl hotname -I` to determine WSL instance's IP address and use that, but th
 
 ### Getting Started
 
-NOTE: These instructions will help you set up this project in Intelli-J.
+NOTE: These instructions will help you set up this project in IntelliJ.
 If there are any holes or gaps in the instructions, please submit a new pull request
-to share the learned knowledge with the people behind you.
+to preserve the learned knowledge for future generations.
 
 1. Clone the repo onto your local machine.
 2. Ensure that you are using the latest version of JVM. The system currently requires version 21+.
@@ -162,11 +160,12 @@ been filled in with default values. Update these as needed to match your environ
 ```
 
 While you can use any root user credentials to access the MySQL database, you may be interested in creating
-a special login for this project with restricted privileges. That decision is left to you.
+a special login for this project with restricted privileges (DELETE and CREATE USER administrator privileges are
+required). That decision is left to you.
 
 A Canvas Authorization Key is required to run the project. The Autograder currently relies on information from Canvas
 to give you admin access to the app (see [#164](https://github.com/softwareconstruction240/autograder/issues/164)).
-Generating a Canvas API Key is easy and straight forward:
+To generate a Canvas API key:
 
 1. Login to [Canvas](https://byu.instructure.com/)
 2. Visit your [Profile Settings](https://byu.instructure.com/profile/settings)
@@ -182,7 +181,7 @@ Generating a Canvas API Key is easy and straight forward:
 To enable logging, add arguments `-Dlog4j2.configurationFile=log4j.properties -Dlog4j2.debug=false` as vm options.
 
 In IntelliJ, Go into the run configuration you want to use -> `Modify Options` -> `Add VM options`. This will reveal an
-additional box inside of the edit menu. Paste the arguments into the box.
+additional box inside the edit menu. Paste the arguments into the box.
 
 If running from the command line, add the arguments immediately after the `java` command.
 
