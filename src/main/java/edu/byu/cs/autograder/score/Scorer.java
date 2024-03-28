@@ -40,7 +40,7 @@ public class Scorer {
         rubric = annotateRubric(rubric);
 
         // skip penalties if running in admin mode
-        if (gradingContext.admin()) {
+        if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
             return saveResults(rubric, numCommits, 0, getScore(rubric), "");
         }
 

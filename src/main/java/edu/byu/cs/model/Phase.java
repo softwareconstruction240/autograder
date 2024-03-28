@@ -7,4 +7,5 @@ public enum Phase {
     Phase4,
     Phase5,
     Phase6,
+    Quality
 }
