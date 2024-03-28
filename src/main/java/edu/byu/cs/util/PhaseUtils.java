@@ -175,4 +175,11 @@ public class PhaseUtils {
             case Quality -> null;
         };
     }
+
+    public static boolean isPhaseGraded(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
+            case Quality -> false;
+        };
+    }
 }
