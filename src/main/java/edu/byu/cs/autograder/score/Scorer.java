@@ -177,7 +177,7 @@ public class Scorer {
      */
     private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
             throws GradingException {
-        String headHash = getHeadHash();
+        String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
@@ -202,16 +202,6 @@ public class Scorer {
 
         submissionDao.insertSubmission(submission);
         return submission;
-    }
-
-    private String getHeadHash() throws GradingException {
-        String headHash;
-        try (Git git = Git.open(gradingContext.stageRepo())) {
-            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
-        } catch (IOException e) {
-            throw new GradingException("Failed to get head hash: " + e.getMessage());
-        }
-        return headHash;
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasIntegration.RubricAssessment assessment, String notes) throws GradingException {

@@ -1,5 +1,7 @@
 package edu.byu.cs.autograder.git;
 
+import org.eclipse.jgit.annotations.NonNull;
+
 import java.time.Instant;
 
 public record CommitVerificationResult(
@@ -11,6 +13,6 @@ public record CommitVerificationResult(
         // Debug info
         Instant minAllowedThreshold,
         Instant maxAllowedThreshold,
-        String headHash,
+        @NonNull String headHash,
         String tailHash
 ) { }

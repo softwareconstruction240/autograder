@@ -32,12 +32,6 @@ public class GitHelper {
     private final GradingContext gradingContext;
     private Collection<Submission> passingSubmissions;
 
-    private static final CommitVerificationResult DEFAULT_PASSING_VERIFICATION = new CommitVerificationResult(
-            true,
-            0, 0, "",
-            null, null, null, null
-    );
-
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
@@ -47,7 +41,7 @@ public class GitHelper {
         fetchRepo(stageRepo);
 
         boolean gradedPhase = true; // FIXME: Replace with a conditional call for #271
-        return gradedPhase ? verifyCommitRequirements(stageRepo) : DEFAULT_PASSING_VERIFICATION;
+        return gradedPhase ? verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
     }
 
     /**
@@ -69,6 +63,26 @@ public class GitHelper {
         }
 
         gradingContext.observer().update("Successfully fetched repo");
+    }
+
+    private CommitVerificationResult skipCommitVerification(File stageRepo) throws GradingException {
+        String headHash = getHeadHash(stageRepo);
+        return new CommitVerificationResult(
+                true,
+                0, 0, null,
+                Instant.MIN, Instant.MAX,
+                headHash, null
+        );
+    }
+
+    private String getHeadHash(File stageRepo) throws GradingException {
+        String headHash;
+        try (Git git = Git.open(stageRepo)) {
+            headHash = git.getRepository().findRef("HEAD").getObjectId().getName();
+        } catch (IOException e) {
+            throw new GradingException("Failed to get head hash: " + e.getMessage());
+        }
+        return headHash;
     }
 
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
