@@ -199,4 +199,16 @@ public class SubmissionSqlDao implements SubmissionDao {
             return submissions;
         }
     }
+
+    @Override
+    public Collection<Submission> getAllPassingSubmissions(String netId) {
+        try (var connection = SqlDb.getConnection();
+            PreparedStatement statement = connection.prepareStatement(
+                    SELECT_ALL_COLUMNS_STMT + "WHERE net_id = ? AND passed = 1")) {
+            statement.setString(1, netId);
+            return getSubmissionsFromQuery(statement);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error getting passing submissions", e);
+        }
+    }
 }

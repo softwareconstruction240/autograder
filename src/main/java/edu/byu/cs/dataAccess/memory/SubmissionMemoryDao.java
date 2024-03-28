@@ -7,6 +7,7 @@ import edu.byu.cs.model.Submission;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class SubmissionMemoryDao implements SubmissionDao {
 
@@ -87,5 +88,13 @@ public class SubmissionMemoryDao implements SubmissionDao {
             if (s.score() > bestScore) { bestScore = s.score(); }
         }
         return bestScore;
+    }
+
+    @Override
+    public Collection<Submission> getAllPassingSubmissions(String netId) {
+        return submissions
+                .stream()
+                .filter(submission -> submission.passed() && submission.netId().equals(netId))
+                .collect(Collectors.toSet());
     }
 }
