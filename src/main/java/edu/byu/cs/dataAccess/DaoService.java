@@ -7,7 +7,7 @@ public class DaoService {
     private static UserDao userDao = new UserSqlDao();
     private static SubmissionDao submissionDao = new SubmissionSqlDao();
     private static QueueDao queueDao = new QueueSqlDao();
-    private static RubricConfigDao rubricConfigDao = new RubricSqlConfigDao();
+    private static RubricConfigDao rubricConfigDao = new RubricConfigSqlDao();
 
     public static UserDao getUserDao() {
         return userDao;
