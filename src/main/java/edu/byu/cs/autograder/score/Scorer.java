@@ -148,7 +148,7 @@ public class Scorer {
      *
      * @return the score
      */
-    protected float getScore(Rubric rubric) throws GradingException {
+    private float getScore(Rubric rubric) throws GradingException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0)
