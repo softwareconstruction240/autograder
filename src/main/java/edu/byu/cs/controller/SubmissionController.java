@@ -139,7 +139,7 @@ public class SubmissionController {
         }
 
         if (!Arrays.asList(0, 1, 3, 4, 5, 6, 42).contains(request.phase())) {
-            halt(400, "Valid phases are 0, 1, 3, 4, 5, or 6");
+            halt(400, "Valid phases are 0, 1, 3, 4, 5, 6, or 42");
             return null;
         }
 
