@@ -9,7 +9,7 @@ import edu.byu.cs.model.RubricConfig;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class RubricSqlConfigDao implements RubricConfigDao {
+public class RubricConfigSqlDao implements RubricConfigDao {
     @Override
     public RubricConfig getRubricConfig(Phase phase) {
 

@@ -7,7 +7,7 @@ import edu.byu.cs.model.RubricConfig;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RubricMemoryDao implements RubricConfigDao {
+public class RubricConfigMemoryDao implements RubricConfigDao {
     private Map<Phase, RubricConfig> rubricConfigs = new HashMap<>();
     @Override
     public RubricConfig getRubricConfig(Phase phase) {
