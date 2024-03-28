@@ -9,6 +9,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -102,23 +103,26 @@ public class GitHelper {
         passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
     /**
-     * Returns a timestamp corresponding to the most recent commit that was giving a passing grade.
+     * Returns a timestamp corresponding to the most recent commit that was giving a passing grade,
+     * and the commit at that point.
+     * <br>
      * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
      * If there are no previous passing submissions, this returns the minimum Instant instead.
      *
-     * @return An {@link Instant}.
+     * @return An {@link EffectiveSubmission}.
      * @throws GradingException When certain preconditions are not met, or when this would have returned null.
      */
     @NonNull
-    private Instant getMostRecentPassingCommitTimestamp(Git git) throws IOException, GradingException {
+    private EffectiveSubmission getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
         if (passingSubmissions == null) {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
         if (passingSubmissions.isEmpty()) {
-            return Instant.MIN;
+            return new EffectiveSubmission(Instant.MIN, null);
         }
 
-        Instant latest = null;
+        Instant latestTimestamp = null;
+        String latestCommitHash = null;
         Repository repo = git.getRepository();
 
         Instant effectiveSubmissionTimestamp;
@@ -126,17 +130,18 @@ public class GitHelper {
             for (Submission submission : passingSubmissions) {
                 effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
-                if (latest == null || effectiveSubmissionTimestamp.isAfter(latest)) {
-                    latest = effectiveSubmissionTimestamp;
+                if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
+                    latestTimestamp = effectiveSubmissionTimestamp;
+                    latestCommitHash = submission.headHash();
                 }
             }
         }
 
-        if (latest == null) {
-            throw new GradingException("After processing a non-empty set of passing submissions, our latest timestamp is null.");
+        if (latestTimestamp == null) {
+            throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
         }
 
-        return latest;
+        return new EffectiveSubmission(latestTimestamp, latestCommitHash);
     }
     private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
         try {
@@ -156,7 +161,8 @@ public class GitHelper {
      * @return the number of commits since the last passoff
      */
     private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
-        Instant minValidThreshold = getMostRecentPassingCommitTimestamp(git);
+        EffectiveSubmission mostRecentSubmission = getMostRecentPassingSubmission(git);
+        Instant minValidThreshold = mostRecentSubmission.timestamp;
         Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
 
         CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, minValidThreshold, maxValidThreshold);
@@ -222,4 +228,8 @@ public class GitHelper {
         );
     }
 
+    private record EffectiveSubmission(
+            @NonNull Instant timestamp,
+            @Nullable String commitHash
+    ) { }
 }
