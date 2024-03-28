@@ -66,6 +66,7 @@ public class PhaseUtils {
             case "4" -> Phase.Phase4;
             case "5" -> Phase.Phase5;
             case "6" -> Phase.Phase6;
+            case "42" -> Phase.Quality;
             default -> null;
         };
     }
