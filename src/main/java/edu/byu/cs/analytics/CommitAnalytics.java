@@ -30,17 +30,19 @@ public class CommitAnalytics {
      * counting only commits within the bounds presented.
      *
      * @param commits the collection of commits
-     * @param lowerBound the lower bound timestamp in Unix seconds
-     * @param upperBound the upper bound timestamp in Unix seconds
+     * @param lowerBound the lower bound timestamp in Unix seconds, exclusive
+     * @param upperBound the upper bound timestamp in Unix seconds, inclusive
      * @return A map of strings representing dates to the number of commits on that day
      */
     public static CommitsByDay countCommitsByDay(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
         Map<String, Integer> days = new TreeMap<>();
         int totalCommits = 0;
+        int commitTime;
         for (RevCommit rc : commits) {
-            if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
+            commitTime = rc.getCommitTime();
+            if (commitTime <= lowerBound || commitTime > upperBound) continue;
 
-            String dayKey = DateTimeUtils.getDateString(rc.getCommitTime(), false);
+            String dayKey = DateTimeUtils.getDateString(commitTime, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             totalCommits += 1;
         }
