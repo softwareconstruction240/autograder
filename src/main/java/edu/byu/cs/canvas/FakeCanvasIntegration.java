@@ -34,10 +34,11 @@ public class FakeCanvasIntegration implements CanvasIntegration{
     }
 
     @Override
-    public void submitGrade(int userId, int assignmentNum, Map<String, Float> grades,
-                            Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
+    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment)
+            throws CanvasException {
 
     }
+
 
     @Override
     public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
