@@ -114,6 +114,7 @@ const adminSubmit = async (phase: Phase) => {
         <a @click="adminSubmit('3')">Phase 3</a>
         <a @click="adminSubmit('4')">Phase 4</a>
         <a @click="adminSubmit('5')">Phase 5</a>
+        <a @click="adminSubmit('42')">Quality</a>
       </template>
     </Dropdown>
   </div>
