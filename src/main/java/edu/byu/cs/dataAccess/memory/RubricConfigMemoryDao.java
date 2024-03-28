@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RubricConfigMemoryDao implements RubricConfigDao {
-    private Map<Phase, RubricConfig> rubricConfigs = new HashMap<>();
+    private final Map<Phase, RubricConfig> rubricConfigs = new HashMap<>();
     @Override
     public RubricConfig getRubricConfig(Phase phase) {
         return rubricConfigs.get(phase);

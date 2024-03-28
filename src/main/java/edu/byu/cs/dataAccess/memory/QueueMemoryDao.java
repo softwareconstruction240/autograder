@@ -6,7 +6,7 @@ import edu.byu.cs.model.QueueItem;
 import java.util.*;
 
 public class QueueMemoryDao implements QueueDao {
-    private List<QueueItem> queue = new ArrayList<>();
+    private final List<QueueItem> queue = new ArrayList<>();
     @Override
     public void add(QueueItem item) {
         queue.add(item);
