@@ -29,4 +29,9 @@ public class RubricMemoryDao implements RubricConfigDao {
         }
         return total;
     }
+
+    @Override
+    public void setRubricConfig(Phase phase, RubricConfig rubricConfig) {
+        rubricConfigs.put(phase, rubricConfig);
+    }
 }
