@@ -1,7 +1,6 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ApplicationProperties;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.ZonedDateTime;
@@ -9,11 +8,6 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface CanvasIntegration {
-
-    static CanvasIntegration getCanvasIntegration() {
-        if(ApplicationProperties.useCanvas()) return new CanvasIntegrationImpl();
-        else return new FakeCanvasIntegration();
-    }
 
     record RubricItem(String comments, float points) {}
 

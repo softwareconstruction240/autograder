@@ -21,7 +21,7 @@ public class CanvasUtils {
      * @param rubric the rubric to convert
      * @return the rubric with the score converted to points
      */
-    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) {
+    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) throws GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
         Rubric.RubricItem convertedPassoffTests = null;
@@ -30,7 +30,7 @@ public class CanvasUtils {
 
         if (rubric.passoffTests() != null) {
             if (rubricConfig.passoffTests() == null)
-                throw new RuntimeException("Rubric not configured for " + phase.toString() + " passoff tests");
+                throw new GradingException("Rubric not configured for " + phase.toString() + " passoff tests");
 
             convertedPassoffTests = new Rubric.RubricItem(
                     rubric.passoffTests().category(),
@@ -40,7 +40,7 @@ public class CanvasUtils {
 
         if (rubric.unitTests() != null) {
             if (rubricConfig.unitTests() == null)
-                throw new RuntimeException("Rubric not configured for " + phase.toString() + " unit tests");
+                throw new GradingException("Rubric not configured for " + phase.toString() + " unit tests");
 
             convertedUnitTests = new Rubric.RubricItem(
                     rubric.unitTests().category(),
