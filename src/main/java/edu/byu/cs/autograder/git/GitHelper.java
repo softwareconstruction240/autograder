@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitAnalytics;
+import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.analytics.CommitsByDay;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
@@ -9,7 +10,6 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
-import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -110,16 +110,16 @@ public class GitHelper {
      * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
      * If there are no previous passing submissions, this returns the minimum Instant instead.
      *
-     * @return An {@link EffectiveSubmission}.
+     * @return An {@link CommitThreshold}.
      * @throws GradingException When certain preconditions are not met, or when this would have returned null.
      */
     @NonNull
-    private EffectiveSubmission getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
+    private CommitThreshold getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
         if (passingSubmissions == null) {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
         if (passingSubmissions.isEmpty()) {
-            return new EffectiveSubmission(Instant.MIN, null);
+            return new CommitThreshold(Instant.MIN, null);
         }
 
         Instant latestTimestamp = null;
@@ -142,7 +142,7 @@ public class GitHelper {
             throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
         }
 
-        return new EffectiveSubmission(latestTimestamp, latestCommitHash);
+        return new CommitThreshold(latestTimestamp, latestCommitHash);
     }
     private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
         try {
@@ -162,7 +162,7 @@ public class GitHelper {
      * @return the number of commits since the last passoff
      */
     private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
-        EffectiveSubmission mostRecentSubmission = getMostRecentPassingSubmission(git);
+        CommitThreshold mostRecentSubmission = getMostRecentPassingSubmission(git);
         Instant minValidThreshold = mostRecentSubmission.timestamp;
         Instant maxValidThreshold = ScorerHelper.getHandInDateInstant(gradingContext.netId());
 
@@ -180,8 +180,8 @@ public class GitHelper {
     }
     private CommitsByDay analyzeCommitHistoryForSubmission(
             Git git,
-            Instant minValidThreshold,
-            Instant maxValidThreshold
+            CommitThreshold lowerThreshold,
+            CommitThreshold upperThreshold
     ) throws IOException, GitAPIException {
         Iterable<RevCommit> commits = git.log().all().call();
         return CommitAnalytics.countCommitsByDay(
@@ -229,8 +229,4 @@ public class GitHelper {
         );
     }
 
-    private record EffectiveSubmission(
-            @NonNull Instant timestamp,
-            @Nullable String commitHash
-    ) { }
 }
