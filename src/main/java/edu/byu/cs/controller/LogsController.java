@@ -7,7 +7,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 public class LogsController {
-    public static Route logsGet = (req, res) -> {
+    public static final Route logsGet = (req, res) -> {
         File file = new File("logs");
 
         if (file.exists() && file.isDirectory()) {
@@ -23,7 +23,7 @@ public class LogsController {
         return "";
     };
 
-    public static Route logGet = (req, res) -> {
+    public static final Route logGet = (req, res) -> {
         String fileName = req.params(":log");
 
         File file = new File("logs", fileName);

@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  */
 public class LateDayCalculator {
 
-    Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
+    final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
 
     /**

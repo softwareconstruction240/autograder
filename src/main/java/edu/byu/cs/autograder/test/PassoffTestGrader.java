@@ -14,7 +14,7 @@ public class PassoffTestGrader extends TestGrader {
     /**
      * The names of the test files with extra credit tests (excluding .java)
      */
-    protected Set<String> extraCreditTests = new HashSet<>();
+    protected final Set<String> extraCreditTests = new HashSet<>();
 
     /**
      * The value (in percentage) of each extra credit category

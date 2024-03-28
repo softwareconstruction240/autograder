@@ -6,7 +6,6 @@ import edu.byu.cs.model.User;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class UserMemoryDao implements UserDao {
 

@@ -30,7 +30,7 @@ public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
-    public static Route submitPost = (req, res) -> {
+    public static final Route submitPost = (req, res) -> {
 
         GradeRequest request = validateAndUnpackRequest(req);
         if (request == null) { return null; }
@@ -49,7 +49,7 @@ public class SubmissionController {
         return "";
     };
 
-    public static Route adminRepoSubmitPost = (req, res) -> {
+    public static final Route adminRepoSubmitPost = (req, res) -> {
 
         GradeRequest request = validateAndUnpackRequest(req);
         if (request == null) { return null; }
@@ -171,7 +171,7 @@ public class SubmissionController {
         return mostRecent;
     }
 
-    public static Route submitGet = (req, res) -> {
+    public static final Route submitGet = (req, res) -> {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
@@ -184,7 +184,7 @@ public class SubmissionController {
         ));
     };
 
-    public static Route submissionXGet = (req, res) -> {
+    public static final Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
         Phase phaseEnum = PhaseUtils.getPhaseByString(phase);
 
@@ -205,7 +205,7 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
-    public static Route latestSubmissionsGet = (req, res) -> {
+    public static final Route latestSubmissionsGet = (req, res) -> {
         String countString = req.params(":count");
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
         Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
@@ -218,7 +218,7 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
-    public static Route submissionsActiveGet = (req, res) -> {
+    public static final Route submissionsActiveGet = (req, res) -> {
         List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
 
         List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
@@ -233,7 +233,7 @@ public class SubmissionController {
         ));
     };
 
-    public static Route studentSubmissionsGet = (req, res) -> {
+    public static final Route studentSubmissionsGet = (req, res) -> {
         String netId = req.params(":netId");
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
@@ -337,7 +337,7 @@ public class SubmissionController {
         }
     }
 
-    public static Route submissionsReRunPost = (req, res) -> {
+    public static final Route submissionsReRunPost = (req, res) -> {
         reRunSubmissionsInQueue();
 
         res.status(200);

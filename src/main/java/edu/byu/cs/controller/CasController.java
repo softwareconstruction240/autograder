@@ -25,7 +25,7 @@ public class CasController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasController.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
 
-    public static Route callbackGet = (req, res) -> {
+    public static final Route callbackGet = (req, res) -> {
         String ticket = req.queryParams("ticket");
 
         String netId = validateCasTicket(ticket);
@@ -70,7 +70,7 @@ public class CasController {
         return null;
     };
 
-    public static Route loginGet = (req, res) -> {
+    public static final Route loginGet = (req, res) -> {
         // check if already logged in
         if (req.cookie("token") != null) {
             res.redirect(ApplicationProperties.frontendUrl(), 302);
@@ -82,7 +82,7 @@ public class CasController {
         return null;
     };
 
-    public static Route logoutPost = (req, res) -> {
+    public static final Route logoutPost = (req, res) -> {
         if (req.cookie("token") == null) {
             res.redirect(ApplicationProperties.frontendUrl(), 401);
             return null;
