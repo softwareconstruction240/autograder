@@ -56,8 +56,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setInt(8, submission.numCommits());
             statement.setString(9, submission.notes());
             statement.setString(10, new Gson().toJson(submission.rubric()));
-            statement.setString(11, "{}");
-            statement.setBoolean(12, submission.admin());
+            statement.setBoolean(11, submission.admin());
+            statement.setString(12, "{}");
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
