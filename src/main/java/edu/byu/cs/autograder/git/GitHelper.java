@@ -32,23 +32,22 @@ public class GitHelper {
     private final GradingContext gradingContext;
     private Collection<Submission> passingSubmissions;
 
+    private static final CommitVerificationResult DEFAULT_PASSING_VERIFICATION = new CommitVerificationResult(
+            true,
+            0, 0, "",
+            null, null, null, null
+    );
+
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
 
     public CommitVerificationResult setUp() throws GradingException {
-        var observer = gradingContext.observer();
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(stageRepo);
-        loadPassingSubmission();
 
-        try (Git git = Git.open(stageRepo)) {
-            return verifyRegularCommits(git);
-        } catch (IOException | GitAPIException e) {
-            observer.notifyError("Failed to verify commits: " + e.getMessage());
-            LOGGER.error("Failed to verify commits", e);
-            throw new GradingException("Failed to verify commits: " + e.getMessage());
-        }
+        boolean gradedPhase = true; // FIXME: Replace with a conditional call for #271
+        return gradedPhase ? verifyCommitRequirements(stageRepo) : DEFAULT_PASSING_VERIFICATION;
     }
 
     /**
@@ -72,6 +71,18 @@ public class GitHelper {
         gradingContext.observer().update("Successfully fetched repo");
     }
 
+    private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+        loadPassingSubmission();
+
+        try (Git git = Git.open(stageRepo)) {
+            return verifyRegularCommits(git);
+        } catch (IOException | GitAPIException e) {
+            var observer = gradingContext.observer();
+            observer.notifyError("Failed to verify commits: " + e.getMessage());
+            LOGGER.error("Failed to verify commits", e);
+            throw new GradingException("Failed to verify commits: " + e.getMessage());
+        }
+    };
     private void loadPassingSubmission() {
         passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
