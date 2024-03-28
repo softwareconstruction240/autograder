@@ -102,20 +102,19 @@ to share the learned knowledge with the people behind you.
     - Navigate to the server file: `src/main/java/edu/byu/cs/server/Server.java`
     - Click the "Run" button to run `Server.main()`
     - This will give you a _Run Configuration_ that you can modify in the following steps.
-5. Set up [environment variables](#environment-variables)
-    - Reference the [subtitle below](#environment-variables) for the list of required variables
-    - Prepare the values you will use for each variable
-        - Put them all onto a single line, with each variable separated by a `;` (semicolon)
+5. Set up [program arguments](#program-arguments)
+    - Reference the [subtitle below](#program-arguments) for the list of required arguments
+    - Prepare the values you will use for each argument
+        - Put them all onto a single line, with each argument name followed by its value
+        - Ex. `--arg-1 arg1Val --arg-2 arg2Val`
     - Edit the "Server" run configuration
-        - Paste in the single line of parameters to the line titled "Environment Variables"
-        - Going forward, there is an option to open up a table of the variables where you can
-          edit just one value from the lot
+        - Paste in the single line of parameters to the line titled "Program arguments"
     - Save & apply the changes
 6. [Enable logging](#enabling-logging) by following the instructions below
 7. **Change config properties**
     - Navigate to the following file: `src/main/resources/config.properties`
     - For a simple development setup, skip now to the
-      subheading [Dev Config Properties](#environment-variables-for-development)
+      subheading [Dev Config Properties](#program-arguments-for-development)
     - Change the value of the following three properties:
         - `frontend_app.url`
         - `backend_app.url`
@@ -127,24 +126,22 @@ to share the learned knowledge with the people behind you.
    yarn dev
    ```
 
-#### Environment Variables
+#### Program Arguments
 
-For both deployment and development, the following environment variables are required to be set.
+For both deployment and development, the following program arguments are required to be set. Some typical
+values for development are provided; notice that the URLs all reference localhost, but the port numbers have
+been filled in with default values. Update these as needed to match your environment.
 
 ```
-DB_URL=<host>:<port>
-DB_USER=<user>
-DB_PASSWORD=<password>
-DB_NAME=autograder
-CANVAS_AUTHORIZATION_KEY=<canvas api key>
+--db-user <user>
+--db-pass <password>
+--db-host localhost
+--db-port 3306
+--db-name autograder
+--frontend-url http://localhost:5173
+--cas-callback-url http://localhost:8080/auth/callback
+--canvas-token <canvas api key>
 ```
-
-##### Environment Variables For Development
-
-Here are values typically used for development:
-
-* DB_URL=localhost:3306
-* DB_NAME=autograder
 
 While you can use any root user credentials to access the MySQL database, you may be interested in creating
 a special login for this project with restricted privileges. That decision is left to you.
@@ -160,7 +157,7 @@ Generating a Canvas API Key is easy and straight forward:
 4. Click "+ New Access Token"
 5. Provide the requested information in the modal box
 6. Copy the generated access token
-7. Use it as the value of the `CANVAS_AUTHORIZATION` environment variable above
+7. Use it as the value of the `--canvas-token` program argument above
 
 #### Enabling Logging
 
@@ -170,24 +167,6 @@ In IntelliJ, Go into the run configuration you want to use -> `Modify Options` -
 additional box inside of the edit menu. Paste the arguments into the box.
 
 If running from the command line, add the arguments immediately after the `java` command.
-
-#### Change Config Properties
-
-This code snippet contains the values you will likely want to use for development.
-Notice that all the urls are referencing `localhost`, but the ports have been filled in with the default values.
-
-**NEVER COMMIT THESE CHANGES TO THE REPO.** Even though you are changing them for local development, the current
-values should remain in the codebase. Take care when committing to exclude these files.
-
-Locate the variables, and replace them with this snippet (currently, they are located at the end of the file):
-
-```properties
-# The URL of the frontend application
-frontend_app.url=http://localhost:5173
-# The URL of the backend application
-backend_app.url=http://localhost:8080
-backend_app.cas_callback_url=http://localhost:8080/auth/callback
-```
 
 #### Running Locally
 
