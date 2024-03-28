@@ -37,6 +37,9 @@ onMounted(async () => {
       <PhaseView phase-title="Phase 5: Chess Client" phaseDescription="For this phase you must pass all of the unit tests that you were required to write." phase="5" />
     </Tab>
     <Tab title="Phase 6" disabled>Phase 6 content</Tab>
+    <Tab title="Quality">
+      <PhaseView phase-title="Run only code quality" phaseDescription="Use this to run just the code quality without running test cases" phase="42" />
+    </Tab>
   </Tabs>
 </template>
 
