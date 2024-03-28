@@ -16,14 +16,36 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class SubmissionSqlDao implements SubmissionDao {
+    /** Represents the name of our SQL table */
+    private static final String TABLE_NAME = "submission";
+    /**
+     * Represents all the columns in the table.
+     * <br>
+     * If this value changes, remember to <strong>both</strong>
+     * the {@link SubmissionSqlDao#insertSubmission(Submission)} method <i>and</i>
+     * the {@link SubmissionSqlDao#getSubmissionsFromQuery(PreparedStatement)}.
+     * */
+    private static final String ALL_COLUMN_NAMES = "net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric";
+    /**
+     * Represents a convenient beginning of most queries.
+     * Usually, you will not want to use this alone, but will want to add
+     * conditional <code>WHERE</code> clauses and other related
+     * */
+    private static final String SELECT_ALL_COLUMNS_STMT = "SELECT " + ALL_COLUMN_NAMES + " FROM " + TABLE_NAME + " ";
+
     @Override
     public void insertSubmission(Submission submission) {
         try (var connection = SqlDb.getConnection();
+             // Notice that we are interpolating all the column names,
+             // and then adding one additional value.
+             // Ideally, we would also dynamically generate the appropriate number
+             // of "?" characters, but I'll save that as a project for another day.
             PreparedStatement statement = connection.prepareStatement(
                     """
-                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric)
+                    INSERT INTO submission (%s, results)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """)) {
+                    """.formatted(ALL_COLUMN_NAMES))) {
+
             statement.setString(1, submission.netId());
             statement.setString(2, submission.repoUrl());
             statement.setTimestamp(3, Timestamp.from(submission.timestamp()));
@@ -33,8 +55,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(7, submission.headHash());
             statement.setInt(8, submission.numCommits());
             statement.setString(9, submission.notes());
-            statement.setString(10, "{}");
-            statement.setString(11, new Gson().toJson(submission.rubric()));
+            statement.setString(10, new Gson().toJson(submission.rubric()));
+            statement.setString(11, "{}");
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error inserting submission", e);
@@ -45,11 +67,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
-                    """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
-                    FROM submission
-                    WHERE net_id = ? AND phase = ?
-                    """);
+                    SELECT_ALL_COLUMNS_STMT + "WHERE net_id = ? AND phase = ?");
             statement.setString(1, netId);
             statement.setString(2, phase.toString());
             return getSubmissionsFromQuery(statement);
@@ -63,11 +81,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     public Collection<Submission> getSubmissionsForUser(String netId) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
-                    """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
-                    FROM submission
-                    WHERE net_id = ?
-                    """);
+                    SELECT_ALL_COLUMNS_STMT + "WHERE net_id = ?");
             statement.setString(1, netId);
             return getSubmissionsFromQuery(statement);
 
@@ -85,9 +99,8 @@ public class SubmissionSqlDao implements SubmissionDao {
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
+                    SELECT_ALL_COLUMNS_STMT +
                     """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
-                            FROM submission
                             WHERE timestamp IN (
                                 SELECT MAX(timestamp)
                                 FROM submission
@@ -126,9 +139,8 @@ public class SubmissionSqlDao implements SubmissionDao {
     public Submission getFirstPassingSubmission(String netId, Phase phase) {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(
+                    SELECT_ALL_COLUMNS_STMT +
                     """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric
-                            FROM submission
                             WHERE net_id = ? AND phase = ? AND passed = 1
                             ORDER BY timestamp
                             LIMIT 1
@@ -137,6 +149,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             statement.setString(2, phase.toString());
             Collection<Submission> submissions = getSubmissionsFromQuery(statement);
             return submissions.isEmpty() ? null : submissions.iterator().next();
+
         } catch (Exception e) {
             throw new DataAccessException("Error getting first passing submission", e);
         }
