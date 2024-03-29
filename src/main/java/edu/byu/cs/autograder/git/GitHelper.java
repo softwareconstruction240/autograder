@@ -168,7 +168,7 @@ public class GitHelper {
                 getHeadHash(git)
         );
 
-        CommitsByDay commitHistory = analyzeCommitHistoryForSubmission(git, mostRecentSubmission, upperThreshold);
+        CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, mostRecentSubmission, upperThreshold);
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
         LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
 
@@ -179,16 +179,6 @@ public class GitHelper {
             observer.update("Failed commit verification. Continuing with grading anyways.");
         }
         return commitVerificationResult;
-    }
-    private CommitsByDay analyzeCommitHistoryForSubmission(
-            Git git,
-            CommitThreshold lowerThreshold,
-            CommitThreshold upperThreshold
-    ) throws IOException, GitAPIException {
-        return CommitAnalytics.countCommitsByDay(
-                git,
-                lowerThreshold,
-                upperThreshold);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
