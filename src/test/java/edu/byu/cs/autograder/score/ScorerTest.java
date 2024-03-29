@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -74,7 +75,7 @@ class ScorerTest {
 
         mockObserver = Mockito.mock(Grader.Observer.class);
 
-        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", null, 10, mockObserver, false);
+        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, false);
 
 
     }
@@ -141,7 +142,7 @@ class ScorerTest {
 
     @Test
     void score__adminSubmission() {
-        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", null, 10, mockObserver, true);
+        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, true);
         Scorer scorer = new Scorer(gradingContext);
 
         Submission submission = null;
@@ -167,7 +168,7 @@ class ScorerTest {
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
 
-        gradingContext = new GradingContext("testNetId", Phase.Quality, "testPhasesPath", "testStagePath", "testRepoUrl", null, 10, mockObserver, false);
+        gradingContext = new GradingContext("testNetId", Phase.Quality, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, false);
         DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
         Scorer scorer = new Scorer(gradingContext);
 
