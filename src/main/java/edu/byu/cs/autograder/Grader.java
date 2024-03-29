@@ -21,6 +21,8 @@ import java.io.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -50,6 +52,9 @@ public class Grader implements Runnable {
      */
     public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
         // Init files
+        if (!admin) {
+            repoUrl = cleanRepoUrl(repoUrl);
+        }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
         String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
@@ -148,6 +153,24 @@ public class Grader implements Runnable {
         return new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
     }
 
+    /**
+     * Cleans the student's by removing trailing characters after the repo name,
+     * unless it ends in `.git`.
+     *
+     * @param repoUrl The student's repository URL.
+     * @return Cleaned URL with everything after the repo name stripped off.
+     * @throws IOException Throws IOException if repoUrl does not follow expected format
+     */
+    public static String cleanRepoUrl(String repoUrl) throws IOException {
+        Pattern pattern = Pattern.compile("https?://github\\.com/([^/?]+)/([^/?]+)");
+        Matcher matcher = pattern.matcher(repoUrl);
+        if (matcher.find()) {
+            String githubUsername = matcher.group(1);
+            String repositoryName = matcher.group(2);
+            return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
+        }
+        throw new IOException("Could not find github username or repository name given '" + repoUrl + "'.");
+    }
 
     public interface Observer {
         void notifyStarted();
