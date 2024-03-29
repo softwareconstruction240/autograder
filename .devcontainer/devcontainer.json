@@ -5,7 +5,7 @@
 	"remoteEnv": {
 		"JAVA_HOME": "/usr/lib/jvm/msopenjdk-current"
 	},
-	"forwardPorts": [8080, 3306],
+	"forwardPorts": [8080, 5173],
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {},
 		"ghcr.io/devcontainers/features/node:1": {}
