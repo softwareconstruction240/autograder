@@ -194,7 +194,6 @@ public class Scorer {
                 gradingContext.phase(),
                 rubric.passed(),
                 score,
-                commitVerificationResult.numCommits(),
                 notes,
                 rubric,
                 gradingContext.admin()

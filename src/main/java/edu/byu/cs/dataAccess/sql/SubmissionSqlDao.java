@@ -26,7 +26,6 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("phase", s -> s.phase().toString()),
             new ColumnDefinition<Submission>("passed", Submission::passed),
             new ColumnDefinition<Submission>("score", Submission::score),
-            new ColumnDefinition<Submission>("num_commits", Submission::numCommits),
             new ColumnDefinition<Submission>("head_hash", Submission::headHash),
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
@@ -40,12 +39,11 @@ public class SubmissionSqlDao implements SubmissionDao {
         Phase phase = Phase.valueOf(rs.getString("phase"));
         Boolean passed = rs.getBoolean("passed");
         float score = rs.getFloat("score");
-        Integer numCommits = rs.getInt("num_commits");
         String notes = rs.getString("notes");
         Rubric rubric = new Gson().fromJson(rs.getString("rubric"), Rubric.class);
         Boolean admin = rs.getBoolean("admin");
 
-        return new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes, rubric, admin);
+        return new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, notes, rubric, admin);
     }
 
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
