@@ -56,7 +56,6 @@ public class SqlDb {
                                 `passed` BOOL NOT NULL,
                                 `score` FLOAT NOT NULL,
                                 `notes` TEXT,
-                                `results` JSON,
                                 `rubric` JSON,
                                 `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
