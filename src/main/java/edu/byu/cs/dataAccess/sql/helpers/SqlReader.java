@@ -1,10 +1,7 @@
 package edu.byu.cs.dataAccess.sql.helpers;
 
-import com.google.gson.Gson;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.SqlDb;
-import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
-import edu.byu.cs.model.Submission;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -26,17 +23,14 @@ public class SqlReader <T> {
      * the {@link SqlReader#getSubmissionsFromQuery(PreparedStatement)}.
      * */
     private final ColumnDefinition<T>[] COLUMN_DEFINITIONS;
-
     private final String[] ALL_COLUMN_NAMES;
-    private final String ALL_COLUMN_NAMES_STMT;
-    private final String VALUE_INSERT_WILDCARDS;
 
-    /**
-     * Represents a convenient beginning of most queries.
-     * Usually, you will not want to use this alone, but will want to add
-     * conditional <code>WHERE</code> clauses and other related
-     * */
-    private final String SELECT_ALL_COLUMNS_STMT;
+    private final String allColumnNamesStmt;
+    private final String selectAllColumnsStmt;
+
+
+    private final String insertStatement;
+    private final Map<String, Integer> insertWildCardIndexPositions;
 
     public SqlReader(String tableName, ColumnDefinition<T>[] columnDefinitions) {
         this.TABLE_NAME = tableName;
@@ -45,33 +39,18 @@ public class SqlReader <T> {
                 .map(ColumnDefinition::columnName).toArray(String[]::new);
 
         // Several pre-constructed statement fragments
-        this.ALL_COLUMN_NAMES_STMT = String.join(", ", ALL_COLUMN_NAMES);
-        this.VALUE_INSERT_WILDCARDS = "?, ".repeat(ALL_COLUMN_NAMES.length);
-        this.SELECT_ALL_COLUMNS_STMT = "SELECT " + ALL_COLUMN_NAMES_STMT + " FROM " + TABLE_NAME + " ";
+        this.allColumnNamesStmt = String.join(", ", ALL_COLUMN_NAMES);
+        this.selectAllColumnsStmt = "SELECT " + allColumnNamesStmt + " FROM " + TABLE_NAME + " ";
+
+        this.insertStatement = buildInsertStatement();
+        this.insertWildCardIndexPositions = this.prepareWildcardIndices(columnDefinitions);
     }
 
-    public void insertItem(T item) {
-
-        Map<String, Integer> colIndices = prepareWildcardIndices(COLUMN_DEFINITIONS);
-        String statement = "INSERT INTO %s (%s) VALUES (%s)"
-                .formatted(TABLE_NAME, ALL_COLUMN_NAMES_STMT, VALUE_INSERT_WILDCARDS);
-
-        try (var connection = SqlDb.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(statement)
-        ) {
-            int colIndex;
-            for (var colDef : COLUMN_DEFINITIONS) {
-                colIndex = colIndices.get(colDef.columnName());
-                setValue(preparedStatement, colIndex, item, colDef);
-            }
-
-            preparedStatement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error inserting value", e);
-        }
+    private String buildInsertStatement() {
+        String valueWildcards =  "?, ".repeat(ALL_COLUMN_NAMES.length);
+        return "INSERT INTO %s (%s) VALUES (%s)"
+                .formatted(TABLE_NAME, allColumnNamesStmt, valueWildcards);
     }
-
-
     private Map<String, Integer> prepareWildcardIndices(ColumnDefinition<T>[] columnDefinitions) {
         Map<String, Integer> out = new HashMap<>();
 
@@ -83,6 +62,25 @@ public class SqlReader <T> {
 
         return out;
     }
+
+
+    public void insertItem(T item) {
+        // CONSIDER: We could prepare the statement a single time, and avoid rebuilding it.
+        try (var connection = SqlDb.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(insertStatement)
+        ) {
+            int colIndex;
+            for (var colDef : COLUMN_DEFINITIONS) {
+                colIndex = insertWildCardIndexPositions.get(colDef.columnName());
+                setValue(preparedStatement, colIndex, item, colDef);
+            }
+
+            preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException("Error inserting value", e);
+        }
+    }
+
 
     private void setValue(PreparedStatement ps, int wildcardIndex, T item, ColumnDefinition<T> columnDefinition) throws SQLException {
         Object value = columnDefinition.accessor().getValue(item);
@@ -98,10 +96,23 @@ public class SqlReader <T> {
         else throw new RuntimeException("Unsupported type of value: " + value);
     }
 
+
+    /**
+     * Represents a convenient beginning of most queries.
+     * Usually, you will not want to use this alone, but will want to add
+     * conditional <code>WHERE</code> clauses and other related
+     * */
     public String selectAllStmt() {
-        return SELECT_ALL_COLUMNS_STMT;
+        return selectAllColumnsStmt;
     }
+
+    /**
+     * @see SqlReader#selectAllStmt()
+     *
+     * @param additionalClauses Additional SQL statements to add to the result
+     * @return A joined SQL statement ready for preparation.
+     */
     public String selectAllStmt(String additionalClauses) {
-        return SELECT_ALL_COLUMNS_STMT + additionalClauses;
+        return selectAllColumnsStmt + additionalClauses;
     }
 }
