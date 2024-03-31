@@ -78,11 +78,11 @@ public class UserSqlDao implements UserDao {
     private void setFieldValue(@NonNull String netId, @NonNull String columnName, @NonNull Object columnValue) {
         try (var connection = SqlDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     """
-                             UPDATE user
-                             SET %s = ?
-                             WHERE net_id = ?
-                             """.formatted(columnName))) {
+                    """
+                            UPDATE user
+                            SET %s = ?
+                            WHERE net_id = ?
+                            """.formatted(columnName))) {
             sqlReader.setValue(statement, 1, columnValue);
             statement.setString(2, netId);
             statement.executeUpdate();
