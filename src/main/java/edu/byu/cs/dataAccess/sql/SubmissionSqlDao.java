@@ -32,8 +32,24 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin)
         };
+    private static Submission readSubmission(ResultSet rs) throws SQLException {
+        String netId = rs.getString("net_id");
+        String repoUrl = rs.getString("repo_url");
+        String headHash = rs.getString("head_hash");
+        Instant timestamp = rs.getTimestamp("timestamp").toInstant();
+        Phase phase = Phase.valueOf(rs.getString("phase"));
+        Boolean passed = rs.getBoolean("passed");
+        float score = rs.getFloat("score");
+        Integer numCommits = rs.getInt("num_commits");
+        String notes = rs.getString("notes");
+        Rubric rubric = new Gson().fromJson(rs.getString("rubric"), Rubric.class);
+        Boolean admin = rs.getBoolean("admin");
 
-    private final SqlReader<Submission> sqlReader = new SqlReader<Submission>("submission", COLUMN_DEFINITIONS);
+        return new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes, rubric, admin);
+    }
+
+    private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
+            "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
 
     @Override
     public void insertSubmission(Submission submission) {
@@ -152,28 +168,6 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
-        try(ResultSet rows = statement.executeQuery()) {
-
-            Collection<Submission> submissions = new ArrayList<>();
-            while (rows.next()) {
-                String netId = rows.getString("net_id");
-                String repoUrl = rows.getString("repo_url");
-                String headHash = rows.getString("head_hash");
-                Instant timestamp = rows.getTimestamp("timestamp").toInstant();
-                Phase phase = Phase.valueOf(rows.getString("phase"));
-                Boolean passed = rows.getBoolean("passed");
-                float score = rows.getFloat("score");
-                Integer numCommits = rows.getInt("num_commits");
-                String notes = rows.getString("notes");
-                Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
-                Boolean admin = rows.getBoolean("admin");
-
-                submissions.add(
-                        new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes,
-                                rubric, admin));
-            }
-
-            return submissions;
-        }
+        return sqlReader.readItems(statement);
     }
 }
