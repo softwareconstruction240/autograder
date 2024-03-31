@@ -2,6 +2,8 @@ package edu.byu.cs.dataAccess.sql.helpers;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.SqlDb;
+import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -98,7 +100,7 @@ public class SqlReader <T> {
      *
      * @param item The item to add to the table.
      */
-    public void insertItem(T item) {
+    public void insertItem(@NonNull T item) {
         // CONSIDER: We could prepare the statement a single time, and avoid rebuilding it.
         try (var connection = SqlDb.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertStatement)
@@ -130,7 +132,7 @@ public class SqlReader <T> {
      * @param value The object representing the value to save in the location
      * @throws SQLException When SQL throws an error.
      */
-    public void setValue(PreparedStatement ps, int wildcardIndex, Object value) throws SQLException {
+    public void setValue(@NonNull PreparedStatement ps, int wildcardIndex, @Nullable Object value) throws SQLException {
         // This represents all the supported column types
         if (value == null) ps.setNull(wildcardIndex, NULL);
         else if (value instanceof String v) ps.setString(wildcardIndex, v);
@@ -153,7 +155,7 @@ public class SqlReader <T> {
      * @return A collection of items
      * @throws SQLException When SQL has an issue.
      */
-    public Collection<T> readItems(PreparedStatement statement) throws SQLException {
+    public Collection<T> readItems(@NonNull PreparedStatement statement) throws SQLException {
         return readItems(statement, ITEM_BUILDER, ArrayList::new);
     }
     /**
@@ -167,9 +169,9 @@ public class SqlReader <T> {
      * @throws SQLException When SQL throws an error
      */
     public <T1> Collection<T1> readItems(
-            PreparedStatement statement,
-            ItemBuilder<T1> itemBuilder,
-            Supplier<Collection<T1>> targetCollection
+            @NonNull PreparedStatement statement,
+            @NonNull ItemBuilder<T1> itemBuilder,
+            @NonNull Supplier<Collection<T1>> targetCollection
             ) throws SQLException {
         try(ResultSet resultSet = statement.executeQuery()) {
             Collection<T1> items = targetCollection.get();
@@ -188,8 +190,8 @@ public class SqlReader <T> {
      * @param additionalStatementClauses Additional query clauses narrowing the results.
      * @return A collection of matching items.
      */
-    public Collection<T> executeQuery(String additionalStatementClauses) {
-        return executeQuery(selectAllStmt(additionalStatementClauses), x -> {});
+    public Collection<T> executeQuery(@Nullable String additionalStatementClauses) {
+        return executeQuery(additionalStatementClauses, x -> {});
     }
 
     /**
@@ -207,8 +209,8 @@ public class SqlReader <T> {
      * @return A collection of objects received as results
      */
     public Collection<T> executeQuery(
-        String additionalStatementClauses,
-        StatementPreparer statementPreparer
+        @Nullable String additionalStatementClauses,
+        @NonNull StatementPreparer statementPreparer
     ) {
         String statement = selectAllStmt(additionalStatementClauses);
         try (
@@ -238,7 +240,9 @@ public class SqlReader <T> {
      * @param additionalClauses Additional SQL statements to add to the result
      * @return A joined SQL statement ready for preparation.
      */
-    public String selectAllStmt(String additionalClauses) {
-        return selectAllColumnsStmt + additionalClauses;
+    public String selectAllStmt(@Nullable String additionalClauses) {
+        return selectAllColumnsStmt == null ?
+                selectAllColumnsStmt :
+                selectAllColumnsStmt + additionalClauses;
     }
 }
