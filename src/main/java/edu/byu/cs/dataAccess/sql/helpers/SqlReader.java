@@ -111,7 +111,7 @@ public class SqlReader <T> {
 
             preparedStatement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error inserting value", e);
+            throw new DataAccessException("Error inserting item into table " + TABLE_NAME, e);
         }
     }
 
@@ -205,7 +205,7 @@ public class SqlReader <T> {
             statementPreparer.prepare(ps);
             return readItems(ps);
         } catch (Exception e) {
-            throw new DataAccessException("Error executing query", e);
+            throw new DataAccessException("Error executing query on table " + TABLE_NAME, e);
         }
     }
 
