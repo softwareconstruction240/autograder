@@ -15,13 +15,7 @@ import static java.sql.Types.NULL;
 public class SqlReader <T> {
     /** Represents the name of our SQL table */
     private final String TABLE_NAME;
-    /**
-     * Represents all the columns in the table.
-     * <br>
-     * If this value changes, remember to <strong>both</strong>
-     * the {@link SqlReader#insertItem(Object)} method <i>and</i>
-     * the {@link SqlReader#getSubmissionsFromQuery(PreparedStatement)}.
-     * */
+    /** Represents all the columns in the table. */
     private final ColumnDefinition<T>[] COLUMN_DEFINITIONS;
     private final String[] ALL_COLUMN_NAMES;
     private final ItemBuilder<T> ITEM_BUILDER;
@@ -98,6 +92,12 @@ public class SqlReader <T> {
     }
 
 
+    /**
+     * Will insert an item into the database using the settings configured
+     * when constructing this {@link SqlReader}.
+     *
+     * @param item The item to add to the table.
+     */
     public void insertItem(T item) {
         // CONSIDER: We could prepare the statement a single time, and avoid rebuilding it.
         try (var connection = SqlDb.getConnection();
@@ -114,7 +114,6 @@ public class SqlReader <T> {
             throw new DataAccessException("Error inserting value", e);
         }
     }
-
 
     private void setValue(PreparedStatement ps, int wildcardIndex, T item, ColumnDefinition<T> columnDefinition) throws SQLException {
         Object value = columnDefinition.accessor().getValue(item);
