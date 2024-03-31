@@ -117,7 +117,20 @@ public class SqlReader <T> {
 
     private void setValue(PreparedStatement ps, int wildcardIndex, T item, ColumnDefinition<T> columnDefinition) throws SQLException {
         Object value = columnDefinition.accessor().getValue(item);
+        setValue(ps, wildcardIndex, value);
+    }
 
+    /**
+     * Sets the value of a provided index query by dynamically evaluating the type of the value provided.
+     * <br>
+     * This method represents all the supported column types by the {@link SqlReader} class.
+     *
+     * @param ps A {@link PreparedStatement} that we will update
+     * @param wildcardIndex The 1-indexed number indicating a specific wildcard to replace
+     * @param value The object representing the value to save in the location
+     * @throws SQLException When SQL throws an error.
+     */
+    public void setValue(PreparedStatement ps, int wildcardIndex, Object value) throws SQLException {
         // This represents all the supported column types
         if (value == null) ps.setNull(wildcardIndex, NULL);
         else if (value instanceof String v) ps.setString(wildcardIndex, v);

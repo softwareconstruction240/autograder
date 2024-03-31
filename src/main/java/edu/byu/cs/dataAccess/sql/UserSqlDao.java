@@ -5,6 +5,7 @@ import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.User;
+import org.eclipse.jgit.annotations.NonNull;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -51,86 +52,42 @@ public class UserSqlDao implements UserDao {
 
     @Override
     public void setFirstName(String netId, String firstName) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            UPDATE user
-                            SET first_name = ?
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, firstName);
-            statement.setString(2, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error setting first name", e);
-        }
+        setFieldValue(netId, "first_name", firstName);
     }
 
     @Override
     public void setLastName(String netId, String lastName) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            UPDATE user
-                            SET last_name = ?
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, lastName);
-            statement.setString(2, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error setting last name", e);
-        }
+        setFieldValue(netId, "last_name", lastName);
     }
 
     @Override
     public void setRepoUrl(String netId, String repoUrl) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            UPDATE user
-                            SET repo_url = ?
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, repoUrl);
-            statement.setString(2, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error setting repo url", e);
-        }
+        setFieldValue(netId, "repo_url", repoUrl);
     }
 
     @Override
     public void setRole(String netId, User.Role role) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            UPDATE user
-                            SET role = ?
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, role.toString());
-            statement.setString(2, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error setting role", e);
-        }
+        setFieldValue(netId, "role", role.toString());
     }
 
     @Override
     public void setCanvasUserId(String netId, int canvasUserId) {
+        setFieldValue(netId, "canvas_user_id", canvasUserId);
+    }
+
+    private void setFieldValue(@NonNull String netId, @NonNull String columnName, @NonNull Object columnValue) {
         try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            UPDATE user
-                            SET canvas_user_id = ?
-                            WHERE net_id = ?
-                            """)) {
-            statement.setInt(1, canvasUserId);
+             PreparedStatement statement = connection.prepareStatement(
+                     """
+                             UPDATE user
+                             SET %s = ?
+                             WHERE net_id = ?
+                             """.formatted(columnName))) {
+            sqlReader.setValue(statement, 1, columnValue);
             statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error setting canvas user id", e);
+            throw new DataAccessException("Error updating '%s' field for user".formatted(columnName), e);
         }
     }
 
