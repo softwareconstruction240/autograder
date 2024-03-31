@@ -167,6 +167,48 @@ public class SqlReader <T> {
         }
     }
 
+    /**
+     * A specialized overload that doesn't require a StatementPreparer.
+     *
+     * @see SqlReader#executeQuery(String, StatementPreparer) for more details
+     *
+     * @param additionalStatementClauses Additional query clauses narrowing the results.
+     * @return A collection of matching items.
+     */
+    public Collection<T> executeQuery(String additionalStatementClauses) {
+        return executeQuery(selectAllStmt(additionalStatementClauses), x -> {});
+    }
+
+    /**
+     * Prepares a statement, provides hooks to adjust any parameters, and then reads the results
+     * out with the default {@link SqlReader#readItems(PreparedStatement)} method.
+     * <br>
+     * It appends provided SQL fragment with {@link SqlReader#selectAllStmt(String)},
+     * and then executes the query.
+     * <br>
+     * This method assists in reading all the columns of the table for a given query.
+     * More specialized queries will not find this method suitable and should resort to standard measures.
+     *
+     * @param additionalStatementClauses Additional query clauses narrowing the results.
+     * @param statementPreparer A method that can modify the <code>PreparedStatement</code> before it is executed.
+     * @return A collection of objects received as results
+     */
+    public Collection<T> executeQuery(
+        String additionalStatementClauses,
+        StatementPreparer statementPreparer
+    ) {
+        String statement = selectAllStmt(additionalStatementClauses);
+        try (
+                var connection = SqlDb.getConnection();
+                PreparedStatement ps = connection.prepareStatement(statement);
+        ) {
+            statementPreparer.prepare(ps);
+            return readItems(ps);
+        } catch (Exception e) {
+            throw new DataAccessException("Error executing query", e);
+        }
+    }
+
 
     /**
      * Represents a convenient beginning of most queries.
