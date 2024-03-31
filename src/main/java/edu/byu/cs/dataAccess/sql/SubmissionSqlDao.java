@@ -57,29 +57,20 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
     @Override
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    sqlReader.selectAllStmt() + "WHERE net_id = ? AND phase = ?");
-            statement.setString(1, netId);
-            statement.setString(2, phase.toString());
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + "WHERE net_id = ? AND phase = ?",
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setString(2, phase.toString());
+                }
+        );
     }
 
     @Override
     public Collection<Submission> getSubmissionsForUser(String netId) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    sqlReader.selectAllStmt() + "WHERE net_id = ?");
-            statement.setString(1, netId);
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + "WHERE net_id = ?",
+                ps -> ps.setString(1, netId));
     }
 
     @Override
@@ -89,26 +80,21 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    sqlReader.selectAllStmt() +
-                    """
-                            WHERE timestamp IN (
-                                SELECT MAX(timestamp)
-                                FROM submission
-                                GROUP BY net_id, phase
-                            )
-                            ORDER BY timestamp DESC
-                            """ +
-                            (batchSize >= 0 ? "LIMIT ?" : ""));
-            if (batchSize >= 0) {
-                statement.setInt(1, batchSize);
-            }
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + """
+                    WHERE timestamp IN (
+                        SELECT MAX(timestamp)
+                        FROM submission
+                        GROUP BY net_id, phase
+                    )
+                    ORDER BY timestamp DESC
+                    """ +
+                (batchSize >= 0 ? "LIMIT ?" : ""),
+                ps -> {
+                    if (batchSize >= 0) {
+                        ps.setInt(1, batchSize);
+                    }
+                });
     }
 
     @Override
@@ -121,7 +107,6 @@ public class SubmissionSqlDao implements SubmissionDao {
                             """)) {
             statement.setString(1, netId);
             statement.executeUpdate();
-
         } catch (Exception e) {
             throw new DataAccessException("Error removing submissions", e);
         }
@@ -129,22 +114,18 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Submission getFirstPassingSubmission(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    sqlReader.selectAllStmt() +
-                    """
-                            WHERE net_id = ? AND phase = ? AND passed = 1
-                            ORDER BY timestamp
-                            LIMIT 1
-                            """);
-            statement.setString(1, netId);
-            statement.setString(2, phase.toString());
-            Collection<Submission> submissions = getSubmissionsFromQuery(statement);
-            return submissions.isEmpty() ? null : submissions.iterator().next();
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting first passing submission", e);
-        }
+        var submissions = sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + """
+                        WHERE net_id = ? AND phase = ? AND passed = 1
+                        ORDER BY timestamp
+                        LIMIT 1
+                        """,
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setString(2, phase.toString());
+                }
+        );
+        return submissions.isEmpty() ? null : submissions.iterator().next();
     }
 
     @Override
@@ -167,7 +148,4 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
-    private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
-        return sqlReader.readItems(statement);
-    }
 }
