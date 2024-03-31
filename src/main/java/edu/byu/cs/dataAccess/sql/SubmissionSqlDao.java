@@ -31,7 +31,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin)
-        };
+    };
     private static Submission readSubmission(ResultSet rs) throws SQLException {
         String netId = rs.getString("net_id");
         String repoUrl = rs.getString("repo_url");
