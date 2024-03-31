@@ -88,33 +88,27 @@ public class QueueSqlDao implements QueueDao {
 
     @Override
     public void markStarted(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            UPDATE queue
-                            SET started = true
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error marking item as started", e);
-        }
+        updatedStartedField(netId, true);
     }
 
     @Override
     public void markNotStarted(String netId) {
+        updatedStartedField(netId, false);
+    }
+
+    private void updatedStartedField(String netId, boolean started) {
         try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            UPDATE queue
-                            SET started = false
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
+             var statement = connection.prepareStatement(
+                     """
+                             UPDATE queue
+                             SET started = ?
+                             WHERE net_id = ?
+                             """)) {
+            statement.setBoolean(1, started);
+            statement.setString(2, netId);
             statement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error marking item as not started", e);
+            throw new DataAccessException("Error updating 'started' status", e);
         }
     }
 
