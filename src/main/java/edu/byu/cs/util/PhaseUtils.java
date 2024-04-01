@@ -109,9 +109,8 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
             case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
+            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
             case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
-            case Phase6 -> throw new GradingException("Not implemented");
         };
     }
 
