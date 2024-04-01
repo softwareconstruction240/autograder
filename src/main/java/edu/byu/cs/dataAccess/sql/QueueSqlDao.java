@@ -44,14 +44,14 @@ public class QueueSqlDao implements QueueDao {
         try (var connection = SqlDb.getConnection();
             var statement = connection.prepareStatement(
                     """
-                            DELETE FROM queue
+                            DELETE FROM %s
                             WHERE net_id = (
                                 SELECT net_id
-                                FROM queue
+                                FROM %1$s
                                 ORDER BY time_added
                                 LIMIT 1
                             )
-                            """)) {
+                            """.formatted(sqlReader.getTableName()))) {
             var topItems = sqlReader.readItems(statement);
             return topItems.isEmpty() ? null : topItems.iterator().next();
         } catch (Exception e) {
@@ -64,9 +64,9 @@ public class QueueSqlDao implements QueueDao {
         try (var connection = SqlDb.getConnection();
             var statement = connection.prepareStatement(
                     """
-                            DELETE FROM queue
+                            DELETE FROM %s
                             WHERE net_id = ?
-                            """)) {
+                            """.formatted(sqlReader.getTableName()))) {
             statement.setString(1, netId);
             statement.executeUpdate();
         } catch (Exception e) {
@@ -101,10 +101,10 @@ public class QueueSqlDao implements QueueDao {
         try (var connection = SqlDb.getConnection();
              var statement = connection.prepareStatement(
                      """
-                             UPDATE queue
+                             UPDATE %s
                              SET started = ?
                              WHERE net_id = ?
-                             """)) {
+                             """.formatted(sqlReader.getTableName()))) {
             statement.setBoolean(1, started);
             statement.setString(2, netId);
             statement.executeUpdate();

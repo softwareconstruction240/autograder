@@ -247,4 +247,14 @@ public class SqlReader <T> {
                 selectAllColumnsStmt :
                 selectAllColumnsStmt + additionalClauses;
     }
+
+    /**
+     * Returns the preconfigured table name. Using this pattern minimizes the number of locations
+     * the table name needs to be manually defined.
+     *
+     * @return A string with the table name (configured upon construction).
+     */
+    public String getTableName() {
+        return TABLE_NAME;
+    }
 }

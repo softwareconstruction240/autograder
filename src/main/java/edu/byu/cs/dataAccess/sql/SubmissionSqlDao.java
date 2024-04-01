@@ -84,11 +84,11 @@ public class SubmissionSqlDao implements SubmissionDao {
                 sqlReader.selectAllStmt() + """
                     WHERE timestamp IN (
                         SELECT MAX(timestamp)
-                        FROM submission
+                        FROM %s
                         GROUP BY net_id, phase
                     )
                     ORDER BY timestamp DESC
-                    """ +
+                    """.formatted(sqlReader.getTableName()) +
                 (batchSize >= 0 ? "LIMIT ?" : ""),
                 ps -> {
                     if (batchSize >= 0) {
@@ -102,9 +102,9 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(
                     """
-                            DELETE FROM submission
+                            DELETE FROM %s
                             WHERE net_id = ?
-                            """)) {
+                            """.formatted(sqlReader.getTableName()))) {
             statement.setString(1, netId);
             statement.executeUpdate();
         } catch (Exception e) {
@@ -134,9 +134,9 @@ public class SubmissionSqlDao implements SubmissionDao {
             PreparedStatement statement = connection.prepareStatement(
                     """
                             SELECT max(score) as highestScore
-                            FROM submission
+                            FROM %s
                             WHERE net_id = ? AND phase = ?
-                            """)) {
+                            """.formatted(sqlReader.getTableName()))) {
             statement.setString(1, netId);
             statement.setString(2, phase.toString());
             try(ResultSet rows = statement.executeQuery()) {
