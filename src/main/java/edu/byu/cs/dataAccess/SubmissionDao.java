@@ -2,6 +2,7 @@ package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
+import org.eclipse.jgit.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -77,22 +78,16 @@ public interface SubmissionDao {
     Collection<Submission> getAllPassingSubmissions(String netId);
 
     /**
-     * Updates <b>all</b> of the relevant submissions with an appropriate {@link Submission.ScoreVerification}
-     * object.
-     * <br>
-     * Note that while a `ScoreVerification` object is passed in, a different variation of it must be stored
-     * on each submission so that each has its appropriate `originalScore` field set.
-     * It must also set the `VerifiedStatus` field of each submission to {@link Submission.VerifiedStatus#ApprovedManually}.
+     * Modifies an existing submission in the collection to mark it manually approved.
+     * Sets the `verifiedStatus` to {@link Submission.VerifiedStatus#ApprovedManually}, AND
+     * sets the `verification` field to the provided object.
      *
-     * @param studentNetId Identifies the student to approve
-     * @param phase Identifies the phase to approve
-     * @param scoreVerification A `ScoreVerification` containing information to set.
-     *                          Note that the `originalScore` field will be handled
-     *                          for each submission individually.
-     * @return An integer representing the number of affected submissions.
+     * @param submission The submission to modify in the data structure
+     * @param scoreVerification The personalized `ScoreVerification` to update in the `Submission`
+     * @throws ItemNotFoundException When the `Submission` cannot be located in the collection.
      */
-    int approveWithheldSubmission(
-            String studentNetId, Phase phase,
-            Submission.ScoreVerification scoreVerification
-    );
+    void manuallyApproveSubmission(
+            @NonNull Submission submission,
+            @NonNull Submission.ScoreVerification scoreVerification
+    ) throws ItemNotFoundException;
 }

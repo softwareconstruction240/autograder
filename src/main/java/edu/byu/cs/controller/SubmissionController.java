@@ -8,10 +8,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.GradeRequest;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.QueueDao;
-import edu.byu.cs.dataAccess.SubmissionDao;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
@@ -435,7 +432,7 @@ public class SubmissionController {
                 approverNetId,
                 approvedTimestamp,
                 penaltyPct);
-        int submissionsAffected = submissionDao.approveWithheldSubmission(studentNetId, phase, scoreVerification);
+        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(submissionDao, studentNetId, phase, scoreVerification);
 
         // Determine approvedScore
         if (approvedScore == null) {
@@ -449,10 +446,11 @@ public class SubmissionController {
         CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
         // FIXME: Store `approvedScore` in the Grade-book
         // canvasIntegration.submitGrade(studentNetId, approvedScore, );
-        throw new RuntimeException("ApproveSubmission not implemented!");
+//        throw new RuntimeException("ApproveSubmission not implemented!");
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
                 .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
     }
+
 }
