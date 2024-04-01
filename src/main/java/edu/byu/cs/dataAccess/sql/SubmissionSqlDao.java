@@ -1,6 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
 import com.google.gson.Gson;
+import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Rubric;
@@ -166,4 +167,58 @@ public class SubmissionSqlDao implements SubmissionDao {
                     ps.setBoolean(2, true);
                 });
     }
+
+    @Override
+    public void manuallyApproveSubmission(Submission submission, Submission.ScoreVerification scoreVerification)
+            throws ItemNotFoundException {
+        // Identify a submission by its: head_hash, net_id, and phase.
+        // We could try to identify it by more items, but that touches on being too brittle.
+
+        String netId = submission.netId();
+        String headHash = submission.headHash();
+        String phase = submission.phase().name();
+
+        String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
+        String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
+        String verificationStr = new Gson().toJson(scoreVerification);
+
+        // First verify that we can identify it
+        var matchingSubmissions = sqlReader.executeQuery(
+                whereClause,
+                ps -> {
+                    // Careful! This code can't be shared since the parameter indices are different below
+                    ps.setString(1, netId);
+                    ps.setString(2, headHash);
+                    ps.setString(3, phase);
+                }
+        );
+        if (matchingSubmissions.size() != 1) {
+            throw new ItemNotFoundException(
+                    "Submission could not be identified. Found %s matches. Searched with the following information:\n  "
+                            .formatted(matchingSubmissions.size())
+                    + "  net_id: %s\n  phase: %s\n  head_hash: %s\n  "
+                            .formatted(netId, headHash, phase)
+                    + matchingSubmissions.toString()
+            );
+        }
+
+        // Then update it
+        sqlReader.executeUpdate(
+                """
+                        UPDATE %s
+                        SET verified_status = ?, verification = ?
+                        %s
+                        """.formatted(sqlReader.getTableName(), whereClause),
+                ps -> {
+                    ps.setString(1, verifiedStatusStr);
+                    ps.setString(2, verificationStr);
+
+                    // Careful! This code is used first up above
+                    ps.setString(3, netId);
+                    ps.setString(4, headHash);
+                    ps.setString(5, phase);
+                }
+        );
+    }
+
 }

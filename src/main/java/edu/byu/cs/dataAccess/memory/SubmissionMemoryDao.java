@@ -1,6 +1,8 @@
 package edu.byu.cs.dataAccess.memory;
 
+import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.SubmissionHelper;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
@@ -98,4 +100,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
                 .filter(submission -> submission.passed() && submission.netId().equals(netId))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public void manuallyApproveSubmission(Submission submission, Submission.ScoreVerification scoreVerification) throws ItemNotFoundException {
+        throw new RuntimeException("Method not implemented");
+    }
+
 }
