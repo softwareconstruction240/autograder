@@ -227,6 +227,56 @@ public class SqlReader <T> {
     }
 
     /**
+     * Finishes preparing a statement and then executes it as an update.
+     *
+     * @see SqlReader#executeUpdate(String, StatementPreparer, ResultReader) which runs under the hood.
+     *
+     * @param statement The string statement to prepare
+     * @param statementPreparer A method that finishes preparing the statement
+     */
+    public void executeUpdate(
+            @NonNull String statement,
+            @Nullable StatementPreparer statementPreparer
+    ) {
+        executeUpdate(statement, statementPreparer, null);
+    }
+
+    /**
+     * Finishes preparing a statement and then executes it as an update.
+     * Also supports reading the result set with a generic reader.
+     * <br>
+     * Note that <i>unlike</i> the convenient {@link SqlReader#executeQuery(String)}
+     * method which automatically prepends the clause with the table name and SQL query type,
+     * this method does not do that. Include the entire SQL statement in this input.
+     *
+     * @param statement The string statement to prepare
+     * @param statementPreparer A method that finishes preparing the statement (usually be filling wildcards)
+     * @param resultReader A method that will parse the {@link ResultSet} when it's returned.
+     * @return Type {@link T1} which was returned by `resultReader`.
+     * @param <T1> Represents the final return type from the method
+     */
+    public <T1> T1 executeUpdate(
+            @NonNull String statement,
+            @Nullable StatementPreparer statementPreparer,
+            @Nullable ResultReader<T1> resultReader
+    ) {
+        try (
+                var connection = SqlDb.getConnection();
+                PreparedStatement ps = connection.prepareStatement(statement)
+        ) {
+            if (statementPreparer != null) statementPreparer.prepare(ps);
+            ps.executeUpdate();
+            if (resultReader != null) {
+                throw new RuntimeException("Using resultReader is not yet supported.");
+//                resultReader.read();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error executing update", e);
+        }
+        return null;
+    }
+
+    /**
      * Returns the first item in the collection as type {@link T},
      * or returns `null` if none exist.
      *

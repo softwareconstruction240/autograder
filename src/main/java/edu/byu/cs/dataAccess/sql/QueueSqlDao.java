@@ -61,17 +61,13 @@ public class QueueSqlDao implements QueueDao {
 
     @Override
     public void remove(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            DELETE FROM %s
-                            WHERE net_id = ?
-                            """.formatted(sqlReader.getTableName()))) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error removing item from queue", e);
-        }
+        sqlReader.executeUpdate(
+                """
+                    DELETE FROM %s
+                    WHERE net_id = ?
+                    """.formatted(sqlReader.getTableName()),
+                ps -> ps.setString(1, netId)
+        );
     }
 
     @Override
@@ -98,19 +94,17 @@ public class QueueSqlDao implements QueueDao {
     }
 
     private void updatedStartedField(String netId, boolean started) {
-        try (var connection = SqlDb.getConnection();
-             var statement = connection.prepareStatement(
-                     """
-                             UPDATE %s
-                             SET started = ?
-                             WHERE net_id = ?
-                             """.formatted(sqlReader.getTableName()))) {
-            statement.setBoolean(1, started);
-            statement.setString(2, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error updating 'started' status", e);
-        }
+        sqlReader.executeUpdate(
+                """
+                     UPDATE %s
+                     SET started = ?
+                     WHERE net_id = ?
+                     """.formatted(sqlReader.getTableName()),
+                ps -> {
+                    ps.setBoolean(1, started);
+                    ps.setString(2, netId);
+                }
+        );
     }
 
     @Override
