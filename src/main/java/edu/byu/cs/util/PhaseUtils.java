@@ -161,7 +161,11 @@ public class PhaseUtils {
                 case UNIT_TESTS -> "_8849";
                 case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
-            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
+            case Phase6 -> switch (type) {
+                case PASSOFF_TESTS -> "90348_899";
+                case QUALITY -> "90348_3792";
+                case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
             case Quality -> throw new GradingException("Not graded");
         };
     }
