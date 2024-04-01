@@ -12,12 +12,9 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
-import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 
@@ -184,6 +181,8 @@ public class Scorer {
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+        Submission.VerifiedStatus verifiedStatus = commitVerificationResult.verified() ?
+                Submission.VerifiedStatus.ApprovedAutomatically : Submission.VerifiedStatus.Unapproved;
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
@@ -196,7 +195,9 @@ public class Scorer {
                 score,
                 notes,
                 rubric,
-                gradingContext.admin()
+                gradingContext.admin(),
+                verifiedStatus,
+                null
         );
 
         submissionDao.insertSubmission(submission);

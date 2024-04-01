@@ -16,8 +16,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
-import static java.sql.Types.NULL;
-
 public class SubmissionSqlDao implements SubmissionDao {
     private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
             new ColumnDefinition<Submission>("net_id", Submission::netId),
@@ -29,9 +27,15 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("head_hash", Submission::headHash),
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
-            new ColumnDefinition<Submission>("admin", Submission::admin)
+            new ColumnDefinition<Submission>("admin", Submission::admin),
+            new ColumnDefinition<Submission>("verified_status",
+                    s -> s.verifiedStatus() == null ? null : s.verifiedStatus().name()),
+            new ColumnDefinition<Submission>("verification",
+                    s -> s.verification() == null ? null : new Gson().toJson(s.verification()))
     };
     private static Submission readSubmission(ResultSet rs) throws SQLException {
+        var gson = new Gson();
+
         String netId = rs.getString("net_id");
         String repoUrl = rs.getString("repo_url");
         String headHash = rs.getString("head_hash");
@@ -40,10 +44,20 @@ public class SubmissionSqlDao implements SubmissionDao {
         Boolean passed = rs.getBoolean("passed");
         float score = rs.getFloat("score");
         String notes = rs.getString("notes");
-        Rubric rubric = new Gson().fromJson(rs.getString("rubric"), Rubric.class);
+        Rubric rubric = gson.fromJson(rs.getString("rubric"), Rubric.class);
         Boolean admin = rs.getBoolean("admin");
 
-        return new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, notes, rubric, admin);
+        String verifiedStatusStr = rs.getString("verified_status");
+        Submission.VerifiedStatus verifiedStatus = verifiedStatusStr == null ? null :
+                Submission.VerifiedStatus.valueOf(verifiedStatusStr);
+        String verificationJson = rs.getString("verification");
+        Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
+                gson.fromJson(verificationJson, Submission.ScoreVerification.class);
+
+        return new Submission(
+                netId, repoUrl, headHash, timestamp, phase,
+                passed, score, notes, rubric,
+                admin, verifiedStatus, scoreVerification);
     }
 
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(

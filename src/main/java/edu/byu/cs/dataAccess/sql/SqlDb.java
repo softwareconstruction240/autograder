@@ -57,6 +57,8 @@ public class SqlDb {
                                 `score` FLOAT NOT NULL,
                                 `notes` TEXT,
                                 `rubric` JSON,
+                                `verified_status` VARCHAR(30),
+                                `verification` JSON,
                                 `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
