@@ -147,13 +147,11 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllPassingSubmissions(String netId) {
-        try (var connection = SqlDb.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     sqlReader.selectAllStmt() + "WHERE net_id = ? AND passed = 1")) {
-            statement.setString(1, netId);
-            return sqlReader.readItems(statement);
-        } catch (SQLException e) {
-            throw new DataAccessException("Error getting passing submissions", e);
-        }
+        return sqlReader.executeQuery(
+                "WHERE net_id = ? AND passed = ?",
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setBoolean(2, true);
+                });
     }
 }
