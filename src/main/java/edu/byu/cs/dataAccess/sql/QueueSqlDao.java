@@ -53,7 +53,7 @@ public class QueueSqlDao implements QueueDao {
                             )
                             """.formatted(sqlReader.getTableName()))) {
             var topItems = sqlReader.readItems(statement);
-            return topItems.isEmpty() ? null : topItems.iterator().next();
+            return sqlReader.expectOneItem(topItems);
         } catch (Exception e) {
             throw new DataAccessException("Error popping item from queue", e);
         }
@@ -118,6 +118,6 @@ public class QueueSqlDao implements QueueDao {
         var results = sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
-        return results.isEmpty() ? null : results.iterator().next();
+        return sqlReader.expectOneItem(results);
     }
 }

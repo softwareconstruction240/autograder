@@ -226,6 +226,18 @@ public class SqlReader <T> {
         }
     }
 
+    /**
+     * Returns the first item in the collection as type {@link T},
+     * or returns `null` if none exist.
+     *
+     * @param items A collection of items to search.
+     * @return An item {@link T} or `null`.
+     */
+    @Nullable
+    public T expectOneItem(@NonNull Collection<T> items) {
+        return items.isEmpty() ? null : items.iterator().next();
+    }
+
 
     /**
      * Represents a convenient beginning of most queries.

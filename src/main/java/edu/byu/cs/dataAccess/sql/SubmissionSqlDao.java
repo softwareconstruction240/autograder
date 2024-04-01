@@ -125,7 +125,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                     ps.setString(2, phase.toString());
                 }
         );
-        return submissions.isEmpty() ? null : submissions.iterator().next();
+        return sqlReader.expectOneItem(submissions);
     }
 
     @Override

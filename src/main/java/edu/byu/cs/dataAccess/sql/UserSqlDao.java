@@ -47,7 +47,7 @@ public class UserSqlDao implements UserDao {
         var results = sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
-        return results.isEmpty() ? null : results.iterator().next();
+        return sqlReader.expectOneItem(results);
     }
 
     @Override
