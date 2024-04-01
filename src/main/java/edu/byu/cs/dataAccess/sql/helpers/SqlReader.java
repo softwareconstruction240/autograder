@@ -58,7 +58,9 @@ public class SqlReader <T> {
      * </p>
      *
      * @param tableName The case-sensitive name of the table to interact with.
-     * @param columnDefinitions Identifies each of the columns in the table and provides a value accessor
+     * @param columnDefinitions Identifies each of the columns in the table and provides a value accessor.
+     *                          This list is used to <b>both</b> create insert items in the table <b>and</b>
+     *                          to read out data from all columns.
      * @param itemBuilder Responsible for reading a single row of the result set and constructing an item
      */
     public SqlReader(String tableName, ColumnDefinition<T>[] columnDefinitions, ItemBuilder<T> itemBuilder) {

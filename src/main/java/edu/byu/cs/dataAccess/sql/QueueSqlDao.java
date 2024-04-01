@@ -19,6 +19,7 @@ public class QueueSqlDao implements QueueDao {
     private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
             new ColumnDefinition<QueueItem>("net_id", QueueItem::netId),
             new ColumnDefinition<QueueItem>("phase", q -> q.phase().name()),
+            new ColumnDefinition<QueueItem>("started", QueueItem::started),
             new ColumnDefinition<QueueItem>("time_added", QueueItem::timeAdded),
     };
     private static QueueItem readQueueItem(ResultSet rs) throws SQLException {
