@@ -10,6 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class RubricConfigSqlDao implements RubricConfigDao {
+
+    // NOTE: This class skipped for conversion to SqlReader since it wouldn't improve readability of this file.
+    // This file isn't heavy in SQl queries, but in the logic of joining together the results.
+
     @Override
     public RubricConfig getRubricConfig(Phase phase) {
 
