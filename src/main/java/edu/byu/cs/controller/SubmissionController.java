@@ -247,6 +247,25 @@ public class SubmissionController {
                 .create().toJson(submissions);
     };
 
+    public static final Route approveSubmissionPost = (req, res) -> {
+        // FIXME: These are only provided as reasonable guesses, and as a starting point.
+        // This may not be the way we want to actually go with this end-point,
+        // the only reflect the data that will need to be transferred.
+        String studentNetId = req.params(":studentNetId");
+        Phase phase = PhaseUtils.getPhaseByString(req.params(":phase"));
+        Float approvedScore = Float.valueOf(req.params(":approvedScore"));
+        Integer penaltyPct = Integer.valueOf(req.params(":penaltyPct"));
+        String approvingNetId = req.params(":approvingNetId");
+
+        // FIXME: Validate that all of the parameters were received as valid, non-empty types.
+        // Note that the `approvedScore` field can be optionally `null`.
+
+        approveSubmission(studentNetId, phase, approvingNetId, approvedScore, penaltyPct);
+
+        // FIXME: Consider returning more interesting or hepful data.
+        return "{}";
+    };
+
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *
@@ -369,5 +388,71 @@ public class SubmissionController {
                             currentUser.repoUrl(),
                             currentUser.role() == User.Role.ADMIN));
         }
+    }
+
+    /**
+     * Approves a submission.
+     * Modifies all existing submissions in the phase with constructed values,
+     * and saves a given value into the grade-book.
+     *
+     * @param studentNetId The student to approve
+     * @param phase The phase to approve
+     * @param approverNetId Identifies the TA or professor approving the score
+     * @param approvedScore <p>The final score that should go in the grade-book.</p>
+     *                      <p>If `null`, we'll apply the penalty to the most recent passing submission.</p>
+     *                      <p>Provided so that a TA can approve an arbitrary (highest score)
+     *                      submission with a penalty instead of any other fixed rule.</p>
+     * @param penaltyPct The penalty applied for the reduction.
+     *                   This should already be reflected in the `approvedScore` if present.
+     */
+    public static void approveSubmission(
+            String studentNetId,
+            Phase phase,
+            String approverNetId,
+            Float approvedScore,
+            Integer penaltyPct
+    ) {
+        // Validate params
+        if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
+            throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
+        }
+        if (studentNetId.isBlank() || approverNetId.isBlank()) {
+            throw  new IllegalArgumentException("Both studentNetId and approverNetId must not be blank");
+        }
+        if (penaltyPct < 0 || (approvedScore != null && approvedScore < 0)) {
+            throw new IllegalArgumentException("Both penaltyPct and approvedScore must be greater or equal than 0");
+        }
+
+        // Read in data
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+
+        // Update Submissions
+        Float originalScore = withheldSubmission.score();
+        Instant approvedTimestamp = Instant.now();
+        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
+                originalScore,
+                approverNetId,
+                approvedTimestamp,
+                penaltyPct);
+        int submissionsAffected = submissionDao.approveWithheldSubmission(studentNetId, phase, scoreVerification);
+
+        // Determine approvedScore
+        if (approvedScore == null) {
+            Float mostRecentPassingScoreOnPhase = 0f;
+            approvedScore = mostRecentPassingScoreOnPhase * (1 - penaltyPct) / 100f;
+            // FIXME: Set `approvedScore` to the score of the most recent passing submission, multiplied by (1 - penaltyPct)
+            throw new RuntimeException("Dynamically determining approved score is not yet implemented");
+        }
+
+        // Update grade-book
+        CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
+        // FIXME: Store `approvedScore` in the Grade-book
+        // canvasIntegration.submitGrade(studentNetId, approvedScore, );
+        throw new RuntimeException("ApproveSubmission not implemented!");
+
+        // Done
+        LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
+                .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
     }
 }

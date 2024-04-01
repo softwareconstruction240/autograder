@@ -77,13 +77,15 @@ public record Submission(
      * @param originalScore The score originally calculated by the server.
      * @param approvingNetId The NetId of the individual who approves the score manually.
      * @param approvedTimestamp The timestamp of the approver approving the score.
-     * @param approvedScore The approved score that should go in the grade-book.
+     * @param penaltyPct The percentage reduction from the original score.
+     *                   This percentage will be reduced from all future submissions
+     *                   on this phase as well.
      */
     public record ScoreVerification(
              @NonNull Float originalScore,
              @NonNull String approvingNetId,
              @NonNull Instant approvedTimestamp,
-             @NonNull Float approvedScore
+             @NonNull Integer penaltyPct
     ) { }
 
     public enum VerifiedStatus {
