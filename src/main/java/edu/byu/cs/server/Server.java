@@ -13,6 +13,8 @@ import java.util.Properties;
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
+import static edu.byu.cs.controller.LogsController.logGet;
+import static edu.byu.cs.controller.LogsController.logsGet;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
@@ -65,17 +67,27 @@ public class Server {
 
                 patch("/user/:netId", userPatch);
 
-                get("/submissions/latest", latestSubmissionsGet);
+                post("/submit", adminRepoSubmitPost);
 
-                get("/submissions/latest/:count", latestSubmissionsGet);
+                path("/submissions", () -> {
+                    get("/latest", latestSubmissionsGet);
+
+                    get("/latest/:count", latestSubmissionsGet);
+
+                    get("/active", submissionsActiveGet);
+
+                    get("/student/:netID", studentSubmissionsGet);
+
+                    post("/rerun", submissionsReRunPost);
+                });
+
+                path("/logs", () -> {
+                    get("", logsGet);
+
+                    get("/:log", logGet);
+                });
 
                 get("/test_mode", testModeGet);
-
-                get("/submissions/active", submissionsActiveGet);
-
-                get("/submissions/student/:netID", studentSubmissionsGet);
-
-                post("/submissions/rerun", submissionsReRunPost);
 
                 get("/analytics/commit", commitAnalyticsGet);
 
@@ -106,8 +118,11 @@ public class Server {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
-            if (cmd.hasOption("db-url")) {
-                properties.setProperty("db-url", cmd.getOptionValue("db-url"));
+            if (cmd.hasOption("db-host")) {
+                properties.setProperty("db-host", cmd.getOptionValue("db-host"));
+            }
+            if (cmd.hasOption("db-port")) {
+                properties.setProperty("db-port", cmd.getOptionValue("db-port"));
             }
             if (cmd.hasOption("db-name")) {
                 properties.setProperty("db-name", cmd.getOptionValue("db-name"));
@@ -127,17 +142,8 @@ public class Server {
             if (cmd.hasOption("canvas-token")) {
                 properties.setProperty("canvas-token", cmd.getOptionValue("canvas-token"));
             }
-            if (cmd.hasOption("student-db-host")) {
-                properties.setProperty("student-db-host", cmd.getOptionValue("student-db-host"));
-            }
-            if (cmd.hasOption("student-db-port")) {
-                properties.setProperty("student-db-port", cmd.getOptionValue("student-db-port"));
-            }
-            if (cmd.hasOption("student-db-user")) {
-                properties.setProperty("student-db-user", cmd.getOptionValue("student-db-user"));
-            }
-            if (cmd.hasOption("student-db-pass")) {
-                properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
+            if (cmd.hasOption("use-canvas")) {
+                properties.setProperty("use-canvas", cmd.getOptionValue("use-canvas"));
             }
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line arguments", e);
@@ -148,17 +154,15 @@ public class Server {
 
     private static Options getOptions() {
         Options options = new Options();
-        options.addOption(null, "db-url", true, "Database URL");
+        options.addOption(null, "db-host", true, "Database Host");
+        options.addOption(null, "db-port", true, "Database Port");
         options.addOption(null, "db-name", true, "Database Name");
         options.addOption(null, "db-user", true, "Database User");
         options.addOption(null, "db-pass", true, "Database Password");
         options.addOption(null, "frontend-url", true, "Frontend URL");
         options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
         options.addOption(null, "canvas-token", true, "Canvas Token");
-        options.addOption(null, "student-db-host", true, "Student DB Host");
-        options.addOption(null, "student-db-port", true, "Student DB Port");
-        options.addOption(null, "student-db-user", true, "Student DB User");
-        options.addOption(null, "student-db-pass", true, "Student DB Password");
+        options.addOption(null, "use-canvas", true, "Using Canvas");
         return options;
     }
 

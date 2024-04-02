@@ -17,11 +17,26 @@ public class ApplicationProperties {
         String value = INSTANCE.properties.getProperty(propertyName);
         if (value == null)
             throw new RuntimeException("Property " + propertyName + " not found");
-        return INSTANCE.properties.getProperty(propertyName);
+        return value;
+    }
+
+    private static String get(String propertyName, String defaultValue) {
+        String value = INSTANCE.properties.getProperty(propertyName);
+        if (value == null)
+            return defaultValue;
+        return value;
     }
 
     public static String dbUrl() {
-        return mustGet("db-url");
+        return dbHost() + ":" + dbPort();
+    }
+
+    public static String dbHost() {
+        return mustGet("db-host");
+    }
+
+    public static String dbPort() {
+        return mustGet("db-port");
     }
 
     public static String dbName() {
@@ -49,19 +64,7 @@ public class ApplicationProperties {
         return "Bearer " + mustGet("canvas-token");
     }
 
-    public static String studentDbHost() {
-        return mustGet("student-db-host");
-    }
-
-    public static String studentDbPort() {
-        return mustGet("student-db-port");
-    }
-
-    public static String studentDbUser() {
-        return mustGet("student-db-user");
-    }
-
-    public static String studentDbPass() {
-        return mustGet("student-db-pass");
+    public static boolean useCanvas() {
+        return Boolean.parseBoolean(get("use-canvas", "true"));
     }
 }

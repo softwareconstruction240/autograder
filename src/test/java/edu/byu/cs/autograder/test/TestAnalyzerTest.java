@@ -1,5 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.test;
 
+import edu.byu.cs.autograder.GradingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("All tests pass")
-    void parse__all_tests_pass() {
+    void parse__all_tests_pass() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -28,7 +29,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -41,7 +42,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("All tests fail")
-    void parse__all_tests_fail() {
+    void parse__all_tests_fail() throws GradingException {
         String testsFailingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnCaptureBlack() :: STARTED
@@ -66,7 +67,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -79,7 +80,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Some tests pass, some fail")
-    void parse__some_pass_some_fail() {
+    void parse__some_pass_some_fail() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -117,7 +118,7 @@ class TestAnalyzerTest {
 
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(3, root.children.get("PawnMoveTests").children.size());
@@ -141,7 +142,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Test input starts with non-test content")
-    void parse__starts_with_non_test_content() {
+    void parse__starts_with_non_test_content() throws GradingException {
         String testsPassingInput =
                 """
                 Thanks for using JUnit! Support its development at https://junit.org/sponsoring
@@ -151,7 +152,7 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -164,7 +165,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Test input ends with non-test content")
-    void parse__ends_with_non_test_content() {
+    void parse__ends_with_non_test_content() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -187,7 +188,7 @@ class TestAnalyzerTest {
                 [        47 tests failed          ]
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("PawnMoveTests").children.size());
@@ -200,7 +201,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Counts are correct")
-    void TestNode__counts_are_correct() {
+    void TestNode__counts_are_correct() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > PawnMoveTests > pawnMiddleOfBoardWhite() :: STARTED
@@ -219,7 +220,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals(2, root.numTestsPassed);
         assertEquals(1, root.numTestsFailed);
@@ -233,7 +234,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Escape code are ignored")
-    void parse__escape_codes_are_ignored() {
+    void parse__escape_codes_are_ignored() throws GradingException {
         String testsPassingInput =
                 """
                 Unit Jupiter > QueenMoveTests > queenMoveUntilEdge() :: STARTED
@@ -242,7 +243,7 @@ class TestAnalyzerTest {
                 [32mJUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: SUCCESSFUL[0m
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(2, root.children.get("QueenMoveTests").children.size());
@@ -250,7 +251,7 @@ class TestAnalyzerTest {
 
     @Test
     @DisplayName("Extra credit all successful")
-    void parse__ec_all_success() {
+    void parse__ec_all_success() throws GradingException {
         String testsPassingInput =
                 """
                 JUnit Jupiter > CastlingTests > Cannot Castle in Check :: STARTED
@@ -277,12 +278,50 @@ class TestAnalyzerTest {
         extraCreditTests.add("CastlingTests");
         extraCreditTests.add("EnPassantTests");
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null);
+        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
         assertEquals("JUnit Jupiter", root.testName);
         assertEquals(4, root.numTestsPassed);
         assertEquals(6, root.numExtraCreditPassed);
         assertEquals("CastlingTests", root.children.get("CastlingTests").ecCategory);
         assertEquals("EnPassantTests", root.children.get("EnPassantTests").ecCategory);
         assertNull(root.children.get("ChessGameTests").ecCategory);
+    }
+
+    @Test
+    @DisplayName("No parseable output")
+    void parse__nothing() throws GradingException {
+        String testOutput =
+                """
+                
+                Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+                
+                """;
+
+        String errorOutput =
+                """
+                        java.io.IOException: Failed to bind to /0.0.0.0:8080
+                               at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349)
+                               at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310)
+                               at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80)
+                               at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234)
+                               at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:72)
+                               at org.eclipse.jetty.server.Server.doStart(Server.java:386)
+                               at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:72)
+                               at spark.embeddedserver.jetty.EmbeddedJettyServer.ignite(EmbeddedJettyServer.java:149)
+                               at spark.Service.lambda$init$2(Service.java:632)
+                               at java.base/java.lang.Thread.run(Thread.java:1583)
+                        Caused by: java.net.BindException: Address already in use
+                               at java.base/sun.nio.ch.Net.bind0(Native Method)
+                               at java.base/sun.nio.ch.Net.bind(Net.java:565)
+                               at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+                               at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+                               at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+                               at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:345)
+                               ... 9 more
+                """;
+
+        TestAnalyzer.TestAnalysis analysis = new TestAnalyzer().parse(testOutput.split("\n"), extraCreditTests, errorOutput);
+        assertNull(analysis.root());
+        assertEquals(errorOutput, analysis.error());
     }
 }

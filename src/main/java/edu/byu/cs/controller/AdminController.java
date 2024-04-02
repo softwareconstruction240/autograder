@@ -2,7 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
@@ -19,7 +19,7 @@ import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class AdminController {
-    public static Route usersGet = (req, res) -> {
+    public static final Route usersGet = (req, res) -> {
         UserDao userDao = DaoService.getUserDao();
 
         Collection<User> users = userDao.getUsers();
@@ -31,7 +31,7 @@ public class AdminController {
 
     };
 
-    public static Route userPatch = (req, res) -> {
+    public static final Route userPatch = (req, res) -> {
         String netId = req.params(":netId");
 
         UserDao userDao = DaoService.getUserDao();
@@ -68,8 +68,8 @@ public class AdminController {
         return "";
     };
 
-    public static Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasIntegration.getTestStudent();
+    public static final Route testModeGet = (req, res) -> {
+        User latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
 
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser("test");
@@ -91,7 +91,7 @@ public class AdminController {
         return null;
     };
 
-    public static Route commitAnalyticsGet = (req, res) -> {
+    public static final Route commitAnalyticsGet = (req, res) -> {
         String option = req.params(":option");
         String data;
 
@@ -114,7 +114,7 @@ public class AdminController {
         return data;
     };
 
-    public static Route honorCheckerZipGet = (req, res) -> {
+    public static final Route honorCheckerZipGet = (req, res) -> {
         String sectionStr = req.params(":section");
         String filePath;
 

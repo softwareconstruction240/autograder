@@ -1,4 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.test;
+
+import edu.byu.cs.autograder.GradingException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +12,8 @@ import java.util.Set;
  * <i>e.g. --details=testfeed</i>
  */
 public class TestAnalyzer {
+
+    public record TestAnalysis(TestNode root, String error) {}
 
     public static class TestNode implements Comparable<TestNode>, Cloneable {
         String testName;
@@ -127,25 +131,6 @@ public class TestAnalyzer {
                 throw new RuntimeException(e);
             }
         }
-
-        /**
-         * Bundles two TestNodes into a single TestNode
-         *
-         * @param bundleName the name of the parent TestNode
-         * @param nodes      the second TestNode
-         * @return a new TestNode that is the result of bundling a and b
-         */
-        public static TestNode bundle(String bundleName, TestNode... nodes) {
-            TestNode merged = new TestNode();
-            merged.testName = bundleName;
-
-            for (TestNode node : nodes)
-                merged.children.put(node.testName, node);
-
-            TestNode.countTests(merged);
-
-            return merged;
-        }
     }
 
     /**
@@ -170,7 +155,7 @@ public class TestAnalyzer {
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestNode parse(String[] inputLines, Set<String> extraCreditTests, String error) {
+    public TestAnalysis parse(String[] inputLines, Set<String> extraCreditTests, String error) throws GradingException {
         this.ecCategories = extraCreditTests;
 
         for (String line : inputLines) {
@@ -205,10 +190,9 @@ public class TestAnalyzer {
 
         if (root != null) {
             TestNode.countTests(root);
-            root.errorMessage = error;
         }
 
-        return root;
+        return new TestAnalysis(root, error);
     }
 
     /**
@@ -253,9 +237,9 @@ public class TestAnalyzer {
      *
      * @param line an error message from a failed test
      */
-    private void handleErrorMessage(String line) {
+    private void handleErrorMessage(String line) throws GradingException {
         if (lastFailingTest == null) {
-            throw new RuntimeException("Error message without a test: " + line);
+            throw new GradingException("Error message without a test: " + line);
         }
 
         if (lastFailingTest.errorMessage == null)

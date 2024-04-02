@@ -8,6 +8,7 @@ import Analytics from "@/views/AdminView/Analytics.vue";
 import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 import {useAdminStore} from "@/stores/admin";
 import StudentsView from "@/views/AdminView/StudentsView.vue";
+import LogsView from "@/views/AdminView/LogsView.vue";
 
 useAdminStore().updateUsers();
 
@@ -24,6 +25,9 @@ useAdminStore().updateUsers();
       </Tab>
       <Tab title="Queue Status">
         <QueueStatus/>
+      </Tab>
+      <Tab title="Logs">
+        <LogsView/>
       </Tab>
       <Tab title="Downloads">
         <Analytics/>

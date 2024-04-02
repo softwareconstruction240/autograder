@@ -1,23 +1,50 @@
 package edu.byu.cs.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.concurrent.*;
 
 public class ProcessUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtils.class);
+
+    private static final long DEFAULT_TIMEOUT = 30000;
 
     /**
      * Runs a process given by a process builder and returns process output
      * @param processBuilder process to run
      * @return output from process standard out
      */
-    public static ProcessOutput runProcess(ProcessBuilder processBuilder) {
+    public static ProcessOutput runProcess(ProcessBuilder processBuilder) throws ProcessException {
+        return runProcess(processBuilder, null, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Runs a process given by a process builder and returns process output
+     * @param processBuilder process to run
+     * @param timeout length to wait for in ms
+     * @return output from process standard out
+     */
+    public static ProcessOutput runProcess(ProcessBuilder processBuilder, long timeout) throws ProcessException {
+        return runProcess(processBuilder, null, timeout);
+    }
+
+    /**
+     * Runs a process given by a process builder and returns process output
+     * @param processBuilder process to run
+     * @param input string to write to standard in for process
+     * @return output from process standard out
+     */
+    public static ProcessOutput runProcess(ProcessBuilder processBuilder, String input) throws ProcessException {
+        return runProcess(processBuilder, input, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Runs a process given by a process builder and returns process output
+     * @param processBuilder process to run
+     * @param input string to write to standard in for process
+     * @param timeout length to wait for in ms
+     * @return output from process standard out
+     */
+    public static ProcessOutput runProcess(ProcessBuilder processBuilder, String input, long timeout)
+            throws ProcessException {
         try (ExecutorService processOutputExecutor = Executors.newFixedThreadPool(2)){
 
             Process process = processBuilder.start();
@@ -31,17 +58,22 @@ public class ProcessUtils {
             Future<String> processOutputFuture = processOutputExecutor.submit(() -> getOutputFromInputStream(process.getInputStream()));
             Future<String> processErrorFuture = processOutputExecutor.submit(() -> getOutputFromInputStream(process.getErrorStream()));
 
-            if (!process.waitFor(30000, TimeUnit.MILLISECONDS)) {
+            if(input != null) {
+                try (OutputStream os = process.getOutputStream()) {
+                    os.write(input.getBytes());
+                }
+            }
+
+            if (!process.waitFor(timeout, TimeUnit.MILLISECONDS)) {
                 process.destroyForcibly();
-                LOGGER.error("Submission took too long to grade, come see a TA for more info");
-                throw new RuntimeException("Submission took too long to grade, come see a TA for more info");
+                throw new ProcessException("Process timed out. Try again or come see a TA if this error persists");
             }
             String output = processOutputFuture.get(1000, TimeUnit.MILLISECONDS);
             String error = processErrorFuture.get(1000, TimeUnit.MILLISECONDS);
 
             return new ProcessOutput(output, error, process.waitFor());
         } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
+            throw new ProcessException(e);
         }
     }
 
@@ -67,4 +99,14 @@ public class ProcessUtils {
     }
 
     public record ProcessOutput(String stdOut, String stdErr, int statusCode){}
+
+    public static class ProcessException extends Exception {
+        public ProcessException(String message) {
+            super(message);
+        }
+
+        public ProcessException(Throwable cause) {
+            super(cause);
+        }
+    }
 }
