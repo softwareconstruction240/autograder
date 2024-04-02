@@ -109,9 +109,8 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
             case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
+            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
             case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
-            case Phase6 -> throw new GradingException("Not implemented");
         };
     }
 
@@ -162,7 +161,11 @@ public class PhaseUtils {
                 case UNIT_TESTS -> "_8849";
                 case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
-            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
+            case Phase6 -> switch (type) {
+                case PASSOFF_TESTS -> "90348_899";
+                case QUALITY -> "90348_3792";
+                case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
             case Quality -> throw new GradingException("Not graded");
         };
     }
@@ -181,6 +184,19 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
             case Quality -> false;
+        };
+    }
+
+    /**
+     * Check if passoff tests are required for a given phase
+     *
+     * @param phase phase to check
+     * @return true (passoff results are all or nothing), false (passoffs can be partial)
+     */
+    public static boolean isPassoffRequired(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4 -> true;
+            case Phase5, Phase6, Quality -> false;
         };
     }
 }
