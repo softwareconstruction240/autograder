@@ -136,14 +136,15 @@ public class SqlReader <T> {
      */
     public void setValue(@NonNull PreparedStatement ps, int wildcardIndex, @Nullable Object value) throws SQLException {
         // This represents all the supported column types
-        if (value == null) ps.setNull(wildcardIndex, NULL);
-        else if (value instanceof String v) ps.setString(wildcardIndex, v);
-        else if (value instanceof Integer v) ps.setInt(wildcardIndex, v);
-        else if (value instanceof Float v) ps.setFloat(wildcardIndex, v);
-        else if (value instanceof Boolean v) ps.setBoolean(wildcardIndex, v);
-        else if (value instanceof Timestamp v) ps.setTimestamp(wildcardIndex, v);
-        else if (value instanceof Object v) ps.setObject(wildcardIndex, v);
-        else throw new RuntimeException("Unsupported type of value: " + value);
+        switch (value) {
+            case null -> ps.setNull(wildcardIndex, NULL);
+            case String v -> ps.setString(wildcardIndex, v);
+            case Integer v -> ps.setInt(wildcardIndex, v);
+            case Float v -> ps.setFloat(wildcardIndex, v);
+            case Boolean v -> ps.setBoolean(wildcardIndex, v);
+            case Timestamp v -> ps.setTimestamp(wildcardIndex, v);
+            case Object v -> ps.setObject(wildcardIndex, v);
+        }
     }
 
 
