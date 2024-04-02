@@ -52,7 +52,7 @@ public abstract class TestGrader {
             TestAnalyzer.TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
-                            "/" + module + "/target/" + module + "-jar-with-dependencies.jar"), stageTestsPath,
+                            "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
                     packagesToTest(), extraCreditTests());
         }
 
