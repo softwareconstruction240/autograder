@@ -89,22 +89,6 @@ public class PhaseUtils {
         };
     }
 
-    /**
-     * Returns the number of points the given phase is worth
-     *
-     * @param phase the phase in question
-     * @return the total points in Canvas as a float
-     */
-    public static float getTotalPoints(Phase phase) {
-        // FIXME
-        return switch (phase) {
-            case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
-            case Phase3 -> 180.0F;
-            case Phase6 -> 155.0F;
-            case Quality -> 0.0F;
-        };
-    }
-
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
