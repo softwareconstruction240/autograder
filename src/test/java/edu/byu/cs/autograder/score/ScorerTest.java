@@ -87,7 +87,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0);
+            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -104,7 +104,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0);
+            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -121,7 +121,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0);
+            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -137,7 +137,7 @@ class ScorerTest {
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
         Scorer scorer = new Scorer(gradingContext);
-        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), 0));
+        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), 0)); // TODO: Correct parameter type
     }
 
     @Test
@@ -147,7 +147,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(getRubric(1f), 0);
+            submission = scorer.score(getRubric(1f), 0); // TODO: Correct parameter type
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -175,7 +175,7 @@ class ScorerTest {
         Submission submission = null;
         try {
             Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
-            submission = scorer.score(emptyRubric, 0);
+            submission = scorer.score(emptyRubric, 0); // TODO: Correct parameter type
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
