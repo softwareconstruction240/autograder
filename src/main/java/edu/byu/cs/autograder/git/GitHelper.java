@@ -7,6 +7,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -90,6 +91,12 @@ public class GitHelper {
     }
 
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+        var potentialResult = preserveOriginalVerification();
+        if (potentialResult != null) {
+            return potentialResult;
+        }
+
+        // This could be the first passing submission. We have to calculate it from scratch.
         loadPassingSubmission();
 
         try (Git git = Git.open(stageRepo)) {
@@ -100,10 +107,45 @@ public class GitHelper {
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
         }
-    };
+    }
     private void loadPassingSubmission() {
         passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
+
+    /**
+     * Performs the explicit remembering of the authorization of previous phases.
+     *
+     * @return Null if no decision is made. If a previous submission exists for the given phase,
+     * returns a special `CommitVerificationResult` that represents the state.
+     */
+    private CommitVerificationResult preserveOriginalVerification() {
+        Submission firstPassingSubmission = getFirstPassingSubmission();
+        if (firstPassingSubmission == null || firstPassingSubmission.verifiedStatus() == null) {
+            return null;
+        }
+
+        // We have a previous result to defer to:
+        boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
+        String message = verified ?
+                "You passed the commit verification on your first passing submission! You're good to go!" :
+                "You have previously failed commit verification.\n"+
+                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        return new CommitVerificationResult(
+                verified,
+                0, 0, message,
+                null, null,
+                firstPassingSubmission.headHash(), null
+        );
+    }
+    private Submission getFirstPassingSubmission() {
+        // CONSIDER: Rather than resolving this as a second database call,
+        // read out the data from our `passingSubmissions` data that
+        // we've already loaded locally.
+        // This would require performing `loadPassingSubmission()` before this method.
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        return submissionDao.getFirstPassingSubmission(gradingContext.netId(), gradingContext.phase());
+    }
+
     /**
      * Returns a timestamp corresponding to the most recent commit that was giving a passing grade,
      * and the commit at that point.
