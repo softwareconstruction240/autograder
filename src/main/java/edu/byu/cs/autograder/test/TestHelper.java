@@ -76,14 +76,10 @@ public class TestHelper {
             String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
             /* Compile files */
-            String chessJarWithDeps;
-            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar")
+            String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
                     .getCanonicalPath();
 
-            String sharedJarWithDeps = new File(stageRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
-                    .getCanonicalPath();
-
-            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps + ":" + sharedJarWithDeps);
+            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
 
             ProcessBuilder compileProcessBuilder =
                     new ProcessBuilder()
