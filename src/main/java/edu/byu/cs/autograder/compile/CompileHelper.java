@@ -6,8 +6,14 @@ import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class CompileHelper {
+
+    private static final int WEBSOCKET_MESSAGE_TIME = 250;
+
     private final GradingContext gradingContext;
 
     public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
@@ -15,6 +21,7 @@ public class CompileHelper {
     public void compile() throws GradingException {
         verifyProjectStructure();
         modifyPoms();
+        replaceGetMessageTime();
         packageRepo();
     }
 
@@ -91,5 +98,19 @@ public class CompileHelper {
             }
         }
         return builder.toString();
+    }
+
+    private void replaceGetMessageTime() throws GradingException {
+        String regex = "return [0-9]*L;";
+        String replace = "return " + WEBSOCKET_MESSAGE_TIME + "L;";
+        Path path = new File(gradingContext.stageRepo(),
+                "/shared/src/test/java/passoffTests/TestFactory.java").toPath();
+        try {
+            String orig = Files.readString(path, StandardCharsets.UTF_8);
+            String replaced = orig.replaceAll(regex, replace);
+            Files.writeString(path, replaced);
+        } catch (Exception e) {
+            throw new GradingException("Failed to modify TestFactory", e);
+        }
     }
 }
