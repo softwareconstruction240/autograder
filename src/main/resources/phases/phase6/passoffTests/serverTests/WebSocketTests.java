@@ -49,7 +49,7 @@ public class WebSocketTests {
 
         environment = new WebsocketTestingEnvironment("localhost", port, "/connect");
 
-        waitTime = 250L;
+        waitTime = 500L;
     }
 
 
