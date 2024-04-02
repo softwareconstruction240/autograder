@@ -55,10 +55,10 @@ public class SqlDb {
                                 `phase` VARCHAR(9) NOT NULL,
                                 `passed` BOOL NOT NULL,
                                 `score` FLOAT NOT NULL,
-                                `num_commits` INT,
                                 `notes` TEXT,
-                                `results` JSON,
                                 `rubric` JSON,
+                                `verified_status` VARCHAR(30),
+                                `verification` JSON,
                                 `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
                                 CONSTRAINT `net_id`
@@ -103,7 +103,7 @@ public class SqlDb {
         }
     }
 
-    static Connection getConnection() {
+    public static Connection getConnection() {
         try {
             Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
             connection.setCatalog(DB_NAME);

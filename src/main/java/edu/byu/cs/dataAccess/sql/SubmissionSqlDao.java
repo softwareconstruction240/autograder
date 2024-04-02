@@ -1,6 +1,9 @@
 package edu.byu.cs.dataAccess.sql;
 
 import com.google.gson.Gson;
+import edu.byu.cs.dataAccess.ItemNotFoundException;
+import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
+import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -12,69 +15,76 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 public class SubmissionSqlDao implements SubmissionDao {
+    private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
+            new ColumnDefinition<Submission>("net_id", Submission::netId),
+            new ColumnDefinition<Submission>("repo_url", Submission::repoUrl),
+            new ColumnDefinition<Submission>("timestamp", s -> Timestamp.from(s.timestamp())),
+            new ColumnDefinition<Submission>("phase", s -> s.phase().toString()),
+            new ColumnDefinition<Submission>("passed", Submission::passed),
+            new ColumnDefinition<Submission>("score", Submission::score),
+            new ColumnDefinition<Submission>("head_hash", Submission::headHash),
+            new ColumnDefinition<Submission>("notes", Submission::notes),
+            new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
+            new ColumnDefinition<Submission>("admin", Submission::admin),
+            new ColumnDefinition<Submission>("verified_status",
+                    s -> s.verifiedStatus() == null ? null : s.verifiedStatus().name()),
+            new ColumnDefinition<Submission>("verification",
+                    s -> s.verification() == null ? null : new Gson().toJson(s.verification()))
+    };
+    private static Submission readSubmission(ResultSet rs) throws SQLException {
+        var gson = new Gson();
+
+        String netId = rs.getString("net_id");
+        String repoUrl = rs.getString("repo_url");
+        String headHash = rs.getString("head_hash");
+        Instant timestamp = rs.getTimestamp("timestamp").toInstant();
+        Phase phase = Phase.valueOf(rs.getString("phase"));
+        Boolean passed = rs.getBoolean("passed");
+        float score = rs.getFloat("score");
+        String notes = rs.getString("notes");
+        Rubric rubric = gson.fromJson(rs.getString("rubric"), Rubric.class);
+        Boolean admin = rs.getBoolean("admin");
+
+        String verifiedStatusStr = rs.getString("verified_status");
+        Submission.VerifiedStatus verifiedStatus = verifiedStatusStr == null ? null :
+                Submission.VerifiedStatus.valueOf(verifiedStatusStr);
+        String verificationJson = rs.getString("verification");
+        Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
+                gson.fromJson(verificationJson, Submission.ScoreVerification.class);
+
+        return new Submission(
+                netId, repoUrl, headHash, timestamp, phase,
+                passed, score, notes, rubric,
+                admin, verifiedStatus, scoreVerification);
+    }
+
+    private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
+            "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
+
     @Override
     public void insertSubmission(Submission submission) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                    INSERT INTO submission (net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, results, rubric, admin)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """)) {
-            statement.setString(1, submission.netId());
-            statement.setString(2, submission.repoUrl());
-            statement.setTimestamp(3, Timestamp.from(submission.timestamp()));
-            statement.setString(4, submission.phase().toString());
-            statement.setBoolean(5, submission.passed());
-            statement.setFloat(6, submission.score());
-            statement.setString(7, submission.headHash());
-            statement.setInt(8, submission.numCommits());
-            statement.setString(9, submission.notes());
-            statement.setString(10, "{}");
-            statement.setString(11, new Gson().toJson(submission.rubric()));
-            statement.setBoolean(12, submission.admin());
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error inserting submission", e);
-        }
+        sqlReader.insertItem(submission);
     }
 
     @Override
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
-                    FROM submission
-                    WHERE net_id = ? AND phase = ?
-                    """);
-            statement.setString(1, netId);
-            statement.setString(2, phase.toString());
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + "WHERE net_id = ? AND phase = ?",
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setString(2, phase.toString());
+                }
+        );
     }
 
     @Override
     public Collection<Submission> getSubmissionsForUser(String netId) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                    SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
-                    FROM submission
-                    WHERE net_id = ?
-                    """);
-            statement.setString(1, netId);
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + "WHERE net_id = ?",
+                ps -> ps.setString(1, netId));
     }
 
     @Override
@@ -84,63 +94,48 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
-                            FROM submission
-                            WHERE timestamp IN (
-                                SELECT MAX(timestamp)
-                                FROM submission
-                                GROUP BY net_id, phase
-                            )
-                            ORDER BY timestamp DESC
-                            """ +
-                            (batchSize >= 0 ? "LIMIT ?" : ""));
-            if (batchSize >= 0) {
-                statement.setInt(1, batchSize);
-            }
-            return getSubmissionsFromQuery(statement);
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting submissions", e);
-        }
+        return sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + """
+                    WHERE timestamp IN (
+                        SELECT MAX(timestamp)
+                        FROM %s
+                        GROUP BY net_id, phase
+                    )
+                    ORDER BY timestamp DESC
+                    """.formatted(sqlReader.getTableName()) +
+                (batchSize >= 0 ? "LIMIT ?" : ""),
+                ps -> {
+                    if (batchSize >= 0) {
+                        ps.setInt(1, batchSize);
+                    }
+                });
     }
 
     @Override
     public void removeSubmissionsByNetId(String netId) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            DELETE FROM submission
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error removing submissions", e);
-        }
+        sqlReader.executeUpdate(
+                """
+                    DELETE FROM %s
+                    WHERE net_id = ?
+                    """.formatted(sqlReader.getTableName()),
+                ps -> ps.setString(1, netId)
+        );
     }
 
     @Override
     public Submission getFirstPassingSubmission(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            SELECT net_id, repo_url, timestamp, phase, passed, score, head_hash, num_commits, notes, rubric, admin
-                            FROM submission
-                            WHERE net_id = ? AND phase = ? AND passed = 1
-                            ORDER BY timestamp
-                            LIMIT 1
-                            """);
-            statement.setString(1, netId);
-            statement.setString(2, phase.toString());
-            Collection<Submission> submissions = getSubmissionsFromQuery(statement);
-            return submissions.isEmpty() ? null : submissions.iterator().next();
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting first passing submission", e);
-        }
+        var submissions = sqlReader.executeQuery(
+                sqlReader.selectAllStmt() + """
+                        WHERE net_id = ? AND phase = ? AND passed = 1
+                        ORDER BY timestamp
+                        LIMIT 1
+                        """,
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setString(2, phase.toString());
+                }
+        );
+        return sqlReader.expectOneItem(submissions);
     }
 
     @Override
@@ -149,9 +144,9 @@ public class SubmissionSqlDao implements SubmissionDao {
             PreparedStatement statement = connection.prepareStatement(
                     """
                             SELECT max(score) as highestScore
-                            FROM submission
+                            FROM %s
                             WHERE net_id = ? AND phase = ?
-                            """)) {
+                            """.formatted(sqlReader.getTableName()))) {
             statement.setString(1, netId);
             statement.setString(2, phase.toString());
             try(ResultSet rows = statement.executeQuery()) {
@@ -163,29 +158,68 @@ public class SubmissionSqlDao implements SubmissionDao {
         }
     }
 
-    private Collection<Submission> getSubmissionsFromQuery(PreparedStatement statement) throws SQLException {
-        try(ResultSet rows = statement.executeQuery()) {
-
-            Collection<Submission> submissions = new ArrayList<>();
-            while (rows.next()) {
-                String netId = rows.getString("net_id");
-                String repoUrl = rows.getString("repo_url");
-                String headHash = rows.getString("head_hash");
-                Instant timestamp = rows.getTimestamp("timestamp").toInstant();
-                Phase phase = Phase.valueOf(rows.getString("phase"));
-                Boolean passed = rows.getBoolean("passed");
-                float score = rows.getFloat("score");
-                Integer numCommits = rows.getInt("num_commits");
-                String notes = rows.getString("notes");
-                Rubric rubric = new Gson().fromJson(rows.getString("rubric"), Rubric.class);
-                Boolean admin = rows.getBoolean("admin");
-
-                submissions.add(
-                        new Submission(netId, repoUrl, headHash, timestamp, phase, passed, score, numCommits, notes,
-                                rubric, admin));
-            }
-
-            return submissions;
-        }
+    @Override
+    public Collection<Submission> getAllPassingSubmissions(String netId) {
+        return sqlReader.executeQuery(
+                "WHERE net_id = ? AND passed = ?",
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setBoolean(2, true);
+                });
     }
+
+    @Override
+    public void manuallyApproveSubmission(Submission submission, Float newScore, Submission.ScoreVerification scoreVerification)
+            throws ItemNotFoundException {
+        // Identify a submission by its: head_hash, net_id, and phase.
+        // We could try to identify it by more items, but that touches on being too brittle.
+
+        String netId = submission.netId();
+        String headHash = submission.headHash();
+        String phase = submission.phase().name();
+
+        String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
+        String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
+        String verificationStr = new Gson().toJson(scoreVerification);
+
+        // First verify that we can identify it
+        var matchingSubmissions = sqlReader.executeQuery(
+                whereClause,
+                ps -> {
+                    // Careful! This code can't be shared since the parameter indices are different below
+                    ps.setString(1, netId);
+                    ps.setString(2, headHash);
+                    ps.setString(3, phase);
+                }
+        );
+        if (matchingSubmissions.size() != 1) {
+            throw new ItemNotFoundException(
+                    "Submission could not be identified. Found %s matches. Searched with the following information:\n  "
+                            .formatted(matchingSubmissions.size())
+                    + "  net_id: %s\n  phase: %s\n  head_hash: %s\n  "
+                            .formatted(netId, headHash, phase)
+                    + matchingSubmissions.toString()
+            );
+        }
+
+        // Then update it
+        sqlReader.executeUpdate(
+                """
+                        UPDATE %s
+                        SET score = ?, verified_status = ?, verification = ?
+                        %s
+                        """.formatted(sqlReader.getTableName(), whereClause),
+                ps -> {
+                    ps.setFloat(1, newScore);
+                    ps.setString(2, verifiedStatusStr);
+                    ps.setString(3, verificationStr);
+
+                    // Careful! This code is used first up above
+                    ps.setString(4, netId);
+                    ps.setString(5, headHash);
+                    ps.setString(6, phase);
+                }
+        );
+    }
+
 }

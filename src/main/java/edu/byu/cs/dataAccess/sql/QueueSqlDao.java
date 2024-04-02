@@ -2,28 +2,41 @@ package edu.byu.cs.dataAccess.sql;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
+import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
+import edu.byu.cs.model.Submission;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class QueueSqlDao implements QueueDao {
+
+    private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
+            new ColumnDefinition<QueueItem>("net_id", QueueItem::netId),
+            new ColumnDefinition<QueueItem>("phase", q -> q.phase().name()),
+            new ColumnDefinition<QueueItem>("started", QueueItem::started),
+            new ColumnDefinition<QueueItem>("time_added", QueueItem::timeAdded),
+    };
+    private static QueueItem readQueueItem(ResultSet rs) throws SQLException {
+        return new QueueItem(
+                rs.getString("net_id"),
+                Phase.valueOf(rs.getString("phase")),
+                rs.getTimestamp("time_added").toInstant(),
+                rs.getBoolean("started")
+        );
+    }
+
+    private final SqlReader<QueueItem> sqlReader = new SqlReader<QueueItem>(
+            "queue", COLUMN_DEFINITIONS, QueueSqlDao::readQueueItem);
+
     @Override
     public void add(QueueItem item) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            INSERT INTO queue (net_id, phase, time_added)
-                            VALUES (?, ?, ?)
-                            """)) {
-            statement.setString(1, item.netId());
-            statement.setString(2, item.phase().name());
-            statement.setObject(3, item.timeAdded());
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error adding item to queue", e);
-        }
+        sqlReader.insertItem(item);
     }
 
     @Override
@@ -31,22 +44,16 @@ public class QueueSqlDao implements QueueDao {
         try (var connection = SqlDb.getConnection();
             var statement = connection.prepareStatement(
                     """
-                            DELETE FROM queue
+                            DELETE FROM %s
                             WHERE net_id = (
                                 SELECT net_id
-                                FROM queue
+                                FROM %1$s
                                 ORDER BY time_added
                                 LIMIT 1
                             )
-                            """)) {
-            try(var resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return new QueueItem(resultSet.getString("net_id"), Phase.valueOf(resultSet.getString("phase")),
-                            resultSet.getTimestamp("time_added").toInstant(), resultSet.getBoolean("started"));
-                } else {
-                    return null;
-                }
-            }
+                            """.formatted(sqlReader.getTableName()))) {
+            var topItems = sqlReader.readItems(statement);
+            return sqlReader.expectOneItem(topItems);
         } catch (Exception e) {
             throw new DataAccessException("Error popping item from queue", e);
         }
@@ -54,110 +61,57 @@ public class QueueSqlDao implements QueueDao {
 
     @Override
     public void remove(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            DELETE FROM queue
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error removing item from queue", e);
-        }
+        sqlReader.executeUpdate(
+                """
+                    DELETE FROM %s
+                    WHERE net_id = ?
+                    """.formatted(sqlReader.getTableName()),
+                ps -> ps.setString(1, netId)
+        );
     }
 
     @Override
     public Collection<QueueItem> getAll() {
-        Collection<QueueItem> items = new ArrayList<>();
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            SELECT *
-                            FROM queue
-                            """)) {
-            try(var resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    items.add(new QueueItem(resultSet.getString("net_id"), Phase.valueOf(resultSet.getString("phase")),
-                            resultSet.getTimestamp("time_added").toInstant(), resultSet.getBoolean("started")));
-                }
-                return items;
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting all items from queue", e);
-        }
+        return sqlReader.executeQuery("");
     }
 
     @Override
     public boolean isAlreadyInQueue(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            SELECT *
-                            FROM queue
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            try(var resultSet = statement.executeQuery()) {
-                return resultSet.next();
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error checking if item is in queue", e);
-        }
+        var results = sqlReader.executeQuery(
+                "WHERE net_id = ?",
+                ps -> ps.setString(1, netId));
+        return !results.isEmpty();
     }
 
     @Override
     public void markStarted(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            UPDATE queue
-                            SET started = true
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error marking item as started", e);
-        }
+        updatedStartedField(netId, true);
     }
 
     @Override
     public void markNotStarted(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            UPDATE queue
-                            SET started = false
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            statement.executeUpdate();
-        } catch (Exception e) {
-            throw new DataAccessException("Error marking item as not started", e);
-        }
+        updatedStartedField(netId, false);
+    }
+
+    private void updatedStartedField(String netId, boolean started) {
+        sqlReader.executeUpdate(
+                """
+                     UPDATE %s
+                     SET started = ?
+                     WHERE net_id = ?
+                     """.formatted(sqlReader.getTableName()),
+                ps -> {
+                    ps.setBoolean(1, started);
+                    ps.setString(2, netId);
+                }
+        );
     }
 
     @Override
     public QueueItem get(String netId) {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            SELECT *
-                            FROM queue
-                            WHERE net_id = ?
-                            """)) {
-            statement.setString(1, netId);
-            try(var resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return new QueueItem(resultSet.getString("net_id"), Phase.valueOf(resultSet.getString("phase")),
-                            resultSet.getTimestamp("time_added").toInstant(), resultSet.getBoolean("started"));
-                } else {
-                    return null;
-                }
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting item from queue", e);
-        }
+        var results = sqlReader.executeQuery(
+                "WHERE net_id = ?",
+                ps -> ps.setString(1, netId));
+        return sqlReader.expectOneItem(results);
     }
 }

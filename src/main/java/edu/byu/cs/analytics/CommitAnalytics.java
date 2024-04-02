@@ -11,8 +11,14 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.File;
@@ -24,35 +30,65 @@ import java.util.*;
 public class CommitAnalytics {
 
     /**
-     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day
+     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day,
+     * counting only commits within the bounds presented.
      *
-     * @param commits the collection of commits
-     * @param lowerBound the lower bound timestamp in Unix seconds
-     * @param upperBound the upper bound timestamp in Unix seconds
-     * @return the map
+     * @param git An open git object for use
+     * @param lowerBound The last commit in this log, exclusive
+     * @param upperBound The first commit in this log, inclusive
+     * @return A {@link CommitsByDay} record with the results
      */
-    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
-        Map<String, Integer> days = new TreeMap<>();
-        for (RevCommit rc : commits) {
-            if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
-            String dayKey = DateTimeUtils.getDateString(rc.getCommitTime(), false);
-            days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
-        }
-        return days;
-    }
+    public static CommitsByDay countCommitsByDay(Git git, CommitThreshold lowerBound, CommitThreshold upperBound)
+            throws GitAPIException, IncorrectObjectTypeException, MissingObjectException {
 
-    /**
-     * Counts the total commits in the given map
-     *
-     * @param days a map of day represented as "yyyy-mm-dd" to integer
-     * @return the total of the map's values
-     */
-    public static int getTotalCommits(Map<String, Integer> days) {
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : days.entrySet()) {
-            total += entry.getValue();
+        // Prepare data for repeated calculation
+        Iterable<RevCommit> commits = getCommitsBetweenBounds(git, lowerBound.commitHash(), upperBound.commitHash());
+        long lowerTimeBound = lowerBound.timestamp().getEpochSecond();
+        long upperTimeBound = upperBound.timestamp().getEpochSecond();
+
+        // Will hold results
+        Map<String, Integer> days = new TreeMap<>();
+        int totalCommits = 0;
+        boolean commitsInOrder = true;
+        boolean commitsInFuture = false;
+
+        // Iteration helpers
+        int commitTime;
+        for (RevCommit rc : commits) {
+            commitTime = rc.getCommitTime();
+            if (commitTime <= lowerTimeBound) {
+                continue;
+            }
+
+            if (commitTime > upperTimeBound) {
+                commitsInFuture = true;
+            }
+            if (commitTime < rc.getParent(1).getCommitTime()) {
+                commitsInOrder = false;
+            }
+
+            // Add the commit to results
+            String dayKey = DateTimeUtils.getDateString(commitTime, false);
+            days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
+            totalCommits += 1;
         }
-        return total;
+        return new CommitsByDay(days, totalCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
+    }
+    private static Iterable<RevCommit> getCommitsBetweenBounds(
+            Git git, @NonNull String headHash, @Nullable String tailHash)
+            throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
+        if (git == null || headHash == null) {
+            throw new RuntimeException("Git and headHash are both required parameters.");
+        }
+
+        ObjectId headObjId = ObjectId.fromString(headHash);
+
+        if (tailHash == null) {
+            return git.log().add(headObjId).call();
+        } else {
+            ObjectId tailObjId = ObjectId.fromString(tailHash);
+            return git.log().addRange(tailObjId, headObjId).call();
+        }
     }
 
     private record CommitDatum(
