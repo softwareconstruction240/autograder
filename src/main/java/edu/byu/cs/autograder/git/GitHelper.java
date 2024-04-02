@@ -8,6 +8,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
@@ -41,7 +42,7 @@ public class GitHelper {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(stageRepo);
 
-        boolean gradedPhase = true; // FIXME: Replace with a conditional call for #271
+        boolean gradedPhase = PhaseUtils.isPhaseGraded(gradingContext.phase());
         return gradedPhase ? verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
     }
 
