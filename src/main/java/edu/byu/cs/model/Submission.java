@@ -8,6 +8,7 @@ import org.eclipse.jgit.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Represents and stores a student submission.
@@ -93,5 +94,18 @@ public record Submission(
         ApprovedAutomatically,
         ApprovedManually,
         PreviouslyManuallyApproved,
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Submission that = (Submission) o;
+        return Objects.equals(netId, that.netId) && Objects.equals(headHash, that.headHash) && phase == that.phase;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(netId, headHash, phase);
     }
 }

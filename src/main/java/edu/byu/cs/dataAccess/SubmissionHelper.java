@@ -26,13 +26,16 @@ public class SubmissionHelper {
         int affected = 0;
 
         var phaseSubmissions = submissionDao.getSubmissionsForPhase(studentNetId, phase);
+        Float modifiedScore;
+        Submission.ScoreVerification individualVerification;
         for (var submission : phaseSubmissions) {
             if (!submission.passed()) continue;
 
             try {
+                individualVerification = SubmissionHelper.prepareScoreVerification(scoreVerification, submission);
+                modifiedScore = SubmissionHelper.prepareModifiedScore(scoreVerification);
                 submissionDao.manuallyApproveSubmission(
-                        submission,
-                        SubmissionHelper.prepareScoreVerification(scoreVerification, submission));
+                        submission, modifiedScore, individualVerification);
             } catch (ItemNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -52,5 +55,12 @@ public class SubmissionHelper {
                 ogVerified.approvedTimestamp(),
                 ogVerified.penaltyPct()
         );
+    }
+
+    public static Float prepareModifiedScore(Float originalScore, Submission.ScoreVerification scoreVerification) {
+        return scoreVerification.originalScore() * (1 - scoreVerification.penaltyPct()) / 100f;
+    }
+    private static Float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
+        return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification);
     }
 }

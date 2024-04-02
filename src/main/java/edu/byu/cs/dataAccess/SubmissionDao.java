@@ -79,8 +79,21 @@ public interface SubmissionDao {
 
     /**
      * Modifies an existing submission in the collection to mark it manually approved.
-     * Sets the `verifiedStatus` to {@link Submission.VerifiedStatus#ApprovedManually}, AND
-     * sets the `verification` field to the provided object.
+     * <br>
+     * Does all the following to the submission:
+     * <ul>
+     *     <li>Sets the `verifiedStatus` to {@link Submission.VerifiedStatus#ApprovedManually}</li>
+     *     <li>Sets the `verification` field to the provided object</li>
+     *     <li>Updates the score to the precalculated value</li>
+     * </ul>
+     *
+     * <br>
+     * A submission is considered equal if all the following are equivalent:
+     * <ul>
+     *     <li>netId</li>
+     *     <li>phase</li>
+     *     <li>headHash</li>
+     * </ul>
      *
      * @param submission The submission to modify in the data structure
      * @param scoreVerification The personalized `ScoreVerification` to update in the `Submission`
@@ -88,6 +101,7 @@ public interface SubmissionDao {
      */
     void manuallyApproveSubmission(
             @NonNull Submission submission,
+            @NonNull Float newScore,
             @NonNull Submission.ScoreVerification scoreVerification
     ) throws ItemNotFoundException;
 }

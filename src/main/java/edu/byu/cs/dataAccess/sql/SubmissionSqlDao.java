@@ -169,7 +169,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public void manuallyApproveSubmission(Submission submission, Submission.ScoreVerification scoreVerification)
+    public void manuallyApproveSubmission(Submission submission, Float newScore, Submission.ScoreVerification scoreVerification)
             throws ItemNotFoundException {
         // Identify a submission by its: head_hash, net_id, and phase.
         // We could try to identify it by more items, but that touches on being too brittle.
@@ -206,17 +206,18 @@ public class SubmissionSqlDao implements SubmissionDao {
         sqlReader.executeUpdate(
                 """
                         UPDATE %s
-                        SET verified_status = ?, verification = ?
+                        SET score = ?, verified_status = ?, verification = ?
                         %s
                         """.formatted(sqlReader.getTableName(), whereClause),
                 ps -> {
-                    ps.setString(1, verifiedStatusStr);
-                    ps.setString(2, verificationStr);
+                    ps.setFloat(1, newScore);
+                    ps.setString(2, verifiedStatusStr);
+                    ps.setString(3, verificationStr);
 
                     // Careful! This code is used first up above
-                    ps.setString(3, netId);
-                    ps.setString(4, headHash);
-                    ps.setString(5, phase);
+                    ps.setString(4, netId);
+                    ps.setString(5, headHash);
+                    ps.setString(6, phase);
                 }
         );
     }

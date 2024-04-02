@@ -2,14 +2,10 @@ package edu.byu.cs.dataAccess.memory;
 
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.SubmissionDao;
-import edu.byu.cs.dataAccess.SubmissionHelper;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SubmissionMemoryDao implements SubmissionDao {
@@ -102,8 +98,44 @@ public class SubmissionMemoryDao implements SubmissionDao {
     }
 
     @Override
-    public void manuallyApproveSubmission(Submission submission, Submission.ScoreVerification scoreVerification) throws ItemNotFoundException {
-        throw new RuntimeException("Method not implemented");
+    public void manuallyApproveSubmission(Submission targetSubmission, Float newScore,
+                                          Submission.ScoreVerification scoreVerification) throws ItemNotFoundException {
+        if (targetSubmission == null) {
+            throw new ItemNotFoundException("Target submission must not be null");
+        }
+
+        long matchingSubmissions = submissions.stream().filter(s -> s.equals(targetSubmission)).count();
+        if (matchingSubmissions != 1) {
+            throw new ItemNotFoundException("Did not isolate a single Submission "
+                    + "based on the provided criteria. Found %d".formatted(matchingSubmissions));
+        }
+
+        // Search and replace the item in the deque
+        Submission submission;
+        Iterator<Submission> iterator = submissions.iterator();
+        while (iterator.hasNext()) {
+            submission = iterator.next();
+            if (!targetSubmission.equals(submission)) continue;
+
+            iterator.remove();
+            submissions.add(new Submission(
+                    submission.netId(),
+                    submission.repoUrl(),
+                    submission.headHash(),
+                    submission.timestamp(),
+                    submission.phase(),
+                    submission.passed(),
+                    newScore,                                       // Changed
+                    submission.notes(),
+                    submission.rubric(),
+                    submission.admin(),
+                    Submission.VerifiedStatus.ApprovedManually,     // Changed
+                    scoreVerification                               // Changed
+            ));
+            return; // We found it!
+        }
+
+        throw new ItemNotFoundException("After verifying that 1 item existed, we didn't actually get to modify it");
     }
 
 }

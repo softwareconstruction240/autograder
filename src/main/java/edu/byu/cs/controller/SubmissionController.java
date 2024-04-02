@@ -12,6 +12,7 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
+import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
@@ -406,7 +407,7 @@ public class SubmissionController {
             String studentNetId,
             Phase phase,
             String approverNetId,
-            Float approvedScore,
+            @Nullable Float approvedScore,
             Integer penaltyPct
     ) {
         // Validate params
@@ -437,7 +438,7 @@ public class SubmissionController {
         // Determine approvedScore
         if (approvedScore == null) {
             Float mostRecentPassingScoreOnPhase = 0f;
-            approvedScore = mostRecentPassingScoreOnPhase * (1 - penaltyPct) / 100f;
+            approvedScore = SubmissionHelper.prepareModifiedScore(mostRecentPassingScoreOnPhase, scoreVerification);
             // FIXME: Set `approvedScore` to the score of the most recent passing submission, multiplied by (1 - penaltyPct)
             throw new RuntimeException("Dynamically determining approved score is not yet implemented");
         }
