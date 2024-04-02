@@ -3,6 +3,8 @@ package edu.byu.cs.model;
 import java.util.Map;
 import java.util.Set;
 
+import static edu.byu.cs.model.Rubric.RubricType.*;
+
 public enum Phase {
 
     // FIXME: Load this list of data dynamically from a configuration table #156
@@ -13,7 +15,7 @@ public enum Phase {
             true,
             null,
             880445,
-            Map.of(Rubric.RubricType.PASSOFF_TESTS, "_1958"),
+            Map.of(PASSOFF_TESTS, "_1958"),
             -1,
             "shared",
             null,
@@ -26,7 +28,7 @@ public enum Phase {
             true,
             Phase0,
             880446,
-            Map.of(Rubric.RubricType.PASSOFF_TESTS, "_1958"),
+            Map.of(PASSOFF_TESTS, "_1958"),
             -1,
             "shared",
             null,
@@ -40,9 +42,9 @@ public enum Phase {
             Phase1,
             880448,
             Map.of(
-                Rubric.RubricType.PASSOFF_TESTS,  "_5202",
-                Rubric.RubricType.UNIT_TESTS,  "90344_776",
-                Rubric.RubricType.QUALITY,  "_3003"
+                PASSOFF_TESTS,  "_5202",
+                UNIT_TESTS,  "90344_776",
+                QUALITY,  "_3003"
             ),
             13,
             "server",
@@ -57,8 +59,8 @@ public enum Phase {
             Phase3,
             880449,
             Map.of(
-                Rubric.RubricType.PASSOFF_TESTS,  "_2614",
-                Rubric.RubricType.UNIT_TESTS,  "_930"
+                PASSOFF_TESTS,  "_2614",
+                UNIT_TESTS,  "_930"
             ),
             18,
             "server",
@@ -72,7 +74,7 @@ public enum Phase {
             true,
             Phase4,
             880450,
-            Map.of(Rubric.RubricType.UNIT_TESTS,  "_8849"),
+            Map.of(UNIT_TESTS,  "_8849"),
             12,
             "client",
             "server facade",

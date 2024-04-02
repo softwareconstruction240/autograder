@@ -5,7 +5,6 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import org.eclipse.jgit.annotations.NonNull;
 
-import java.util.Map;
 import java.util.Set;
 
 public class PhaseUtils {
