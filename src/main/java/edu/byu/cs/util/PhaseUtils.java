@@ -186,4 +186,17 @@ public class PhaseUtils {
             case Quality -> false;
         };
     }
+
+    /**
+     * Check if passoff tests are required for a given phase
+     *
+     * @param phase phase to check
+     * @return true (passoff results are all or nothing), false (passoffs can be partial)
+     */
+    public static boolean isPassoffRequired(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4 -> true;
+            case Phase5, Phase6, Quality -> false;
+        };
+    }
 }

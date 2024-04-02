@@ -95,7 +95,8 @@ public class Scorer {
     private boolean passed(Rubric rubric) {
         boolean passed = true;
 
-        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
+        boolean isPassoffRequired = PhaseUtils.isPassoffRequired(gradingContext.phase());
+        if (isPassoffRequired && rubric.passoffTests() != null && rubric.passoffTests().results() != null)
             if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
