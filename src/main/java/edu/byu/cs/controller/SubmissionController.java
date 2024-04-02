@@ -435,6 +435,10 @@ public class SubmissionController {
                 penaltyPct);
         int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(submissionDao, studentNetId, phase, scoreVerification);
 
+        if (submissionsAffected < 1) {
+            LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
+        }
+
         // Determine approvedScore
         if (approvedScore == null) {
             Float mostRecentPassingScoreOnPhase = 0f;
@@ -447,7 +451,7 @@ public class SubmissionController {
         CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
         // FIXME: Store `approvedScore` in the Grade-book
         // canvasIntegration.submitGrade(studentNetId, approvedScore, );
-//        throw new RuntimeException("ApproveSubmission not implemented!");
+        throw new RuntimeException("ApproveSubmission not implemented!");
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
