@@ -83,6 +83,20 @@ docker compose up db -d
 
 Go fish🐟 These instructions are not included in this file.
 
+##### Dev Container
+
+Alternatively you can run all of IntelliJ inside a docker container, which would allow debugging the code on Windows 
+machines. This requires having docker installed and running on your machine. 
+To do this, navigate to `.devcontainer/devcontainer.json` in IntelliJ. There should be an icon that pops up next to
+the opening curly brace. Click the icon, then select `Create Dev Container and Clone Sources...`. This should pop up
+a dialog box that allows you to change a few options about the container. Look through them and change what you need,
+then hit the `Build Container and Continue` button. Wait for IntelliJ and Docker to build everything. You may need to
+click a few buttons along the way. Eventually a new IntelliJ window will pop up from the dev container. Follow the 
+`Getting Started` steps below with the new window. Use `host.docker.internal` as your db-host argument.
+
+To reopen the container after you've closed it, navigate to the `.devcontainer/devcontainer.json` file again,
+click the icon, and select `Show Dev Containers`. Select the container and it should reopen the second IntelliJ.
+
 ##### Notes for Windows Development
 
 The autograder unfortunately won't work directly from Windows, so you must use Docker or WSL for your database.
