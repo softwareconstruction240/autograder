@@ -281,7 +281,7 @@ public class SqlReader <T> {
      * @return A joined SQL statement ready for preparation.
      */
     public String selectAllStmt(@Nullable String additionalClauses) {
-        return selectAllColumnsStmt == null ?
+        return additionalClauses == null ?
                 selectAllColumnsStmt :
                 selectAllColumnsStmt + additionalClauses;
     }
