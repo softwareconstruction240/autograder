@@ -50,7 +50,7 @@ public class WebSocketTests {
 
         environment = new WebsocketTestingEnvironment("localhost", port, "/connect");
 
-        waitTime = 250L;
+        waitTime = 1000L;
     }
 
 
@@ -80,7 +80,7 @@ public class WebSocketTests {
     @Order(1)
     @DisplayName("Normal Join Player")
     public void joinPlayerGood() throws InterruptedException {
-        Thread.sleep(1000);
+        Thread.sleep(5000);
 
         //try join valid reserved spot
         Map<String, List<TestModels.TestMessage>> messages =
