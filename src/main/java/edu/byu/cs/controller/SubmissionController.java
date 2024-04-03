@@ -449,7 +449,9 @@ public class SubmissionController {
         CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
         // FIXME: Store `approvedScore` in the Grade-book
         // canvasIntegration.submitGrade(studentNetId, approvedScore, );
-        throw new RuntimeException("ApproveSubmission not implemented!"); // TODO: Finish implementing method
+        if (true) {
+            throw new RuntimeException("ApproveSubmission not implemented!"); // TODO: Finish implementing method
+        }
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
