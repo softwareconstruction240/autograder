@@ -172,9 +172,8 @@ public class FileUtils {
      * @param newFile new file to take place of oldFile
      */
     public static void copyFile(File oldFile, File newFile) {
-        if (oldFile.exists()) {
-            oldFile.delete();
-        }
+        if (oldFile.exists()) oldFile.delete();
+        else oldFile.getParentFile().mkdirs();
         try {
             Files.copy(newFile.toPath(), oldFile.toPath());
         } catch (IOException e) {
