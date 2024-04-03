@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.FileUtils;
 
 import java.io.File;

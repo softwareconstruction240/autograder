@@ -1,14 +1,13 @@
 package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
 
 public class PomModifier implements StudentCodeModifier {
     @Override
-    public void modifyCode(GradingContext context) throws GradingException {
+    public void modifyCode(GradingContext context) {
         File oldRootPom = new File(context.stageRepo(), "pom.xml");
         File oldServerPom = new File(context.stageRepo(), "server/pom.xml");
         File oldClientPom = new File(context.stageRepo(), "client/pom.xml");
