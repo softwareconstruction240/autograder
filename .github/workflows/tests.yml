@@ -1,4 +1,4 @@
-name: Maven Test
+name: Tests
 on:
   pull_request:
     branches:
@@ -7,7 +7,8 @@ on:
     branches:
       - main
 jobs:
-  test:
+  maven-tests:
+    name: "Run tests with Maven"
     runs-on: ubuntu-latest
 
     steps:
@@ -31,3 +32,29 @@ jobs:
 
       - name: Test with Maven
         run: mvn test
+
+  vue-type-check:
+    name: "Run type checks with Vue"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Vue dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            src/main/resources/frontend/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+
+      - name: Install Deps
+        run: yarn --cwd src/main/resources/frontend
+
+      - name: Run Type Checks
+        run: yarn --cwd src/main/resources/frontend run type-check
