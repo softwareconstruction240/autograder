@@ -55,7 +55,6 @@ public class Grader implements Runnable {
     }
 
     public void run() {
-        LOGGER.error("Paul your code works");
         observer.notifyStarted();
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
