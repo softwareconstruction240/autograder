@@ -14,34 +14,14 @@ public class CompileHelper {
 
     public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
 
-    private final Collection<StudentCodeModifier> currentModifiers = List.of(new ProjectStructureVerifier());
+    private final Collection<StudentCodeModifier> currentModifiers =
+            List.of(new ProjectStructureVerifier(), new PomModifier());
 
     public void compile() throws GradingException {
         for(StudentCodeModifier modifier : currentModifiers) {
             modifier.modifyCode(gradingContext);
         }
-        modifyPoms();
         packageRepo();
-    }
-
-    private void modifyPoms() {
-        File oldRootPom = new File(gradingContext.stageRepo(), "pom.xml");
-        File oldServerPom = new File(gradingContext.stageRepo(), "server/pom.xml");
-        File oldClientPom = new File(gradingContext.stageRepo(), "client/pom.xml");
-        File oldSharedPom = new File(gradingContext.stageRepo(), "shared/pom.xml");
-        File oldAssembly = new File(gradingContext.stageRepo(), "test-dependencies-assembly.xml");
-
-        File newRootPom = new File(gradingContext.phasesPath(), "pom/pom.xml");
-        File newServerPom = new File(gradingContext.phasesPath(), "pom/server/pom.xml");
-        File newClientPom = new File(gradingContext.phasesPath(), "pom/client/pom.xml");
-        File newSharedPom = new File(gradingContext.phasesPath(), "pom/shared/pom.xml");
-        File newAssembly = new File(gradingContext.phasesPath(), "pom/test-dependencies-assembly.xml");
-
-        FileUtils.copyFile(oldRootPom, newRootPom);
-        FileUtils.copyFile(oldServerPom, newServerPom);
-        FileUtils.copyFile(oldClientPom, newClientPom);
-        FileUtils.copyFile(oldSharedPom, newSharedPom);
-        FileUtils.copyFile(oldAssembly, newAssembly);
     }
 
 
