@@ -175,7 +175,7 @@ public class SqlReader <T> {
             @NonNull PreparedStatement statement,
             @NonNull ItemBuilder<T1> itemBuilder,
             @NonNull Supplier<Collection<T1>> targetCollection
-            ) throws SQLException {
+    ) throws SQLException {
         try(ResultSet resultSet = statement.executeQuery()) {
             Collection<T1> items = targetCollection.get();
             while (resultSet.next()) {
@@ -201,11 +201,12 @@ public class SqlReader <T> {
      * Prepares a statement, provides hooks to adjust any parameters, and then reads the results
      * out with the default {@link SqlReader#readItems(PreparedStatement)} method.
      * <br>
-     * It appends provided SQL fragment with {@link SqlReader#selectAllStmt(String)},
+     * It appends the provided SQL fragment with {@link SqlReader#selectAllStmt(String)},
      * and then executes the query.
      * <br>
      * This method assists in reading all the columns of the table for a given query.
-     * More specialized queries will not find this method suitable and should resort to standard measures.
+     * More specialized queries can leverage the more general
+     * {@link SqlReader#executeQuery(String, StatementPreparer, ResultSetProcessor)} method.
      *
      * @param additionalStatementClauses Additional query clauses narrowing the results.
      * @param statementPreparer A method that can modify the <code>PreparedStatement</code> before it is executed.
@@ -215,15 +216,57 @@ public class SqlReader <T> {
         @Nullable String additionalStatementClauses,
         @NonNull StatementPreparer statementPreparer
     ) {
-        String statement = selectAllStmt(additionalStatementClauses);
+        return doExecuteQuery(
+                selectAllStmt(additionalStatementClauses),
+                statementPreparer,
+                this::readItems);
+    }
+
+
+    /**
+     * A general helper method for executing a query. It:
+     * - Requests a connection
+     * - Prepares a statement,
+     * - Provides hooks to adjust any parameters, and
+     * - Returns the result of the provided query executor
+     * <br>
+     * This is a very general method responsible for handling errors and organizing resources.
+     * The fewest number of assumptions possible are made here.
+     *
+     * @param statement The full SQL statement to prepare
+     * @param statementPreparer A method that can modify the <code>PreparedStatement</code> before it is executed.
+     * @param resultSetProcessor A method that receives a {@link ResultSet} and parses out and returns the requested information.
+     * @return Any results returned by the result set processor
+     */
+    public <T1> T1 executeQuery(
+            @NonNull String statement,
+            @NonNull StatementPreparer statementPreparer,
+            @NonNull ResultSetProcessor<T1> resultSetProcessor
+    ) {
+        return doExecuteQuery(
+                statement,
+                statementPreparer,
+                ps -> {
+                    try (var resultSet = ps.executeQuery()) {
+                        return resultSetProcessor.process(resultSet);
+                    }
+                }
+        );
+    }
+
+    private <T1> T1 doExecuteQuery(
+            @NonNull String statement,
+            @NonNull StatementPreparer statementPreparer,
+            @NonNull StatementQueryExecutor<T1> queryExecutor
+    ) {
         try (
                 var connection = SqlDb.getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement);
         ) {
             statementPreparer.prepare(ps);
-            return readItems(ps);
+            return queryExecutor.executeQuery(ps);
         } catch (Exception e) {
-            throw new DataAccessException("Error executing query on table " + TABLE_NAME, e);
+            throw new DataAccessException("Error executing query", e);
         }
     }
 
