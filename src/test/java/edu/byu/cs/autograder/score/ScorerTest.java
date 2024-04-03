@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
@@ -35,6 +36,11 @@ class ScorerTest {
     GradingContext gradingContext = null;
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
+
+    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION = new CommitVerificationResult(
+            true, 0, 0,
+            "", null, null,
+            "<PASSING_COMMIT_VERIFICATION>", null);
 
     @BeforeAll
     static void setUpAll() {
@@ -75,7 +81,11 @@ class ScorerTest {
 
         mockObserver = Mockito.mock(Grader.Observer.class);
 
-        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, false);
+        gradingContext = new GradingContext(
+                "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
+                "testRepoUrl", new File(""),
+                10, 3, 10,
+                mockObserver, false);
 
 
     }
@@ -87,7 +97,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
+            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -104,7 +114,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
+            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -121,7 +131,7 @@ class ScorerTest {
 
         Submission submission = null;
         try {
-            submission = scorer.score(phase0Rubric, 0); // TODO: Correct parameter type
+            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -137,17 +147,21 @@ class ScorerTest {
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
         Scorer scorer = new Scorer(gradingContext);
-        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), 0)); // TODO: Correct parameter type
+        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION));
     }
 
     @Test
     void score__adminSubmission() {
-        gradingContext = new GradingContext("testNetId", Phase.Phase0, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, true);
+        gradingContext = new GradingContext(
+                "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
+                "testRepoUrl", new File(""),
+                10, 3, 10,
+                mockObserver, true);
         Scorer scorer = new Scorer(gradingContext);
 
         Submission submission = null;
         try {
-            submission = scorer.score(getRubric(1f), 0); // TODO: Correct parameter type
+            submission = scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
@@ -168,14 +182,18 @@ class ScorerTest {
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
 
-        gradingContext = new GradingContext("testNetId", Phase.Quality, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, false);
+        gradingContext = new GradingContext(
+                "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
+                "testRepoUrl", new File(""),
+                10, 3, 10,
+                mockObserver, false);
         DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
         Scorer scorer = new Scorer(gradingContext);
 
         Submission submission = null;
         try {
             Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
-            submission = scorer.score(emptyRubric, 0); // TODO: Correct parameter type
+            submission = scorer.score(emptyRubric, PASSING_COMMIT_VERIFICATION);
         } catch (GradingException e) {
             fail("Unexpected exception thrown: ", e);
         }
