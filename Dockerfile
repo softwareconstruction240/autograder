@@ -27,7 +27,6 @@ COPY ./src/main/resources/frontend /app/src/main/resources/frontend
 RUN cd src/main/resources/frontend && \
    yarn build
 
-
 ### build backend
 COPY . /app
 
