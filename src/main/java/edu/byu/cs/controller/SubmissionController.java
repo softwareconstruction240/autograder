@@ -397,7 +397,7 @@ public class SubmissionController {
      * @param phase The phase to approve
      * @param approverNetId Identifies the TA or professor approving the score
      * @param approvedScore <p>The final score that should go in the grade-book.</p>
-     *                      <p>If `null`, we'll apply the penalty to the most recent passing submission.</p>
+     *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
      *                      submission with a penalty instead of any other fixed rule.</p>
      * @param penaltyPct The penalty applied for the reduction.
@@ -441,10 +441,8 @@ public class SubmissionController {
 
         // Determine approvedScore
         if (approvedScore == null) {
-            Float mostRecentPassingScoreOnPhase = 0f;
-            approvedScore = SubmissionHelper.prepareModifiedScore(mostRecentPassingScoreOnPhase, scoreVerification);
-            // FIXME: Set `approvedScore` to the score of the most recent passing submission, multiplied by (1 - penaltyPct)
-            throw new RuntimeException("Dynamically determining approved score is not yet implemented");
+            Float bestScoreForPhase = submissionDao.getBestScoreForPhase(studentNetId, phase);
+            approvedScore = SubmissionHelper.prepareModifiedScore(bestScoreForPhase, scoreVerification);
         }
 
         // Update grade-book
