@@ -15,7 +15,7 @@ public class CompileHelper {
     public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
 
     private final Collection<StudentCodeModifier> currentModifiers =
-            List.of(new ProjectStructureVerifier(), new PomModifier());
+            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier());
 
     public void compile() throws GradingException {
         for(StudentCodeModifier modifier : currentModifiers) {
