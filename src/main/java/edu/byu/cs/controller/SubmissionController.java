@@ -7,6 +7,7 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
@@ -246,21 +247,17 @@ public class SubmissionController {
     };
 
     public static final Route approveSubmissionPost = (req, res) -> {
-        // FIXME: These are only provided as reasonable guesses, and as a starting point.
-        // This may not be the way we want to actually go with this end-point,
-        // the only reflect the data that will need to be transferred.
-        String studentNetId = req.params(":studentNetId");
-        Phase phase = PhaseUtils.getPhaseByString(req.params(":phase"));
-        Float approvedScore = Float.valueOf(req.params(":approvedScore"));
-        Integer penaltyPct = Integer.valueOf(req.params(":penaltyPct"));
-        String approvingNetId = req.params(":approvingNetId");
+        User adminUser = req.session().attribute("user");
 
-        // FIXME: Validate that all of the parameters were received as valid, non-empty types.
-        // Note that the `approvedScore` field can be optionally `null`.
+        ApprovalRequest request = new Gson().fromJson(req.body(), ApprovalRequest.class);
 
-        approveSubmission(studentNetId, phase, approvingNetId, approvedScore, penaltyPct);
+        int penalty = 0;
+        if (request.penalize()) {
+            //TODO: Put somewhere better/more configurable
+            penalty = 10;
+        }
 
-        // FIXME: Consider returning more interesting or hepful data.
+        approveSubmission(request.netId(), request.phase(), adminUser.netId(), null, penalty);
         return "{}";
     };
 
@@ -454,8 +451,8 @@ public class SubmissionController {
         throw new RuntimeException("ApproveSubmission not implemented!"); // TODO: Finish implementing method
 
         // Done
-        LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
-                .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
+        //LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
+                //.formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
     }
 
 }

@@ -18,6 +18,9 @@ import {
   scoreToPercentage
 } from "@/utils/utils";
 import Panel from "@/components/Panel.vue";
+import { submissionPost } from '@/services/submissionService'
+import { useSubmissionStore } from '@/stores/submissions'
+import { approveSubmissionPost } from '@/services/adminService'
 
 const { submission } = defineProps<{
   submission: Submission;
@@ -31,6 +34,14 @@ const openResults = (event: CellClickedEvent) => {
     testResults.value = event.data.results.testResults
   } else {
     textResults.value = event.data.results.textResults
+  }
+}
+
+const approveSubmission = async (penalize: boolean) => {
+  try {
+    await approveSubmissionPost(submission.netId, submission.phase, penalize);
+  } catch (e) {
+    alert(e)
   }
 }
 
@@ -55,11 +66,6 @@ const rowData = reactive({
         <span v-if="submission.passed">Submission passed!</span>
         <span v-else class="failure">Submission failed</span>
       </p>
-      <div v-if="!submission.approved" class="blocked-submission-notice">
-        <p>This submission has been blocked!</p>
-        <button>Approve with penalty</button>
-        <button>Approve with no penalty</button>
-      </div>
     </div>
     <Panel>
       <p><span class="info-label">GitHub Repo: </span><span v-html="generateClickableLink(submission.repoUrl)"/></p>
@@ -67,6 +73,14 @@ const rowData = reactive({
       <p id="notes-field">{{submission.notes}}</p>
     </Panel>
   </div>
+  <Panel v-if="!submission.approved" class="blocked-submission-notice">
+    <p>This submission has been blocked!</p>
+    <span>Explain the importance of frequent, consistent commits. Only approve without the penalty if they have a good reason for failing to meet the standard.</span>
+    <div>
+      <button @click="approveSubmission(true)">Approve with penalty</button>
+      <button @click="approveSubmission(false)">Approve with no penalty</button>
+    </div>
+  </Panel>
   <ag-grid-vue
       class="ag-theme-quartz"
       style="height: 30vh; width: 65vw"
@@ -96,6 +110,14 @@ const rowData = reactive({
   display: grid;
   grid-template-columns: 25vw 40vw;
   column-gap: 10px;
+}
+
+.blocked-submission-notice {
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .blocked-submission-notice p {

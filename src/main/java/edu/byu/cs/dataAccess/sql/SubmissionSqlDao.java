@@ -71,8 +71,7 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
-        return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + "WHERE net_id = ? AND phase = ?",
+        return sqlReader.executeQuery("WHERE net_id = ? AND phase = ?",
                 ps -> {
                     ps.setString(1, netId);
                     ps.setString(2, phase.toString());
@@ -82,8 +81,7 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getSubmissionsForUser(String netId) {
-        return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + "WHERE net_id = ?",
+        return sqlReader.executeQuery("WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
     }
 
@@ -95,7 +93,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
         return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + """
+                """
                     WHERE timestamp IN (
                         SELECT MAX(timestamp)
                         FROM %s
@@ -103,7 +101,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                     )
                     ORDER BY timestamp DESC
                     """.formatted(sqlReader.getTableName()) +
-                (batchSize >= 0 ? "LIMIT ?" : ""),
+                (batchSize >= 0 ? "LIMIT ?" : "."),
                 ps -> {
                     if (batchSize >= 0) {
                         ps.setInt(1, batchSize);
@@ -125,7 +123,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Submission getFirstPassingSubmission(String netId, Phase phase) {
         var submissions = sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + """
+                """
                         WHERE net_id = ? AND phase = ? AND passed = 1
                         ORDER BY timestamp
                         LIMIT 1
