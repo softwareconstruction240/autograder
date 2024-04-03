@@ -22,13 +22,15 @@ COPY ./pom.xml /app
 RUN mvn dependency:go-offline
 
 ### build frontend
-COPY . /app
+COPY ./src/main/resources/frontend /app/src/main/resources/frontend
 
 RUN cd src/main/resources/frontend && \
    yarn build
 
 
 ### build backend
+COPY . /app
+
 RUN mvn clean package -DskipTests
 
 EXPOSE 8080
