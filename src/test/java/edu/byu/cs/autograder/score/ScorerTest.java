@@ -105,6 +105,8 @@ class ScorerTest {
         assertNotNull(submission);
         assertEquals(1, submission.score());
         assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(Submission.VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
+
     }
 
     @Test
@@ -122,6 +124,7 @@ class ScorerTest {
         assertNotNull(submission);
         assertEquals(.5f, submission.score());
         assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(Submission.VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
     }
 
     @Test
@@ -148,6 +151,27 @@ class ScorerTest {
 
         Scorer scorer = new Scorer(gradingContext);
         assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION));
+    }
+
+    @Test
+    void score__commitVerification__notVerified() {
+        Rubric phase0Rubric = getRubric(1.0f);
+        Scorer scorer = new Scorer(gradingContext);
+
+        Submission submission = null;
+        try {
+            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
+        } catch (GradingException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+
+        assertNotNull(submission);
+        assertEquals(1.0f, submission.score());
+        assertTrue(submission.passed());
+        assertEquals(Submission.VerifiedStatus.Unapproved, submission.verifiedStatus());
+        assertNull(submission.verification());
+
+        Mockito.verifyNoInteractions(spyCanvasIntegration);
     }
 
     @Test
