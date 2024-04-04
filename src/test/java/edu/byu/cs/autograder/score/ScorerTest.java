@@ -41,6 +41,11 @@ class ScorerTest {
             true, 0, 0,
             "", null, null,
             "<PASSING_COMMIT_VERIFICATION>", null);
+    private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION = new CommitVerificationResult(
+            false, 0, 0,
+            "Failing verification", null, null,
+            "<FAILING_COMMIT_VERIFICATION>", null);
+
 
     @BeforeAll
     static void setUpAll() {
@@ -92,15 +97,8 @@ class ScorerTest {
 
     @Test
     void score__fullPoints() {
-        Rubric phase0Rubric = getRubric(1f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric phase0Rubric = constructRubric(1f);
+        Submission submission = scoreRubric(phase0Rubric);
 
         assertNotNull(submission);
         assertEquals(1, submission.score());
@@ -111,15 +109,8 @@ class ScorerTest {
 
     @Test
     void score__partialPoints() {
-        Rubric phase0Rubric = getRubric(.5f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric phase0Rubric = constructRubric(.5f);
+        Submission submission = scoreRubric(phase0Rubric);
 
         assertNotNull(submission);
         assertEquals(.5f, submission.score());
@@ -129,15 +120,8 @@ class ScorerTest {
 
     @Test
     void score__extraPoints() {
-        Rubric phase0Rubric = getRubric(1.5f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric phase0Rubric = constructRubric(1.5f);
+        Submission submission = scoreRubric(phase0Rubric);
 
         assertNotNull(submission);
         assertEquals(1.5f, submission.score());
@@ -149,21 +133,14 @@ class ScorerTest {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        Scorer scorer = new Scorer(gradingContext);
-        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION));
+        assertThrows(GradingException.class, () -> scoreRubric(constructRubric(1f)));
     }
 
     @Test
     void score__commitVerification__notVerified() {
-        Rubric phase0Rubric = getRubric(1.0f);
-        Scorer scorer = new Scorer(gradingContext);
+        Rubric phase0Rubric = constructRubric(1.0f);
 
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Submission submission = scoreRubric(phase0Rubric, FAILING_COMMIT_VERIFICATION);
 
         assertNotNull(submission);
         assertEquals(1.0f, submission.score());
@@ -181,14 +158,8 @@ class ScorerTest {
                 "testRepoUrl", new File(""),
                 10, 3, 10,
                 mockObserver, true);
-        Scorer scorer = new Scorer(gradingContext);
 
-        Submission submission = null;
-        try {
-            submission = scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Submission submission = scoreRubric(constructRubric(1f));
 
         assertNotNull(submission);
         assertTrue(submission.admin());
@@ -212,15 +183,9 @@ class ScorerTest {
                 10, 3, 10,
                 mockObserver, false);
         DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
-        Scorer scorer = new Scorer(gradingContext);
 
-        Submission submission = null;
-        try {
-            Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
-            submission = scorer.score(emptyRubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
+        Submission submission = scoreRubric(emptyRubric);
 
         assertNotNull(submission);
         assertTrue(submission.passed());
@@ -235,7 +200,7 @@ class ScorerTest {
      * @param score score, 0-1
      * @return the Rubric object
      */
-    private Rubric getRubric(float score) {
+    private Rubric constructRubric(float score) {
         Rubric.Results results = new Rubric.Results(
                 "testNotes",
                 score,
@@ -251,6 +216,22 @@ class ScorerTest {
                 true,
                 "testNotes"
         );
+    }
+
+    private Submission scoreRubric(Rubric rubric) {
+        return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
+    }
+    private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
+        Scorer scorer = new Scorer(gradingContext);
+        return scoreRubric(scorer, rubric, commitVerification);
+    }
+    private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
+        try {
+            return scorer.score(rubric, commitVerification);
+        } catch (GradingException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+        return null;
     }
 
     private static void loadApplicationProperties() {
