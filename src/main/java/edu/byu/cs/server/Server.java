@@ -40,7 +40,6 @@ public class Server {
             get("/login", loginGet);
 
             // all routes after this point require authentication
-            post("/register", registerPost);
             post("/logout", logoutPost);
         });
 
