@@ -94,7 +94,7 @@ public record Submission(
         Unapproved,
         ApprovedAutomatically,
         ApprovedManually,
-        PreviouslyManuallyApproved,
+        PreviouslyApproved,
     }
 
     @Override

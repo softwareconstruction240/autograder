@@ -119,7 +119,7 @@ public class GitHelper {
                 "You have previously failed commit verification.\n"+
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
-                verified, false,
+                verified, true,
                 0, 0, message,
                 null, null,
                 firstPassingSubmission.headHash(), null

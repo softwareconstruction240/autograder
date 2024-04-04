@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 
+import static edu.byu.cs.model.Submission.VerifiedStatus;
+
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
 
@@ -181,8 +183,13 @@ public class Scorer {
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
-        Submission.VerifiedStatus verifiedStatus = commitVerificationResult.verified() ?
-                Submission.VerifiedStatus.ApprovedAutomatically : Submission.VerifiedStatus.Unapproved;
+        Submission.VerifiedStatus verifiedStatus;
+        if (commitVerificationResult.verified()) {
+            verifiedStatus = commitVerificationResult.isCachedResponse() ?
+                    VerifiedStatus.PreviouslyApproved : VerifiedStatus.ApprovedAutomatically;
+        } else {
+            verifiedStatus = VerifiedStatus.Unapproved;
+        }
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
