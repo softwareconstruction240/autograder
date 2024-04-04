@@ -49,8 +49,9 @@ export type Submission = {
     notes: string,
     rubric: Rubric,
     passed: boolean,
-    approved: true
-    admin: boolean
+    approved: true,
+    admin: boolean,
+    verifiedStatus: VerifiedStatus,
 }
 
 export type User = {
@@ -60,3 +61,5 @@ export type User = {
     repoUrl: string,
     role: 'STUDENT' | 'ADMIN'
 }
+
+export type VerifiedStatus = 'Unapproved' | 'ApprovedAutomatically' | 'ApprovedManually' | 'PreviouslyManuallyApproved'

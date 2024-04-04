@@ -73,11 +73,11 @@ const rowData = reactive({
       <p id="notes-field">{{submission.notes}}</p>
     </Panel>
   </div>
-  <Panel v-if="!submission.approved" class="blocked-submission-notice">
+  <Panel v-if="submission.verifiedStatus == 'Unapproved'" class="blocked-submission-notice">
     <p>This submission has been blocked!</p>
     <span>Explain the importance of frequent, consistent commits. Only approve without the penalty if they have a good reason for failing to meet the standard.</span>
     <div>
-      <button @click="approveSubmission(true)">Approve with penalty</button>
+      <button @click="approveSubmission(true)">Approve with penalty (DEFAULT)</button>
       <button @click="approveSubmission(false)">Approve with no penalty</button>
     </div>
   </Panel>

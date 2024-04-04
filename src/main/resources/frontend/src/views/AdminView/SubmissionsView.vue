@@ -57,8 +57,8 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
       notes: submission.notes,
       netId: submission.netId,
       admin: submission.admin,
-      passed: submission.score > 0.5, //TODO: put back as actual variable
-      approved: submission.score > 0.2, // TODO: make it actually what its called
+      passed: submission.passed,
+      approved: submission.verifiedStatus != 'Unapproved',
       submission: submission
       }
     )
@@ -67,6 +67,7 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
 }
 
 const openSubmissionInfo = (event: CellClickedEvent) => {
+  console.log(event.data.submission)
   selectedSubmission.value = event.data.submission
 }
 

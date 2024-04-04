@@ -1,6 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
@@ -180,7 +181,10 @@ public class SubmissionSqlDao implements SubmissionDao {
 
         String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
         String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
-        String verificationStr = new Gson().toJson(scoreVerification);
+        //String verificationStr = new Gson().toJson(scoreVerification);
+        String verificationStr = new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(scoreVerification);
 
         // First verify that we can identify it
         var matchingSubmissions = sqlReader.executeQuery(
