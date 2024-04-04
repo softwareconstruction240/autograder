@@ -30,10 +30,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin),
-            new ColumnDefinition<Submission>("verified_status",
-                    s -> s.verifiedStatus() == null ? null : s.verifiedStatus().name()),
-            new ColumnDefinition<Submission>("verification",
-                    s -> s.verification() == null ? null : new Gson().toJson(s.verification()))
+            new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
+            new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
     };
     private static Submission readSubmission(ResultSet rs) throws SQLException {
         var gson = new Gson();
@@ -180,10 +178,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         String phase = submission.phase().name();
 
         String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
-        String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
-        String verificationStr = new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(scoreVerification);
+        String verifiedStatusStr = Submission.serializeVerifiedStatus(Submission.VerifiedStatus.ApprovedManually);
+        String verificationStr = Submission.serializeScoreVerification(scoreVerification);
 
         // First verify that we can identify it
         var matchingSubmissions = sqlReader.executeQuery(

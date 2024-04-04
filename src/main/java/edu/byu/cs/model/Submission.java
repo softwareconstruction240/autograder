@@ -1,5 +1,6 @@
 package edu.byu.cs.model;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -107,5 +108,22 @@ public record Submission(
     @Override
     public int hashCode() {
         return Objects.hash(netId, headHash, phase);
+    }
+
+    public static String serializeScoreVerification(@NonNull Submission submission) {
+        return serializeScoreVerification(submission.verification);
+    }
+    public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
+        if (scoreVerification == null) return null;
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(scoreVerification);
+    }
+
+    public static String serializeVerifiedStatus(@NonNull Submission submission) {
+        return serializeVerifiedStatus(submission.verifiedStatus);
+    }
+    public static String serializeVerifiedStatus(@Nullable VerifiedStatus verifiedStatus) {
+        return verifiedStatus == null ? null : verifiedStatus.name();
     }
 }
