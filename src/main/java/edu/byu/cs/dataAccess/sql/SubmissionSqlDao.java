@@ -140,23 +140,25 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public float getBestScoreForPhase(String netId, Phase phase) {
-        return sqlReader.executeQuery(
+    public Submission getBestSubmissionForPhase(String netId, Phase phase) {
+        var submissions = sqlReader.executeQuery(
                 """
-                    SELECT max(score) as highestScore
+                    SELECT *
                     FROM %s
-                    WHERE net_id = ? AND phase = ?
-                    """.formatted(sqlReader.getTableName()),
+                    WHERE score = (
+                        SELECT MAX(score)
+                        FROM %s
+                        WHERE net_id = ? AND phase = ?
+                    ) AND net_id = ? AND phase = ?;
+                    """.formatted(sqlReader.getTableName(), sqlReader.getTableName()),
                 ps -> {
                     ps.setString(1, netId);
                     ps.setString(2, phase.toString());
-                },
-                rs -> {
-                    rs.next();
-                    float highestScore = rs.getFloat("highestScore");
-                    return rs.wasNull() ? -1.0f : highestScore;
+                    ps.setString(3, netId);
+                    ps.setString(4, phase.toString());
                 }
         );
+        return sqlReader.expectOneItem(submissions);
     }
 
     @Override
@@ -181,7 +183,6 @@ public class SubmissionSqlDao implements SubmissionDao {
 
         String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
         String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
-        //String verificationStr = new Gson().toJson(scoreVerification);
         String verificationStr = new GsonBuilder()
                 .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
                 .create().toJson(scoreVerification);

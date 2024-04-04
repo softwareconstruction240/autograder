@@ -80,13 +80,14 @@ public class SubmissionMemoryDao implements SubmissionDao {
     }
 
     @Override
-    public float getBestScoreForPhase(String netId, Phase phase) {
+    public Submission getBestSubmissionForPhase(String netId, Phase phase) {
         Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
-        float bestScore = -1.0f; // This implementation **can** differentiate between submissions and no submissions
+        Submission bestSubmission =  null; // This implementation **can** differentiate between submissions and no submissions
         for (Submission s : submissions) {
-            if (s.score() > bestScore) { bestScore = s.score(); }
+            if (bestSubmission == null) { bestSubmission = s; }
+            if (s.score() > bestSubmission.score()) { bestSubmission = s; }
         }
-        return bestScore;
+        return bestSubmission;
     }
 
     @Override

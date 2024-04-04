@@ -7,6 +7,7 @@ import edu.byu.cs.autograder.*;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
@@ -393,6 +394,7 @@ public class SubmissionController {
      * @param studentNetId The student to approve
      * @param phase The phase to approve
      * @param approverNetId Identifies the TA or professor approving the score
+     * @param submissionToUse Submission with the rubric to send to Canvas. If null, then this will use the best submission for the phase.
      * @param approvedScore <p>The final score that should go in the grade-book.</p>
      *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
@@ -404,6 +406,7 @@ public class SubmissionController {
             String studentNetId,
             Phase phase,
             String approverNetId,
+            @Nullable Submission submissionToUse,
             @Nullable Float approvedScore,
             Integer penaltyPct
     ) {
@@ -436,29 +439,32 @@ public class SubmissionController {
             LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
         }
 
-        // Determine approvedScore
-        if (approvedScore == null) {
-            float bestScoreForPhase = submissionDao.getBestScoreForPhase(studentNetId, phase);
-            if (bestScoreForPhase < 0.0f) {
-                throw new RuntimeException("Cannot determine best score for phase without any submissions in the phase.");
+        if (submissionToUse == null) {
+            submissionToUse = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
+            if (submissionToUse == null) {
+                throw new RuntimeException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
             }
-            approvedScore = SubmissionHelper.prepareModifiedScore(bestScoreForPhase, scoreVerification);
-        }
-        if (approvedScore <= 0.0f) {
-            throw new RuntimeException("Cannot set grade without a positive approvedScore!");
+            approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), scoreVerification);
         }
 
         // Update grade-book
-        CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
-        // FIXME: Store `approvedScore` in the Grade-book
-        // canvasIntegration.submitGrade(studentNetId, approvedScore, );
-        if (true) {
-            throw new RuntimeException("ApproveSubmission not implemented!"); // TODO: Finish implementing method
+        // TODO: Apply penalty
+        int canvasUserId = DaoService.getUserDao().getUser(studentNetId).canvasUserId();
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+
+        try {
+            CanvasIntegration.RubricAssessment assessment = CanvasUtils.convertToAssessment(submissionToUse.rubric(), rubricConfig, 0, phase);
+            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
+        } catch (GradingException e) {
+            throw new RuntimeException("Error generating rubric assessment");
+        } catch (CanvasException e) {
+            throw new RuntimeException("Error submitting approved rubric to Canvas");
         }
 
         // Done
-        //LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
-                //.formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
+        LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
+                .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
     }
 
 }

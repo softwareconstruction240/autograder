@@ -65,21 +65,14 @@ public interface SubmissionDao {
     Submission getFirstPassingSubmission(String netId, Phase phase);
 
     /**
-     * Retrieves the highest score of a student's submissions for a phase.
+     * Retrieves the highest scoring submission of a student's submissions for a phase.
      * <br>
-     * A value of less than zero will be returned if there are no submissions.
-     * Here's a summary:
-     * <ul>
-     *     <li><b>-1.0f</b> means that no submissions exist for the student on the given phase</li>
-     *     <li><b>0.0f</b> means that all submissions have a score of zero</li>
-     *     <li><b>> 0.0f</b> means that the student has received a score on this phase</li>
-     * </ul>
      *
      * @param netId Representing a student.
      * @param phase Representing a phase to submit
-     * @return The score (points) as a float, or -1.0 if no submissions exist.
+     * @return The submission with the highest score for the phase, or null if no submissions exist.
      */
-    float getBestScoreForPhase(String netId, Phase phase);
+    Submission getBestSubmissionForPhase(String netId, Phase phase);
 
     /**
      * Gets all submissions that `passed` the grading for any phase.
