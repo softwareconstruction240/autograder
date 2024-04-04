@@ -12,6 +12,7 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
+import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -258,7 +259,9 @@ public class SubmissionController {
         // FIXME: Validate that all of the parameters were received as valid, non-empty types.
         // Note that the `approvedScore` field can be optionally `null`.
 
-        approveSubmission(studentNetId, phase, approvingNetId, approvedScore, penaltyPct);
+        approveSubmission(studentNetId, phase, approvingNetId, penaltyPct);
+//        // TODO: Lookup a submission by phase, netId, and headHash to pass in as `targetSubmission`
+//        approveSubmission(studentNetId, phase, approvingNetId, penaltyPct, approvedScore, null);
 
         // FIXME: Consider returning more interesting or hepful data.
         return "{}";
@@ -389,6 +392,22 @@ public class SubmissionController {
     }
 
     /**
+     * Approves the highest scoring submissions on the phase so far with a provided penalty percentage.
+     * <br>
+     * This is a simple overload triggering default behavior in the actual method.
+     * @see SubmissionController#approveSubmission(String, Phase, String, Integer, Float, Submission).
+     *
+     * @param studentNetId The student to approve
+     * @param phase The phase to approve
+     * @param approverNetId Identifies the TA or professor approving the score
+     * @param penaltyPct The penalty applied for the reduction.
+     *                   This should already be reflected in the `approvedScore` if present.
+     */
+    public static void approveSubmission(
+            @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct) {
+        approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
+    }
+    /**
      * Approves a submission.
      * Modifies all existing submissions in the phase with constructed values,
      * and saves a given value into the grade-book.
@@ -396,19 +415,23 @@ public class SubmissionController {
      * @param studentNetId The student to approve
      * @param phase The phase to approve
      * @param approverNetId Identifies the TA or professor approving the score
+     * @param penaltyPct The penalty applied for the reduction.
+     *                   This should already be reflected in the `approvedScore` if present.
      * @param approvedScore <p>The final score that should go in the grade-book.</p>
      *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
      *                      submission with a penalty instead of any other fixed rule.</p>
-     * @param penaltyPct The penalty applied for the reduction.
-     *                   This should already be reflected in the `approvedScore` if present.
+     * @param targetSubmission Required when `approvedScored` is passed in.
+     *                         Provides a submission which will be used to overwrite the existing score in the grade-book.
+     *                         If a full {@link Submission} object is not available, the {@link Rubric} is only required field in it.
      */
     public static void approveSubmission(
-            String studentNetId,
-            Phase phase,
-            String approverNetId,
+            @NonNull String studentNetId,
+            @NonNull Phase phase,
+            @NonNull String approverNetId,
+            @NonNull Integer penaltyPct,
             @Nullable Float approvedScore,
-            Integer penaltyPct
+            @Nullable Submission targetSubmission
     ) {
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
