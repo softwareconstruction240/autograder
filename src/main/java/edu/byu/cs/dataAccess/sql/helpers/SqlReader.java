@@ -79,7 +79,7 @@ public class SqlReader <T> {
     }
 
     private String buildInsertStatement() {
-        String valueWildcards =  "?, ".repeat(ALL_COLUMN_NAMES.length);
+        String valueWildcards = String.join(", ", Collections.nCopies(ALL_COLUMN_NAMES.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
                 .formatted(TABLE_NAME, allColumnNamesStmt, valueWildcards);
     }
