@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ScorerTest {
 
@@ -165,7 +165,7 @@ class ScorerTest {
         assertNull(submission.verification());
 
         if (disallowCanvas) {
-            Mockito.verifyNoInteractions(spyCanvasIntegration);
+            assertNoCanvasGradeSubmitted();
         }
     }
 
@@ -182,7 +182,7 @@ class ScorerTest {
         assertNotNull(submission);
         assertTrue(submission.admin());
 
-        Mockito.verifyNoInteractions(spyCanvasIntegration);
+        assertNoCanvasGradeSubmitted();
     }
 
     @Test
@@ -211,6 +211,8 @@ class ScorerTest {
 
         Mockito.verifyNoInteractions(spyCanvasIntegration);
     }
+
+    // Helper Methods for constructing
 
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
@@ -262,6 +264,19 @@ class ScorerTest {
                 "", null, null,
                 headHash, null);
     }
+
+    // Assertion Helpers
+
+    private void assertNoCanvasGradeSubmitted() {
+        try {
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), anyFloat(), anyString());
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasIntegration.RubricAssessment.class), anyString());
+        } catch (CanvasException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Loading properties
 
     private static void loadApplicationProperties() {
         Properties testProperties = new Properties();
