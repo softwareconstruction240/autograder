@@ -79,9 +79,10 @@ public record Submission(
      * @param originalScore The score originally calculated by the server.
      * @param approvingNetId The NetId of the individual who approves the score manually.
      * @param approvedTimestamp The timestamp of the approver approving the score.
-     * @param penaltyPct The percentage reduction from the original score.
-     *                   This percentage will be reduced from all future submissions
-     *                   on this phase as well.
+     * @param penaltyPct <p>The percentage reduction from the original score.</p>
+     *                   <p>This percentage will be reduced from all future submissions
+     *                   on this phase as well.</p>
+     *                   <p>This should be an int between 0-100</p>
      */
     public record ScoreVerification(
              @NonNull Float originalScore,
