@@ -39,6 +39,7 @@ public class GitHelper {
         this.gradingContext = gradingContext;
     }
 
+    // ## Entry Point ##
     public CommitVerificationResult setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(stageRepo);
@@ -68,6 +69,7 @@ public class GitHelper {
         gradingContext.observer().update("Successfully fetched repo");
     }
 
+    // Early decisions
     private CommitVerificationResult skipCommitVerification(File stageRepo) throws GradingException {
         LOGGER.debug("Skipping commit verification");
         String headHash = getHeadHash(stageRepo);
@@ -79,17 +81,7 @@ public class GitHelper {
         );
     }
 
-    private String getHeadHash(File stageRepo) throws GradingException {
-        try (Git git = Git.open(stageRepo)) {
-            return getHeadHash(git);
-        } catch (IOException e) {
-            throw new GradingException("Failed to get head hash: " + e.getMessage());
-        }
-    }
-    private String getHeadHash(Git git) throws IOException {
-        return git.getRepository().findRef("HEAD").getObjectId().getName();
-    }
-
+    // Decision Logic
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
         var potentialResult = preserveOriginalVerification();
         if (potentialResult != null) {
@@ -107,9 +99,6 @@ public class GitHelper {
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
         }
-    }
-    private void loadPassingSubmission() {
-        passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
 
     /**
@@ -136,67 +125,6 @@ public class GitHelper {
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
-    }
-    private Submission getFirstPassingSubmission() {
-        // CONSIDER: Rather than resolving this as a second database call,
-        // read out the data from our `passingSubmissions` data that
-        // we've already loaded locally.
-        // This would require performing `loadPassingSubmission()` before this method.
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        return submissionDao.getFirstPassingSubmission(gradingContext.netId(), gradingContext.phase());
-    }
-
-    /**
-     * Returns a timestamp corresponding to the most recent commit that was giving a passing grade,
-     * and the commit at that point.
-     * <br>
-     * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
-     * If there are no previous passing submissions, this returns the minimum Instant instead.
-     *
-     * @return An {@link CommitThreshold}.
-     * @throws GradingException When certain preconditions are not met, or when this would have returned null.
-     */
-    @NonNull
-    private CommitThreshold getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
-        if (passingSubmissions == null) {
-            throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
-        }
-        if (passingSubmissions.isEmpty()) {
-            return new CommitThreshold(Instant.MIN, null);
-        }
-
-        Instant latestTimestamp = null;
-        String latestCommitHash = null;
-        Repository repo = git.getRepository();
-
-        Instant effectiveSubmissionTimestamp;
-        try (RevWalk revWalk = new RevWalk(repo)) {
-            for (Submission submission : passingSubmissions) {
-                effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
-                revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
-                if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
-                    latestTimestamp = effectiveSubmissionTimestamp;
-                    latestCommitHash = submission.headHash();
-                }
-            }
-        }
-
-        if (latestTimestamp == null) {
-            throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
-        }
-
-        return new CommitThreshold(latestTimestamp, latestCommitHash);
-    }
-    private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
-        try {
-            ObjectId commitId = ObjectId.fromString(submission.headHash());
-            RevCommit commit = revWalk.parseCommit(commitId);
-            return Instant.ofEpochSecond(commit.getCommitTime());
-        } catch (MissingObjectException | IncorrectObjectTypeException ex) {
-            // The commit didn't exist. It may have been garbage collected if they rebased.
-            // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
-            return submission.timestamp();
-        }
     }
 
     /**
@@ -259,6 +187,61 @@ public class GitHelper {
         );
     }
 
+    // Evaluation Helpers
+
+    /**
+     * Returns a timestamp corresponding to the most recent commit that was giving a passing grade,
+     * and the commit at that point.
+     * <br>
+     * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
+     * If there are no previous passing submissions, this returns the minimum Instant instead.
+     *
+     * @return An {@link CommitThreshold}. Returns an empty object rather than null when no result exist.
+     * @throws GradingException When certain preconditions are not met, or when this would have returned null.
+     */
+    @NonNull
+    private CommitThreshold getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
+        if (passingSubmissions == null) {
+            throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
+        }
+        if (passingSubmissions.isEmpty()) {
+            return new CommitThreshold(Instant.MIN, null);
+        }
+
+        Instant latestTimestamp = null;
+        String latestCommitHash = null;
+        Repository repo = git.getRepository();
+
+        Instant effectiveSubmissionTimestamp;
+        try (RevWalk revWalk = new RevWalk(repo)) {
+            for (Submission submission : passingSubmissions) {
+                effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
+                revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
+                if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
+                    latestTimestamp = effectiveSubmissionTimestamp;
+                    latestCommitHash = submission.headHash();
+                }
+            }
+        }
+
+        if (latestTimestamp == null) {
+            throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
+        }
+
+        return new CommitThreshold(latestTimestamp, latestCommitHash);
+    }
+    private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
+        try {
+            ObjectId commitId = ObjectId.fromString(submission.headHash());
+            RevCommit commit = revWalk.parseCommit(commitId);
+            return Instant.ofEpochSecond(commit.getCommitTime());
+        } catch (MissingObjectException | IncorrectObjectTypeException ex) {
+            // The commit didn't exist. It may have been garbage collected if they rebased.
+            // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
+            return submission.timestamp();
+        }
+    }
+
     private static ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
         ArrayList<String> errorMessages = new ArrayList<>();
         for (CV assertedCondition : assertedConditions) {
@@ -273,6 +256,32 @@ public class GitHelper {
         }
         return errorMessages;
     }
+
+    // Helpers
+
+    private void loadPassingSubmission() {
+        passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
+    }
+    private Submission getFirstPassingSubmission() {
+        // CONSIDER: Rather than resolving this as a second database call,
+        // read out the data from our `passingSubmissions` data that
+        // we've already loaded locally.
+        // This would require performing `loadPassingSubmission()` before this method.
+        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+        return submissionDao.getFirstPassingSubmission(gradingContext.netId(), gradingContext.phase());
+    }
+    private String getHeadHash(File stageRepo) throws GradingException {
+        try (Git git = Git.open(stageRepo)) {
+            return getHeadHash(git);
+        } catch (IOException e) {
+            throw new GradingException("Failed to get head hash: " + e.getMessage());
+        }
+    }
+    private String getHeadHash(Git git) throws IOException {
+        return git.getRepository().findRef("HEAD").getObjectId().getName();
+    }
+
+    // Data Structures
 
     /** CommitValidation. Internal helper */
     private record CV(
