@@ -64,8 +64,12 @@ public class CommitAnalytics {
             if (commitTime > upperTimeBound) {
                 commitsInFuture = true;
             }
-            if (commitTime < rc.getParent(1).getCommitTime()) {
-                commitsInOrder = false;
+            for (var pc : rc.getParents()) {
+                if (commitTime < pc.getCommitTime()) {
+                    // Verifies that all parents are older than the child
+                    commitsInOrder = false;
+                    break;
+                }
             }
 
             // Add the commit to results
