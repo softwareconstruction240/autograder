@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 
 public class ProcessUtils {
 
-    private static final long DEFAULT_TIMEOUT = 120000;
+    private static final long DEFAULT_TIMEOUT = 40000;
 
     /**
      * Runs a process given by a process builder and returns process output
