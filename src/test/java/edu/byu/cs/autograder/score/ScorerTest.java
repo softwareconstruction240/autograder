@@ -20,6 +20,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import edu.byu.cs.model.Submission.VerifiedStatus;
+
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -37,14 +39,14 @@ class ScorerTest {
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
 
-    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION = new CommitVerificationResult(
-            true, false, 0, 0,
-            "", null, null,
-            "<PASSING_COMMIT_VERIFICATION>", null);
-    private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION = new CommitVerificationResult(
-            false, false, 0, 0,
-            "Failing verification", null, null,
-            "<FAILING_COMMIT_VERIFICATION>", null);
+    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(true, false);
+    private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(false, false);
+    private static final CommitVerificationResult PASSING_CACHED_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(true, true);
+    private static final CommitVerificationResult FAILING_CACHED_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(false, true);
 
 
     @BeforeAll
@@ -103,7 +105,7 @@ class ScorerTest {
         assertNotNull(submission);
         assertEquals(1, submission.score());
         assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
-        assertEquals(Submission.VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
+        assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
 
     }
 
@@ -115,13 +117,12 @@ class ScorerTest {
         assertNotNull(submission);
         assertEquals(.5f, submission.score());
         assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
-        assertEquals(Submission.VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
+        assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
     }
 
     @Test
     void score__extraPoints() {
-        Rubric phase0Rubric = constructRubric(1.5f);
-        Submission submission = scoreRubric(phase0Rubric);
+        Submission submission = scoreRubric(constructRubric(1.5f));
 
         assertNotNull(submission);
         assertEquals(1.5f, submission.score());
@@ -137,18 +138,35 @@ class ScorerTest {
     }
 
     @Test
-    void score__commitVerification__notVerified() {
-        Rubric phase0Rubric = constructRubric(1.0f);
+    void score__commitVerification__verified__repeat() {
+        Submission submission = scoreRubric(constructRubric(1.0f), PASSING_CACHED_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.PreviouslyApproved, false);
+    }
 
-        Submission submission = scoreRubric(phase0Rubric, FAILING_COMMIT_VERIFICATION);
+    @Test
+    void score__commitVerification__notVerified() {
+        Submission submission = scoreRubric(constructRubric(1.0f), FAILING_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.Unapproved, true);
+    }
+
+    @Test
+    void score__commitVerification__notVerified__repeat() {
+        Submission submission = scoreRubric(constructRubric(1.0f), FAILING_CACHED_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.Unapproved, true);
+    }
+
+    private void assertCommitVerificationResults(
+            Submission submission, VerifiedStatus verifiedStatus, boolean disallowCanvas) {
 
         assertNotNull(submission);
         assertEquals(1.0f, submission.score());
         assertTrue(submission.passed());
-        assertEquals(Submission.VerifiedStatus.Unapproved, submission.verifiedStatus());
+        assertEquals(verifiedStatus, submission.verifiedStatus());
         assertNull(submission.verification());
 
-        Mockito.verifyNoInteractions(spyCanvasIntegration);
+        if (disallowCanvas) {
+            Mockito.verifyNoInteractions(spyCanvasIntegration);
+        }
     }
 
     @Test
@@ -232,6 +250,17 @@ class ScorerTest {
             fail("Unexpected exception thrown: ", e);
         }
         return null;
+    }
+
+    private static CommitVerificationResult constructCommitVerificationResult(boolean verified, boolean isCached) {
+        String statusStr = verified ? "PASSING" : "FAILING";
+        if (isCached) statusStr += "_CACHED";
+        String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
+
+        return new CommitVerificationResult(
+                verified, isCached, 0, 0,
+                "", null, null,
+                headHash, null);
     }
 
     private static void loadApplicationProperties() {
