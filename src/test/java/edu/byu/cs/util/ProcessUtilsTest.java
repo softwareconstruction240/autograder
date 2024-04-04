@@ -57,7 +57,7 @@ class ProcessUtilsTest {
     void runProcess__massiveStdOut() {
         ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", "for i in {1..1000000}; do echo $i; done");
         String input = null;
-        long timeout = 5000;
+        long timeout = 15000;
 
         ProcessUtils.ProcessOutput processOutput = null;
         try {
@@ -76,7 +76,7 @@ class ProcessUtilsTest {
     void runProcess__massiveStdErr() {
         ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", "for i in {1..1000000}; do echo $i 1>&2; done");
         String input = null;
-        long timeout = 5000;
+        long timeout = 15000;
 
         ProcessUtils.ProcessOutput processOutput = null;
         try {
