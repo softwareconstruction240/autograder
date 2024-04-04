@@ -131,14 +131,12 @@ public class GitHelper {
      *
      * @return the number of commits since the last passoff
      */
-    private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions) throws GitAPIException, IOException, GradingException {
-        CommitThreshold mostRecentSubmission = getMostRecentPassingSubmission(git, passingSubmissions);
-        CommitThreshold upperThreshold = new CommitThreshold(
-                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
-                getHeadHash(git)
-        );
+    private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions)
+            throws GitAPIException, IOException, GradingException {
+        CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
+        CommitThreshold upperThreshold = constructCurrentThreshold(git);
 
-        CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, mostRecentSubmission, upperThreshold);
+        CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
         LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
 
@@ -240,6 +238,34 @@ public class GitHelper {
             // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
             return submission.timestamp();
         }
+    }
+
+    /**
+     * Constructs the current threshold for the grading.
+     * This will represent the upper bound on the grading process.
+     * <br>
+     * Specifically guarantees that not only is the result NonNull,
+     * but also that the `timestamp` and `headHash` fields are NonNull as well.
+     *
+     * @param git The `git` object of the repo to grade
+     * @return A NonNull, non-null field {@link CommitThreshold}
+     * @throws IOException When a file reading error occurs
+     * @throws GradingException When one field would be null, or when another error occurs.
+     */
+    @NonNull
+    private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException {
+        CommitThreshold currentThreshold = new CommitThreshold(
+                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
+                getHeadHash(git)
+        );
+        if (currentThreshold.timestamp() == null) {
+            throw new GradingException("Current threshold cannot have a null timestamp");
+        }
+        if (currentThreshold.commitHash() == null) {
+            throw new GradingException("Current threshold cannot have a null commit hash");
+        }
+
+        return currentThreshold;
     }
 
     private static ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
