@@ -134,7 +134,9 @@ class ScorerTest {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        assertThrows(GradingException.class, () -> scoreRubric(constructRubric(1f)));
+        var scorer = new Scorer(gradingContext);
+        var rubric = constructRubric(1f);
+        assertThrows(GradingException.class, () -> scorer.score(rubric, PASSING_COMMIT_VERIFICATION));
     }
 
     @Test
