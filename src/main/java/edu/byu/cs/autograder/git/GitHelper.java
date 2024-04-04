@@ -33,7 +33,6 @@ import java.util.Collection;
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
-    private Collection<Submission> passingSubmissions;
 
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
@@ -89,10 +88,10 @@ public class GitHelper {
         }
 
         // This could be the first passing submission. We have to calculate it from scratch.
-        loadPassingSubmission();
+        Collection<Submission> passingSubmissions = getPassingSubmissions();
 
         try (Git git = Git.open(stageRepo)) {
-            return verifyRegularCommits(git);
+            return verifyRegularCommits(git, passingSubmissions);
         } catch (IOException | GitAPIException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
@@ -132,8 +131,8 @@ public class GitHelper {
      *
      * @return the number of commits since the last passoff
      */
-    private CommitVerificationResult verifyRegularCommits(Git git) throws GitAPIException, IOException, GradingException {
-        CommitThreshold mostRecentSubmission = getMostRecentPassingSubmission(git);
+    private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions) throws GitAPIException, IOException, GradingException {
+        CommitThreshold mostRecentSubmission = getMostRecentPassingSubmission(git, passingSubmissions);
         CommitThreshold upperThreshold = new CommitThreshold(
                 ScorerHelper.getHandInDateInstant(gradingContext.netId()),
                 getHeadHash(git)
@@ -200,7 +199,8 @@ public class GitHelper {
      * @throws GradingException When certain preconditions are not met, or when this would have returned null.
      */
     @NonNull
-    private CommitThreshold getMostRecentPassingSubmission(Git git) throws IOException, GradingException {
+    private CommitThreshold getMostRecentPassingSubmission(Git git, Collection<Submission> passingSubmissions)
+            throws IOException, GradingException {
         if (passingSubmissions == null) {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
@@ -259,14 +259,14 @@ public class GitHelper {
 
     // Helpers
 
-    private void loadPassingSubmission() {
-        passingSubmissions = DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
+    private Collection<Submission> getPassingSubmissions() {
+        return DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
     private Submission getFirstPassingSubmission() {
         // CONSIDER: Rather than resolving this as a second database call,
         // read out the data from our `passingSubmissions` data that
         // we've already loaded locally.
-        // This would require performing `loadPassingSubmission()` before this method.
+        // This would require performing `getPassingSubmissions()` before this method.
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         return submissionDao.getFirstPassingSubmission(gradingContext.netId(), gradingContext.phase());
     }
