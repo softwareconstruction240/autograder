@@ -438,8 +438,14 @@ public class SubmissionController {
 
         // Determine approvedScore
         if (approvedScore == null) {
-            Float bestScoreForPhase = submissionDao.getBestScoreForPhase(studentNetId, phase);
+            float bestScoreForPhase = submissionDao.getBestScoreForPhase(studentNetId, phase);
+            if (bestScoreForPhase < 0.0f) {
+                throw new RuntimeException("Cannot determine best score for phase without any submissions in the phase.");
+            }
             approvedScore = SubmissionHelper.prepareModifiedScore(bestScoreForPhase, scoreVerification);
+        }
+        if (approvedScore <= 0.0f) {
+            throw new RuntimeException("Cannot set grade without a positive approvedScore!");
         }
 
         // Update grade-book

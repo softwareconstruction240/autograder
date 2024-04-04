@@ -38,11 +38,12 @@ public class CommitAnalytics {
      * @param upperBound The first commit in this log, inclusive
      * @return A {@link CommitsByDay} record with the results
      */
-    public static CommitsByDay countCommitsByDay(Git git, CommitThreshold lowerBound, CommitThreshold upperBound)
+    public static CommitsByDay countCommitsByDay(
+            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
             throws GitAPIException, IncorrectObjectTypeException, MissingObjectException {
 
         // Prepare data for repeated calculation
-        Iterable<RevCommit> commits = getCommitsBetweenBounds(git, lowerBound.commitHash(), upperBound.commitHash());
+        Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
         long lowerTimeBound = lowerBound.timestamp().getEpochSecond();
         long upperTimeBound = upperBound.timestamp().getEpochSecond();
 

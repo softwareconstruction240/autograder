@@ -152,7 +152,8 @@ public class SubmissionSqlDao implements SubmissionDao {
                 },
                 rs -> {
                     rs.next();
-                    return rs.getFloat("highestScore");
+                    float highestScore = rs.getFloat("highestScore");
+                    return rs.wasNull() ? -1.0f : highestScore;
                 }
         );
     }
