@@ -79,7 +79,7 @@ public class SqlReader <T> {
     }
 
     private String buildInsertStatement() {
-        String valueWildcards =  "?, ".repeat(ALL_COLUMN_NAMES.length);
+        String valueWildcards = String.join(", ", Collections.nCopies(ALL_COLUMN_NAMES.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
                 .formatted(TABLE_NAME, allColumnNamesStmt, valueWildcards);
     }
@@ -136,14 +136,15 @@ public class SqlReader <T> {
      */
     public void setValue(@NonNull PreparedStatement ps, int wildcardIndex, @Nullable Object value) throws SQLException {
         // This represents all the supported column types
-        if (value == null) ps.setNull(wildcardIndex, NULL);
-        else if (value instanceof String v) ps.setString(wildcardIndex, v);
-        else if (value instanceof Integer v) ps.setInt(wildcardIndex, v);
-        else if (value instanceof Float v) ps.setFloat(wildcardIndex, v);
-        else if (value instanceof Boolean v) ps.setBoolean(wildcardIndex, v);
-        else if (value instanceof Timestamp v) ps.setTimestamp(wildcardIndex, v);
-        else if (value instanceof Object v) ps.setObject(wildcardIndex, v);
-        else throw new RuntimeException("Unsupported type of value: " + value);
+        switch (value) {
+            case null -> ps.setNull(wildcardIndex, NULL);
+            case String v -> ps.setString(wildcardIndex, v);
+            case Integer v -> ps.setInt(wildcardIndex, v);
+            case Float v -> ps.setFloat(wildcardIndex, v);
+            case Boolean v -> ps.setBoolean(wildcardIndex, v);
+            case Timestamp v -> ps.setTimestamp(wildcardIndex, v);
+            case Object v -> ps.setObject(wildcardIndex, v);
+        }
     }
 
 
@@ -174,7 +175,7 @@ public class SqlReader <T> {
             @NonNull PreparedStatement statement,
             @NonNull ItemBuilder<T1> itemBuilder,
             @NonNull Supplier<Collection<T1>> targetCollection
-            ) throws SQLException {
+    ) throws SQLException {
         try(ResultSet resultSet = statement.executeQuery()) {
             Collection<T1> items = targetCollection.get();
             while (resultSet.next()) {
@@ -200,11 +201,12 @@ public class SqlReader <T> {
      * Prepares a statement, provides hooks to adjust any parameters, and then reads the results
      * out with the default {@link SqlReader#readItems(PreparedStatement)} method.
      * <br>
-     * It appends provided SQL fragment with {@link SqlReader#selectAllStmt(String)},
+     * It appends the provided SQL fragment with {@link SqlReader#selectAllStmt(String)},
      * and then executes the query.
      * <br>
      * This method assists in reading all the columns of the table for a given query.
-     * More specialized queries will not find this method suitable and should resort to standard measures.
+     * More specialized queries can leverage the more general
+     * {@link SqlReader#executeQuery(String, StatementPreparer, ResultSetProcessor)} method.
      *
      * @param additionalStatementClauses Additional query clauses narrowing the results.
      * @param statementPreparer A method that can modify the <code>PreparedStatement</code> before it is executed.
@@ -214,15 +216,57 @@ public class SqlReader <T> {
         @Nullable String additionalStatementClauses,
         @NonNull StatementPreparer statementPreparer
     ) {
-        String statement = selectAllStmt(additionalStatementClauses);
+        return doExecuteQuery(
+                selectAllStmt(additionalStatementClauses),
+                statementPreparer,
+                this::readItems);
+    }
+
+
+    /**
+     * A general helper method for executing a query. It:
+     * - Requests a connection
+     * - Prepares a statement,
+     * - Provides hooks to adjust any parameters, and
+     * - Returns the result of the provided query executor
+     * <br>
+     * This is a very general method responsible for handling errors and organizing resources.
+     * The fewest number of assumptions possible are made here.
+     *
+     * @param statement The full SQL statement to prepare
+     * @param statementPreparer A method that can modify the <code>PreparedStatement</code> before it is executed.
+     * @param resultSetProcessor A method that receives a {@link ResultSet} and parses out and returns the requested information.
+     * @return Any results returned by the result set processor
+     */
+    public <T1> T1 executeQuery(
+            @NonNull String statement,
+            @NonNull StatementPreparer statementPreparer,
+            @NonNull ResultSetProcessor<T1> resultSetProcessor
+    ) {
+        return doExecuteQuery(
+                statement,
+                statementPreparer,
+                ps -> {
+                    try (var resultSet = ps.executeQuery()) {
+                        return resultSetProcessor.process(resultSet);
+                    }
+                }
+        );
+    }
+
+    private <T1> T1 doExecuteQuery(
+            @NonNull String statement,
+            @NonNull StatementPreparer statementPreparer,
+            @NonNull StatementQueryExecutor<T1> queryExecutor
+    ) {
         try (
                 var connection = SqlDb.getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement);
         ) {
             statementPreparer.prepare(ps);
-            return readItems(ps);
+            return queryExecutor.executeQuery(ps);
         } catch (Exception e) {
-            throw new DataAccessException("Error executing query on table " + TABLE_NAME, e);
+            throw new DataAccessException("Error executing query", e);
         }
     }
 
@@ -280,7 +324,7 @@ public class SqlReader <T> {
      * @return A joined SQL statement ready for preparation.
      */
     public String selectAllStmt(@Nullable String additionalClauses) {
-        return selectAllColumnsStmt == null ?
+        return additionalClauses == null ?
                 selectAllColumnsStmt :
                 selectAllColumnsStmt + additionalClauses;
     }

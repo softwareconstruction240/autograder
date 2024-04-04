@@ -72,7 +72,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
         return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + "WHERE net_id = ? AND phase = ?",
+                "WHERE net_id = ? AND phase = ?",
                 ps -> {
                     ps.setString(1, netId);
                     ps.setString(2, phase.toString());
@@ -83,7 +83,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Collection<Submission> getSubmissionsForUser(String netId) {
         return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + "WHERE net_id = ?",
+                "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
     }
 
@@ -95,7 +95,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
         return sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + """
+                """
                     WHERE timestamp IN (
                         SELECT MAX(timestamp)
                         FROM %s
@@ -125,7 +125,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     @Override
     public Submission getFirstPassingSubmission(String netId, Phase phase) {
         var submissions = sqlReader.executeQuery(
-                sqlReader.selectAllStmt() + """
+                """
                         WHERE net_id = ? AND phase = ? AND passed = 1
                         ORDER BY timestamp
                         LIMIT 1
@@ -140,22 +140,21 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public float getBestScoreForPhase(String netId, Phase phase) {
-        try (var connection = SqlDb.getConnection();
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                            SELECT max(score) as highestScore
-                            FROM %s
-                            WHERE net_id = ? AND phase = ?
-                            """.formatted(sqlReader.getTableName()))) {
-            statement.setString(1, netId);
-            statement.setString(2, phase.toString());
-            try(ResultSet rows = statement.executeQuery()) {
-                rows.next();
-                return rows.getFloat("highestScore");
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error getting highest score", e);
-        }
+        return sqlReader.executeQuery(
+                """
+                    SELECT max(score) as highestScore
+                    FROM %s
+                    WHERE net_id = ? AND phase = ?
+                    """.formatted(sqlReader.getTableName()),
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setString(2, phase.toString());
+                },
+                rs -> {
+                    rs.next();
+                    return rs.getFloat("highestScore");
+                }
+        );
     }
 
     @Override
