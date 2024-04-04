@@ -57,8 +57,8 @@ public class SubmissionHelper {
         );
     }
 
-    public static Float prepareModifiedScore(Float originalScore, Submission.ScoreVerification scoreVerification) {
-        return scoreVerification.originalScore() * (1 - scoreVerification.penaltyPct()) / 100f;
+    public static Float prepareModifiedScore(float originalScore, Submission.ScoreVerification scoreVerification) {
+        return originalScore * (1 - scoreVerification.penaltyPct()) / 100f;
     }
     private static Float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
         return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification);
