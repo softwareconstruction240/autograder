@@ -193,8 +193,10 @@ public class GitHelper {
      * <br>
      * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
      * If there are no previous passing submissions, this returns the minimum Instant instead.
+     * <br>
+     * Submissions on non-graded phases do not count towards the `CommitThreshold`.
      *
-     * @return An {@link CommitThreshold}. Returns an empty object rather than null when no result exist.
+     * @return An {@link CommitThreshold}. Returns an empty object rather than null when no result exists.
      * @throws GradingException When certain preconditions are not met, or when this would have returned null.
      */
     @NonNull
@@ -214,6 +216,8 @@ public class GitHelper {
         Instant effectiveSubmissionTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
             for (Submission submission : passingSubmissions) {
+                if (!PhaseUtils.isPhaseGraded(submission.phase())) continue;
+
                 effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
                 if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
