@@ -6,6 +6,7 @@ import java.time.Instant;
 
 public record CommitVerificationResult(
         @NonNull boolean verified,
+        boolean isCachedResponse,
         int numCommits,
         int numDays,
         @NonNull String failureMessage,

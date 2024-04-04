@@ -73,7 +73,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification");
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
-                true,
+                true, false,
                 0, 0, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
@@ -119,7 +119,7 @@ public class GitHelper {
                 "You have previously failed commit verification.\n"+
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
-                verified,
+                verified, false,
                 0, 0, message,
                 null, null,
                 firstPassingSubmission.headHash(), null
@@ -174,6 +174,7 @@ public class GitHelper {
 
         return new CommitVerificationResult(
                 errorMessages.isEmpty(),
+                false,
                 numCommits,
                 daysWithCommits,
                 String.join("\n", errorMessages),

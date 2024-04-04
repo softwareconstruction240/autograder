@@ -38,11 +38,11 @@ class ScorerTest {
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
 
     private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION = new CommitVerificationResult(
-            true, 0, 0,
+            true, false, 0, 0,
             "", null, null,
             "<PASSING_COMMIT_VERIFICATION>", null);
     private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION = new CommitVerificationResult(
-            false, 0, 0,
+            false, false, 0, 0,
             "Failing verification", null, null,
             "<FAILING_COMMIT_VERIFICATION>", null);
 
