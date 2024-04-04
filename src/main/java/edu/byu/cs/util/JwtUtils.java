@@ -17,7 +17,16 @@ public class JwtUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
+    /**
+     * Generates a JWT token for a given netId
+     *
+     * @param netId the netId to generate a token for
+     * @return the generated token, or null if the netId is null
+     */
     public static String generateToken(String netId) {
+        if (netId == null) {
+            return null;
+        }
         return Jwts.builder()
                 .subject(netId)
                 .expiration(Date.from(Instant.now().plus(4, ChronoUnit.HOURS))) // expires 4 hours from now
