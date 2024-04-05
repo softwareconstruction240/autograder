@@ -62,6 +62,7 @@ public class CanvasUtils {
                 convertedPassoffTests,
                 convertedUnitTests,
                 convertedQuality,
+                null,
                 rubric.passed(),
                 rubric.notes());
     }
@@ -86,6 +87,8 @@ public class CanvasUtils {
                 Rubric.RubricType.UNIT_TESTS).items());
         items.putAll(convertToCanvasFormat(rubric.quality(), lateAdjustment, phase, config.quality(),
                 Rubric.RubricType.QUALITY).items());
+        items.putAll(convertToCanvasFormat(rubric.gitCommits(), lateAdjustment, phase, config.gitCommits(),
+                Rubric.RubricType.GIT_COMMITS).items());
         return new CanvasIntegration.RubricAssessment(items);
     }
 

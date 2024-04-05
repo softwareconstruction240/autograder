@@ -143,27 +143,37 @@ public class PhaseUtils {
 
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1 -> switch (type) {
+            case Phase0 -> switch (type) {
                 case PASSOFF_TESTS -> "_1958";
+                case GIT_COMMITS -> "90342_649";
+                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Phase1 -> switch (type) {
+                case PASSOFF_TESTS -> "_1958";
+                case GIT_COMMITS -> "90342_7800";
                 case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
             case Phase3 -> switch (type) {
                 case PASSOFF_TESTS -> "_5202";
                 case UNIT_TESTS -> "90344_776";
                 case QUALITY -> "_3003";
+                case GIT_COMMITS -> throw new GradingException(String.format("No %s item for this phase", type));
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
                 case UNIT_TESTS -> "_930";
+                case GIT_COMMITS -> "90346_6985";
                 case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
             case Phase5 -> switch (type) {
                 case UNIT_TESTS -> "_8849";
+                case GIT_COMMITS -> "90347_6127";
                 case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";
                 case QUALITY -> "90348_3792";
+                case GIT_COMMITS -> "90348_9048";
                 case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
             };
             case Quality -> throw new GradingException("Not graded");

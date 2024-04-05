@@ -8,6 +8,7 @@ import edu.byu.cs.autograder.test.TestAnalyzer;
  * @param passoffTests
  * @param unitTests
  * @param quality
+ * @param gitCommits
  * @param passed
  * @param notes
  */
@@ -15,6 +16,7 @@ public record Rubric(
         RubricItem passoffTests,
         RubricItem unitTests,
         RubricItem quality,
+        RubricItem gitCommits,
         boolean passed,
         String notes
 ) {
@@ -53,6 +55,7 @@ public record Rubric(
     public enum RubricType {
         PASSOFF_TESTS,
         UNIT_TESTS,
-        QUALITY
+        QUALITY,
+        GIT_COMMITS
     }
 }

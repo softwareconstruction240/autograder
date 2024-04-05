@@ -5,7 +5,8 @@ public record RubricConfig(
         Phase phase,
         RubricConfigItem passoffTests,
         RubricConfigItem unitTests,
-        RubricConfigItem quality
+        RubricConfigItem quality,
+        RubricConfigItem gitCommits
 ) {
     public record RubricConfigItem(
             String category,

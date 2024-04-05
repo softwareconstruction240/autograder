@@ -20,12 +20,14 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         RubricConfig.RubricConfigItem passoffTests = getRubricItem(phase, Rubric.RubricType.PASSOFF_TESTS);
         RubricConfig.RubricConfigItem unitTests = getRubricItem(phase, Rubric.RubricType.UNIT_TESTS);
         RubricConfig.RubricConfigItem quality = getRubricItem(phase, Rubric.RubricType.QUALITY);
+        RubricConfig.RubricConfigItem gitCommits = getRubricItem(phase, Rubric.RubricType.GIT_COMMITS);
 
         return new RubricConfig(
                 phase,
                 passoffTests,
                 unitTests,
-                quality
+                quality,
+                gitCommits
         );
     }
 

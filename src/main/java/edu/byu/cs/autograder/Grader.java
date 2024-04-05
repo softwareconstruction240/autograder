@@ -98,7 +98,7 @@ public class Grader implements Runnable {
             if (customTestsResults != null)
                 customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
 
-            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
+            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem,null, false, "");
 
             Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
 

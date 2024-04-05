@@ -87,6 +87,7 @@ public class Scorer {
                 rubric.passoffTests(),
                 rubric.unitTests(),
                 rubric.quality(),
+                null,
                 passed(rubric),
                 rubric.notes()
         );

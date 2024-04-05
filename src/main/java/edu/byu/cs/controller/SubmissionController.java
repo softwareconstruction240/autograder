@@ -258,7 +258,7 @@ public class SubmissionController {
             penalty = 10;
         }
 
-        approveSubmission(request.netId(), request.phase(), adminUser.netId(), null, penalty);
+        approveSubmission(request.netId(), request.phase(), adminUser.netId(), null, null, penalty);
         return "{}";
     };
 
@@ -410,6 +410,7 @@ public class SubmissionController {
             @Nullable Float approvedScore,
             Integer penaltyPct
     ) {
+        // TODO: keep it from changing the score of already approved submissions, as a guard in case something calls this again
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
@@ -420,6 +421,9 @@ public class SubmissionController {
         if (penaltyPct < 0 || (approvedScore != null && approvedScore < 0)) {
             throw new IllegalArgumentException("Both penaltyPct and approvedScore must be greater or equal than 0");
         }
+
+
+
 
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
@@ -444,17 +448,40 @@ public class SubmissionController {
             if (submissionToUse == null) {
                 throw new RuntimeException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
             }
-            approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), scoreVerification);
         }
+        if (approvedScore == null) {
+            approvedScore = submissionToUse.score() * (1 - (penaltyPct / 100));
+        }
+        //approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), scoreVerification);
 
+        //TODO: Make it send the actual score with git and late penalty
         // Update grade-book
-        // TODO: Apply penalty
+        float scoreDifference = originalScore - approvedScore;
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        Rubric oldRubric = submissionToUse.rubric();
+        Rubric rubicToUse = new Rubric(
+                oldRubric.passoffTests(),
+                oldRubric.unitTests(),
+                oldRubric.quality(),
+                new Rubric.RubricItem(
+                        "Git Commits",
+                        new Rubric.Results(
+                            null,
+                            scoreDifference,
+                            0,
+                            null,
+                            null),
+                        "Regularly commit to your Github"),
+                submissionToUse.passed(),
+                "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId);
+
+
         int canvasUserId = DaoService.getUserDao().getUser(studentNetId).canvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
-        try {
-            CanvasIntegration.RubricAssessment assessment = CanvasUtils.convertToAssessment(submissionToUse.rubric(), rubricConfig, 0, phase);
+        // TODO: get assessment to hold git commit penalty
+        try { // TODO: calc late adjustment
+            CanvasIntegration.RubricAssessment assessment = CanvasUtils.convertToAssessment(rubicToUse, rubricConfig, 0, phase);
             CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
         } catch (GradingException e) {
             throw new RuntimeException("Error generating rubric assessment");

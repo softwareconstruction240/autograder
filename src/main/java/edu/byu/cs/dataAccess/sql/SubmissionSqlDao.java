@@ -36,7 +36,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                     s -> s.verification() == null ? null : new Gson().toJson(s.verification()))
     };
     private static Submission readSubmission(ResultSet rs) throws SQLException {
-        var gson = new Gson();
+        Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new Submission.InstantAdapter()).create();
 
         String netId = rs.getString("net_id");
         String repoUrl = rs.getString("repo_url");
@@ -143,19 +143,13 @@ public class SubmissionSqlDao implements SubmissionDao {
     public Submission getBestSubmissionForPhase(String netId, Phase phase) {
         var submissions = sqlReader.executeQuery(
                 """
-                    SELECT *
-                    FROM %s
-                    WHERE score = (
-                        SELECT MAX(score)
-                        FROM %s
-                        WHERE net_id = ? AND phase = ?
-                    ) AND net_id = ? AND phase = ?;
-                    """.formatted(sqlReader.getTableName(), sqlReader.getTableName()),
+                    WHERE net_id = ? AND phase = ? AND passed = 1
+                        ORDER BY score
+                        LIMIT 1
+                    """,
                 ps -> {
                     ps.setString(1, netId);
                     ps.setString(2, phase.toString());
-                    ps.setString(3, netId);
-                    ps.setString(4, phase.toString());
                 }
         );
         return sqlReader.expectOneItem(submissions);
