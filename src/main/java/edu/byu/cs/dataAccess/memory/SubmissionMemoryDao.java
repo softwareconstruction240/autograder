@@ -89,4 +89,9 @@ public class SubmissionMemoryDao implements SubmissionDao {
         }
         return bestScore;
     }
+
+    @Override
+    public void clear() {
+        submissions.clear();
+    }
 }

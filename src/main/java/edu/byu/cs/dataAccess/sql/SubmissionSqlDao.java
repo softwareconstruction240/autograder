@@ -143,4 +143,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         );
     }
 
+    @Override
+    public void clear() {
+        sqlReader.executeUpdate("TRUNCATE TABLE %s".formatted(sqlReader.getTableName()));
+    }
 }

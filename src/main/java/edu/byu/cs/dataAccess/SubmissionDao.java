@@ -64,4 +64,11 @@ public interface SubmissionDao {
     Submission getFirstPassingSubmission(String netId, Phase phase);
 
     float getBestScoreForPhase(String netId, Phase phase);
+
+    /**
+     * <p>Clears the entire DAO of data.</p>
+     * <p><b>Method only to be used for internal testing.</b></p>
+     * <p>Should not be exposed outside of this class.</p>
+     */
+    void clear();
 }

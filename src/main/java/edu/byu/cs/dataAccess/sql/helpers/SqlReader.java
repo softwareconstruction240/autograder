@@ -272,6 +272,18 @@ public class SqlReader <T> {
 
     /**
      * Finishes preparing a statement and then executes it as an update.
+     * Helpful for cases without any wildcards to replace.
+     * <br>
+     * @see SqlReader#executeUpdate(String, StatementPreparer) for the more capable overload.
+     *
+     * @param statement The full SQL query to execute.
+     */
+    public void executeUpdate(@NonNull String statement) {
+        executeUpdate(statement, null);
+    }
+
+    /**
+     * Finishes preparing a statement and then executes it as an update.
      * <br>
      * Note that <i>unlike</i> the convenient {@link SqlReader#executeQuery(String)}
      * method which automatically prepends the clause with the table name and SQL query type,
