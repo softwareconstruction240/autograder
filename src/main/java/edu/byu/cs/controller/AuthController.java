@@ -28,6 +28,7 @@ public class AuthController {
         }
         String netId = validateToken(token);
 
+        // token is expired or invalid
         if (netId == null) {
             halt(401);
             return;
@@ -37,7 +38,8 @@ public class AuthController {
         User user = userDao.getUser(netId);
 
         if (user == null) {
-            halt(403, "You must register first.");
+            LOGGER.error("Received request from unregistered user. This shouldn't be possible: " + netId);
+            halt(400, "You must register first.");
             return;
         }
 
