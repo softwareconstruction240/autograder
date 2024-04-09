@@ -57,7 +57,10 @@ After installing `Node`, run the following to enable `yarn` globally:
 corepack enable
 ```
 
-(`sudo` may be required)
+
+note: `sudo` may be required
+
+(see [installing `yarn`](https://yarnpkg.com/getting-started/install))
 
 #### Backend
 
