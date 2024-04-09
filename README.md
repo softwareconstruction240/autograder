@@ -57,7 +57,10 @@ After installing `Node`, run the following to enable `yarn` globally:
 corepack enable
 ```
 
-(`sudo` may be required)
+
+note: `sudo` may be required
+
+(see [installing `yarn`](https://yarnpkg.com/getting-started/install))
 
 #### Backend
 
@@ -71,7 +74,7 @@ Go fish🐟 These instructions are not included in this file.
 
 You can run the database inside a Docker container, or locally with your own MySQL server.
 
-##### Docker
+##### Docker MySQL Server
 
 Run the following in the root of the project to start the db container:
 
@@ -79,7 +82,7 @@ Run the following in the root of the project to start the db container:
 docker compose up db -d
 ```
 
-##### MySQL
+##### Manual MySQL Server
 
 Go fish🐟 These instructions are not included in this file.
 

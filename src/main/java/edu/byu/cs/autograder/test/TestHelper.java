@@ -31,17 +31,12 @@ public class TestHelper {
      */
     private static final String junitJupiterApiJarPath;
 
-    /**
-     * The path to the passoff dependencies jar
-     */
-    private static final String passoffDependenciesPath;
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
         try {
             standaloneJunitJarPath = new File(libsPath.toFile(), "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
             junitJupiterApiJarPath = new File(libsPath.toFile(), "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
-            passoffDependenciesPath = new File(libsPath.toFile(), "passoff-dependencies.jar").getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -115,7 +110,7 @@ public class TestHelper {
         commands.add("-d");
         commands.add(stagePath + "/tests");
         commands.add("-cp");
-        commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath);
         return commands;
     }
 
@@ -162,7 +157,7 @@ public class TestHelper {
         commands.add(standaloneJunitJarPath);
         commands.add("execute");
         commands.add("--class-path");
-        commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath);
         commands.add("--details=testfeed");
 
         for (String packageToTest : packagesToTest) {
