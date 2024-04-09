@@ -5,10 +5,7 @@ import edu.byu.cs.dataAccess.sql.SqlDb;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -104,7 +101,7 @@ public class SqlReader <T> {
      */
     public void insertItem(@NonNull T item) {
         // CONSIDER: We could prepare the statement a single time, and avoid rebuilding it.
-        try (var connection = SqlDb.getConnection();
+        try (var connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertStatement)
         ) {
             int colIndex;
@@ -260,7 +257,7 @@ public class SqlReader <T> {
             @NonNull StatementQueryExecutor<T1> queryExecutor
     ) {
         try (
-                var connection = SqlDb.getConnection();
+                var connection = getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement);
         ) {
             statementPreparer.prepare(ps);
@@ -285,7 +282,7 @@ public class SqlReader <T> {
             @Nullable StatementPreparer statementPreparer
     ) {
         try (
-                var connection = SqlDb.getConnection();
+                var connection = getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement)
         ) {
             if (statementPreparer != null) statementPreparer.prepare(ps);
@@ -293,6 +290,19 @@ public class SqlReader <T> {
         } catch (Exception e) {
             throw new DataAccessException("Error executing update", e);
         }
+    }
+
+    /**
+     * A helper method returning a connection to the database.
+     * This should be closed after use.
+     * <br>
+     * In the future, this would be the ideal place to change
+     * the source of connections, should the need arise.
+     *
+     * @return A database connection.
+     */
+    private Connection getConnection() {
+        return SqlDb.getConnection();
     }
 
     /**
@@ -306,7 +316,6 @@ public class SqlReader <T> {
     public T expectOneItem(@NonNull Collection<T> items) {
         return items.isEmpty() ? null : items.iterator().next();
     }
-
 
     /**
      * Represents a convenient beginning of most queries.
