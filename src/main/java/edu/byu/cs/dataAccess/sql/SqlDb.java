@@ -103,7 +103,7 @@ public class SqlDb {
         }
     }
 
-    static Connection getConnection() {
+    public static Connection getConnection() {
         try {
             Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
             connection.setCatalog(DB_NAME);
