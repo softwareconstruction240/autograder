@@ -30,6 +30,7 @@ public class AuthController {
 
         // token is expired or invalid
         if (netId == null) {
+            res.cookie("/", "token", "", 0, false, false);
             halt(401);
             return;
         }
