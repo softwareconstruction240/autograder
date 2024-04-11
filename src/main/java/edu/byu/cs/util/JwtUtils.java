@@ -49,7 +49,6 @@ public class JwtUtils {
                     .getPayload()
                     .getSubject();
         } catch (Exception e) {
-            LOGGER.error("Error validating JWT", e);
             return null;
         }
     }
