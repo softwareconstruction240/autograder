@@ -329,6 +329,7 @@ public class SubmissionController {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
             if (output.statusCode() != 0) {
+                LOGGER.error("git ls-remote exited with non-zero exit code\n" + output.stdErr());
                 throw new RuntimeException("exited with non-zero exit code");
             }
             return output.stdOut().split("\\s+")[0];
