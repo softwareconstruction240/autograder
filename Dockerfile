@@ -34,7 +34,7 @@ RUN mvn clean package -DskipTests
 FROM maven:3.9.6-amazoncorretto-21-debian-bookworm AS runner
 
 RUN apt-get update && \
-    apt-get install -y git && \
+    apt-get install -y git
 
 COPY --from=builder /app/target/automatico-1.0-SNAPSHOT.jar /app/target/
 
