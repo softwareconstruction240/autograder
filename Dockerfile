@@ -11,24 +11,24 @@ RUN apt-get update && \
    npm install -g yarn
 
 ### install frontend dependencies
-COPY ./src/main/resources/frontend/package.json ./src/main/resources/frontend/yarn.lock /app/src/main/resources/frontend/
+COPY ./src/main/resources/frontend/package.json ./src/main/resources/frontend/yarn.lock ./src/main/resources/frontend/
 
 RUN cd src/main/resources/frontend && \
    yarn
 
 ### install backend dependencies
-COPY ./pom.xml /app
+COPY ./pom.xml .
 
 RUN mvn dependency:go-offline
 
 ### build frontend
-COPY ./src/main/resources/frontend /app/src/main/resources/frontend
+COPY ./src/main/resources/frontend ./src/main/resources/frontend
 
 RUN cd src/main/resources/frontend && \
    yarn build
 
 ### build backend
-COPY . /app
+COPY ./src .
 
 RUN mvn clean package -DskipTests
 
