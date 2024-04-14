@@ -169,6 +169,14 @@ To generate a Canvas API key:
 6. Copy the generated access token
 7. Use it as the value of the `--canvas-token` program argument above
 
+#### Environment Variables
+If you are running Loki locally (not required), then you must set the following environment variable:
+```
+LOKI_URL=
+```
+
+The value can be either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to develop the app).
+
 #### Running Locally
 
 The frontend can be easily deployed by navigating to the correct directory, and calling an init script.
