@@ -1,0 +1,32 @@
+name: Integration Tests
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  failsafe-tests:
+    name: "Run integration tests with Maven"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/*.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+
+      - name: Run Integration Tests
+        run: mvn failsafe:integration-test
