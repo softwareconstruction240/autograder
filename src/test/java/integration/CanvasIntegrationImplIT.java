@@ -10,10 +10,7 @@ import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
 import edu.byu.cs.dataAccess.memory.UserMemoryDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.Properties;
 
@@ -36,6 +33,7 @@ public class CanvasIntegrationImplIT {
 
     @Test
     @DisplayName("Test Student can be retrieved")
+    @Order(1)
     public void getTestStudent() {
         CanvasIntegration canvasIntegration = new CanvasIntegrationImpl();
         User testStudent = null;
@@ -48,6 +46,33 @@ public class CanvasIntegrationImplIT {
         assertNotNull(testStudent, "Test student should not be null");
         assertNotEquals(0, testStudent.canvasUserId(), "Test student canvas id should not be null");
 
+    }
+
+    @Test
+    @DisplayName("Test Student repo can be retrieved")
+    @Order(2)
+    public void getTestStudentRepo() {
+        CanvasIntegration canvasIntegration = new CanvasIntegrationImpl();
+
+        User testStudent = null;
+        try {
+            testStudent = canvasIntegration.getTestStudent();
+        } catch (CanvasException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+        assertNotNull(testStudent, "Test student should not be null");
+
+
+        String testStudentRepo = null;
+        try {
+            testStudentRepo = canvasIntegration.getGitRepo(testStudent.canvasUserId());
+        } catch (CanvasException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+
+        assertNotNull(testStudentRepo, "Test student repo should not be null. Has it been set in Canvas");
+        assertNotEquals("", testStudentRepo, "Test student repo should not be empty");
+        assertTrue(testStudentRepo.contains("github.com"), "Test student repo is not a github url");
     }
 
     private static void loadApplicationProperties() {
