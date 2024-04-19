@@ -193,7 +193,12 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <includes>**/*IT.java</includes>
+                <includes>
+                    <include>**/*IT.java</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
                 </configuration>
                 <executions>
                     <execution>
