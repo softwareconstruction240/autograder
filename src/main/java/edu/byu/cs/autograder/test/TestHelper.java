@@ -31,17 +31,12 @@ public class TestHelper {
      */
     private static final String junitJupiterApiJarPath;
 
-    /**
-     * The path to the passoff dependencies jar
-     */
-    private static final String passoffDependenciesPath;
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
         try {
             standaloneJunitJarPath = new File(libsPath.toFile(), "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
             junitJupiterApiJarPath = new File(libsPath.toFile(), "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
-            passoffDependenciesPath = new File(libsPath.toFile(), "passoff-dependencies.jar").getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -76,14 +71,10 @@ public class TestHelper {
             String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
             /* Compile files */
-            String chessJarWithDeps;
-            chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-jar-with-dependencies.jar")
+            String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
                     .getCanonicalPath();
 
-            String sharedJarWithDeps = new File(stageRepoPath, "/shared/target/shared-jar-with-dependencies.jar")
-                    .getCanonicalPath();
-
-            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps + ":" + sharedJarWithDeps);
+            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
 
             ProcessBuilder compileProcessBuilder =
                     new ProcessBuilder()
@@ -119,7 +110,7 @@ public class TestHelper {
         commands.add("-d");
         commands.add(stagePath + "/tests");
         commands.add("-cp");
-        commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add(".:" + chessJarWithDeps + ":" + standaloneJunitJarPath + ":" + junitJupiterApiJarPath);
         return commands;
     }
 
@@ -166,7 +157,7 @@ public class TestHelper {
         commands.add(standaloneJunitJarPath);
         commands.add("execute");
         commands.add("--class-path");
-        commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath + ":" + passoffDependenciesPath);
+        commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath);
         commands.add("--details=testfeed");
 
         for (String packageToTest : packagesToTest) {

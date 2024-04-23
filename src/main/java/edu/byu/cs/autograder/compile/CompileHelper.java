@@ -6,45 +6,22 @@ import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 public class CompileHelper {
     private final GradingContext gradingContext;
 
     public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
 
+    private final Collection<StudentCodeModifier> currentModifiers =
+            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier());
+
     public void compile() throws GradingException {
-        verifyProjectStructure();
-        modifyPoms();
-        packageRepo();
-    }
-
-    /**
-     * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
-     * which is checked by looking for a pom.xml file
-     */
-    private void verifyProjectStructure() throws GradingException {
-        File pomFile = new File(gradingContext.stageRepo(), "pom.xml");
-        if (!pomFile.exists()) {
-            gradingContext.observer().notifyError("Project is not structured correctly. Your project should be at the top level of your git repository.");
-            throw new GradingException("No pom.xml file found");
+        for(StudentCodeModifier modifier : currentModifiers) {
+            modifier.modifyCode(gradingContext);
         }
-    }
-
-    private void modifyPoms() {
-        File oldRootPom = new File(gradingContext.stageRepo(), "pom.xml");
-        File oldServerPom = new File(gradingContext.stageRepo(), "server/pom.xml");
-        File oldClientPom = new File(gradingContext.stageRepo(), "client/pom.xml");
-        File oldSharedPom = new File(gradingContext.stageRepo(), "shared/pom.xml");
-
-        File newRootPom = new File(gradingContext.phasesPath(), "pom/pom.xml");
-        File newServerPom = new File(gradingContext.phasesPath(), "pom/server/pom.xml");
-        File newClientPom = new File(gradingContext.phasesPath(), "pom/client/pom.xml");
-        File newSharedPom = new File(gradingContext.phasesPath(), "pom/shared/pom.xml");
-
-        FileUtils.copyFile(oldRootPom, newRootPom);
-        FileUtils.copyFile(oldServerPom, newServerPom);
-        FileUtils.copyFile(oldClientPom, newClientPom);
-        FileUtils.copyFile(oldSharedPom, newSharedPom);
+        packageRepo();
     }
 
 

@@ -61,6 +61,7 @@ public class SqlDb {
                                 `verification` JSON,
                                 `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
+                                INDEX sort_index (timestamp),
                                 CONSTRAINT `net_id`
                                     FOREIGN KEY (`net_id`)
                                     REFERENCES `user` (`net_id`)
