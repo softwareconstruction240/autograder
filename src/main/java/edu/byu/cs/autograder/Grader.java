@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -64,37 +66,12 @@ public class Grader implements Runnable {
             compileHelper.compile();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            Rubric.Results qualityResults = null;
-            if(rubricConfig.quality() != null) {
-                qualityResults = new QualityGrader(gradingContext).runQualityChecks();
-            }
-
-            Rubric.Results passoffResults = null;
-            if(rubricConfig.passoffTests() != null) {
-                passoffResults = new PassoffTestGrader(gradingContext).runTests();
-            }
-            Rubric.Results customTestsResults = null;
-            if(rubricConfig.unitTests() != null) {
-                customTestsResults = new UnitTestGrader(gradingContext).runTests();
-            }
-
-            Rubric.RubricItem qualityItem = null;
-            Rubric.RubricItem passoffItem = null;
-            Rubric.RubricItem customTestsItem = null;
-
-            if (qualityResults != null)
-                qualityItem = new Rubric.RubricItem(rubricConfig.quality().category(), qualityResults, rubricConfig.quality().criteria());
-            if (passoffResults != null)
-                passoffItem = new Rubric.RubricItem(rubricConfig.passoffTests().category(), passoffResults, rubricConfig.passoffTests().criteria());
-            if (customTestsResults != null)
-                customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
-
-            Rubric rubric = new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
+            var evaluationResults = evaluateProject(rubricConfig);
+            Rubric rubric = assembleResultsToRubric(rubricConfig, evaluationResults);
 
             Submission submission = new Scorer(gradingContext).score(rubric, numCommits);
 
             observer.notifyDone(submission);
-
         } catch (GradingException ge) {
             if(ge.getDetails() == null) observer.notifyError(ge.getMessage());
             else observer.notifyError(ge.getMessage(), ge.getDetails());
@@ -102,14 +79,49 @@ public class Grader implements Runnable {
                     "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
             if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
             LOGGER.error(notification, ge);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             observer.notifyError(e.getMessage());
             LOGGER.error("Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
         } finally {
             dbHelper.cleanUp();
             FileUtils.removeDirectory(new File(gradingContext.stagePath()));
         }
+    }
+
+    private Map<String, Rubric.Results> evaluateProject(RubricConfig rubricConfig) throws GradingException {
+        // NOTE: Ideally these would be treated with enum types. That will need to be improved with #300.
+        Map<String, Rubric.Results> out = new HashMap<>();
+
+        if(rubricConfig.quality() != null) {
+            out.put("quality", new QualityGrader(gradingContext).runQualityChecks());
+        }
+        if(rubricConfig.passoffTests() != null) {
+            out.put("passoff", new PassoffTestGrader(gradingContext).runTests());
+        }
+        if(rubricConfig.unitTests() != null) {
+            out.put("customTests", new UnitTestGrader(gradingContext).runTests());
+        }
+
+        return out;
+    }
+
+    private Rubric assembleResultsToRubric(RubricConfig rubricConfig, Map<String, Rubric.Results> evaluatedResults) {
+        Rubric.Results qualityResults = evaluatedResults.get("quality");
+        Rubric.Results passoffResults = evaluatedResults.get("passoff");
+        Rubric.Results customTestsResults = evaluatedResults.get("customTests");
+
+        Rubric.RubricItem qualityItem = null;
+        Rubric.RubricItem passoffItem = null;
+        Rubric.RubricItem customTestsItem = null;
+
+        if (qualityResults != null)
+            qualityItem = new Rubric.RubricItem(rubricConfig.quality().category(), qualityResults, rubricConfig.quality().criteria());
+        if (passoffResults != null)
+            passoffItem = new Rubric.RubricItem(rubricConfig.passoffTests().category(), passoffResults, rubricConfig.passoffTests().criteria());
+        if (customTestsResults != null)
+            customTestsItem = new Rubric.RubricItem(rubricConfig.unitTests().category(), customTestsResults, rubricConfig.unitTests().criteria());
+
+        return new Rubric(passoffItem, customTestsItem, qualityItem, false, "");
     }
 
 
