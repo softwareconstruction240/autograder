@@ -95,9 +95,9 @@ public class SqlDb {
             try (Statement createConfigurationTableStatement = connection.createStatement()) {
                 createConfigurationTableStatement.executeUpdate("""
                         CREATE TABLE IF NOT EXISTS `configuration` (
-                                `key` VARCHAR(50) NOT NULL,
+                                `config_key` VARCHAR(50) NOT NULL,
                                 `value` TEXT NOT NULL,
-                                PRIMARY KEY (`key`)
+                                PRIMARY KEY (`config_key`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }

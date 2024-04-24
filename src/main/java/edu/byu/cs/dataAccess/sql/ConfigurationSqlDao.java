@@ -7,7 +7,7 @@ public class ConfigurationSqlDao implements ConfigurationDao {
     @Override
     public <T> void setConfiguration(Configuration key, T value, Class<T> type) {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement("INSERT INTO configuration (key, value) VALUES (?, ?)");
+            var statement = connection.prepareStatement("INSERT INTO configuration (config_key, value) VALUES (?, ?)");
             statement.setString(1, key.toString());
             statement.setString(2, value.toString());
             statement.executeUpdate();
@@ -19,7 +19,7 @@ public class ConfigurationSqlDao implements ConfigurationDao {
     @Override
     public <T> T getConfiguration(Configuration key, Class<T> type) {
         try (var connection = SqlDb.getConnection();
-             var statement = connection.prepareStatement("SELECT value FROM configuration WHERE key = ?")) {
+             var statement = connection.prepareStatement("SELECT value FROM configuration WHERE config_key = ?")) {
             statement.setString(1, key.toString());
             var rs = statement.executeQuery();
             if (rs.next()) {
