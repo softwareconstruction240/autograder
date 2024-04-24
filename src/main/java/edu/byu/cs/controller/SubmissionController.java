@@ -8,10 +8,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.GradeRequest;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.QueueDao;
-import edu.byu.cs.dataAccess.SubmissionDao;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
@@ -37,6 +34,14 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
+        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
+        if (submissionsEnabled == null) return null;
+
+        if (!submissionsEnabled) {
+            halt(400, "Student submission is disabled");
+            return null;
+        }
+
         updateRepoFromCanvas(user, req);
 
         if (! verifyHasNewCommits(user, request.getPhase()) ) { return null; }
@@ -48,6 +53,20 @@ public class SubmissionController {
         res.status(200);
         return "";
     };
+
+    private static Boolean getSubmissionsEnabledConfig() {
+        boolean submissionsEnabled;
+        try {
+            submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
+                    ConfigurationDao.Configuration.STUDENT_SUBMISSION_ENABLED,
+                    Boolean.class);
+        } catch (Exception e) {
+            LOGGER.error("Error getting configuration", e);
+            halt(500, "Error getting configuration");
+            return null;
+        }
+        return submissionsEnabled;
+    }
 
     public static final Route adminRepoSubmitPost = (req, res) -> {
 

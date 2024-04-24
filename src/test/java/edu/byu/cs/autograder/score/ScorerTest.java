@@ -8,10 +8,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.memory.QueueMemoryDao;
-import edu.byu.cs.dataAccess.memory.RubricConfigMemoryDao;
-import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
-import edu.byu.cs.dataAccess.memory.UserMemoryDao;
+import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.junit.jupiter.api.BeforeAll;
@@ -62,6 +59,7 @@ class ScorerTest {
         DaoService.setUserDao(new UserMemoryDao());
         DaoService.setQueueDao(new QueueMemoryDao());
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
+        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
