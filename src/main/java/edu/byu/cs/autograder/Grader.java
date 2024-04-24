@@ -58,15 +58,16 @@ public class Grader implements Runnable {
 
     public void run() {
         observer.notifyStarted();
+        boolean RUN_COMPILATION = true; // TODO: Put in a more dynamic location.
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
             int numCommits = gitHelper.setUp();
             dbHelper.setUp();
-            compileHelper.compile();
+            if (RUN_COMPILATION) compileHelper.compile();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            var evaluationResults = evaluateProject(rubricConfig);
+            var evaluationResults = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
             Rubric rubric = assembleResultsToRubric(rubricConfig, evaluationResults);
 
             Submission submission = new Scorer(gradingContext).score(rubric, numCommits);
@@ -91,6 +92,9 @@ public class Grader implements Runnable {
     private Map<String, Rubric.Results> evaluateProject(RubricConfig rubricConfig) throws GradingException {
         // NOTE: Ideally these would be treated with enum types. That will need to be improved with #300.
         Map<String, Rubric.Results> out = new HashMap<>();
+        if (rubricConfig == null) {
+            return out;
+        }
 
         if(rubricConfig.quality() != null) {
             out.put("quality", new QualityGrader(gradingContext).runQualityChecks());
