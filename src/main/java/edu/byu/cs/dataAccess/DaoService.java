@@ -8,6 +8,7 @@ public class DaoService {
     private static SubmissionDao submissionDao = new SubmissionSqlDao();
     private static QueueDao queueDao = new QueueSqlDao();
     private static RubricConfigDao rubricConfigDao = new RubricConfigSqlDao();
+    private static ConfigurationDao configurationDao = new ConfigurationSqlDao();
 
     public static UserDao getUserDao() {
         return userDao;
@@ -25,6 +26,10 @@ public class DaoService {
         return rubricConfigDao;
     }
 
+    public static ConfigurationDao getConfigurationDao() {
+        return configurationDao;
+    }
+
     public static void setUserDao(UserDao userDao) {
         DaoService.userDao = userDao;
     }
@@ -39,5 +44,9 @@ public class DaoService {
 
     public static void setRubricConfigDao(RubricConfigDao rubricConfigDao) {
         DaoService.rubricConfigDao = rubricConfigDao;
+    }
+
+    public static void setConfigurationDao(ConfigurationDao configurationDao) {
+        DaoService.configurationDao = configurationDao;
     }
 }
