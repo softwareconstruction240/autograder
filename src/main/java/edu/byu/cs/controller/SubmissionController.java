@@ -229,7 +229,7 @@ public class SubmissionController {
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
         Collection<Submission> submissions = null;
         try {
-            DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+            submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
         } catch (DataAccessException e) {
             LOGGER.error("Error getting latest submissions", e);
             halt(500);
