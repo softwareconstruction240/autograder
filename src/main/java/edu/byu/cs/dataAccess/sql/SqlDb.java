@@ -24,7 +24,7 @@ public class SqlDb {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlDb.class);
 
-    static {
+    public SqlDb() throws DataAccessException {
         try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
@@ -107,7 +107,7 @@ public class SqlDb {
         }
     }
 
-    public static Connection getConnection() {
+    public static Connection getConnection() throws DataAccessException {
         try {
             Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
             connection.setCatalog(DB_NAME);

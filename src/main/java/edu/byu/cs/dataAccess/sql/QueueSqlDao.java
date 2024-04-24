@@ -35,12 +35,12 @@ public class QueueSqlDao implements QueueDao {
             "queue", COLUMN_DEFINITIONS, QueueSqlDao::readQueueItem);
 
     @Override
-    public void add(QueueItem item) {
+    public void add(QueueItem item) throws DataAccessException {
         sqlReader.insertItem(item);
     }
 
     @Override
-    public QueueItem pop() {
+    public QueueItem pop() throws DataAccessException {
         try (var connection = SqlDb.getConnection();
             var statement = connection.prepareStatement(
                     """
@@ -60,7 +60,7 @@ public class QueueSqlDao implements QueueDao {
     }
 
     @Override
-    public void remove(String netId) {
+    public void remove(String netId) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                     DELETE FROM %s
@@ -71,12 +71,12 @@ public class QueueSqlDao implements QueueDao {
     }
 
     @Override
-    public Collection<QueueItem> getAll() {
+    public Collection<QueueItem> getAll() throws DataAccessException {
         return sqlReader.executeQuery("");
     }
 
     @Override
-    public boolean isAlreadyInQueue(String netId) {
+    public boolean isAlreadyInQueue(String netId) throws DataAccessException {
         var results = sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
@@ -84,16 +84,16 @@ public class QueueSqlDao implements QueueDao {
     }
 
     @Override
-    public void markStarted(String netId) {
+    public void markStarted(String netId) throws DataAccessException {
         updatedStartedField(netId, true);
     }
 
     @Override
-    public void markNotStarted(String netId) {
+    public void markNotStarted(String netId) throws DataAccessException {
         updatedStartedField(netId, false);
     }
 
-    private void updatedStartedField(String netId, boolean started) {
+    private void updatedStartedField(String netId, boolean started) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                      UPDATE %s
@@ -108,7 +108,7 @@ public class QueueSqlDao implements QueueDao {
     }
 
     @Override
-    public QueueItem get(String netId) {
+    public QueueItem get(String netId) throws DataAccessException {
         var results = sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));

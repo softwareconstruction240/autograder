@@ -62,7 +62,7 @@ public class SubmissionController {
                     Boolean.class);
         } catch (Exception e) {
             LOGGER.error("Error getting configuration", e);
-            halt(500, "Error getting configuration");
+            halt(500);
             return null;
         }
         return submissionsEnabled;
@@ -83,7 +83,7 @@ public class SubmissionController {
         return "";
     };
 
-    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) {
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
                         netId,
@@ -104,12 +104,12 @@ public class SubmissionController {
             LOGGER.error("Invalid phase", e);
             halt(400, "Invalid phase");
         } catch (Exception e) {
-            LOGGER.error("Something went wrong submitting", e);
-            halt(500, "Something went wrong");
+            LOGGER.error("Error starting grader", e);
+            halt(500);
         }
     }
 
-    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException {
+    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException, DataAccessException {
         CanvasIntegration canvas = CanvasService.getCanvasIntegration();
         String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
         if (!newRepoUrl.equals(user.repoUrl())) {
@@ -119,7 +119,7 @@ public class SubmissionController {
         }
     }
 
-    private static boolean verifyHasNewCommits(User user, Phase phase) {
+    private static boolean verifyHasNewCommits(User user, Phase phase) throws DataAccessException {
         String headHash;
         try {
             headHash = getRemoteHeadHash(user.repoUrl());
@@ -136,7 +136,7 @@ public class SubmissionController {
         return true;
     }
 
-    private static GradeRequest validateAndUnpackRequest(Request req) {
+    private static GradeRequest validateAndUnpackRequest(Request req) throws DataAccessException {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
@@ -178,7 +178,7 @@ public class SubmissionController {
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      */
-    public static Submission getMostRecentSubmission(String netId, Phase phase) {
+    public static Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 
@@ -227,7 +227,13 @@ public class SubmissionController {
     public static final Route latestSubmissionsGet = (req, res) -> {
         String countString = req.params(":count");
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        Collection<Submission> submissions = null;
+        try {
+            DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting latest submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -238,10 +244,15 @@ public class SubmissionController {
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
-        List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
-
-        List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
-
+        List<String> inQueue = null;
+        List<String> currentlyGrading = null;
+        try {
+            inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
+            currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting active submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -256,7 +267,13 @@ public class SubmissionController {
         String netId = req.params(":netId");
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Collection<Submission> submissions = submissionDao.getSubmissionsForUser(netId);
+        Collection<Submission> submissions = null;
+        try {
+            submissions = submissionDao.getSubmissionsForUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user " + netId, e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -279,7 +296,12 @@ public class SubmissionController {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
-                DaoService.getQueueDao().markStarted(netId);
+                try {
+                    DaoService.getQueueDao().markStarted(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error marking queue item as started", e);
+                    return;
+                }
 
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "started"
@@ -318,7 +340,11 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
-                DaoService.getQueueDao().remove(netId);
+                try {
+                    DaoService.getQueueDao().remove(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error removing queue item", e);
+                }
             }
 
             @Override
@@ -336,7 +362,11 @@ public class SubmissionController {
                 }
 
                 TrafficController.sessions.remove(netId);
-                DaoService.getQueueDao().remove(netId);
+                try {
+                    DaoService.getQueueDao().remove(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error removing queue item", e);
+                }
             }
         };
 
@@ -374,7 +404,7 @@ public class SubmissionController {
      * Used if the queue got stuck or if the server crashed while submissions were
      * waiting in the queue.
      */
-    public static void reRunSubmissionsInQueue() throws IOException {
+    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException {
         QueueDao queueDao = DaoService.getQueueDao();
         UserDao userDao = DaoService.getUserDao();
         Collection<QueueItem> inQueue = queueDao.getAll();

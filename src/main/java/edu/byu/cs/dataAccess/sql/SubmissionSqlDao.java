@@ -52,11 +52,11 @@ public class SubmissionSqlDao implements SubmissionDao {
             "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
 
     @Override
-    public void insertSubmission(Submission submission) {
+    public void insertSubmission(Submission submission) throws DataAccessException {
         sqlReader.insertItem(submission);
     }
     @Override
-    public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
+    public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ? AND phase = ?",
                 ps -> {
@@ -67,19 +67,19 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Collection<Submission> getSubmissionsForUser(String netId) {
+    public Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
     }
 
     @Override
-    public Collection<Submission> getAllLatestSubmissions() {
+    public Collection<Submission> getAllLatestSubmissions() throws DataAccessException {
         return getAllLatestSubmissions(-1);
     }
 
     @Override
-    public Collection<Submission> getAllLatestSubmissions(int batchSize) {
+    public Collection<Submission> getAllLatestSubmissions(int batchSize) throws DataAccessException {
         return sqlReader.executeQuery(
                 """
                     WHERE timestamp IN (
@@ -98,7 +98,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public void removeSubmissionsByNetId(String netId) {
+    public void removeSubmissionsByNetId(String netId) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                     DELETE FROM %s
@@ -109,7 +109,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Submission getFirstPassingSubmission(String netId, Phase phase) {
+    public Submission getFirstPassingSubmission(String netId, Phase phase) throws DataAccessException {
         var submissions = sqlReader.executeQuery(
                 """
                         WHERE net_id = ? AND phase = ? AND passed = 1
@@ -125,7 +125,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public float getBestScoreForPhase(String netId, Phase phase) {
+    public float getBestScoreForPhase(String netId, Phase phase) throws DataAccessException {
         return sqlReader.executeQuery(
                 """
                     SELECT max(score) as highestScore

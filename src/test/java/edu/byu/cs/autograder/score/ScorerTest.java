@@ -8,6 +8,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -39,7 +40,7 @@ class ScorerTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws DataAccessException {
         spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
         CanvasService.setCanvasIntegration(spyCanvasIntegration);
 
@@ -86,7 +87,7 @@ class ScorerTest {
         Submission submission = null;
         try {
             submission = scorer.score(phase0Rubric, 0);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
 
@@ -103,7 +104,7 @@ class ScorerTest {
         Submission submission = null;
         try {
             submission = scorer.score(phase0Rubric, 0);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
 
@@ -120,7 +121,7 @@ class ScorerTest {
         Submission submission = null;
         try {
             submission = scorer.score(phase0Rubric, 0);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
 
@@ -132,7 +133,11 @@ class ScorerTest {
     @Test
     void score__noPossiblePoints__error() {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
 
         Scorer scorer = new Scorer(gradingContext);
         assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), 0));
@@ -146,7 +151,7 @@ class ScorerTest {
         Submission submission = null;
         try {
             submission = scorer.score(getRubric(1f), 0);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
 
@@ -164,17 +169,25 @@ class ScorerTest {
                 null,
                 new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
         );
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
 
         gradingContext = new GradingContext("testNetId", Phase.Quality, "testPhasesPath", "testStagePath", "testRepoUrl", new File(""), 10, mockObserver, false);
-        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
+        try {
+            DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
         Scorer scorer = new Scorer(gradingContext);
 
         Submission submission = null;
         try {
             Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
             submission = scorer.score(emptyRubric, 0);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
 
