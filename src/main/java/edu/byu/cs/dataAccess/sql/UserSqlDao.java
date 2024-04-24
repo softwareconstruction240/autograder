@@ -38,12 +38,12 @@ public class UserSqlDao implements UserDao {
 
 
     @Override
-    public void insertUser(User user) {
+    public void insertUser(User user) throws DataAccessException {
         sqlReader.insertItem(user);
     }
 
     @Override
-    public User getUser(String netId) {
+    public User getUser(String netId) throws DataAccessException {
         var results = sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
@@ -51,31 +51,31 @@ public class UserSqlDao implements UserDao {
     }
 
     @Override
-    public void setFirstName(String netId, String firstName) {
+    public void setFirstName(String netId, String firstName) throws DataAccessException {
         setFieldValue(netId, "first_name", firstName);
     }
 
     @Override
-    public void setLastName(String netId, String lastName) {
+    public void setLastName(String netId, String lastName) throws DataAccessException {
         setFieldValue(netId, "last_name", lastName);
     }
 
     @Override
-    public void setRepoUrl(String netId, String repoUrl) {
+    public void setRepoUrl(String netId, String repoUrl) throws DataAccessException {
         setFieldValue(netId, "repo_url", repoUrl);
     }
 
     @Override
-    public void setRole(String netId, User.Role role) {
+    public void setRole(String netId, User.Role role) throws DataAccessException {
         setFieldValue(netId, "role", role.toString());
     }
 
     @Override
-    public void setCanvasUserId(String netId, int canvasUserId) {
+    public void setCanvasUserId(String netId, int canvasUserId) throws DataAccessException {
         setFieldValue(netId, "canvas_user_id", canvasUserId);
     }
 
-    private void setFieldValue(@NonNull String netId, @NonNull String columnName, @NonNull Object columnValue) {
+    private void setFieldValue(@NonNull String netId, @NonNull String columnName, @NonNull Object columnValue) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                     UPDATE user
@@ -90,12 +90,12 @@ public class UserSqlDao implements UserDao {
     }
 
     @Override
-    public Collection<User> getUsers() {
+    public Collection<User> getUsers() throws DataAccessException {
         return sqlReader.executeQuery("");
     }
 
     @Override
-    public boolean repoUrlClaimed(String repoUrl) {
+    public boolean repoUrlClaimed(String repoUrl) throws DataAccessException {
         var results = sqlReader.executeQuery(
                 "WHERE repo_url = ?",
                 ps -> ps.setString(1, repoUrl));

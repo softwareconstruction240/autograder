@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -37,7 +38,14 @@ public class CasController {
 
         UserDao userDao = DaoService.getUserDao();
 
-        User user = userDao.getUser(netId);
+        User user = null;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Couldn't get user from database", e);
+            halt(500);
+            return null;
+        }
 
         if (user == null) {
             try {
@@ -47,7 +55,7 @@ public class CasController {
 
                 String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
                 res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
-                halt(500, "Couldn't create user from Canvas");
+                halt(500);
                 return null;
             }
 

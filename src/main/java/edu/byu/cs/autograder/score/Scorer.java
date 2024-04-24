@@ -8,6 +8,7 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.*;
@@ -34,7 +35,7 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
-    public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException {
+    public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
         gradingContext.observer().update("Grading...");
 
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
@@ -139,7 +140,7 @@ public class Scorer {
         return points;
     }
 
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
+    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException, DataAccessException {
         float score = getScore(rubric);
         score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
         if (score < 0) score = 0;
@@ -151,7 +152,7 @@ public class Scorer {
      *
      * @return the score
      */
-    private float getScore(Rubric rubric) throws GradingException {
+    private float getScore(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0)
@@ -176,7 +177,7 @@ public class Scorer {
      * @param rubric the rubric for the phase
      */
     private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
-            throws GradingException {
+            throws GradingException, DataAccessException {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 

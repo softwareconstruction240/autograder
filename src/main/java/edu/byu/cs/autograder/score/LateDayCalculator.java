@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
@@ -39,7 +40,7 @@ public class LateDayCalculator {
         initializePublicHolidays(getEncodedPublicHolidays());
     }
 
-    public int calculateLateDays(Phase phase, String netId) throws GradingException {
+    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();

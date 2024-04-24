@@ -9,10 +9,8 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.memory.QueueMemoryDao;
-import edu.byu.cs.dataAccess.memory.RubricConfigMemoryDao;
-import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
-import edu.byu.cs.dataAccess.memory.UserMemoryDao;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,7 +53,7 @@ class ScorerTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws DataAccessException {
         spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
         CanvasService.setCanvasIntegration(spyCanvasIntegration);
 
@@ -75,6 +73,7 @@ class ScorerTest {
         DaoService.setUserDao(new UserMemoryDao());
         DaoService.setQueueDao(new QueueMemoryDao());
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
+        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
@@ -132,7 +131,11 @@ class ScorerTest {
     @Test
     void score__noPossiblePoints__error() {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
 
         var scorer = new Scorer(gradingContext);
         var rubric = constructRubric(1f);
@@ -195,14 +198,22 @@ class ScorerTest {
                 null,
                 new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
         );
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
 
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
                 10, 3, 10,
                 mockObserver, false);
-        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
+        try {
+            DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
 
         Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
         Submission submission = scoreRubric(emptyRubric);
@@ -250,7 +261,7 @@ class ScorerTest {
     private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
         try {
             return scorer.score(rubric, commitVerification);
-        } catch (GradingException e) {
+        } catch (Exception e) {
             fail("Unexpected exception thrown: ", e);
         }
         return null;

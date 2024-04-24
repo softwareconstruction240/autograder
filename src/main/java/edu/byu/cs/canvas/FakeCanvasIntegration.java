@@ -1,16 +1,22 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class FakeCanvasIntegration implements CanvasIntegration{
+public class FakeCanvasIntegration implements CanvasIntegration {
     @Override
-    public User getUser(String netId) {
-        User user = DaoService.getUserDao().getUser(netId);
+    public User getUser(String netId) throws CanvasException {
+        User user = null;
+        try {
+            user = DaoService.getUserDao().getUser(netId);
+        } catch (DataAccessException e) {
+            throw new CanvasException("Error getting user from database", e);
+        }
         if(user == null) {
             user = new User(netId, 0, "FirstName", "LastName", null, User.Role.ADMIN);
         }

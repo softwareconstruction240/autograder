@@ -8,6 +8,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -82,17 +83,19 @@ public class GitHelper {
 
     // Decision Logic
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
-        var potentialResult = preserveOriginalVerification();
-        if (potentialResult != null) {
-            return potentialResult;
-        }
+        try {
+            var potentialResult = preserveOriginalVerification();
+            if (potentialResult != null) {
+                return potentialResult;
+            }
 
-        // This could be the first passing submission. We have to calculate it from scratch.
-        Collection<Submission> passingSubmissions = getPassingSubmissions();
+            // This could be the first passing submission. We have to calculate it from scratch.
+            Collection<Submission> passingSubmissions = getPassingSubmissions();
 
-        try (Git git = Git.open(stageRepo)) {
-            return verifyRegularCommits(git, passingSubmissions);
-        } catch (IOException | GitAPIException e) {
+            try (Git git = Git.open(stageRepo)) {
+                return verifyRegularCommits(git, passingSubmissions);
+            }
+        } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
@@ -106,7 +109,7 @@ public class GitHelper {
      * @return Null if no decision is made. If a previous submission exists for the given phase,
      * returns a special `CommitVerificationResult` that represents the state.
      */
-    private CommitVerificationResult preserveOriginalVerification() {
+    private CommitVerificationResult preserveOriginalVerification() throws DataAccessException {
         Submission firstPassingSubmission = getFirstPassingSubmission();
         if (firstPassingSubmission == null || firstPassingSubmission.verifiedStatus() == null) {
             return null;
@@ -293,7 +296,7 @@ public class GitHelper {
     private Collection<Submission> getPassingSubmissions() {
         return DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
-    private Submission getFirstPassingSubmission() {
+    private Submission getFirstPassingSubmission() throws DataAccessException {
         // CONSIDER: Rather than resolving this as a second database call,
         // read out the data from our `passingSubmissions` data that
         // we've already loaded locally.

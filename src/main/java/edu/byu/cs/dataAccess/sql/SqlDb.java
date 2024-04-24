@@ -24,7 +24,7 @@ public class SqlDb {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlDb.class);
 
-    static {
+    public SqlDb() throws DataAccessException {
         try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
@@ -45,7 +45,6 @@ public class SqlDb {
             }
             try (Statement createSubmissionTableStatement = connection.createStatement()) {
                 createSubmissionTableStatement.executeUpdate("""
-                            
                         CREATE TABLE IF NOT EXISTS `submission` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
                                 `net_id` VARCHAR(20) NOT NULL,
@@ -68,12 +67,10 @@ public class SqlDb {
                                     ON DELETE CASCADE
                                     ON UPDATE CASCADE
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            
-                                   """);
+                        """);
             }
             try (Statement createQueueTableStatement = connection.createStatement()) {
                 createQueueTableStatement.executeUpdate("""
-                            
                         CREATE TABLE IF NOT EXISTS `queue` (
                                 `net_id` VARCHAR(20) NOT NULL,
                                 `phase` VARCHAR(9) NOT NULL,
@@ -81,12 +78,10 @@ public class SqlDb {
                                 `started` BOOL,
                                 PRIMARY KEY (`net_id`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            
-                                   """);
+                        """);
             }
             try (Statement createRubricConfigTableStatement = connection.createStatement()) {
                 createRubricConfigTableStatement.executeUpdate("""
-                            
                         CREATE TABLE IF NOT EXISTS `rubric_config` (
                                 `phase` VARCHAR(9) NOT NULL,
                                 `type` VARCHAR(15) NOT NULL,
@@ -95,8 +90,16 @@ public class SqlDb {
                                 `points` INT NOT NULL,
                                 PRIMARY KEY (`phase`, `type`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-                            
-                                   """);
+                        """);
+            }
+            try (Statement createConfigurationTableStatement = connection.createStatement()) {
+                createConfigurationTableStatement.executeUpdate("""
+                        CREATE TABLE IF NOT EXISTS `configuration` (
+                                `config_key` VARCHAR(50) NOT NULL,
+                                `value` TEXT NOT NULL,
+                                PRIMARY KEY (`config_key`)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                        """);
             }
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
@@ -104,7 +107,7 @@ public class SqlDb {
         }
     }
 
-    public static Connection getConnection() {
+    public static Connection getConnection() throws DataAccessException {
         try {
             Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
             connection.setCatalog(DB_NAME);

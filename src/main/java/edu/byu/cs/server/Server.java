@@ -2,6 +2,9 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.sql.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
@@ -175,14 +178,25 @@ public class Server {
     public static void main(String[] args) {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
+
+        useSqlDaos();
+
         int port = setupEndpoints(8080);
 
         LOGGER.info("Server started on port {}", port);
 
         try {
             SubmissionController.reRunSubmissionsInQueue();
-        } catch (IOException e) {
-            throw new RuntimeException("Error rerunning submissions already in queue");
+        } catch (IOException | DataAccessException e) {
+            LOGGER.error("Error rerunning submissions already in queue", e);
         }
+    }
+
+    private static void useSqlDaos() {
+        DaoService.setConfigurationDao(new ConfigurationSqlDao());
+        DaoService.setQueueDao(new QueueSqlDao());
+        DaoService.setRubricConfigDao(new RubricConfigSqlDao());
+        DaoService.setSubmissionDao(new SubmissionSqlDao());
+        DaoService.setUserDao(new UserSqlDao());
     }
 }
