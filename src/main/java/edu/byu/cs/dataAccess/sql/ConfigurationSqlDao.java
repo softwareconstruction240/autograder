@@ -9,12 +9,14 @@ public class ConfigurationSqlDao implements ConfigurationDao {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationSqlDao.class);
 
+    private static final String DEFAULT_VALUE = "default/changeme";
+
     public ConfigurationSqlDao() {
         for (var key : Configuration.values()) {
             try {
                 getConfiguration(key, String.class);
             } catch (DataAccessException e) {
-                setConfiguration(key, "default", String.class);
+                setConfiguration(key, DEFAULT_VALUE, String.class);
             }
         }
     }
@@ -47,7 +49,7 @@ public class ConfigurationSqlDao implements ConfigurationDao {
     }
 
     private <T> T getValue(String value, Class<T> type) {
-        if (value.equals("default")) {
+        if (value.equals(DEFAULT_VALUE)) {
             LOGGER.warn("Using default configuration value for key: {}", type);
 
             if (type == String.class) {
