@@ -308,7 +308,7 @@ public class SqlReader <T> {
      *
      * @return A database connection.
      */
-    private Connection getConnection() {
+    private Connection getConnection() throws DataAccessException {
         return SqlDb.getConnection();
     }
 
