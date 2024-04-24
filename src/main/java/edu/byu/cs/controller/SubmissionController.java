@@ -62,7 +62,7 @@ public class SubmissionController {
                     Boolean.class);
         } catch (Exception e) {
             LOGGER.error("Error getting configuration", e);
-            halt(500, "Error getting configuration");
+            halt(500);
             return null;
         }
         return submissionsEnabled;
@@ -104,8 +104,8 @@ public class SubmissionController {
             LOGGER.error("Invalid phase", e);
             halt(400, "Invalid phase");
         } catch (Exception e) {
-            LOGGER.error("Something went wrong submitting", e);
-            halt(500, "Something went wrong");
+            LOGGER.error("Error starting grader", e);
+            halt(500);
         }
     }
 
@@ -227,7 +227,13 @@ public class SubmissionController {
     public static final Route latestSubmissionsGet = (req, res) -> {
         String countString = req.params(":count");
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        Collection<Submission> submissions = null;
+        try {
+            DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting latest submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -238,10 +244,15 @@ public class SubmissionController {
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
-        List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
-
-        List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
-
+        List<String> inQueue = null;
+        List<String> currentlyGrading = null;
+        try {
+            inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
+            currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting active submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -256,7 +267,13 @@ public class SubmissionController {
         String netId = req.params(":netId");
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Collection<Submission> submissions = submissionDao.getSubmissionsForUser(netId);
+        Collection<Submission> submissions = null;
+        try {
+            submissions = submissionDao.getSubmissionsForUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user " + netId, e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
