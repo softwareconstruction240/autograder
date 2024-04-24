@@ -131,11 +131,7 @@ class ScorerTest {
     @Test
     void score__noPossiblePoints__error() {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
-        try {
-            DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
-        } catch (DataAccessException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
         var scorer = new Scorer(gradingContext);
         var rubric = constructRubric(1f);
@@ -198,22 +194,14 @@ class ScorerTest {
                 null,
                 new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
         );
-        try {
-            DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
-        } catch (DataAccessException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        setRubricConfig(Phase.Quality, phase0RubricConfig);
 
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
                 10, 3, 10,
                 mockObserver, false);
-        try {
-            DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
-        } catch (DataAccessException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
         Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
         Submission submission = scoreRubric(emptyRubric);
@@ -249,6 +237,21 @@ class ScorerTest {
                 true,
                 "testNotes"
         );
+    }
+
+    private void setRubricConfig(Phase phase, RubricConfig rubricConfig) {
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(phase, rubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+    }
+    private void addQueueItem(QueueItem item) {
+        try {
+            DaoService.getQueueDao().add(item);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
     }
 
     private Submission scoreRubric(Rubric rubric) {
