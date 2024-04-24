@@ -16,13 +16,18 @@ public class ConfigurationSqlDao implements ConfigurationDao {
             try {
                 getConfiguration(key, String.class);
             } catch (DataAccessException e) {
-                setConfiguration(key, DEFAULT_VALUE, String.class);
+                try {
+                    setConfiguration(key, DEFAULT_VALUE, String.class);
+                } catch (DataAccessException ex) {
+                    LOGGER.error("Error setting default configuration value for key: {}", key, ex);
+                    throw new RuntimeException(ex);
+                }
             }
         }
     }
 
     @Override
-    public <T> void setConfiguration(Configuration key, T value, Class<T> type) {
+    public <T> void setConfiguration(Configuration key, T value, Class<T> type) throws DataAccessException {
         try (var connection = SqlDb.getConnection()) {
             var statement = connection.prepareStatement("INSERT INTO configuration (config_key, value) VALUES (?, ?)");
             statement.setString(1, key.toString());
@@ -34,7 +39,7 @@ public class ConfigurationSqlDao implements ConfigurationDao {
     }
 
     @Override
-    public <T> T getConfiguration(Configuration key, Class<T> type) {
+    public <T> T getConfiguration(Configuration key, Class<T> type) throws DataAccessException {
         try (var connection = SqlDb.getConnection();
              var statement = connection.prepareStatement("SELECT value FROM configuration WHERE config_key = ?")) {
             statement.setString(1, key.toString());
