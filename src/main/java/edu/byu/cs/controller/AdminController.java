@@ -3,12 +3,14 @@ package edu.byu.cs.controller;
 import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
@@ -21,10 +23,20 @@ import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class AdminController {
-    public static Route usersGet = (req, res) -> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
+
+    public static final Route usersGet = (req, res) -> {
         UserDao userDao = DaoService.getUserDao();
 
-        Collection<User> users = userDao.getUsers();
+        Collection<User> users = null;
+        try {
+            users = userDao.getUsers();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting users", e);
+            halt(500);
+            return null;
+        }
 
         res.type("application/json");
         res.status(200);
@@ -33,36 +45,50 @@ public class AdminController {
 
     };
 
-    public static Route userPatch = (req, res) -> {
+    public static final Route userPatch = (req, res) -> {
         String netId = req.params(":netId");
 
         UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(netId);
+        User user;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting user", e);
+            halt(500);
+            return null;
+        }
+
         if (user == null) {
             halt(404, "user not found");
             return null;
         }
 
-        String firstName = req.queryParams("firstName");
-        if (firstName != null)
-            userDao.setFirstName(user.netId(), firstName);
+        try {
+            String firstName = req.queryParams("firstName");
+            if (firstName != null)
+                userDao.setFirstName(user.netId(), firstName);
 
-        String lastName = req.queryParams("lastName");
-        if (lastName != null)
-            userDao.setLastName(user.netId(), lastName);
+            String lastName = req.queryParams("lastName");
+            if (lastName != null)
+                userDao.setLastName(user.netId(), lastName);
 
-        String repoUrl = req.queryParams("repoUrl");
-        if (repoUrl != null)
-            userDao.setRepoUrl(user.netId(), repoUrl);
+            String repoUrl = req.queryParams("repoUrl");
+            if (repoUrl != null)
+                userDao.setRepoUrl(user.netId(), repoUrl);
 
-        String role = req.queryParams("role");
-        if (role != null) {
-            try {
-                userDao.setRole(user.netId(), User.Role.valueOf(role.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                halt(400, "invalid role. must be one of: STUDENT, ADMIN");
-                return null;
+            String role = req.queryParams("role");
+            if (role != null) {
+                try {
+                    userDao.setRole(user.netId(), User.Role.valueOf(role.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    halt(400, "invalid role. must be one of: STUDENT, ADMIN");
+                    return null;
+                }
             }
+        } catch (DataAccessException e) {
+            LOGGER.error("Error updating user", e);
+            halt(500);
+            return null;
         }
 
         res.status(204);
@@ -70,21 +96,42 @@ public class AdminController {
         return "";
     };
 
-    public static Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasIntegration.getCanvasIntegration().getTestStudent();
+    public static final Route testModeGet = (req, res) -> {
+        User latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
 
         UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser("test");
-
-        if (user == null) {
-            user = latestTestStudent;
-            userDao.insertUser(latestTestStudent);
-        } else {
-            userDao.setRepoUrl(user.netId(), latestTestStudent.repoUrl());
-            userDao.setCanvasUserId(user.netId(), latestTestStudent.canvasUserId());
+        User user;
+        try {
+            user = userDao.getUser("test");
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting user", e);
+            halt(500);
+            return null;
         }
 
-        DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId());
+        try {
+
+            if (user == null) {
+                user = latestTestStudent;
+                userDao.insertUser(latestTestStudent);
+            } else {
+                userDao.setRepoUrl(user.netId(), latestTestStudent.repoUrl());
+                userDao.setCanvasUserId(user.netId(), latestTestStudent.canvasUserId());
+            }
+
+        } catch (DataAccessException e) {
+            LOGGER.error("Error updating user", e);
+            halt(500);
+            return null;
+        }
+
+        try {
+            DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error removing submissions", e);
+            halt(500);
+            return null;
+        }
 
         res.cookie("/", "token", generateToken(user.netId()), 14400, false, false);
 
@@ -93,7 +140,7 @@ public class AdminController {
         return null;
     };
 
-    public static Route commitAnalyticsGet = (req, res) -> {
+    public static final Route commitAnalyticsGet = (req, res) -> {
         String option = req.params(":option");
         String data;
 
@@ -105,7 +152,7 @@ public class AdminController {
                 default -> throw new IllegalStateException("Not found (invalid option: " + option + ")");
             };
         } catch (Exception e) {
-            LoggerFactory.getLogger(AdminController.class).error(e.getMessage());
+            LOGGER.error(e.getMessage());
             if (e instanceof IllegalStateException) res.status(404);
             else res.status(500);
             return e.getMessage();
@@ -116,7 +163,7 @@ public class AdminController {
         return data;
     };
 
-    public static Route honorCheckerZipGet = (req, res) -> {
+    public static final Route honorCheckerZipGet = (req, res) -> {
         String sectionStr = req.params(":section");
         String filePath;
 
@@ -141,6 +188,7 @@ public class AdminController {
                 return res.raw();
             }
         } catch (Exception e) {
+            LOGGER.error("Error compiling honor checker", e);
             res.status(500);
             return e.getMessage();
         }
@@ -148,7 +196,7 @@ public class AdminController {
 
     public static Route sectionsGet = (req, res) -> {
         try {
-            CanvasSection[] sections = CanvasIntegration.getCanvasIntegration().getAllSections();
+            CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
             res.type("application/json");
             res.status(200);
             return new Gson().toJson(sections);

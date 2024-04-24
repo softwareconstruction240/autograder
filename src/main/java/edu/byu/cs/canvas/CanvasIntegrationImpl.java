@@ -1,6 +1,7 @@
 package edu.byu.cs.canvas;
 
 import com.google.gson.Gson;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
@@ -49,6 +50,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     }
 
+    @Override
     public User getUser(String netId) throws CanvasException {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
@@ -88,12 +90,13 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         throw new CanvasException("User not found in Canvas: " + netId);
     }
 
-
+    @Override
     public Collection<User> getAllStudents() throws CanvasException {
         return getMultipleStudents("/courses/" + COURSE_NUMBER + "/assignments/" +
                 GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
     }
 
+    @Override
     public Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
         return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
                 GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
@@ -137,6 +140,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @param comment       The comment to submit on the assignment
      * @throws CanvasException If there is an error with Canvas
      */
+    @Override
     public void submitGrade(int userId, int assignmentNum, @Nullable Float grade, @Nullable String comment) throws CanvasException {
         if(grade == null && comment == null)
             throw new IllegalArgumentException("grade and comment should not both be null");
@@ -162,33 +166,38 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * included in the parameter maps are retrieved from the previous submission to prevent the loss of previous grades
      * and comments (The canvas API will set items not included to empty/black rather than grabbing the old data)
      *
-     * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
-     *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
-     * @param grades            A Map of rubric item id's to grades for that rubric item
-     * @param rubricComments    A Map of rubric item id's to comments to put on that rubric item
+     * @param assessment        Rubric assessment to put as the grade
      * @param assignmentComment A comment for the entire assignment, if necessary
      * @throws CanvasException If there is an error with Canvas
      */
-    public void submitGrade(int userId, int assignmentNum, Map<String, Float> grades,
-                            Map<String, String> rubricComments, String assignmentComment) throws CanvasException {
+    @Override
+    public void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, assignmentNum);
         if(submission.rubric_assessment() != null) {
-            for(Map.Entry<String, CanvasRubricItem> entry : submission.rubric_assessment().items().entrySet()) {
-                grades.putIfAbsent(entry.getKey(), entry.getValue().points());
-                rubricComments.putIfAbsent(entry.getKey(), entry.getValue().comments());
-            }
+            submission.rubric_assessment().items().putAll(assessment.items());
+            assessment = submission.rubric_assessment();
         }
+        String queryString = buildRubricSubmissionQueryString(assessment, assignmentComment);
 
+        makeCanvasRequest(
+                "PUT",
+                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
+                        queryString,
+                null,
+                null);
+    }
+
+    private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
-        for(String rubricId : grades.keySet()) {
-            queryStringBuilder.append("&rubric_assessment[").append(rubricId).append("][points]=")
-                    .append(grades.get(rubricId));
-        }
-        for(String rubricId : rubricComments.keySet()) {
-            queryStringBuilder.append("&rubric_assessment[").append(rubricId).append("][comments]=")
-                    .append(URLEncoder.encode(rubricComments.get(rubricId), Charset.defaultCharset()));
+        for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
+            queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
+                    .append(entry.getValue().points());
+            if(entry.getValue().comments() != null) {
+                queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][comments]=")
+                        .append(URLEncoder.encode(entry.getValue().comments(), Charset.defaultCharset()));
+            }
         }
         if(assignmentComment != null && !assignmentComment.isBlank()) {
             queryStringBuilder.append("&comment[text_comment]=")
@@ -197,13 +206,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         if(!queryStringBuilder.isEmpty() && queryStringBuilder.charAt(0) == '&') {
             queryStringBuilder.setCharAt(0, '?');
         }
-
-        makeCanvasRequest(
-                "PUT",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
-                        queryStringBuilder,
-                null,
-                null);
+        return queryStringBuilder.toString();
     }
 
 
@@ -215,6 +218,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return                  Submission details for the assignment
      * @throws CanvasException  If there is an error with Canvas
      */
+    @Override
     public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
         return makeCanvasRequest(
                 "GET",
@@ -231,6 +235,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The git repository url for the given user
      * @throws CanvasException If there is an error with Canvas
      */
+    @Override
     public String getGitRepo(int userId) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, GIT_REPO_ASSIGNMENT_NUMBER);
 
@@ -245,7 +250,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return submission.url();
     }
 
-
+    @Override
     public User getTestStudent() throws CanvasException {
         String testStudentName = "Test%20Student";
 
@@ -273,6 +278,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         );
     }
 
+    @Override
     public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",

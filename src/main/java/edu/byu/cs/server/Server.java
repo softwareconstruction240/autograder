@@ -2,9 +2,14 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.sql.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +25,10 @@ import static spark.Spark.*;
 
 public class Server {
 
-    public static void setupEndpoints() {
-        port(8080);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+
+    public static int setupEndpoints(int port) {
+        port(port);
 
         webSocket("/ws", WebSocketController.class);
         webSocketIdleTimeoutMillis(300000);
@@ -40,7 +47,6 @@ public class Server {
             get("/login", loginGet);
 
             // all routes after this point require authentication
-            post("/register", registerPost);
             post("/logout", logoutPost);
         });
 
@@ -66,6 +72,8 @@ public class Server {
                 get("/users", usersGet);
 
                 patch("/user/:netId", userPatch);
+
+                post("/submit", adminRepoSubmitPost);
 
                 path("/submissions", () -> {
                     get("/latest", latestSubmissionsGet);
@@ -108,6 +116,8 @@ public class Server {
             return null;
         });
         init();
+
+        return port();
     }
 
     private static void setupProperties(String[] args) {
@@ -118,8 +128,11 @@ public class Server {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
-            if (cmd.hasOption("db-url")) {
-                properties.setProperty("db-url", cmd.getOptionValue("db-url"));
+            if (cmd.hasOption("db-host")) {
+                properties.setProperty("db-host", cmd.getOptionValue("db-host"));
+            }
+            if (cmd.hasOption("db-port")) {
+                properties.setProperty("db-port", cmd.getOptionValue("db-port"));
             }
             if (cmd.hasOption("db-name")) {
                 properties.setProperty("db-name", cmd.getOptionValue("db-name"));
@@ -139,18 +152,6 @@ public class Server {
             if (cmd.hasOption("canvas-token")) {
                 properties.setProperty("canvas-token", cmd.getOptionValue("canvas-token"));
             }
-            if (cmd.hasOption("student-db-host")) {
-                properties.setProperty("student-db-host", cmd.getOptionValue("student-db-host"));
-            }
-            if (cmd.hasOption("student-db-port")) {
-                properties.setProperty("student-db-port", cmd.getOptionValue("student-db-port"));
-            }
-            if (cmd.hasOption("student-db-user")) {
-                properties.setProperty("student-db-user", cmd.getOptionValue("student-db-user"));
-            }
-            if (cmd.hasOption("student-db-pass")) {
-                properties.setProperty("student-db-pass", cmd.getOptionValue("student-db-pass"));
-            }
             if (cmd.hasOption("use-canvas")) {
                 properties.setProperty("use-canvas", cmd.getOptionValue("use-canvas"));
             }
@@ -163,17 +164,14 @@ public class Server {
 
     private static Options getOptions() {
         Options options = new Options();
-        options.addOption(null, "db-url", true, "Database URL");
+        options.addOption(null, "db-host", true, "Database Host");
+        options.addOption(null, "db-port", true, "Database Port");
         options.addOption(null, "db-name", true, "Database Name");
         options.addOption(null, "db-user", true, "Database User");
         options.addOption(null, "db-pass", true, "Database Password");
         options.addOption(null, "frontend-url", true, "Frontend URL");
         options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
         options.addOption(null, "canvas-token", true, "Canvas Token");
-        options.addOption(null, "student-db-host", true, "Student DB Host");
-        options.addOption(null, "student-db-port", true, "Student DB Port");
-        options.addOption(null, "student-db-user", true, "Student DB User");
-        options.addOption(null, "student-db-pass", true, "Student DB Password");
         options.addOption(null, "use-canvas", true, "Using Canvas");
         return options;
     }
@@ -182,12 +180,25 @@ public class Server {
     public static void main(String[] args) {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
-        setupEndpoints();
+
+        useSqlDaos();
+
+        int port = setupEndpoints(8080);
+
+        LOGGER.info("Server started on port {}", port);
 
         try {
             SubmissionController.reRunSubmissionsInQueue();
-        } catch (IOException e) {
-            throw new RuntimeException("Error rerunning submissions already in queue");
+        } catch (IOException | DataAccessException e) {
+            LOGGER.error("Error rerunning submissions already in queue", e);
         }
+    }
+
+    private static void useSqlDaos() {
+        DaoService.setConfigurationDao(new ConfigurationSqlDao());
+        DaoService.setQueueDao(new QueueSqlDao());
+        DaoService.setRubricConfigDao(new RubricConfigSqlDao());
+        DaoService.setSubmissionDao(new SubmissionSqlDao());
+        DaoService.setUserDao(new UserSqlDao());
     }
 }

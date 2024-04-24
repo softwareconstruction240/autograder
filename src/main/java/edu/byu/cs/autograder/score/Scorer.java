@@ -3,13 +3,19 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.model.*;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.Submission;
+import edu.byu.cs.model.User;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
@@ -19,11 +25,10 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
-import java.util.Map;
 
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
-    
+
     /**
      * The penalty to be applied per day to a late submission.
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
@@ -35,11 +40,16 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
-    public Submission score(Rubric rubric, int numCommits) throws GradingException {
+    public Submission score(Rubric rubric, int numCommits) throws GradingException, DataAccessException {
         gradingContext.observer().update("Grading...");
 
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
+
+        // skip penalties if running in admin mode
+        if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
+            return saveResults(rubric, numCommits, 0, getScore(rubric), "");
+        }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
@@ -47,16 +57,23 @@ public class Scorer {
 
         // prevent score from being saved to canvas if it will lower their score
         if(rubric.passed()) {
-            float highestScore = getCanvasScore();
+            UserDao userDao = DaoService.getUserDao();
+            User user = userDao.getUser(gradingContext.netId());
+            int canvasUserId = user.canvasUserId();
+            int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
+
+            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+            float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
+            CanvasRubricAssessment assessment =
+                    CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
 
             // prevent score from being saved to canvas if it will lower their score
-            if (thisScore <= highestScore && gradingContext.phase() != Phase.Phase5 && gradingContext.phase() != Phase.Phase6) {
-                String notes = "Submission did not improve current score. (" + (highestScore * 100) +
-                        "%) Score not saved to Canvas.\n";
+            if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
+                String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
                 thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, notes);
             } else {
                 thisSubmission = saveResults(rubric, numCommits, daysLate, thisScore, "");
-                sendToCanvas(thisSubmission, 1 - (daysLate * PER_DAY_LATE_PENALTY));
+                sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
             }
         }
         else {
@@ -84,16 +101,51 @@ public class Scorer {
     private boolean passed(Rubric rubric) {
         boolean passed = true;
 
-        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
+        boolean isPassoffRequired = PhaseUtils.isPassoffRequired(gradingContext.phase());
+        if (isPassoffRequired && rubric.passoffTests() != null && rubric.passoffTests().results() != null)
             if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
                 passed = false;
 
         return passed;
     }
 
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException {
+    private boolean wouldLowerScore(int userId, int assignmentNum,
+                                    CanvasRubricAssessment assessment) {
+        try {
+            CanvasSubmission submission =
+                    CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
+            float prevPoints = (submission.score() != null) ? submission.score() : 0;
+            CanvasRubricAssessment compareAssessment = assessment;
+
+            if(submission.rubric_assessment() != null) {
+                prevPoints = Math.max(prevPoints, totalPoints(submission.rubric_assessment()));
+
+                HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
+                compareItems.putAll(submission.rubric_assessment().items());
+                compareItems.putAll(assessment.items());
+                compareAssessment = new CanvasRubricAssessment(compareItems);
+            }
+
+            float newPoints = totalPoints(compareAssessment);
+            return newPoints <= prevPoints;
+        } catch (CanvasException e) {
+            LOGGER.error("Exception from canvas", e);
+            return true;
+        }
+    }
+
+    private float totalPoints(CanvasRubricAssessment assessment) {
+        float points = 0;
+        if(assessment == null) return points;
+        for(CanvasRubricItem item : assessment.items().values()) {
+            points += item.points();
+        }
+        return points;
+    }
+
+    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException, DataAccessException {
         float score = getScore(rubric);
-        score -= numDaysLate * PER_DAY_LATE_PENALTY;
+        score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
         if (score < 0) score = 0;
         return score;
     }
@@ -103,7 +155,7 @@ public class Scorer {
      *
      * @return the score
      */
-    protected float getScore(Rubric rubric) throws GradingException {
+    private float getScore(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0)
@@ -123,43 +175,24 @@ public class Scorer {
     }
 
     /**
-     * gets the score stored in canvas for the current user and phase
-     * @return score. returns 1.0 for a score of 100%. returns 0.5 for a score of 50%.
-     */
-    private float getCanvasScore() throws GradingException {
-        User user = DaoService.getUserDao().getUser(gradingContext.netId());
-
-        int userId = user.canvasUserId();
-
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
-        try {
-            CanvasSubmission submission =
-                    CanvasIntegration.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
-            return submission.score() == null ? 0 : submission.score() / totalPossiblePoints;
-        } catch (CanvasException e) {
-            throw new GradingException(e);
-        }
-    }
-
-    /**
      * Saves the results of the grading to the database if the submission passed
      *
      * @param rubric the rubric for the phase
      */
     private Submission saveResults(Rubric rubric, int numCommits, int numDaysLate, float score, String notes)
-            throws GradingException {
+            throws GradingException, DataAccessException {
         String headHash = getHeadHash();
+        String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
             notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
 
         // FIXME: this is code duplication from calculateLateDays()
-        ZonedDateTime handInDate = DaoService.getQueueDao().get(gradingContext.netId()).timeAdded().atZone(ZoneId.of("America/Denver"));
+        ZonedDateTime handInDate = DaoService.getQueueDao().get(netId).timeAdded().atZone(ZoneId.of("America/Denver"));
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission submission = new Submission(
-                gradingContext.netId(),
+                netId,
                 gradingContext.repoUrl(),
                 headHash,
                 handInDate.toInstant(),
@@ -168,7 +201,8 @@ public class Scorer {
                 score,
                 numCommits,
                 notes,
-                rubric
+                rubric,
+                gradingContext.admin()
         );
 
         submissionDao.insertSubmission(submission);
@@ -185,40 +219,12 @@ public class Scorer {
         return headHash;
     }
 
-    private void sendToCanvas(Submission submission, float lateAdjustment) throws GradingException {
-        UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(gradingContext.netId());
-
-        int userId = user.canvasUserId();
-
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
-
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-        Map<String, Float> scores = new HashMap<>();
-        Map<String, String> comments = new HashMap<>();
-
-        convertToCanvasFormat(submission.rubric().passoffTests(), lateAdjustment, rubricConfig.passoffTests(), scores, comments, Rubric.RubricType.PASSOFF_TESTS);
-        convertToCanvasFormat(submission.rubric().unitTests(), lateAdjustment, rubricConfig.unitTests(), scores, comments, Rubric.RubricType.UNIT_TESTS);
-        convertToCanvasFormat(submission.rubric().quality(), lateAdjustment, rubricConfig.quality(), scores, comments, Rubric.RubricType.QUALITY);
-
+    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes) throws GradingException {
         try {
-            CanvasIntegration.getCanvasIntegration().submitGrade(userId, assignmentNum, scores, comments, submission.notes());
+            CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
-            LOGGER.error("Error submitting to canvas for user " + submission.netId(), e);
+            LOGGER.error("Error submitting to canvas for user " + gradingContext.netId(), e);
             throw new GradingException("Error contacting canvas to record scores");
-        }
-
-    }
-
-    private void convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment,
-                                       RubricConfig.RubricConfigItem rubricConfigItem, Map<String, Float> scores,
-                                       Map<String, String> comments, Rubric.RubricType rubricType)
-            throws GradingException {
-        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
-            String id = PhaseUtils.getCanvasRubricId(rubricType, gradingContext.phase());
-            Rubric.Results results = rubricItem.results();
-            scores.put(id, results.score() * lateAdjustment);
-            comments.put(id, results.notes());
         }
     }
 }

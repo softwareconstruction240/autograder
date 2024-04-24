@@ -5,12 +5,13 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
 import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SubmissionMemoryDao implements SubmissionDao {
 
-    private static final ConcurrentLinkedQueue<Submission> submissions = new ConcurrentLinkedQueue<>();
+    private final Deque<Submission> submissions = new LinkedList<>();
 
     @Override
     public void insertSubmission(Submission submission) {

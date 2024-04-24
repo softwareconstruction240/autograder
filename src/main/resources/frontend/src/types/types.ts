@@ -1,4 +1,4 @@
-export type Phase = '0' | '1' | '3' | '4' | '5' | '6';
+export type Phase = '0' | '1' | '3' | '4' | '5' | '6' | '42';
 
 export type TestNode = {
     testName: string,
@@ -49,6 +49,7 @@ export type Submission = {
     notes: string,
     rubric: Rubric,
     passed: boolean,
+    admin: boolean
 }
 
 export type User = {

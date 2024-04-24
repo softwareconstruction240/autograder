@@ -25,7 +25,7 @@ public class PhaseUtils {
      */
     public static Phase getPreviousPhase(Phase phase) {
         return switch (phase) {
-            case Phase0 -> null;
+            case Phase0, Quality -> null;
             case Phase1 -> Phase.Phase0;
             case Phase3 -> Phase.Phase1;
             case Phase4 -> Phase.Phase3;
@@ -48,6 +48,7 @@ public class PhaseUtils {
             case Phase4 -> "4";
             case Phase5 -> "5";
             case Phase6 -> "6";
+            case Quality -> "Quality";
         };
     }
 
@@ -65,6 +66,7 @@ public class PhaseUtils {
             case "4" -> Phase.Phase4;
             case "5" -> Phase.Phase5;
             case "6" -> Phase.Phase6;
+            case "42" -> Phase.Quality;
             default -> null;
         };
     }
@@ -83,6 +85,7 @@ public class PhaseUtils {
             case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
             case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
             case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
+            case Quality -> 0;
         };
     }
 
@@ -98,6 +101,7 @@ public class PhaseUtils {
             case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
             case Phase3 -> 180.0F;
             case Phase6 -> 155.0F;
+            case Quality -> 0.0F;
         };
     }
 
@@ -105,15 +109,14 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
             case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4 -> Set.of("passoffTests.serverTests");
-            case Phase5 -> throw new GradingException("No passoff tests for this phase");
-            case Phase6 -> throw new GradingException("Not implemented");
+            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
+            case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
         };
     }
 
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> Set.of("serviceTests");
             case Phase4 -> Set.of("dataAccessTests");
             case Phase5 -> Set.of("clientTests");
@@ -122,7 +125,7 @@ public class PhaseUtils {
 
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> "service";
             case Phase4 -> "dao";
             case Phase5 -> "server facade";
@@ -131,7 +134,7 @@ public class PhaseUtils {
 
     public static int minUnitTests(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6 -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> 13;
             case Phase4 -> 18;
             case Phase5 -> 12;
@@ -158,7 +161,12 @@ public class PhaseUtils {
                 case UNIT_TESTS -> "_8849";
                 case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
             };
-            case Phase6 -> throw new GradingException("Phase 6 not implemented yet");
+            case Phase6 -> switch (type) {
+                case PASSOFF_TESTS -> "90348_899";
+                case QUALITY -> "90348_3792";
+                case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+            };
+            case Quality -> throw new GradingException("Not graded");
         };
     }
 
@@ -168,6 +176,27 @@ public class PhaseUtils {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4, Phase6 -> "server";
             case Phase5 -> "client";
+            case Quality -> null;
+        };
+    }
+
+    public static boolean isPhaseGraded(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
+            case Quality -> false;
+        };
+    }
+
+    /**
+     * Check if passoff tests are required for a given phase
+     *
+     * @param phase phase to check
+     * @return true (passoff results are all or nothing), false (passoffs can be partial)
+     */
+    public static boolean isPassoffRequired(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4 -> true;
+            case Phase5, Phase6, Quality -> false;
         };
     }
 }

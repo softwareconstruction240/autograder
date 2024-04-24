@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration>
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder" />
+    <import class="ch.qos.logback.core.ConsoleAppender" />
+    <import class="ch.qos.logback.core.rolling.RollingFileAppender" />
+    <import class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy" />
+    <import class="ch.qos.logback.classic.filter.ThresholdFilter" />
+
+    <appender name="STDOUT" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} -- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <rollingPolicy class="TimeBasedRollingPolicy">
+            <fileNamePattern>logs/logFile.%d{yyyy-MM-dd-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} -- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>http://${LOKI_URL}/loki/api/v1/push</url>
+        </http>
+        <format>
+            <label>
+                <pattern>app=autograder</pattern>
+            </label>
+            <message class="com.github.loki4j.logback.JsonLayout">
+                <threadName>
+                    <enabled>false</enabled>
+                </threadName>
+                <loggerName>
+                    <fieldName>class</fieldName>
+                </loggerName>
+            </message>
+        </format>
+        <batchMaxItems>
+            10
+        </batchMaxItems>
+        <batchTimeoutMs>
+            10000
+        </batchTimeoutMs>
+    </appender>
+
+    <logger name="edu.byu.cs" level="INFO">
+        <appender-ref ref="LOKI" />
+        <appender-ref ref="FILE" />
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

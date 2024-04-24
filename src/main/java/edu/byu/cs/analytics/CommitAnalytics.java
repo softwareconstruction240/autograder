@@ -1,9 +1,10 @@
 package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
@@ -70,8 +71,7 @@ public class CommitAnalytics {
      *
      * @return a serialized version of the data
      */
-    public static String generateCSV() throws CanvasException {
-
+    public static String generateCSV() throws CanvasException, DataAccessException {
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
 
         Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile();
@@ -122,14 +122,14 @@ public class CommitAnalytics {
 
         Map<String, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
-        CanvasSection[] sections = CanvasIntegration.getCanvasIntegration().getAllSections();
+        CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
         for (CanvasSection section: sections) {
 
             Collection<User> students;
             Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
 
             try {
-                students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(section.id());
+                students = CanvasService.getCanvasIntegration().getAllStudentsBySection(section.id());
             } catch (CanvasException e) {
                 throw new RuntimeException("Canvas Exception: " + e.getMessage());
             }

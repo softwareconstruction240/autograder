@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.lang.InterruptedException;
 
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -49,7 +50,7 @@ public class WebSocketTests {
 
         environment = new WebsocketTestingEnvironment("localhost", port, "/connect");
 
-        waitTime = TestFactory.getMessageTime();
+        waitTime = 1000L;
     }
 
 
@@ -78,7 +79,7 @@ public class WebSocketTests {
     @Test
     @Order(1)
     @DisplayName("Normal Join Player")
-    public void joinPlayerGood() {
+    public void joinPlayerGood() throws InterruptedException {
         //try join valid reserved spot
         Map<String, List<TestModels.TestMessage>> messages =
                 joinPlayer(white.user, white.authToken, gameID, ChessGame.TeamColor.WHITE, Set.of(), Set.of());

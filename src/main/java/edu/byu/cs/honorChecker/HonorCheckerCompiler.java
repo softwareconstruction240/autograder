@@ -1,7 +1,7 @@
 package edu.byu.cs.honorChecker;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
@@ -24,7 +24,7 @@ public class HonorCheckerCompiler {
      */
     public static String compileSection(String section) throws CanvasException {
         Optional<CanvasSection> canvasSection =
-                Arrays.stream(CanvasIntegration.getCanvasIntegration().getAllSections()).filter(
+                Arrays.stream(CanvasService.getCanvasIntegration().getAllSections()).filter(
                 cs -> section.equals(cs.name())).findFirst();
         if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
         int sectionID = canvasSection.get().id();
@@ -35,7 +35,7 @@ public class HonorCheckerCompiler {
 
         Collection<User> students;
         try {
-            students = CanvasIntegration.getCanvasIntegration().getAllStudentsBySection(sectionID);
+            students = CanvasService.getCanvasIntegration().getAllStudentsBySection(sectionID);
         } catch (CanvasException e) {
             throw new RuntimeException("Canvas Exception: " + e.getMessage());
         }
@@ -43,7 +43,8 @@ public class HonorCheckerCompiler {
         try {
             for (User student : students) {
                 if (student.firstName().equals("Test") && student.lastName().equals("Student")) continue;
-                File repoPath = new File(tmpDir, student.netId());
+                File repoPath = new File(tmpDir, String.join("_", student.firstName().replace(' ', '_'),
+                        student.lastName().replace(' ', '_'), student.netId()));
 
                 CloneCommand cloneCommand = Git.cloneRepository()
                         .setURI(student.repoUrl())
@@ -68,7 +69,12 @@ public class HonorCheckerCompiler {
                 };
                 FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
 
-                FileUtils.zipDirectory(repoPath.getPath(), repoPath.getPath() + ".zip");
+                try {
+                    FileUtils.zipDirectory(repoPath.getPath(), repoPath.getPath() + ".zip");
+                } catch (Exception ignored) {
+                    new File(repoPath.getPath() + ".zip").delete();
+                }
+
                 FileUtils.removeDirectory(repoPath);
             }
 

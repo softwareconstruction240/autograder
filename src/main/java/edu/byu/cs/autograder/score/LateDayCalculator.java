@@ -2,8 +2,9 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
@@ -18,12 +19,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Calculates late days
  * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
  */
 public class LateDayCalculator {
+
+    final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
+
+
     /**
      * The max number of days that the late penalty should be applied for.
      */
@@ -34,14 +40,14 @@ public class LateDayCalculator {
         initializePublicHolidays(getEncodedPublicHolidays());
     }
 
-    public int calculateLateDays(Phase phase, String netId) throws GradingException {
+    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
         ZonedDateTime dueDate;
         try {
-            dueDate = CanvasIntegration.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            dueDate = CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
@@ -207,7 +213,7 @@ public class LateDayCalculator {
             try {
                 publicHolidays.add(parser.parse(holidayDateString, LocalDate::from));
             } catch (DateTimeParseException e) {
-                System.out.println("Skipping unrecognized date string: " + holidayDateString);
+                LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
             }
         }
         return publicHolidays;

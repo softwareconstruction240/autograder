@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.util.PhaseUtils;
@@ -42,7 +43,7 @@ public abstract class TestGrader {
     }
 
 
-    public Rubric.Results runTests() throws GradingException {
+    public Rubric.Results runTests() throws GradingException, DataAccessException {
         compileTests();
         gradingContext.observer().update("Running " + name() + " tests...");
 
@@ -52,7 +53,7 @@ public abstract class TestGrader {
             TestAnalyzer.TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
-                            "/" + module + "/target/" + module + "-jar-with-dependencies.jar"), stageTestsPath,
+                            "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
                     packagesToTest(), extraCreditTests());
         }
 

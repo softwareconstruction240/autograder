@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Submission, User} from "@/types/types";
+import type {Phase, Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
@@ -16,17 +16,30 @@ import {
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
-import {nameFromNetId} from "@/utils/utils";
+import {generateClickableLink, nameFromNetId} from "@/utils/utils";
+import {adminSubmissionPost} from "@/services/submissionService";
+import Dropdown from "@/components/Dropdown.vue";
+import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
+const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
-
-onMounted(async () => {
-  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
-  loadSubmissionsToTable(submissionsData)
+let adminRepo = reactive( {
+  value: ""
 })
+
+
+onMounted(async () => { await resetPage() })
+
+const resetPage = async () => {
+  runningAdminRepo.value = false;
+  selectedSubmission.value = null;
+  allSubmissionsLoaded = false;
+  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
+  loadSubmissionsToTable(submissionsData);
+}
 
 const loadAllSubmissions = async () => {
   loadSubmissionsToTable( await submissionsLatestGet() )
@@ -43,6 +56,7 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
           score: submission.score,
           notes: submission.notes,
           netId: submission.netId,
+          admin: submission.admin,
           submission: submission
         }
     )
@@ -52,6 +66,11 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
 
 const notesCellClicked = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data.submission
+}
+
+const adminDoneGrading = async () => {
+  let data = await submissionsLatestGet(1)
+  selectedSubmission.value = data[0]
 }
 
 const nameCellClicked = (event: CellClickedEvent) => {
@@ -68,10 +87,39 @@ const columnDefs = reactive([
 const rowData = reactive({
   value: []
 })
+
+const adminSubmit = async (phase: Phase) => {
+  try {
+    await adminSubmissionPost(phase, adminRepo.value)
+    runningAdminRepo.value = true;
+  } catch (error) {
+    if (error instanceof Error) { alert("Error running grader: " + error.message) }
+    else { alert("Unknown error running grader") }
+  }
+}
 </script>
 
 
 <template>
+
+  <div class="adminSubmission">
+    <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
+    <Dropdown :disabled="!adminRepo.value.includes('github.com/')">
+      <template v-slot:dropdown-parent>
+        <button>Grade Repo</button>
+      </template>
+      <template v-slot:dropdown-items>
+        <a @click="adminSubmit('0')">Phase 0</a>
+        <a @click="adminSubmit('1')">Phase 1</a>
+        <a @click="adminSubmit('3')">Phase 3</a>
+        <a @click="adminSubmit('4')">Phase 4</a>
+        <a @click="adminSubmit('5')">Phase 5</a>
+        <a @click="adminSubmit('6')">Phase 6</a>
+        <a @click="adminSubmit('42')">Quality</a>
+      </template>
+    </Dropdown>
+  </div>
+
   <ag-grid-vue
       class="ag-theme-quartz"
       style="height: 65vh"
@@ -101,9 +149,31 @@ const rowData = reactive({
     <StudentInfo :student="selectedStudent"></StudentInfo>
   </PopUp>
 
+  <PopUp
+    v-if="runningAdminRepo"
+    @closePopUp="resetPage">
+    <div v-if="!selectedSubmission">
+      <h3 style="width: 70vw">Running Grader As Admin</h3>
+      <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
+      <LiveStatus @show-results="adminDoneGrading"/>
+    </div>
+    <SubmissionInfo
+        v-if="selectedSubmission"
+        :submission="selectedSubmission"/>
+  </PopUp>
+
 </template>
 
 <style scoped>
+#repoUrlInput {
+  flex-grow: 1;
+  padding: 10px;
+  margin-right: 10px;
+}
+.adminSubmission {
+  display: flex;
+  padding: 10px;
+}
 .container {
   padding: 10px;
   display: grid;

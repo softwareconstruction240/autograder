@@ -2,6 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.autograder.TrafficController;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
@@ -14,13 +15,6 @@ import java.util.Map;
 @WebSocket
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
-
-    @OnWebSocketConnect
-    public void onConnect(Session session) {}
-
-    @OnWebSocketClose
-    public void onClose(Session session, int statusCode, String reason) {
-    }
 
     @OnWebSocketError
     public void onError(Session session, Throwable t) {
@@ -51,7 +45,12 @@ public class WebSocketController {
             return;
 
         TrafficController.sessions.get(netId).add(session);
-        TrafficController.broadcastQueueStatus();
+        try {
+            TrafficController.broadcastQueueStatus();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error broadcasting queue status", e);
+            throw new RuntimeException("Error broadcasting queue status", e);
+        }
     }
 
     /**

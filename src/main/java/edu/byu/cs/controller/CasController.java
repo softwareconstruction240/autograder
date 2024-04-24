@@ -2,8 +2,9 @@ package edu.byu.cs.controller;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -25,7 +26,7 @@ public class CasController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasController.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
 
-    public static Route callbackGet = (req, res) -> {
+    public static final Route callbackGet = (req, res) -> {
         String ticket = req.queryParams("ticket");
 
         String netId = validateCasTicket(ticket);
@@ -37,17 +38,24 @@ public class CasController {
 
         UserDao userDao = DaoService.getUserDao();
 
-        User user = userDao.getUser(netId);
+        User user = null;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Couldn't get user from database", e);
+            halt(500);
+            return null;
+        }
 
         if (user == null) {
             try {
-                user = CanvasIntegration.getCanvasIntegration().getUser(netId);
+                user = CanvasService.getCanvasIntegration().getUser(netId);
             } catch (CanvasException e) {
                 LOGGER.error("Couldn't create user from Canvas", e);
 
                 String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
                 res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
-                halt(500, "Couldn't create user from Canvas");
+                halt(500);
                 return null;
             }
 
@@ -70,7 +78,7 @@ public class CasController {
         return null;
     };
 
-    public static Route loginGet = (req, res) -> {
+    public static final Route loginGet = (req, res) -> {
         // check if already logged in
         if (req.cookie("token") != null) {
             res.redirect(ApplicationProperties.frontendUrl(), 302);
@@ -82,7 +90,7 @@ public class CasController {
         return null;
     };
 
-    public static Route logoutPost = (req, res) -> {
+    public static final Route logoutPost = (req, res) -> {
         if (req.cookie("token") == null) {
             res.redirect(ApplicationProperties.frontendUrl(), 401);
             return null;

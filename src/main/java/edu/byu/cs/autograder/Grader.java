@@ -40,7 +40,7 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, Observer observer, Phase phase) throws IOException {
+    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
         String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
@@ -48,7 +48,7 @@ public class Grader implements Runnable {
         int requiredCommits = 10;
         this.observer = observer;
         this.gradingContext =
-                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits, observer);
+                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits, observer, admin);
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
         this.gitHelper = new GitHelper(gradingContext);
         this.compileHelper = new CompileHelper(gradingContext);
@@ -77,8 +77,6 @@ public class Grader implements Runnable {
             if(rubricConfig.unitTests() != null) {
                 customTestsResults = new UnitTestGrader(gradingContext).runTests();
             }
-
-            dbHelper.finish();
 
             Rubric.RubricItem qualityItem = null;
             Rubric.RubricItem passoffItem = null;

@@ -1,9 +1,9 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ApplicationProperties;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.ZonedDateTime;
@@ -12,12 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface CanvasIntegration {
-
-    static CanvasIntegration getCanvasIntegration() {
-        if(ApplicationProperties.useCanvas()) return new CanvasIntegrationImpl();
-        else return new FakeCanvasIntegration();
-    }
-
 
     /**
      * Queries canvas for the user with the given netId
@@ -58,14 +52,12 @@ public interface CanvasIntegration {
      *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
-     * @param grades            A Map of rubric item id's to grades for that rubric item
-     * @param rubricComments    A Map of rubric item id's to comments to put on that rubric item
+     * @param assessment        The rubric assessment to grade with
      * @param assignmentComment A comment for the entire assignment, if necessary
      * @throws CanvasException If there is an error with Canvas
      * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
      */
-    void submitGrade(int userId, int assignmentNum, Map<String, Float> grades,
-                                   Map<String, String> rubricComments, String assignmentComment)
+    void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment)
             throws CanvasException;
 
 
