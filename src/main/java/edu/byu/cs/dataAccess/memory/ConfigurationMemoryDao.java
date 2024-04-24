@@ -7,15 +7,15 @@ import java.util.Map;
 
 public class ConfigurationMemoryDao implements ConfigurationDao {
 
-    private final Map<String, Object> configuration = new HashMap<>();
+    private final Map<Configuration, Object> configuration = new HashMap<>();
 
     @Override
-    public <T> void setConfiguration(String key, T value, Class<T> type) {
+    public <T> void setConfiguration(Configuration key, T value, Class<T> type) {
         configuration.put(key, value);
     }
 
     @Override
-    public <T> T getConfiguration(String key, T value, Class<T> type) {
+    public <T> T getConfiguration(Configuration key, Class<T> type) {
         return type.cast(configuration.get(key));
     }
 }
