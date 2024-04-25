@@ -154,15 +154,20 @@ public class GitHelper {
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = 1; // FIXME: Read from dynamic location
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
+        long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
         CV[] assertedConditions = {
                 new CV(
                         numCommits < requiredCommits,
                         String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits)),
+                new CV(
+                        numCommits >= requiredCommits && significantCommits < requiredCommits,
+                        String.format("Have some commits, but some of them are too insignificant for credit (%d/%d).", significantCommits, requiredCommits)),
                 new CV(
                         daysWithCommits < requiredDaysWithCommits,
                         String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),

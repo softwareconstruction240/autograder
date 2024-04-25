@@ -17,12 +17,20 @@ import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -41,17 +49,19 @@ public class CommitAnalytics {
      */
     public static CommitsByDay countCommitsByDay(
             Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
-            throws GitAPIException, IncorrectObjectTypeException, MissingObjectException {
+            throws GitAPIException, IOException {
 
         // Prepare data for repeated calculation
+        DiffFormatter diffFormatter = prepareDiffFormatter(git);
         Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
         long lowerTimeBound = lowerBound.timestamp().getEpochSecond();
         long upperTimeBound = upperBound.timestamp().getEpochSecond();
 
         // Will hold results
         Map<String, Integer> days = new TreeMap<>();
-        int totalCommits = 0;
+        int singleParentCommits = 0;
         int mergeCommits = 0;
+        List<Integer> changesPerCommit = new ArrayList<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
 
@@ -80,12 +90,15 @@ public class CommitAnalytics {
                 continue;
             }
 
+            // Count changes in each commit
+            changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+
             // Add the commit to results
             String dayKey = DateTimeUtils.getDateString(commitTime, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
-            ++totalCommits;
+            ++singleParentCommits;
         }
-        return new CommitsByDay(days, totalCommits, mergeCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
+        return new CommitsByDay(days, changesPerCommit, singleParentCommits, mergeCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
     }
     private static Iterable<RevCommit> getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
@@ -102,6 +115,50 @@ public class CommitAnalytics {
             ObjectId tailObjId = ObjectId.fromString(tailHash);
             return git.log().addRange(tailObjId, headObjId).call();
         }
+    }
+
+    /**
+     * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
+     * <br>
+     * Note: This formatter is configured to ignore all white space differences,
+     * and to not print out any output. This DiffFormatter is intended to be used
+     * to analyze changes in commits programmatically.
+     *
+     * @param git The Git object to read.
+     * @return A prepared {@link DiffFormatter}.
+     */
+    private static DiffFormatter prepareDiffFormatter(Git git) {
+        DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
+        diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
+        diffFormatter.setRepository(git.getRepository());
+
+        return diffFormatter;
+    }
+    /**
+     * Uses a pre-prepared {@link DiffFormatter} to count the lines changed in a target commit, compared to it's first parent.
+     *
+     * @param diffFormatter A pre-prepared DiffFormatter.
+     * @param revCommit The target commit to evaluate
+     * @return An int representing the number of changed lines in the commit
+     * @throws IOException When the system can't read the data properly.
+     */
+    private static int getNumChangesInCommit(DiffFormatter diffFormatter, RevCommit revCommit) throws IOException {
+        int parentCount = revCommit.getParentCount();
+        if (parentCount == 0) {
+            return 0; // Root commit doesn't have any changes
+        } else if (parentCount > 1) {
+            throw new IllegalArgumentException("Cannot count changes in a merge commit.");
+        }
+
+        List<DiffEntry> diffs = diffFormatter.scan(revCommit.getParent(0), revCommit);
+
+        int totalChanges = 0;
+        for (var diff : diffs) {
+            FileHeader fileHeader = diffFormatter.toFileHeader(diff);
+            totalChanges += fileHeader.toEditList().stream().mapToInt(Edit::getLengthB).sum();
+        }
+
+        return totalChanges;
     }
 
     private record CommitDatum(
