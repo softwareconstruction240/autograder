@@ -13,31 +13,12 @@ import {
   readableTimestamp,
   scoreToPercentage
 } from "@/utils/utils";
+import RubricTable from "@/views/PhaseView/RubricTable.vue";
 
 const { submission } = defineProps<{
   submission: Submission;
 }>();
 
-const testResults = ref<TestResult | undefined>(undefined);
-const textResults = ref<string | undefined>(undefined);
-
-const openResults = (event: CellClickedEvent) => {
-  if (event.data.results.testResults) {
-    testResults.value = event.data.results.testResults
-  } else {
-    textResults.value = event.data.results.textResults
-  }
-}
-
-const columnDefs = reactive([
-  { headerName: "Category", field: 'category', flex:1 },
-  { headerName: "Criteria", field: "criteria", ...wrappingColSettings, flex:2 },
-  { headerName: "Notes", field: "notes", ...wrappingColSettings, flex:2, sortable: false, onCellClicked: openResults },
-  { headerName: "Points", field: "points", flex:1, onCellClicked: openResults }
-])
-const rowData = reactive({
-  value: [] = loadRubricRows(submission)
-})
 </script>
 
 <template>
@@ -59,23 +40,7 @@ const rowData = reactive({
     </div>
   </div>
 
-  <ag-grid-vue
-      class="ag-theme-quartz"
-      style="height: 30vh; width: 65vw"
-      :columnDefs="columnDefs"
-      :rowData="rowData.value"
-      :defaultColDef="standardColSettings"
-  ></ag-grid-vue>
-
-  <ResultsPopup
-      v-if="testResults || textResults"
-      :text-results="textResults"
-      :test-results="testResults"
-      @closePopUp="() => {
-        testResults = undefined;
-        textResults = undefined;
-      }"
-  />
+  <RubricTable :rubric="submission.rubric"/>
 
 </template>
 
