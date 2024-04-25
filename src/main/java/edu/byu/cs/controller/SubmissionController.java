@@ -216,7 +216,14 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        Collection<Submission> submissions;
+        try {
+            submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
 
         res.status(200);
         res.type("application/json");

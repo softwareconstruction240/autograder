@@ -2,6 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -27,7 +28,7 @@ public class AdminController {
     public static final Route usersGet = (req, res) -> {
         UserDao userDao = DaoService.getUserDao();
 
-        Collection<User> users = null;
+        Collection<User> users;
         try {
             users = userDao.getUsers();
         } catch (DataAccessException e) {
@@ -95,7 +96,14 @@ public class AdminController {
     };
 
     public static final Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+        User latestTestStudent;
+        try {
+            latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+        } catch (CanvasException e) {
+            LOGGER.error("Error getting test student", e);
+            halt(500);
+            return null;
+        }
 
         UserDao userDao = DaoService.getUserDao();
         User user;

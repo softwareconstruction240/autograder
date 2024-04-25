@@ -29,7 +29,14 @@ public class CasController {
     public static final Route callbackGet = (req, res) -> {
         String ticket = req.queryParams("ticket");
 
-        String netId = validateCasTicket(ticket);
+        String netId;
+        try {
+            netId = validateCasTicket(ticket);
+        } catch (IOException e) {
+            LOGGER.error("Error validating ticket", e);
+            halt(500);
+            return null;
+        }
 
         if (netId == null) {
             halt(400, "Ticket validation failed");
@@ -38,7 +45,7 @@ public class CasController {
 
         UserDao userDao = DaoService.getUserDao();
 
-        User user = null;
+        User user;
         try {
             user = userDao.getUser(netId);
         } catch (DataAccessException e) {
