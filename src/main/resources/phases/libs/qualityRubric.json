@@ -2,163 +2,50 @@
   "categories": [
     {
       "name": "Naming",
-      "value": 7.5,
-      "items": [
-        {
-          "reporters": [
-            {
-              "name": "[PackageName]",
-              "weight": 1
-            }
-          ],
-          "weight": 0
-        },
-        {
-          "reporters": [
-            {
-              "name": "[TypeName]",
-              "weight": 1
-            }
-          ],
-          "weight": 3
-        },
-        {
-          "reporters": [
-            {
-              "name": "[MethodName]",
-              "weight": 1
-            }
-          ],
-          "weight": 3
-        },
-        {
-          "reporters": [
-            {
-              "name": "[ConstantName]",
-              "weight": 0
-            },
-            {
-              "name": "[MemberName]",
-              "weight": 3
-            },
-            {
-              "name": "[LocalVariableName]",
-              "weight": 3
-            },
-            {
-              "name": "[RecordComponentName]",
-              "weight": 3
-            },
-            {
-              "name": "[ParameterName]",
-              "weight": 3
-            },
-            {
-              "name": "[LambdaParameterName]",
-              "weight": 2
-            },
-            {
-              "name": "[StaticVariableName]",
-              "weight": 2
-            },
-            {
-              "name": "[LocalFinalVariableName]",
-              "weight": 1
-            },
-            {
-              "name": "[PatternVariableName]",
-              "weight": 1
-            }
-          ],
-          "weight": 5
-        },
-        {
-          "reporters": [
-            {
-              "name": "[RecordTypeParameterName]",
-              "weight": 1
-            },
-            {
-              "name": "[MethodTypeParameterName]",
-              "weight": 1
-            },
-            {
-              "name": "[ClassTypeParameterName]",
-              "weight": 1
-            },
-            {
-              "name": "[InterfaceTypeParameterName]",
-              "weight": 1
-            }
-          ],
-          "weight": 1
-        }
+      "value": 25,
+      "reporters": [
+        "PackageName",
+        "TypeName",
+        "MethodName",
+        "ConstantName",
+        "MemberName",
+        "LocalVariableName",
+        "RecordComponentName",
+        "ParameterName",
+        "LambdaParameterName",
+        "StaticVariableName",
+        "LocalFinalVariableName",
+        "PatternVariableName",
+        "RecordTypeParameterName",
+        "MethodTypeParameterName",
+        "ClassTypeParameterName",
+        "InterfaceTypeParameterName"
       ]
     },
     {
       "name": "Code Decomposition",
-      "value": 9.0,
-      "items": [
-        {
-          "reporters": [
-            {
-              "name": "[DuplicateLines]",
-              "weight": 1
-            },
-            {
-              "name": "[DuplicateBlock]",
-              "weight": 1
-            }
-          ],
-          "weight": 3
-        },
-        {
-          "reporters": [
-            {
-              "name": "[MethodLength]",
-              "weight": 1
-            },
-            {
-              "name": "[FileLength]",
-              "weight": 1
-            }
-          ],
-          "weight": 2
-        }
+      "value": 30,
+      "reporters": [
+        "DuplicateLines",
+        "DuplicateBlock",
+        "MethodLength",
+        "FileLength"
       ]
     },
     {
       "name": "Code Readability",
-      "value": 9.0,
-      "items": [
-        {
-          "reporters": [
-            {
-              "name": "[UnusedMethodReporter]",
-              "weight": 3
-            },
-            {
-              "name": "[CommentedCode]",
-              "weight": 4
-            }
-          ],
-          "weight": 1
-        }
+      "value": 30,
+      "reporters": [
+        "UnusedMethodReporter",
+        "CommentedCode",
+        "NoCodeInFile"
       ]
     },
     {
       "name": "Package Structure",
-      "value": 4.5,
-      "items": [
-        {
-          "reporters": [
-            {
-              "name": "[FilesPerPackage]",
-              "weight": 1
-            }
-          ],
-          "weight": 1
-        }
+      "value": 15,
+      "reporters": [
+        "FilesPerPackage"
       ]
     }
   ]
