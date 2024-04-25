@@ -27,6 +27,7 @@ public record CommitsByDay(
         int mergeCommits,
         boolean commitsInOrder,
         boolean commitsInFuture,
+        boolean commitsInPast,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
 ) { }

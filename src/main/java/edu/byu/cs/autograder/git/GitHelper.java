@@ -175,6 +175,9 @@ public class GitHelper {
                         commitsByDay.commitsInFuture(),
                         "Suspicious commit history. Some commits are authored after the hand in date."),
                 new CV(
+                        commitsByDay.commitsInPast(),
+                        "Suspicious commit history. Some commits are authored before the previous phase hash."),
+                new CV(
                         !commitsByDay.commitsInOrder(),
                         "Suspicious commit history. Not all commits are in order.")
         };

@@ -64,18 +64,22 @@ public class CommitAnalytics {
         List<Integer> changesPerCommit = new ArrayList<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
+        boolean commitsInPast = false;
 
         // Iteration helpers
         int commitTime;
         for (RevCommit rc : commits) {
             commitTime = rc.getCommitTime();
             if (commitTime <= lowerTimeBound) {
+                commitsInPast = true;
+                // Actually, we want to just skip these commits since these could legitimately
+                // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
                 continue;
             }
-
             if (commitTime > upperTimeBound) {
                 commitsInFuture = true;
             }
+
             for (var pc : rc.getParents()) {
                 if (commitTime < pc.getCommitTime()) {
                     // Verifies that all parents are older than the child
@@ -98,7 +102,11 @@ public class CommitAnalytics {
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             ++singleParentCommits;
         }
-        return new CommitsByDay(days, changesPerCommit, singleParentCommits, mergeCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
+        return new CommitsByDay(
+                days, changesPerCommit,
+                singleParentCommits, mergeCommits,
+                commitsInOrder, commitsInFuture, commitsInPast,
+                lowerBound, upperBound);
     }
     private static Iterable<RevCommit> getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
