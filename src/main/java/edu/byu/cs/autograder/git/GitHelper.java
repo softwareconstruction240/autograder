@@ -154,7 +154,7 @@ public class GitHelper {
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
-        int minimumLinesChangedPerCommit = 1; // FIXME: Read from dynamic location
+        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
