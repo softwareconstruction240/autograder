@@ -135,7 +135,7 @@ public class GitHelper {
      * @return the number of commits since the last passoff
      */
     private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions)
-            throws GitAPIException, IOException, GradingException {
+            throws GitAPIException, IOException, GradingException, DataAccessException {
         CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
         CommitThreshold upperThreshold = constructCurrentThreshold(git);
 
@@ -261,7 +261,7 @@ public class GitHelper {
      * @throws GradingException When one field would be null, or when another error occurs.
      */
     @NonNull
-    private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException {
+    private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
         CommitThreshold currentThreshold = new CommitThreshold(
                 ScorerHelper.getHandInDateInstant(gradingContext.netId()),
                 getHeadHash(git)
@@ -293,7 +293,7 @@ public class GitHelper {
 
     // Helpers
 
-    private Collection<Submission> getPassingSubmissions() {
+    private Collection<Submission> getPassingSubmissions() throws DataAccessException {
         return DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
     private Submission getFirstPassingSubmission() throws DataAccessException {

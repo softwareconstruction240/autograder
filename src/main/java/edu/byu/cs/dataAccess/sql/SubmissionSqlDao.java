@@ -171,7 +171,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Collection<Submission> getAllPassingSubmissions(String netId) {
+    public Collection<Submission> getAllPassingSubmissions(String netId) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ? AND passed = ?",
                 ps -> {
@@ -182,7 +182,7 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public void manuallyApproveSubmission(Submission submission, Float newScore, Submission.ScoreVerification scoreVerification)
-            throws ItemNotFoundException {
+            throws ItemNotFoundException, DataAccessException {
         // Identify a submission by its: head_hash, net_id, and phase.
         // We could try to identify it by more items, but that touches on being too brittle.
 

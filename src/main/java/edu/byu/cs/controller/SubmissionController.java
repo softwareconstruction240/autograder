@@ -457,7 +457,8 @@ public class SubmissionController {
      *                   This should already be reflected in the `approvedScore` if present.
      */
     public static void approveSubmission(
-            @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct) {
+            @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct)
+            throws DataAccessException {
         approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
     }
     /**
@@ -485,7 +486,7 @@ public class SubmissionController {
             @NonNull Integer penaltyPct,
             @Nullable Float approvedScore,
             @Nullable Submission targetSubmission
-    ) {
+    ) throws DataAccessException {
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");

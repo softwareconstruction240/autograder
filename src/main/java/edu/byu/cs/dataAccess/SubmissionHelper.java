@@ -21,8 +21,10 @@ public class SubmissionHelper {
      *                          for each submission individually.
      * @return An integer representing the number of affected submissions.
      */
-    public static int approveWithheldSubmissions(SubmissionDao submissionDao, String studentNetId,
-                                                 Phase phase, Submission.ScoreVerification scoreVerification) {
+    public static int approveWithheldSubmissions(
+            SubmissionDao submissionDao, String studentNetId,
+            Phase phase, Submission.ScoreVerification scoreVerification)
+            throws DataAccessException {
         int affected = 0;
 
         var phaseSubmissions = submissionDao.getSubmissionsForPhase(studentNetId, phase);
