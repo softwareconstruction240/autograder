@@ -117,7 +117,15 @@ public class GitHelper {
     }
 
     // Decision Logic
-    private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+
+    /**
+     * Decides whether a git repo passes the requirements and returns the evaluation results.
+     *
+     * @param stageRepo A {@link File} pointing to a directory on the local machine with the repo to evaluate.
+     * @return A {@link CommitVerificationResult} with the results.
+     * @throws GradingException When certain assumptions are not met.
+     */
+    CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
         try {
             var potentialResult = preserveOriginalVerification();
             if (potentialResult != null) {
@@ -128,13 +136,28 @@ public class GitHelper {
             Collection<Submission> passingSubmissions = getPassingSubmissions();
 
             try (Git git = Git.open(stageRepo)) {
-                return verifyRegularCommits(git, passingSubmissions);
+                CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
+                CommitThreshold upperThreshold = constructCurrentThreshold(git);
+
+                var results = verifyRegularCommits(git, lowerThreshold, upperThreshold);
+                notifyVerificationComplete(results);
+                return results;
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
+        }
+    }
+    private void notifyVerificationComplete(CommitVerificationResult commitVerificationResult) {
+        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
+
+        var observer = gradingContext.observer();
+        if (commitVerificationResult.verified()) {
+            observer.update("Passed commit verification.");
+        } else {
+            observer.update("Failed commit verification. Continuing with grading anyways.");
         }
     }
 
@@ -166,26 +189,16 @@ public class GitHelper {
     }
 
     /**
-     * Counts the commits since the last passoff and halts progress if there are less than the required amount
+     * Analyzes the commits in the given directory within the bounds provided.
      *
-     * @return the number of commits since the last passoff
+     * @return {@link CommitVerificationResult} Representing the verification results
      */
-    private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions)
-            throws GitAPIException, IOException, GradingException, DataAccessException {
-        CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
-        CommitThreshold upperThreshold = constructCurrentThreshold(git);
+    CommitVerificationResult verifyRegularCommits(
+            Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
+            throws GitAPIException, IOException, DataAccessException {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-        LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
-
-        var observer = gradingContext.observer();
-        if (commitVerificationResult.verified()) {
-            observer.update("Passed commit verification.");
-        } else {
-            observer.update("Failed commit verification. Continuing with grading anyways.");
-        }
-        return commitVerificationResult;
+        return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
