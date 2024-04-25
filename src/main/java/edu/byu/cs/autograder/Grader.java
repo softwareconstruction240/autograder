@@ -7,6 +7,7 @@ import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.util.FileUtils;
@@ -89,7 +90,7 @@ public class Grader implements Runnable {
         }
     }
 
-    private Map<String, Rubric.Results> evaluateProject(RubricConfig rubricConfig) throws GradingException {
+    private Map<String, Rubric.Results> evaluateProject(RubricConfig rubricConfig) throws GradingException, DataAccessException {
         // NOTE: Ideally these would be treated with enum types. That will need to be improved with #300.
         Map<String, Rubric.Results> out = new HashMap<>();
         if (rubricConfig == null) {
