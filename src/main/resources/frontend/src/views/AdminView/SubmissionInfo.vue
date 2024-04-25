@@ -1,18 +1,8 @@
 <script setup lang="ts">
-import type {Submission, TestResult} from "@/types/types";
-import {reactive, ref} from "vue";
-import { AgGridVue } from 'ag-grid-vue3';
-import type { CellClickedEvent } from 'ag-grid-community'
+import type {Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import {standardColSettings, loadRubricRows, wrappingColSettings} from "@/utils/tableUtils";
-import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
-import {
-  generateClickableLink,
-  nameFromNetId,
-  readableTimestamp,
-  scoreToPercentage
-} from "@/utils/utils";
+import {generateClickableLink, nameFromNetId, readableTimestamp, scoreToPercentage} from "@/utils/utils";
 import RubricTable from "@/views/PhaseView/RubricTable.vue";
 
 const { submission } = defineProps<{
