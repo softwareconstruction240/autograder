@@ -171,7 +171,7 @@ public class AdminController {
         res.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
 
         try {
-            filePath = HonorCheckerCompiler.compileSection(sectionStr);
+            filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
             try (FileInputStream fis = new FileInputStream(filePath);
                  OutputStream os = res.raw().getOutputStream()) {
 
