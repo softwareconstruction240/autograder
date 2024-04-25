@@ -25,6 +25,9 @@ import java.util.Map;
 public class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
 
+    /** DEV ONLY. Default: true. Skips compilation and evaluation of student projects. */
+    private static final boolean RUN_COMPILATION = true;
+
     private final DatabaseHelper dbHelper;
 
     private final GitHelper gitHelper;
@@ -59,7 +62,6 @@ public class Grader implements Runnable {
 
     public void run() {
         observer.notifyStarted();
-        boolean RUN_COMPILATION = true; // TODO: Put in a more dynamic location.
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
