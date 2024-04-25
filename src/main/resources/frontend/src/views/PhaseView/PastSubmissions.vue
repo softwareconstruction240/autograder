@@ -22,7 +22,7 @@ const passFail = (submission: Submission) => {
 
 const scoreText = (submission: Submission) => {
   if(!submission.passed) return "";
-  return (submission.score * 100).toPrecision(4).toString() + "% ";
+  return (submission.score * 100).toPrecision(4) + "% ";
 }
 
 const submissionsByPhaseDesc = computed(() => {
