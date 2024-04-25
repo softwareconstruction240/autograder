@@ -153,7 +153,12 @@ public class CommitAnalytics {
                 FileUtils.removeDirectory(repoPath);
             }
 
-            commitsBySection.put(section.name(), commitMap);
+            String sectionName = section.name();
+            if(sectionName.matches("C S 240(-[0-9]+): Adv Software Construction")) {
+                sectionName = String.valueOf(Integer.parseInt(sectionName.substring(8, sectionName.indexOf(':'))));
+            }
+
+            commitsBySection.put(sectionName, commitMap);
         }
 
         return commitsBySection;
