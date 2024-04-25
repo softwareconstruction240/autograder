@@ -51,6 +51,7 @@ public class CommitAnalytics {
         // Will hold results
         Map<String, Integer> days = new TreeMap<>();
         int totalCommits = 0;
+        int mergeCommits = 0;
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
 
@@ -73,12 +74,18 @@ public class CommitAnalytics {
                 }
             }
 
+            // Skip merge commits
+            if (rc.getParentCount() > 1) {
+                ++mergeCommits;
+                continue;
+            }
+
             // Add the commit to results
             String dayKey = DateTimeUtils.getDateString(commitTime, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
-            totalCommits += 1;
+            ++totalCommits;
         }
-        return new CommitsByDay(days, totalCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
+        return new CommitsByDay(days, totalCommits, mergeCommits, commitsInOrder, commitsInFuture, lowerBound, upperBound);
     }
     private static Iterable<RevCommit> getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
