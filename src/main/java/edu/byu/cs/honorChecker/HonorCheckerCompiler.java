@@ -19,17 +19,15 @@ public class HonorCheckerCompiler {
     /**
      * Creates a .zip file for all students' repos in the given section
      *
-     * @param section the section number (not ID)
+     * @param sectionID the section ID
      * @return the path to the .zip file
      */
-    public static String compileSection(String section) throws CanvasException {
-        Optional<CanvasSection> canvasSection =
-                Arrays.stream(CanvasService.getCanvasIntegration().getAllSections()).filter(
-                cs -> section.equals(cs.name())).findFirst();
+    public static String compileSection(int sectionID) throws CanvasException {
+        Optional<CanvasSection> canvasSection = Arrays.stream(CanvasService.getCanvasIntegration().getAllSections())
+                .filter(cs -> sectionID == cs.id()).findFirst();
         if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
-        int sectionID = canvasSection.get().id();
-        String tmpDir = "tmp-section-" + section;
-        String zipFilePath = "section-" + section + ".zip";
+        String tmpDir = "tmp-section-" + sectionID;
+        String zipFilePath = "section-" + sectionID + ".zip";
 
         FileUtils.createDirectory(tmpDir);
 
@@ -62,8 +60,8 @@ public class HonorCheckerCompiler {
                 Consumer<File> action = file -> {
                     String prefix = repoPath + File.separator;
                     if (!file.getPath().startsWith(prefix + "client") &&
-                        !file.getPath().startsWith(prefix + "server") &&
-                        !file.getPath().startsWith(prefix + "shared")) {
+                            !file.getPath().startsWith(prefix + "server") &&
+                            !file.getPath().startsWith(prefix + "shared")) {
                         file.delete();
                     }
                 };

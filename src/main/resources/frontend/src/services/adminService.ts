@@ -127,7 +127,7 @@ export const commitAnalyticsGet = async (option: Option): Promise<string> => {
     }
 }
 
-export const honorCheckerZipGet = async (section: string): Promise<Blob> => {
+export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
     try {
         return (await fetch(useAppConfigStore().backendUrl + '/api/admin/honorChecker/zip/' + section, {
             method: 'GET',
