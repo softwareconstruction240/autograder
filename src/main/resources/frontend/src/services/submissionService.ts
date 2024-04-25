@@ -1,8 +1,9 @@
-import type {Phase, Submission} from "@/types/types";
+import type {Submission} from "@/types/types";
+import { Phase } from "@/types/types";
 import {useAppConfigStore} from "@/stores/appConfig";
 
 export const submissionsGet = async (phase: Phase): Promise<Submission[]> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + phase, {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + Phase[phase], {
         method: 'GET',
         credentials: 'include'
     });
@@ -23,7 +24,7 @@ export const submissionPost = async (phase: Phase): Promise<void> => {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            phase,
+            "phase": Phase[phase],
         })
     });
 
@@ -41,7 +42,7 @@ export const adminSubmissionPost = async (phase: Phase, repoUrl: String): Promis
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            "phase": phase,
+            "phase": Phase[phase],
             "repoUrl": repoUrl
         })
     });
