@@ -1,6 +1,9 @@
 package edu.byu.cs.autograder.git;
 
+import edu.byu.cs.analytics.CommitThreshold;
+import edu.byu.cs.dataAccess.DataAccessException;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,8 +36,13 @@ class GitHelperTest {
 
     @Test
     void verifyRegularCommits() {
+        var gitHelper = new GitHelper(null);
         // Insufficient commits on sufficient days fails
         // Sufficient commits on insufficient days fails
+        withTestRepo(TestRepo.passesRequirements, git -> {
+            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), GitHelper.getHeadHash(git));
+            return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
+        });
         // Sufficient commits on sufficient days succeeds
 
         // Cherry-picking an older commit generates a failure message
@@ -45,9 +54,11 @@ class GitHelperTest {
     }
 
     private static void initRepoFiles() throws URISyntaxException {
+        String resourcesBase = "gitTestRepos/";
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         for (var testRepo : TestRepo.values()) {
-            URL url = classLoader.getResource(testRepo.getFilePath());
+            String resourcePath = resourcesBase + testRepo.getFilePath();
+            URL url = classLoader.getResource(resourcePath);
             if (url == null) {
                 throw new RuntimeException("Count not locate resource: " + testRepo.getFilePath());
             }
@@ -59,7 +70,7 @@ class GitHelperTest {
     private <T> T withTestRepo(TestRepo repo, GitEvaluator<T> gitEvaluator) {
         try (var git = Git.open(repo.getFile())) {
             return gitEvaluator.eval(git);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -96,6 +107,6 @@ class GitHelperTest {
 
     @FunctionalInterface
     private interface GitEvaluator <T> {
-        T eval(Git git);
+        T eval(Git git) throws Exception;
     }
 }

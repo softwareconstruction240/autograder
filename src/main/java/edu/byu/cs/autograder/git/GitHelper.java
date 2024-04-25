@@ -36,6 +36,8 @@ public class GitHelper {
     private final GradingContext gradingContext;
     private String headHash;
 
+    public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
+
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
@@ -274,7 +276,7 @@ public class GitHelper {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
         if (passingSubmissions.isEmpty()) {
-            return new CommitThreshold(Instant.MIN, null);
+            return MIN_COMMIT_THRESHOLD;
         }
 
         Instant latestTimestamp = null;
@@ -376,7 +378,7 @@ public class GitHelper {
             throw new GradingException("Failed to get head hash: " + e.getMessage());
         }
     }
-    private String getHeadHash(Git git) throws IOException {
+    static String getHeadHash(Git git) throws IOException {
         return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
 
