@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type {Phase, Submission} from "@/types/types";
+import type {Submission} from "@/types/types";
+import {Phase} from "@/types/types";
 import {useSubmissionStore} from "@/stores/submissions";
 import {readableTimestamp} from "@/utils/utils";
 import {computed} from "vue";
@@ -14,7 +15,7 @@ const props = defineProps<{
 
 useSubmissionStore().getSubmissions(props.phase);
 
-const isPassFail = props.phase !== '6';
+const isPassFail = props.phase !== Phase.Phase6;
 
 const passFail = (submission: Submission) => {
   return submission.passed ? 'Pass' : 'Fail';
