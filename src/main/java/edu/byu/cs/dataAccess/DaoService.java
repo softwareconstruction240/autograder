@@ -1,13 +1,14 @@
 package edu.byu.cs.dataAccess;
 
-import edu.byu.cs.dataAccess.sql.*;
+import edu.byu.cs.dataAccess.memory.*;
 
 public class DaoService {
 
-    private static UserDao userDao = new UserSqlDao();
-    private static SubmissionDao submissionDao = new SubmissionSqlDao();
-    private static QueueDao queueDao = new QueueSqlDao();
-    private static RubricConfigDao rubricConfigDao = new RubricConfigSqlDao();
+    private static UserDao userDao = new UserMemoryDao();
+    private static SubmissionDao submissionDao = new SubmissionMemoryDao();
+    private static QueueDao queueDao = new QueueMemoryDao();
+    private static RubricConfigDao rubricConfigDao = new RubricConfigMemoryDao();
+    private static ConfigurationDao configurationDao = new ConfigurationMemoryDao();
 
     public static UserDao getUserDao() {
         return userDao;
@@ -25,6 +26,10 @@ public class DaoService {
         return rubricConfigDao;
     }
 
+    public static ConfigurationDao getConfigurationDao() {
+        return configurationDao;
+    }
+
     public static void setUserDao(UserDao userDao) {
         DaoService.userDao = userDao;
     }
@@ -39,5 +44,9 @@ public class DaoService {
 
     public static void setRubricConfigDao(RubricConfigDao rubricConfigDao) {
         DaoService.rubricConfigDao = rubricConfigDao;
+    }
+
+    public static void setConfigurationDao(ConfigurationDao configurationDao) {
+        DaoService.configurationDao = configurationDao;
     }
 }

@@ -4,6 +4,7 @@ import edu.byu.cs.analytics.CommitAnalytics;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -70,7 +71,7 @@ public class GitHelper {
 //            }
 
             return numCommits;
-        } catch (IOException | GitAPIException e) {
+        } catch (IOException | GitAPIException | DataAccessException e) {
             gradingContext.observer().notifyError("Failed to count commits: " + e.getMessage());
             LOGGER.error("Failed to count commits", e);
             throw new GradingException("Failed to count commits: ", e.getMessage());

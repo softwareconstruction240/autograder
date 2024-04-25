@@ -142,8 +142,7 @@ to preserve the learned knowledge for future generations.
     - Edit the "Server" run configuration
         - Paste in the single line of parameters to the line titled "Program arguments"
     - Save & apply the changes
-6. [Enable logging](#enabling-logging) by following the instructions below
-7. **Run the Autograder Locally**
+6. **Run the Autograder Locally**
     - Run your "Server" run configuration
     - Run the frontend by referencing the [section below](#running-locally)
    ```bash
@@ -184,14 +183,13 @@ To generate a Canvas API key:
 6. Copy the generated access token
 7. Use it as the value of the `--canvas-token` program argument above
 
-#### Enabling Logging
+#### Environment Variables
+If you are running Loki locally (not required), then you must set the following environment variable:
+```
+LOKI_URL=
+```
 
-To enable logging, add arguments `-Dlog4j2.configurationFile=log4j.properties -Dlog4j2.debug=false` as vm options.
-
-In IntelliJ, Go into the run configuration you want to use -> `Modify Options` -> `Add VM options`. This will reveal an
-additional box inside the edit menu. Paste the arguments into the box.
-
-If running from the command line, add the arguments immediately after the `java` command.
+The value can be either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to develop the app).
 
 #### Running Locally
 
