@@ -24,6 +24,7 @@ import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -54,8 +55,8 @@ public class CommitAnalytics {
         // Prepare data for repeated calculation
         DiffFormatter diffFormatter = prepareDiffFormatter(git);
         Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
-        long lowerTimeBound = lowerBound.timestamp().getEpochSecond();
-        long upperTimeBound = upperBound.timestamp().getEpochSecond();
+        long lowerTimeBoundSecs = lowerBound.timestamp().getEpochSecond();
+        long upperTimeBoundSecs = upperBound.timestamp().getEpochSecond();
 
         // Will hold results
         Map<String, Integer> days = new TreeMap<>();
@@ -67,21 +68,21 @@ public class CommitAnalytics {
         boolean commitsInPast = false;
 
         // Iteration helpers
-        int commitTime;
+        long commitTimeSecs;
         for (RevCommit rc : commits) {
-            commitTime = rc.getCommitTime();
-            if (commitTime <= lowerTimeBound) {
+            commitTimeSecs = getCommitTime(rc);
+            if (commitTimeSecs <= lowerTimeBoundSecs) {
                 commitsInPast = true;
                 // Actually, we want to just skip these commits since these could legitimately
                 // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
                 continue;
             }
-            if (commitTime > upperTimeBound) {
+            if (commitTimeSecs > upperTimeBoundSecs) {
                 commitsInFuture = true;
             }
 
             for (var pc : rc.getParents()) {
-                if (commitTime < pc.getCommitTime()) {
+                if (commitTimeSecs < getCommitTime(pc)) {
                     // Verifies that all parents are older than the child
                     commitsInOrder = false;
                     break;
@@ -98,7 +99,7 @@ public class CommitAnalytics {
             changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
 
             // Add the commit to results
-            String dayKey = DateTimeUtils.getDateString(commitTime, false);
+            String dayKey = DateTimeUtils.getDateString(commitTimeSecs, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             ++singleParentCommits;
         }
@@ -125,6 +126,31 @@ public class CommitAnalytics {
         }
     }
 
+    /**
+     * Returns the authorship time of the provided commit in seconds.
+     * <br>
+     * Note that the <b>authorship time</b> differs from the <b>commit time</b>
+     * in cases where the commit is amended or changed after original authorship.
+     * For example, if a commit is cherry-picked, rebased, or amended.
+     *
+     * @param revCommit The commit to analyze
+     * @return A long representing the author time in seconds.
+     */
+    private static long getCommitTime(RevCommit revCommit) {
+        long out = revCommit.getCommitTime(); // More efficient, but represents the COMMIT time
+
+        PersonIdent authorIdent = revCommit.getAuthorIdent();
+        if (authorIdent != null) {
+            Date authorTime = authorIdent.getWhen();
+            if (authorTime != null) {
+                out = authorTime.getTime() / 1000;
+            }
+        }
+        // CONSIDER: Do we want to flag or display a warning if we are not able to read the actual AUTHOR_TIME
+        // field of the commits? We could auto-reject them...
+
+        return out;
+    }
     /**
      * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
      * <br>
