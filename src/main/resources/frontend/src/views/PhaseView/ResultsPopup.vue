@@ -13,6 +13,14 @@ defineEmits({
   closePopUp: null,
 });
 
+const sanitize = (str: string) => {
+  str = str.replace(/&/g, "&amp;");
+  str = str.replace(/</g, "&lt;");
+  str = str.replace(/>/g, "&gt;");
+  str = str.replace(/"/g, "&quot;");
+  return str;
+}
+
 const prettifyResults = (result: TestResult) => {
   let output = prettifyResultsNode(result.root, '');
   if(result.error) output += `<br/> <hr> <h2>Program Error Output</h2>   <span class="failure">${result.error}</span>`;
@@ -27,7 +35,7 @@ const prettifyResultsNode = (node: TestNode, indent: string) => {
   if (node.passed !== undefined) {
     result += node.passed ? ` <span class="success">✓</span>` : ` <span class="failure">✗</span>`;
     if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-      result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
+      result += `<br/>${indent}   ↳<span class="failure">${sanitize(node.errorMessage)}</span>`;
     }
   } else {
     if (node.ecCategory !== undefined) {
@@ -54,7 +62,7 @@ const prettifyResultsNode = (node: TestNode, indent: string) => {
     <div class="results-popup">
       <h2>Results</h2>
       <div style="white-space: pre" v-if="testResults" v-html="prettifyResults(testResults)"></div>
-      <div style="white-space: pre" v-if="textResults" v-html="textResults.replace(/\n/g, '<br />')"></div>
+      <div style="white-space: pre" v-if="textResults" v-html="textResults"></div>
     </div>
   </PopUp>
 </template>
