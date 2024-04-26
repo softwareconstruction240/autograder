@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
@@ -335,16 +336,24 @@ public class SubmissionController {
 
             @Override
             public void notifyError(String message) {
-                notifyError(message, "");
+                notifyError(message, Map.of());
             }
 
             @Override
             public void notifyError(String message, String details) {
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "error",
-                        "message", message,
-                        "details", details
-                ));
+                notifyError(message, Map.of("details", details));
+            }
+
+            @Override
+            public void notifyError(String message, TestAnalyzer.TestAnalysis analysis) {
+                notifyError(message, Map.of("analysis", analysis));
+            }
+
+            public void notifyError(String message, Map<String, Object> contents) {
+                contents = new HashMap<>(contents);
+                contents.put( "type", "error");
+                contents.put("message", message);
+                TrafficController.getInstance().notifySubscribers(netId, contents);
 
                 TrafficController.sessions.remove(netId);
                 try {
