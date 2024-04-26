@@ -2,11 +2,14 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,23 +29,34 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected Set<File> testsToCompile() {
-        Set<File> files = new HashSet<>();
-        Phase previous = gradingContext.phase();
-        while((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
-            files.add(new File("./phases/phase" + PhaseUtils.getPhaseAsString(previous)));
-        }
-        return files;
+    protected Set<File> testsToCompile() throws GradingException {
+        return allPreviousPhases((p) -> Set.of(new File("./phases/phase" + PhaseUtils.getPhaseAsString(p))));
     }
 
     @Override
     protected Set<String> packagesToTest() throws GradingException {
-        Set<String> packages = new HashSet<>();
-        Phase previous = gradingContext.phase();
-        while((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
-            packages.addAll(PhaseUtils.passoffPackagesToTest(previous));
+        return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
+    }
+
+    private <T> Set<T> allPreviousPhases(PhaseFunction<T> func) throws GradingException {
+        try {
+            Set<T> set = new HashSet<>();
+            Phase previous = gradingContext.phase();
+            while ((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
+                RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(previous);
+                if(rubricConfig.passoffTests() != null) {
+                    set.addAll(func.apply(previous));
+                }
+            }
+            return set;
+        } catch (DataAccessException e) {
+            throw new GradingException(e);
         }
-        return packages;
+    }
+
+    @FunctionalInterface
+    private interface PhaseFunction<T> {
+        Collection<T> apply(Phase phase) throws GradingException;
     }
 
     @Override
