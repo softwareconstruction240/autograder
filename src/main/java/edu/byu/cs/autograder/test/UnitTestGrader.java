@@ -25,8 +25,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected File testsToCompile() {
-        return new File(gradingContext.stageRepo(), module + "/src/test/java/");
+    protected Set<File> testsToCompile() {
+        return Set.of(new File(gradingContext.stageRepo(), module + "/src/test/java/"));
     }
 
     @Override

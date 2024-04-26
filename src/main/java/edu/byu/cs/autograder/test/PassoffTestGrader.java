@@ -42,8 +42,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected File testsToCompile() {
-        return phaseTests;
+    protected Set<File> testsToCompile() {
+        return Set.of(phaseTests);
     }
 
     @Override

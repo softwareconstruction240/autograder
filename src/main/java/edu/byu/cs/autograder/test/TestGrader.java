@@ -83,7 +83,7 @@ public abstract class TestGrader {
 
     protected abstract Set<String> excludedTests() throws GradingException;
 
-    protected abstract File testsToCompile();
+    protected abstract Set<File> testsToCompile();
 
     protected abstract Set<String> packagesToTest() throws GradingException;
 
