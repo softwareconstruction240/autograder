@@ -6,6 +6,7 @@ import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
+import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.model.*;
@@ -63,6 +64,8 @@ public class Grader implements Runnable {
             int numCommits = gitHelper.setUp();
             dbHelper.setUp();
             compileHelper.compile();
+
+            new PreviousPhasePassoffTestGrader(gradingContext).runTests();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             Rubric.Results qualityResults = null;
