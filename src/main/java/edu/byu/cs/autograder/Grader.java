@@ -6,6 +6,7 @@ import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
+import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
@@ -96,8 +97,9 @@ public class Grader implements Runnable {
             observer.notifyDone(submission);
 
         } catch (GradingException ge) {
-            if(ge.getDetails() == null) observer.notifyError(ge.getMessage());
-            else observer.notifyError(ge.getMessage(), ge.getDetails());
+            if(ge.getDetails() != null) observer.notifyError(ge.getMessage(), ge.getDetails());
+            else if (ge.getAnalysis() != null) observer.notifyError(ge.getMessage(), ge.getAnalysis());
+            else observer.notifyError(ge.getMessage());
             String notification =
                     "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
             if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
@@ -121,6 +123,8 @@ public class Grader implements Runnable {
         void notifyError(String message);
 
         void notifyError(String message, String details);
+
+        void notifyError(String message, TestAnalyzer.TestAnalysis analysis);
 
         void notifyDone(Submission submission);
     }
