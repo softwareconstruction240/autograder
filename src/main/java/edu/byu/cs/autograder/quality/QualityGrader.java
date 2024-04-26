@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.quality;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.QualityAnalyzer;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
@@ -10,7 +11,9 @@ import edu.byu.cs.model.RubricConfig;
 public class QualityGrader {
     private final GradingContext gradingContext;
 
-    public QualityGrader(GradingContext gradingContext) {this.gradingContext = gradingContext;}
+    public QualityGrader(GradingContext gradingContext) {
+        this.gradingContext = gradingContext;
+    }
 
     /**
      * Runs quality checks on the student's code
@@ -24,7 +27,7 @@ public class QualityGrader {
 
         QualityAnalyzer analyzer = new QualityAnalyzer();
 
-        QualityAnalyzer.QualityOutput quality = analyzer.runQualityChecks(gradingContext.stageRepo());
+        QualityAnalyzer.QualityAnalysis quality = analyzer.runQualityChecks(gradingContext.stageRepo());
 
         return new Rubric.Results(quality.notes(), quality.score(),
                 rubricConfig.quality().points(), null, quality.results());
