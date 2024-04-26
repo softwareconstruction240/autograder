@@ -45,7 +45,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestNode testResults) throws GradingException {
+    protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
+        TestAnalyzer.TestNode testResults = testAnalysis.root();
         float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
 
         if (totalTests == 0) return 0;
@@ -58,7 +59,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestNode testResults) throws GradingException {
+    protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
+        TestAnalyzer.TestNode testResults = testAnalysis.root();
         if (testResults.numTestsPassed + testResults.numTestsFailed < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
