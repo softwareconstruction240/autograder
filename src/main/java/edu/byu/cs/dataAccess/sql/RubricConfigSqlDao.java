@@ -15,7 +15,7 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     // This file isn't heavy in SQl queries, but in the logic of joining together the results.
 
     @Override
-    public RubricConfig getRubricConfig(Phase phase) {
+    public RubricConfig getRubricConfig(Phase phase) throws DataAccessException {
 
         RubricConfig.RubricConfigItem passoffTests = getRubricItem(phase, Rubric.RubricType.PASSOFF_TESTS);
         RubricConfig.RubricConfigItem unitTests = getRubricItem(phase, Rubric.RubricType.UNIT_TESTS);
@@ -32,7 +32,7 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     }
 
     @Override
-    public int getPhaseTotalPossiblePoints(Phase phase) {
+    public int getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
         RubricConfig rubricConfig = getRubricConfig(phase);
 
         int total = 0;

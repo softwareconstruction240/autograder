@@ -4,6 +4,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
@@ -111,7 +112,7 @@ public class CommitAnalytics {
      *
      * @return a serialized version of the data
      */
-    public static String generateCSV() {
+    public static String generateCSV() throws DataAccessException {
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
 

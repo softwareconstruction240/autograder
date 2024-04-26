@@ -13,7 +13,7 @@ public interface SubmissionDao {
      *
      * @param submission the submission to insert
      */
-    void insertSubmission(Submission submission);
+    void insertSubmission(Submission submission) throws DataAccessException;
 
     /**
      * Gets all submissions for the given netId and phase
@@ -22,7 +22,7 @@ public interface SubmissionDao {
      * @param phase the phase to get submissions for
      * @return all submissions for the given netId and phase
      */
-    Collection<Submission> getSubmissionsForPhase(String netId, Phase phase);
+    Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) throws DataAccessException;
 
     /**
      * Gets all submissions for the given netId
@@ -30,14 +30,14 @@ public interface SubmissionDao {
      * @param netId the netId to get submissions for
      * @return all submissions for the given netId
      */
-    Collection<Submission> getSubmissionsForUser(String netId);
+    Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException;
 
     /**
      * Gets all latest submissions
      *
      * @return all latest submissions
      */
-    Collection<Submission> getAllLatestSubmissions();
+    Collection<Submission> getAllLatestSubmissions() throws DataAccessException;
 
     /**
      * Gets the X most recent latest submissions
@@ -45,7 +45,7 @@ public interface SubmissionDao {
      * @param batchSize defines how many submissions to return. Set batchSize to a negative int to get All submissions
      * @return the most recent X submissions
      */
-    Collection<Submission> getAllLatestSubmissions(int batchSize);
+    Collection<Submission> getAllLatestSubmissions(int batchSize) throws DataAccessException;
 
     /**
      * Removes all submissions for the given netId
@@ -53,7 +53,7 @@ public interface SubmissionDao {
      *
      * @param netId the netId to remove submissions for
      */
-    void removeSubmissionsByNetId(String netId);
+    void removeSubmissionsByNetId(String netId) throws DataAccessException;
 
     /**
      * Gets the first passing submission chronologically for the given phase
@@ -62,7 +62,7 @@ public interface SubmissionDao {
      * @param phase the phase
      * @return the submission object, or null
      */
-    Submission getFirstPassingSubmission(String netId, Phase phase);
+    Submission getFirstPassingSubmission(String netId, Phase phase) throws DataAccessException;
 
     /**
      * Retrieves the highest scoring submission of a student's submissions for a phase.
@@ -72,7 +72,7 @@ public interface SubmissionDao {
      * @param phase Representing a phase to submit
      * @return The submission with the highest score for the phase, or null if no submissions exist.
      */
-    Submission getBestSubmissionForPhase(String netId, Phase phase);
+    Submission getBestSubmissionForPhase(String netId, Phase phase) throws DataAccessException;
 
     /**
      * Gets all submissions that `passed` the grading for any phase.
@@ -83,7 +83,7 @@ public interface SubmissionDao {
      * @param netId The netId of the student to filter by
      * @return A collection of Submission objects, or an empty collection if none.
      */
-    Collection<Submission> getAllPassingSubmissions(String netId);
+    Collection<Submission> getAllPassingSubmissions(String netId) throws DataAccessException;
 
     /**
      * Modifies an existing submission in the collection to mark it manually approved.
@@ -111,5 +111,5 @@ public interface SubmissionDao {
             @NonNull Submission submission,
             @NonNull Float newScore,
             @NonNull Submission.ScoreVerification scoreVerification
-    ) throws ItemNotFoundException;
+    ) throws ItemNotFoundException, DataAccessException;
 }

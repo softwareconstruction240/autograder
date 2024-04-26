@@ -8,6 +8,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -73,7 +74,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification");
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
-                true,
+                true, false,
                 0, 0, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
@@ -82,17 +83,19 @@ public class GitHelper {
 
     // Decision Logic
     private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
-        var potentialResult = preserveOriginalVerification();
-        if (potentialResult != null) {
-            return potentialResult;
-        }
+        try {
+            var potentialResult = preserveOriginalVerification();
+            if (potentialResult != null) {
+                return potentialResult;
+            }
 
-        // This could be the first passing submission. We have to calculate it from scratch.
-        Collection<Submission> passingSubmissions = getPassingSubmissions();
+            // This could be the first passing submission. We have to calculate it from scratch.
+            Collection<Submission> passingSubmissions = getPassingSubmissions();
 
-        try (Git git = Git.open(stageRepo)) {
-            return verifyRegularCommits(git, passingSubmissions);
-        } catch (IOException | GitAPIException e) {
+            try (Git git = Git.open(stageRepo)) {
+                return verifyRegularCommits(git, passingSubmissions);
+            }
+        } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
@@ -106,7 +109,7 @@ public class GitHelper {
      * @return Null if no decision is made. If a previous submission exists for the given phase,
      * returns a special `CommitVerificationResult` that represents the state.
      */
-    private CommitVerificationResult preserveOriginalVerification() {
+    private CommitVerificationResult preserveOriginalVerification() throws DataAccessException {
         Submission firstPassingSubmission = getFirstPassingSubmission();
         if (firstPassingSubmission == null || firstPassingSubmission.verifiedStatus() == null) {
             return null;
@@ -119,7 +122,7 @@ public class GitHelper {
                 "You have previously failed commit verification.\n"+
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
-                verified,
+                verified, true,
                 0, 0, message,
                 null, null,
                 firstPassingSubmission.headHash(), null
@@ -132,7 +135,7 @@ public class GitHelper {
      * @return the number of commits since the last passoff
      */
     private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions)
-            throws GitAPIException, IOException, GradingException {
+            throws GitAPIException, IOException, GradingException, DataAccessException {
         CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
         CommitThreshold upperThreshold = constructCurrentThreshold(git);
 
@@ -174,6 +177,7 @@ public class GitHelper {
 
         return new CommitVerificationResult(
                 errorMessages.isEmpty(),
+                false,
                 numCommits,
                 daysWithCommits,
                 String.join("\n", errorMessages),
@@ -192,8 +196,10 @@ public class GitHelper {
      * <br>
      * In any case, if the commit cannot be located, then submission timestamp will be used in its place.
      * If there are no previous passing submissions, this returns the minimum Instant instead.
+     * <br>
+     * Submissions on non-graded phases do not count towards the `CommitThreshold`.
      *
-     * @return An {@link CommitThreshold}. Returns an empty object rather than null when no result exist.
+     * @return An {@link CommitThreshold}. Returns an empty object rather than null when no result exists.
      * @throws GradingException When certain preconditions are not met, or when this would have returned null.
      */
     @NonNull
@@ -213,6 +219,8 @@ public class GitHelper {
         Instant effectiveSubmissionTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
             for (Submission submission : passingSubmissions) {
+                if (!PhaseUtils.isPhaseGraded(submission.phase())) continue;
+
                 effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
                 if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
@@ -253,7 +261,7 @@ public class GitHelper {
      * @throws GradingException When one field would be null, or when another error occurs.
      */
     @NonNull
-    private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException {
+    private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
         CommitThreshold currentThreshold = new CommitThreshold(
                 ScorerHelper.getHandInDateInstant(gradingContext.netId()),
                 getHeadHash(git)
@@ -285,10 +293,10 @@ public class GitHelper {
 
     // Helpers
 
-    private Collection<Submission> getPassingSubmissions() {
+    private Collection<Submission> getPassingSubmissions() throws DataAccessException {
         return DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
     }
-    private Submission getFirstPassingSubmission() {
+    private Submission getFirstPassingSubmission() throws DataAccessException {
         // CONSIDER: Rather than resolving this as a second database call,
         // read out the data from our `passingSubmissions` data that
         // we've already loaded locally.

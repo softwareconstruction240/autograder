@@ -1,20 +1,23 @@
 package edu.byu.cs.dataAccess.sql.helpers;
 
+import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.SqlDb;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
 
 import static java.sql.Types.NULL;
 
 public class SqlReader <T> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqlReader.class);
+
     /** Represents the name of our SQL table */
     private final String TABLE_NAME;
     /** Represents all the columns in the table. */
@@ -102,9 +105,9 @@ public class SqlReader <T> {
      *
      * @param item The item to add to the table.
      */
-    public void insertItem(@NonNull T item) {
+    public void insertItem(@NonNull T item) throws DataAccessException {
         // CONSIDER: We could prepare the statement a single time, and avoid rebuilding it.
-        try (var connection = SqlDb.getConnection();
+        try (var connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertStatement)
         ) {
             int colIndex;
@@ -193,7 +196,7 @@ public class SqlReader <T> {
      * @param additionalStatementClauses Additional query clauses narrowing the results.
      * @return A collection of matching items.
      */
-    public Collection<T> executeQuery(@Nullable String additionalStatementClauses) {
+    public Collection<T> executeQuery(@Nullable String additionalStatementClauses) throws DataAccessException {
         return executeQuery(additionalStatementClauses, x -> {});
     }
 
@@ -215,7 +218,7 @@ public class SqlReader <T> {
     public Collection<T> executeQuery(
         @Nullable String additionalStatementClauses,
         @NonNull StatementPreparer statementPreparer
-    ) {
+    ) throws DataAccessException {
         return doExecuteQuery(
                 selectAllStmt(additionalStatementClauses),
                 statementPreparer,
@@ -242,7 +245,7 @@ public class SqlReader <T> {
             @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
             @NonNull ResultSetProcessor<T1> resultSetProcessor
-    ) {
+    ) throws DataAccessException {
         return doExecuteQuery(
                 statement,
                 statementPreparer,
@@ -258,14 +261,15 @@ public class SqlReader <T> {
             @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
             @NonNull StatementQueryExecutor<T1> queryExecutor
-    ) {
+    ) throws DataAccessException {
         try (
-                var connection = SqlDb.getConnection();
+                var connection = getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement);
         ) {
             statementPreparer.prepare(ps);
             return queryExecutor.executeQuery(ps);
         } catch (Exception e) {
+            LOGGER.error("Error executing query: " + statement, e);
             throw new DataAccessException("Error executing query", e);
         }
     }
@@ -283,9 +287,9 @@ public class SqlReader <T> {
     public void executeUpdate(
             @NonNull String statement,
             @Nullable StatementPreparer statementPreparer
-    ) {
+    ) throws DataAccessException {
         try (
-                var connection = SqlDb.getConnection();
+                var connection = getConnection();
                 PreparedStatement ps = connection.prepareStatement(statement)
         ) {
             if (statementPreparer != null) statementPreparer.prepare(ps);
@@ -293,6 +297,19 @@ public class SqlReader <T> {
         } catch (Exception e) {
             throw new DataAccessException("Error executing update", e);
         }
+    }
+
+    /**
+     * A helper method returning a connection to the database.
+     * This should be closed after use.
+     * <br>
+     * In the future, this would be the ideal place to change
+     * the source of connections, should the need arise.
+     *
+     * @return A database connection.
+     */
+    private Connection getConnection() throws DataAccessException {
+        return SqlDb.getConnection();
     }
 
     /**
@@ -306,7 +323,6 @@ public class SqlReader <T> {
     public T expectOneItem(@NonNull Collection<T> items) {
         return items.isEmpty() ? null : items.iterator().next();
     }
-
 
     /**
      * Represents a convenient beginning of most queries.

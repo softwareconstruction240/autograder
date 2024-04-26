@@ -1,5 +1,6 @@
 package edu.byu.cs.analytics;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 
@@ -18,7 +19,7 @@ public class CommitAnalyticsRouter {
      *
      * @return the CSV data
      */
-    public static String update() {
+    public static String update() throws DataAccessException {
         long ts = Instant.now().getEpochSecond();
         String data = CommitAnalytics.generateCSV();
 

@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {Submission, TestResult} from "@/types/types";
-import {reactive, ref} from "vue";
-import { AgGridVue } from 'ag-grid-vue3';
-import type { CellClickedEvent } from 'ag-grid-community'
+import type {Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
@@ -21,6 +18,7 @@ import Panel from "@/components/Panel.vue";
 import { submissionPost } from '@/services/submissionService'
 import { useSubmissionStore } from '@/stores/submissions'
 import { approveSubmissionPost } from '@/services/adminService'
+import RubricTable from "@/views/PhaseView/RubricTable.vue";
 
 const { submission } = defineProps<{
   submission: Submission;
@@ -73,6 +71,8 @@ const rowData = reactive({
       <p id="notes-field">{{submission.notes}}</p>
     </Panel>
   </div>
+
+  <RubricTable :rubric="submission.rubric"/>
   <Panel v-if="submission.verifiedStatus == 'Unapproved'" class="blocked-submission-notice">
     <p>This submission has been blocked!</p>
     <span>Explain the importance of frequent, consistent commits. Only approve without the penalty if they have a good reason for failing to meet the standard.</span>

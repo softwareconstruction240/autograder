@@ -60,6 +60,7 @@ public class DatabaseHelper {
         File dbPropertiesFile = new File(stageRepo, "server/src/main/resources/db.properties");
         if (dbPropertiesFile.exists() && !dbPropertiesFile.delete())
             throw new GradingException("Could not delete previous db.properties");
+        else dbPropertiesFile.getParentFile().mkdirs();
 
         Properties dbProperties = new Properties();
         try {

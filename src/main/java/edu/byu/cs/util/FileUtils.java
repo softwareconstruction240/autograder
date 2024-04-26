@@ -123,15 +123,14 @@ public class FileUtils {
      * @param zipFilePath the path of the .zip file to be created
      */
     public static void zipDirectory(String sourceDirectoryPath, String zipFilePath) {
-        try {
+        try (FileOutputStream fos = new FileOutputStream(zipFilePath)) {
             File sourceDirectory = new File(sourceDirectoryPath);
-            FileOutputStream fos = new FileOutputStream(zipFilePath);
+
             ZipOutputStream zipOut = new ZipOutputStream(fos);
 
             zipDirectoryContents(sourceDirectory, sourceDirectory, zipOut);
 
             zipOut.close();
-            fos.close();
         } catch (IOException e) {
             throw new RuntimeException("Failed to zip directory: " + e.getMessage());
         }
@@ -172,9 +171,8 @@ public class FileUtils {
      * @param newFile new file to take place of oldFile
      */
     public static void copyFile(File oldFile, File newFile) {
-        if (oldFile.exists()) {
-            oldFile.delete();
-        }
+        if (oldFile.exists()) oldFile.delete();
+        else oldFile.getParentFile().mkdirs();
         try {
             Files.copy(newFile.toPath(), oldFile.toPath());
         } catch (IOException e) {

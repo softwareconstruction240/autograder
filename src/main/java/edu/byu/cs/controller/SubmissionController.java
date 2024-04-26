@@ -14,6 +14,7 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
+import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,14 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
+        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
+        if (submissionsEnabled == null) return null;
+
+        if (!submissionsEnabled) {
+            halt(400, "Student submission is disabled");
+            return null;
+        }
+
         updateRepoFromCanvas(user, req);
 
         if (! verifyHasNewCommits(user, request.getPhase()) ) { return null; }
@@ -48,6 +57,20 @@ public class SubmissionController {
         res.status(200);
         return "";
     };
+
+    private static Boolean getSubmissionsEnabledConfig() {
+        boolean submissionsEnabled;
+        try {
+            submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
+                    ConfigurationDao.Configuration.STUDENT_SUBMISSION_ENABLED,
+                    Boolean.class);
+        } catch (Exception e) {
+            LOGGER.error("Error getting configuration", e);
+            halt(500);
+            return null;
+        }
+        return submissionsEnabled;
+    }
 
     public static final Route adminRepoSubmitPost = (req, res) -> {
 
@@ -64,7 +87,7 @@ public class SubmissionController {
         return "";
     };
 
-    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) {
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException {
         DaoService.getQueueDao().add(
                 new edu.byu.cs.model.QueueItem(
                         netId,
@@ -85,12 +108,12 @@ public class SubmissionController {
             LOGGER.error("Invalid phase", e);
             halt(400, "Invalid phase");
         } catch (Exception e) {
-            LOGGER.error("Something went wrong submitting", e);
-            halt(500, "Something went wrong");
+            LOGGER.error("Error starting grader", e);
+            halt(500);
         }
     }
 
-    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException {
+    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException, DataAccessException {
         CanvasIntegration canvas = CanvasService.getCanvasIntegration();
         String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
         if (!newRepoUrl.equals(user.repoUrl())) {
@@ -100,7 +123,7 @@ public class SubmissionController {
         }
     }
 
-    private static boolean verifyHasNewCommits(User user, Phase phase) {
+    private static boolean verifyHasNewCommits(User user, Phase phase) throws DataAccessException {
         String headHash;
         try {
             headHash = getRemoteHeadHash(user.repoUrl());
@@ -117,7 +140,7 @@ public class SubmissionController {
         return true;
     }
 
-    private static GradeRequest validateAndUnpackRequest(Request req) {
+    private static GradeRequest validateAndUnpackRequest(Request req) throws DataAccessException {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
@@ -159,7 +182,7 @@ public class SubmissionController {
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      */
-    public static Submission getMostRecentSubmission(String netId, Phase phase) {
+    public static Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 
@@ -195,7 +218,14 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        Collection<Submission> submissions;
+        try {
+            submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
 
         res.status(200);
         res.type("application/json");
@@ -208,7 +238,13 @@ public class SubmissionController {
     public static final Route latestSubmissionsGet = (req, res) -> {
         String countString = req.params(":count");
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        Collection<Submission> submissions = null;
+        try {
+            submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting latest submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -219,10 +255,15 @@ public class SubmissionController {
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
-        List<String> inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
-
-        List<String> currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
-
+        List<String> inQueue = null;
+        List<String> currentlyGrading = null;
+        try {
+            inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
+            currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting active submissions", e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -237,7 +278,13 @@ public class SubmissionController {
         String netId = req.params(":netId");
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Collection<Submission> submissions = submissionDao.getSubmissionsForUser(netId);
+        Collection<Submission> submissions = null;
+        try {
+            submissions = submissionDao.getSubmissionsForUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user " + netId, e);
+            halt(500);
+        }
 
         res.status(200);
         res.type("application/json");
@@ -258,7 +305,7 @@ public class SubmissionController {
             penalty = 10;
         }
 
-        approveSubmission(request.netId(), request.phase(), adminUser.netId(), null, null, penalty);
+        approveSubmission(request.netId(), request.phase(), adminUser.netId(), penalty);
         return "{}";
     };
 
@@ -275,7 +322,12 @@ public class SubmissionController {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
-                DaoService.getQueueDao().markStarted(netId);
+                try {
+                    DaoService.getQueueDao().markStarted(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error marking queue item as started", e);
+                    return;
+                }
 
                 TrafficController.getInstance().notifySubscribers(netId, Map.of(
                         "type", "started"
@@ -314,7 +366,11 @@ public class SubmissionController {
                 ));
 
                 TrafficController.sessions.remove(netId);
-                DaoService.getQueueDao().remove(netId);
+                try {
+                    DaoService.getQueueDao().remove(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error removing queue item", e);
+                }
             }
 
             @Override
@@ -332,7 +388,11 @@ public class SubmissionController {
                 }
 
                 TrafficController.sessions.remove(netId);
-                DaoService.getQueueDao().remove(netId);
+                try {
+                    DaoService.getQueueDao().remove(netId);
+                } catch (DataAccessException e) {
+                    LOGGER.error("Error removing queue item", e);
+                }
             }
         };
 
@@ -344,6 +404,7 @@ public class SubmissionController {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
             if (output.statusCode() != 0) {
+                LOGGER.error("git ls-remote exited with non-zero exit code\n" + output.stdErr());
                 throw new RuntimeException("exited with non-zero exit code");
             }
             return output.stdOut().split("\\s+")[0];
@@ -369,7 +430,7 @@ public class SubmissionController {
      * Used if the queue got stuck or if the server crashed while submissions were
      * waiting in the queue.
      */
-    public static void reRunSubmissionsInQueue() throws IOException {
+    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException {
         QueueDao queueDao = DaoService.getQueueDao();
         UserDao userDao = DaoService.getUserDao();
         Collection<QueueItem> inQueue = queueDao.getAll();
@@ -387,6 +448,23 @@ public class SubmissionController {
     }
 
     /**
+     * Approves the highest scoring submissions on the phase so far with a provided penalty percentage.
+     * <br>
+     * This is a simple overload triggering default behavior in the actual method.
+     * @see SubmissionController#approveSubmission(String, Phase, String, Integer, Float, Submission).
+     *
+     * @param studentNetId The student to approve
+     * @param phase The phase to approve
+     * @param approverNetId Identifies the TA or professor approving the score
+     * @param penaltyPct The penalty applied for the reduction.
+     *                   This should already be reflected in the `approvedScore` if present.
+     */
+    public static void approveSubmission(
+            @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct)
+            throws DataAccessException {
+        approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
+    }
+    /**
      * Approves a submission.
      * Modifies all existing submissions in the phase with constructed values,
      * and saves a given value into the grade-book.
@@ -394,23 +472,24 @@ public class SubmissionController {
      * @param studentNetId The student to approve
      * @param phase The phase to approve
      * @param approverNetId Identifies the TA or professor approving the score
-     * @param submissionToUse Submission with the rubric to send to Canvas. If null, then this will use the best submission for the phase.
+     * @param penaltyPct The penalty applied for the reduction.
+     *                   This should already be reflected in the `approvedScore` if present.
      * @param approvedScore <p>The final score that should go in the grade-book.</p>
      *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
      *                      submission with a penalty instead of any other fixed rule.</p>
-     * @param penaltyPct The penalty applied for the reduction.
-     *                   This should already be reflected in the `approvedScore` if present.
+     * @param submissionToUse Required when `approvedScored` is passed in.
+     *                         Provides a submission which will be used to overwrite the existing score in the grade-book.
+     *                         If a full {@link Submission} object is not available, the {@link Rubric} is only required field in it.
      */
     public static void approveSubmission(
-            String studentNetId,
-            Phase phase,
-            String approverNetId,
-            @Nullable Submission submissionToUse,
+            @NonNull String studentNetId,
+            @NonNull Phase phase,
+            @NonNull String approverNetId,
+            @NonNull Integer penaltyPct,
             @Nullable Float approvedScore,
-            Integer penaltyPct
-    ) {
-        // TODO: keep it from changing the score of already approved submissions, as a guard in case something calls this again
+            @Nullable Submission submissionToUse
+    ) throws DataAccessException {
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");

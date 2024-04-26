@@ -2,6 +2,7 @@ package edu.byu.cs.canvas;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
@@ -21,7 +22,7 @@ public class CanvasUtils {
      * @param rubric the rubric to convert
      * @return the rubric with the score converted to points
      */
-    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) throws GradingException {
+    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) throws GradingException, DataAccessException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
 
         Rubric.RubricItem convertedPassoffTests = null;

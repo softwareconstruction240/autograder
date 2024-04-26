@@ -9,16 +9,16 @@ import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.memory.QueueMemoryDao;
-import edu.byu.cs.dataAccess.memory.RubricConfigMemoryDao;
-import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
-import edu.byu.cs.dataAccess.memory.UserMemoryDao;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import edu.byu.cs.model.Submission.VerifiedStatus;
 
 import java.io.File;
 import java.time.Instant;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ScorerTest {
 
@@ -37,10 +37,15 @@ class ScorerTest {
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
 
-    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION = new CommitVerificationResult(
-            true, 0, 0,
-            "", null, null,
-            "<PASSING_COMMIT_VERIFICATION>", null);
+    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(true, false);
+    private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(false, false);
+    private static final CommitVerificationResult PASSING_CACHED_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(true, true);
+    private static final CommitVerificationResult FAILING_CACHED_COMMIT_VERIFICATION =
+            constructCommitVerificationResult(false, true);
+
 
     @BeforeAll
     static void setUpAll() {
@@ -48,7 +53,7 @@ class ScorerTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws DataAccessException {
         spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
         CanvasService.setCanvasIntegration(spyCanvasIntegration);
 
@@ -68,6 +73,7 @@ class ScorerTest {
         DaoService.setUserDao(new UserMemoryDao());
         DaoService.setQueueDao(new QueueMemoryDao());
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
+        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
@@ -92,49 +98,30 @@ class ScorerTest {
 
     @Test
     void score__fullPoints() {
-        Rubric phase0Rubric = getRubric(1f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric phase0Rubric = constructRubric(1f);
+        Submission submission = scoreRubric(phase0Rubric);
 
         assertNotNull(submission);
         assertEquals(1, submission.score());
         assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
+
     }
 
     @Test
     void score__partialPoints() {
-        Rubric phase0Rubric = getRubric(.5f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric phase0Rubric = constructRubric(.5f);
+        Submission submission = scoreRubric(phase0Rubric);
 
         assertNotNull(submission);
         assertEquals(.5f, submission.score());
         assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
     }
 
     @Test
     void score__extraPoints() {
-        Rubric phase0Rubric = getRubric(1.5f);
-        Scorer scorer = new Scorer(gradingContext);
-
-        Submission submission = null;
-        try {
-            submission = scorer.score(phase0Rubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Submission submission = scoreRubric(constructRubric(1.5f));
 
         assertNotNull(submission);
         assertEquals(1.5f, submission.score());
@@ -144,10 +131,43 @@ class ScorerTest {
     @Test
     void score__noPossiblePoints__error() {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, emptyRubricConfig);
+        setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        Scorer scorer = new Scorer(gradingContext);
-        assertThrows(GradingException.class, () -> scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION));
+        var scorer = new Scorer(gradingContext);
+        var rubric = constructRubric(1f);
+        assertThrows(GradingException.class, () -> scorer.score(rubric, PASSING_COMMIT_VERIFICATION));
+    }
+
+    @Test
+    void score__commitVerification__verified__repeat() {
+        Submission submission = scoreRubric(constructRubric(1.0f), PASSING_CACHED_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.PreviouslyApproved, false);
+    }
+
+    @Test
+    void score__commitVerification__notVerified() {
+        Submission submission = scoreRubric(constructRubric(1.0f), FAILING_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.Unapproved, true);
+    }
+
+    @Test
+    void score__commitVerification__notVerified__repeat() {
+        Submission submission = scoreRubric(constructRubric(1.0f), FAILING_CACHED_COMMIT_VERIFICATION);
+        assertCommitVerificationResults(submission, VerifiedStatus.Unapproved, true);
+    }
+
+    private void assertCommitVerificationResults(
+            Submission submission, VerifiedStatus verifiedStatus, boolean disallowCanvas) {
+
+        assertNotNull(submission);
+        assertEquals(1.0f, submission.score());
+        assertTrue(submission.passed());
+        assertEquals(verifiedStatus, submission.verifiedStatus());
+        assertNull(submission.verification());
+
+        if (disallowCanvas) {
+            assertNoCanvasGradeSubmitted();
+        }
     }
 
     @Test
@@ -157,19 +177,13 @@ class ScorerTest {
                 "testRepoUrl", new File(""),
                 10, 3, 10,
                 mockObserver, true);
-        Scorer scorer = new Scorer(gradingContext);
 
-        Submission submission = null;
-        try {
-            submission = scorer.score(getRubric(1f), PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Submission submission = scoreRubric(constructRubric(1f));
 
         assertNotNull(submission);
         assertTrue(submission.admin());
 
-        Mockito.verifyNoInteractions(spyCanvasIntegration);
+        assertNoCanvasGradeSubmitted();
     }
 
     @Test
@@ -180,23 +194,17 @@ class ScorerTest {
                 null,
                 new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
         );
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Quality, phase0RubricConfig);
+        setRubricConfig(Phase.Quality, phase0RubricConfig);
 
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
                 10, 3, 10,
                 mockObserver, false);
-        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
-        Scorer scorer = new Scorer(gradingContext);
+        addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
-        Submission submission = null;
-        try {
-            Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
-            submission = scorer.score(emptyRubric, PASSING_COMMIT_VERIFICATION);
-        } catch (GradingException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
+        Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
+        Submission submission = scoreRubric(emptyRubric);
 
         assertNotNull(submission);
         assertTrue(submission.passed());
@@ -205,13 +213,15 @@ class ScorerTest {
         Mockito.verifyNoInteractions(spyCanvasIntegration);
     }
 
+    // Helper Methods for constructing
+
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
      *
      * @param score score, 0-1
      * @return the Rubric object
      */
-    private Rubric getRubric(float score) {
+    private Rubric constructRubric(float score) {
         Rubric.Results results = new Rubric.Results(
                 "testNotes",
                 score,
@@ -228,6 +238,61 @@ class ScorerTest {
                 "testNotes"
         );
     }
+
+    private void setRubricConfig(Phase phase, RubricConfig rubricConfig) {
+        try {
+            DaoService.getRubricConfigDao().setRubricConfig(phase, rubricConfig);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+    }
+    private void addQueueItem(QueueItem item) {
+        try {
+            DaoService.getQueueDao().add(item);
+        } catch (DataAccessException e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+    }
+
+    private Submission scoreRubric(Rubric rubric) {
+        return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
+    }
+    private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
+        Scorer scorer = new Scorer(gradingContext);
+        return scoreRubric(scorer, rubric, commitVerification);
+    }
+    private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
+        try {
+            return scorer.score(rubric, commitVerification);
+        } catch (Exception e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+        return null;
+    }
+
+    private static CommitVerificationResult constructCommitVerificationResult(boolean verified, boolean isCached) {
+        String statusStr = verified ? "PASSING" : "FAILING";
+        if (isCached) statusStr += "_CACHED";
+        String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
+
+        return new CommitVerificationResult(
+                verified, isCached, 0, 0,
+                "", null, null,
+                headHash, null);
+    }
+
+    // Assertion Helpers
+
+    private void assertNoCanvasGradeSubmitted() {
+        try {
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), anyFloat(), anyString());
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasIntegration.RubricAssessment.class), anyString());
+        } catch (CanvasException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Loading properties
 
     private static void loadApplicationProperties() {
         Properties testProperties = new Properties();

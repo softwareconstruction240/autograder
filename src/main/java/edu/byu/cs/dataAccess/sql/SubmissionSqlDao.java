@@ -11,7 +11,6 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -30,11 +29,10 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin),
-            new ColumnDefinition<Submission>("verified_status",
-                    s -> s.verifiedStatus() == null ? null : s.verifiedStatus().name()),
-            new ColumnDefinition<Submission>("verification",
-                    s -> s.verification() == null ? null : new Gson().toJson(s.verification()))
+            new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
+            new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
     };
+
     private static Submission readSubmission(ResultSet rs) throws SQLException {
         Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class, new Submission.InstantAdapter()).create();
 
@@ -66,12 +64,12 @@ public class SubmissionSqlDao implements SubmissionDao {
             "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
 
     @Override
-    public void insertSubmission(Submission submission) {
+    public void insertSubmission(Submission submission) throws DataAccessException {
         sqlReader.insertItem(submission);
     }
 
     @Override
-    public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) {
+    public Collection<Submission> getSubmissionsForPhase(String netId, Phase phase) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ? AND phase = ?",
                 ps -> {
@@ -82,49 +80,62 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Collection<Submission> getSubmissionsForUser(String netId) {
+    public Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ?",
                 ps -> ps.setString(1, netId));
     }
 
     @Override
-    public Collection<Submission> getAllLatestSubmissions() {
+    public Collection<Submission> getAllLatestSubmissions() throws DataAccessException {
         return getAllLatestSubmissions(-1);
     }
 
     @Override
-    public Collection<Submission> getAllLatestSubmissions(int batchSize) {
-        return sqlReader.executeQuery(
-                """
-                    WHERE timestamp IN (
-                        SELECT MAX(timestamp)
-                        FROM %s
-                        GROUP BY net_id, phase
-                    )
-                    ORDER BY timestamp DESC
-                    """.formatted(sqlReader.getTableName()) +
-                (batchSize >= 0 ? "LIMIT ?" : ""),
-                ps -> {
-                    if (batchSize >= 0) {
-                        ps.setInt(1, batchSize);
-                    }
-                });
+    public Collection<Submission> getAllLatestSubmissions(int batchSize) throws DataAccessException {
+        try (var connection = SqlDb.getConnection()) {
+            var statement = connection.prepareStatement(
+                    """
+                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.num_commits, s.head_hash, s.notes, s.rubric, s.admin
+                            FROM submission s
+                            INNER JOIN (
+                                SELECT net_id, phase, MAX(timestamp) AS max_timestamp
+                                FROM submission
+                                GROUP BY net_id, phase
+                            ) s2 ON s.net_id = s2.net_id AND s.phase = s2.phase AND s.timestamp = s2.max_timestamp
+                            ORDER BY s2.max_timestamp DESC
+                            """ +
+                            (batchSize >= 0 ? "LIMIT ?" : "")
+            );
+            if (batchSize >= 0) {
+                statement.setInt(1, batchSize);
+            }
+            try (var results = statement.executeQuery()) {
+                List<Submission> submissions = new ArrayList<>();
+                while (results.next()) {
+                    Submission submission = readSubmission(results);
+                    submissions.add(submission);
+                }
+                return submissions;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error getting latest submissions", e);
+        }
     }
 
     @Override
-    public void removeSubmissionsByNetId(String netId) {
+    public void removeSubmissionsByNetId(String netId) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
-                    DELETE FROM %s
-                    WHERE net_id = ?
-                    """.formatted(sqlReader.getTableName()),
+                        DELETE FROM %s
+                        WHERE net_id = ?
+                        """.formatted(sqlReader.getTableName()),
                 ps -> ps.setString(1, netId)
         );
     }
 
     @Override
-    public Submission getFirstPassingSubmission(String netId, Phase phase) {
+    public Submission getFirstPassingSubmission(String netId, Phase phase) throws DataAccessException {
         var submissions = sqlReader.executeQuery(
                 """
                         WHERE net_id = ? AND phase = ? AND passed = 1
@@ -140,7 +151,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Submission getBestSubmissionForPhase(String netId, Phase phase) {
+    public Submission getBestSubmissionForPhase(String netId, Phase phase) throws DataAccessException {
         var submissions = sqlReader.executeQuery(
                 """
                     WHERE net_id = ? AND phase = ? AND passed = 1
@@ -156,7 +167,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public Collection<Submission> getAllPassingSubmissions(String netId) {
+    public Collection<Submission> getAllPassingSubmissions(String netId) throws DataAccessException {
         return sqlReader.executeQuery(
                 "WHERE net_id = ? AND passed = ?",
                 ps -> {
@@ -167,7 +178,7 @@ public class SubmissionSqlDao implements SubmissionDao {
 
     @Override
     public void manuallyApproveSubmission(Submission submission, Float newScore, Submission.ScoreVerification scoreVerification)
-            throws ItemNotFoundException {
+            throws ItemNotFoundException, DataAccessException {
         // Identify a submission by its: head_hash, net_id, and phase.
         // We could try to identify it by more items, but that touches on being too brittle.
 
@@ -176,10 +187,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         String phase = submission.phase().name();
 
         String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
-        String verifiedStatusStr = Submission.VerifiedStatus.ApprovedManually.name();
-        String verificationStr = new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(scoreVerification);
+        String verifiedStatusStr = Submission.serializeVerifiedStatus(Submission.VerifiedStatus.ApprovedManually);
+        String verificationStr = Submission.serializeScoreVerification(scoreVerification);
 
         // First verify that we can identify it
         var matchingSubmissions = sqlReader.executeQuery(

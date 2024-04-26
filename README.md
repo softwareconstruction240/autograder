@@ -57,7 +57,10 @@ After installing `Node`, run the following to enable `yarn` globally:
 corepack enable
 ```
 
-(`sudo` may be required)
+
+note: `sudo` may be required
+
+(see [installing `yarn`](https://yarnpkg.com/getting-started/install))
 
 #### Backend
 
@@ -71,7 +74,7 @@ Go fish🐟 These instructions are not included in this file.
 
 You can run the database inside a Docker container, or locally with your own MySQL server.
 
-##### Docker
+##### Docker MySQL Server
 
 Run the following in the root of the project to start the db container:
 
@@ -79,9 +82,23 @@ Run the following in the root of the project to start the db container:
 docker compose up db -d
 ```
 
-##### MySQL
+##### Manual MySQL Server
 
 Go fish🐟 These instructions are not included in this file.
+
+##### Dev Container
+
+Alternatively you can run all of IntelliJ inside a docker container, which would allow debugging the code on Windows 
+machines. This requires having docker installed and running on your machine. 
+To do this, navigate to `.devcontainer/devcontainer.json` in IntelliJ. There should be an icon that pops up next to
+the opening curly brace. Click the icon, then select `Create Dev Container and Clone Sources...`. This should pop up
+a dialog box that allows you to change a few options about the container. Look through them and change what you need,
+then hit the `Build Container and Continue` button. Wait for IntelliJ and Docker to build everything. You may need to
+click a few buttons along the way. Eventually a new IntelliJ window will pop up from the dev container. Follow the 
+`Getting Started` steps below with the new window. Use `host.docker.internal` as your db-host argument.
+
+To reopen the container after you've closed it, navigate to the `.devcontainer/devcontainer.json` file again,
+click the icon, and select `Show Dev Containers`. Select the container and it should reopen the second IntelliJ.
 
 ##### Notes for Windows Development
 
@@ -125,8 +142,7 @@ to preserve the learned knowledge for future generations.
     - Edit the "Server" run configuration
         - Paste in the single line of parameters to the line titled "Program arguments"
     - Save & apply the changes
-6. [Enable logging](#enabling-logging) by following the instructions below
-7. **Run the Autograder Locally**
+6. **Run the Autograder Locally**
     - Run your "Server" run configuration
     - Run the frontend by referencing the [section below](#running-locally)
    ```bash
@@ -167,14 +183,13 @@ To generate a Canvas API key:
 6. Copy the generated access token
 7. Use it as the value of the `--canvas-token` program argument above
 
-#### Enabling Logging
+#### Environment Variables
+If you are running Loki locally (not required), then you must set the following environment variable:
+```
+LOKI_URL=
+```
 
-To enable logging, add arguments `-Dlog4j2.configurationFile=log4j.properties -Dlog4j2.debug=false` as vm options.
-
-In IntelliJ, Go into the run configuration you want to use -> `Modify Options` -> `Add VM options`. This will reveal an
-additional box inside the edit menu. Paste the arguments into the box.
-
-If running from the command line, add the arguments immediately after the `java` command.
+The value can be either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to develop the app).
 
 #### Running Locally
 

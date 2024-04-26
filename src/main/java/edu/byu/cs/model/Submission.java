@@ -1,5 +1,6 @@
 package edu.byu.cs.model;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -78,9 +79,10 @@ public record Submission(
      * @param originalScore The score originally calculated by the server.
      * @param approvingNetId The NetId of the individual who approves the score manually.
      * @param approvedTimestamp The timestamp of the approver approving the score.
-     * @param penaltyPct The percentage reduction from the original score.
-     *                   This percentage will be reduced from all future submissions
-     *                   on this phase as well.
+     * @param penaltyPct <p>The percentage reduction from the original score.</p>
+     *                   <p>This percentage will be reduced from all future submissions
+     *                   on this phase as well.</p>
+     *                   <p>This should be an int between 0-100</p>
      */
     public record ScoreVerification(
              @NonNull Float originalScore,
@@ -93,7 +95,7 @@ public record Submission(
         Unapproved,
         ApprovedAutomatically,
         ApprovedManually,
-        PreviouslyManuallyApproved,
+        PreviouslyApproved,
     }
 
     @Override
@@ -107,5 +109,22 @@ public record Submission(
     @Override
     public int hashCode() {
         return Objects.hash(netId, headHash, phase);
+    }
+
+    public static String serializeScoreVerification(@NonNull Submission submission) {
+        return serializeScoreVerification(submission.verification);
+    }
+    public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
+        if (scoreVerification == null) return null;
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(scoreVerification);
+    }
+
+    public static String serializeVerifiedStatus(@NonNull Submission submission) {
+        return serializeVerifiedStatus(submission.verifiedStatus);
+    }
+    public static String serializeVerifiedStatus(@Nullable VerifiedStatus verifiedStatus) {
+        return verifiedStatus == null ? null : verifiedStatus.name();
     }
 }

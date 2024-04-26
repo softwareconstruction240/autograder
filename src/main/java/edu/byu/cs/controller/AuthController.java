@@ -1,8 +1,8 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
-import edu.byu.cs.controller.netmodel.RegisterRequest;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import org.slf4j.Logger;
@@ -11,7 +11,6 @@ import spark.Filter;
 import spark.Route;
 
 import static edu.byu.cs.util.JwtUtils.validateToken;
-import static edu.byu.cs.model.User.Role.STUDENT;
 import static spark.Spark.halt;
 
 public class AuthController {
@@ -30,16 +29,26 @@ public class AuthController {
         }
         String netId = validateToken(token);
 
+        // token is expired or invalid
         if (netId == null) {
+            res.cookie("/", "token", "", 0, false, false);
             halt(401);
             return;
         }
 
         UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(netId);
+        User user;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting user from database", e);
+            halt(500);
+            return;
+        }
 
         if (user == null) {
-            halt(403, "You must register first.");
+            LOGGER.error("Received request from unregistered user. This shouldn't be possible: " + netId);
+            halt(400, "You must register first.");
             return;
         }
 
@@ -52,49 +61,6 @@ public class AuthController {
         if (user.role() != User.Role.ADMIN) {
             halt(403);
         }
-    };
-
-    public static final Route registerPost = (req, res) -> {
-        String token = req.cookie("token");
-
-        if (token == null) {
-            halt(401);
-            return null;
-        }
-        String netId = validateToken(token);
-
-        if (netId == null) {
-            halt(401);
-            return null;
-        }
-
-        RegisterRequest registerRequest = new Gson().fromJson(req.body(), RegisterRequest.class);
-
-        if (registerRequest.firstName() == null) {
-            halt(400, "missing param `firstName`");
-            return null;
-        }
-        if (registerRequest.lastName() == null) {
-            halt(400, "missing param `lastName`");
-            return null;
-        }
-        if (registerRequest.repoUrl() == null) {
-            halt(400, "missing param `repoUrl`");
-            return null;
-        }
-
-        UserDao userDao = DaoService.getUserDao();
-        User newUser = new User(netId, 0, registerRequest.firstName(), registerRequest.lastName(), registerRequest.repoUrl(), STUDENT);
-        try {
-            userDao.insertUser(newUser);
-        } catch (Exception e) {
-            halt(409, "User already exists");
-            return null;
-        }
-
-        LOGGER.info("Registered " + newUser);
-        res.status(200);
-        return "";
     };
 
     public static final Route meGet = (req, res) -> {
