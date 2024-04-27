@@ -48,7 +48,6 @@ public class TestHelper {
      * @param module        The module to compile
      * @param testsLocation The location of the tests
      * @param stagePath     The path to the stage directory
-     * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
     void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath)
             throws GradingException {

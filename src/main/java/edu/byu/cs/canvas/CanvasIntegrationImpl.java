@@ -169,8 +169,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * included in the parameter maps are retrieved from the previous submission to prevent the loss of previous grades
      * and comments (The canvas API will set items not included to empty/black rather than grabbing the old data)
      *
-     * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
-     *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
      * @param assessment        Rubric assessment to put as the grade
@@ -304,7 +302,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      *
      * @param method        The request method to use (e.g. "GET", "PUT", etc.)
      * @param path          The path to the endpoint to use (e.g. "/courses/12345")
-     * @param request       The request body to send (or null if there is no request body)
      * @param responseClass The class of the response to return (or null if there is no response body)
      * @param <T>           The type of the response to return
      * @return The response from canvas
