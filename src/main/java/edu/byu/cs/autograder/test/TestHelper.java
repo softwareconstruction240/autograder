@@ -84,7 +84,7 @@ public class TestHelper {
             ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
             if (compileOutput.statusCode() != 0) {
-                LOGGER.error("Error compiling tests: " + compileOutput.stdErr());
+                LOGGER.error("Error compiling tests: {}", compileOutput.stdErr());
                 throw new GradingException("Error compiling tests:", compileOutput.stdErr());
             }
         } catch (IOException | ProcessUtils.ProcessException e) {

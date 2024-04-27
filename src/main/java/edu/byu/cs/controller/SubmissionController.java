@@ -46,7 +46,7 @@ public class SubmissionController {
 
         if (! verifyHasNewCommits(user, request.getPhase()) ) { return null; }
 
-        LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
+        LOGGER.info("User {} submitted phase {} for grading", user.netId(), request.phase());
 
         startGrader(user.netId(), request.getPhase(), user.repoUrl(), false);
 
@@ -75,7 +75,8 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        LOGGER.info("Admin " + user.netId() + " submitted phase " + request.phase() + " on repo " + request.repoUrl() + " for test grading");
+        LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", user.netId(), request.phase(),
+                request.repoUrl());
 
         startGrader(user.netId(), request.getPhase(), request.repoUrl(), true);
 
@@ -278,7 +279,7 @@ public class SubmissionController {
         try {
             submissions = submissionDao.getSubmissionsForUser(netId);
         } catch (DataAccessException e) {
-            LOGGER.error("Error getting submissions for user " + netId, e);
+            LOGGER.error("Error getting submissions for user {}", netId, e);
             halt(500);
         }
 
@@ -385,7 +386,7 @@ public class SubmissionController {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
             if (output.statusCode() != 0) {
-                LOGGER.error("git ls-remote exited with non-zero exit code\n" + output.stdErr());
+                LOGGER.error("git ls-remote exited with non-zero exit code\n{}", output.stdErr());
                 throw new RuntimeException("exited with non-zero exit code");
             }
             return output.stdOut().split("\\s+")[0];

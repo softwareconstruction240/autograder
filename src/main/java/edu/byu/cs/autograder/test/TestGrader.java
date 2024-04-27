@@ -60,7 +60,7 @@ public abstract class TestGrader {
         if (results.root() == null) {
             results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
             TestAnalyzer.TestNode.countTests(results.root());
-            LOGGER.error(name() + "tests failed to run for " + gradingContext.netId() + " in phase " +
+            LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 

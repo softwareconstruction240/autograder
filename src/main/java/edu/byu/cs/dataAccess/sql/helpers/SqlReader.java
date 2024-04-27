@@ -269,7 +269,7 @@ public class SqlReader <T> {
             statementPreparer.prepare(ps);
             return queryExecutor.executeQuery(ps);
         } catch (Exception e) {
-            LOGGER.error("Error executing query: " + statement, e);
+            LOGGER.error("Error executing query: {}", statement, e);
             throw new DataAccessException("Error executing query", e);
         }
     }
