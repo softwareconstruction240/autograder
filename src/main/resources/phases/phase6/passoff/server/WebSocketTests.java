@@ -47,7 +47,7 @@ public class WebSocketTests {
         GsonBuilder gsonBuilder = TestFactory.getGsonBuilder();
         environment = new WebsocketTestingEnvironment("localhost", port, "/ws", gsonBuilder);
 
-        waitTime = TestFactory.getMessageTime();
+        waitTime = 1000L;
     }
 
     @BeforeEach
