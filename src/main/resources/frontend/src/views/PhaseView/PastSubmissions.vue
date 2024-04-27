@@ -21,6 +21,11 @@ const passFail = (submission: Submission) => {
   return submission.passed ? 'Pass' : 'Fail';
 }
 
+const scoreText = (submission: Submission) => {
+  if(!submission.passed) return "";
+  return (submission.score * 100).toPrecision(4) + "% ";
+}
+
 const submissionsByPhaseDesc = computed(() => {
   const submissions = useSubmissionStore().submissionsByPhase[props.phase];
   if (!submissions) return [];
@@ -38,7 +43,7 @@ const submissionsByPhaseDesc = computed(() => {
         :key="`${submission.headHash}-${submission.timestamp}`"
         @click="$emit('show-results', submission)">
       {{ readableTimestamp(submission.timestamp) }} -
-      {{ (submission.score * 100).toPrecision(4) }}% {{ isPassFail ? `(${passFail(submission)})` : ''}}
+      {{ scoreText(submission) }}{{ isPassFail ? `(${passFail(submission)})` : ''}}
     </li>
   </ul>
   <p v-else>No previous results to show</p>
