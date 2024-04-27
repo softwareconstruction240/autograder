@@ -165,31 +165,6 @@ public class TestHelper {
         return commands;
     }
 
-
-    /**
-     * Gets the names of all the test files in the phases directory. The expected use case is to
-     * us this list to build the excludedTests set for the compileTests method.
-     *
-     * @return A set of the names of all the test files in the phases directory
-     */
-    Set<String> getTestFileNames(File testDirectory) throws GradingException {
-        Set<String> testFileNames = new HashSet<>();
-        try {
-            Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
-            try(Stream<Path> stream = Files.walk(testDirectoryPath)) {
-                stream.filter(Files::isRegularFile).forEach(path -> {
-                    String fileName = path.getFileName().toString();
-                    if (fileName.endsWith(".java")) {
-                        testFileNames.add(fileName);
-                    }
-                });
-            }
-        } catch (IOException e) {
-            throw new GradingException(e);
-        }
-        return testFileNames;
-    }
-
     private static String removeSparkLines(String errorOutput) {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
