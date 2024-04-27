@@ -20,11 +20,6 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected Set<String> excludedTests() throws GradingException {
-        return testHelper.getTestFileNames(phaseTests);
-    }
-
-    @Override
     protected File testsToCompile() {
         return new File(gradingContext.stageRepo(), module + "/src/test/java/");
     }

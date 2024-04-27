@@ -37,11 +37,6 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected Set<String> excludedTests() {
-        return new HashSet<>();
-    }
-
-    @Override
     protected File testsToCompile() {
         return phaseTests;
     }

@@ -75,13 +75,10 @@ public abstract class TestGrader {
 
     private void compileTests() throws GradingException {
         gradingContext.observer().update("Compiling " + name() + " tests...");
-        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(), gradingContext.stagePath(),
-                excludedTests());
+        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(), gradingContext.stagePath());
     }
 
     protected abstract String name();
-
-    protected abstract Set<String> excludedTests() throws GradingException;
 
     protected abstract File testsToCompile();
 

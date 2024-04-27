@@ -51,7 +51,7 @@ public class TestHelper {
      * @param stagePath     The path to the stage directory
      * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests)
+    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath)
             throws GradingException {
         if(!testsLocation.exists()) return;
         // remove any existing tests
@@ -62,7 +62,7 @@ public class TestHelper {
         try {
 
             /* Find files to compile */
-            List<String> findCommands = getFindCommands(excludedTests);
+            List<String> findCommands = getFindCommands();
 
             ProcessBuilder findProcessBuilder = new ProcessBuilder()
                     .directory(testsLocation)
@@ -93,7 +93,7 @@ public class TestHelper {
         }
     }
 
-    private static List<String> getFindCommands(Set<String> excludedTests) {
+    private static List<String> getFindCommands() {
         List<String> commands = new ArrayList<>();
         commands.add("find");
         commands.add(".");

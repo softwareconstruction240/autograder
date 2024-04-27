@@ -63,7 +63,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
-                null,
                 CanvasUser[].class);
 
         for (CanvasUser user : users) {
@@ -120,7 +119,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             CanvasSubmissionUser[] batch = makeCanvasRequest(
                     "GET",
                     baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
-                    null,
                     CanvasSubmissionUser[].class);
             batchSize = batch.length;
             allSubmissions.addAll(Arrays.asList(batch));
@@ -165,7 +163,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         makeCanvasRequest(
                 "PUT",
                 path.toString(),
-                null,
                 null);
     }
 
@@ -195,7 +192,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "PUT",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
                         queryString,
-                null,
                 null);
     }
 
@@ -233,7 +229,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
-                null,
                 CanvasSubmission.class
         );
     }
@@ -267,7 +262,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
-                null,
                 CanvasUser[].class);
 
         if (users.length == 0)
@@ -293,7 +287,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
-                null,
                 CanvasAssignment[].class
         )[0];
 
@@ -319,7 +312,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+    private static <T> T makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -328,16 +321,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             https.addRequestProperty("Accept-Encoding", "deflate");
             https.addRequestProperty("Authorization", AUTHORIZATION_HEADER);
 
-            if (method.equals("POST") || method.equals("PUT"))
-                https.setDoOutput(true);
-
-            if (request != null) {
-                https.addRequestProperty("Content-Type", "application/json");
-                String reqData = new Gson().toJson(request);
-                try (OutputStream reqBody = https.getOutputStream()) {
-                    reqBody.write(reqData.getBytes());
-                }
-            }
+            https.setDoOutput(false);
 
             https.connect();
 
