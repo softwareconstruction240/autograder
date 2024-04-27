@@ -1,6 +1,5 @@
 package edu.byu.cs.canvas;
 
-import com.google.gson.Gson;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -10,7 +9,6 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
