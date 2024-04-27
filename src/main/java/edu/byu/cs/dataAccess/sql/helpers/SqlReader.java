@@ -1,6 +1,5 @@
 package edu.byu.cs.dataAccess.sql.helpers;
 
-import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.SqlDb;
 import org.eclipse.jgit.annotations.NonNull;
@@ -19,11 +18,11 @@ public class SqlReader <T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlReader.class);
 
     /** Represents the name of our SQL table */
-    private final String TABLE_NAME;
+    private final String tableName;
     /** Represents all the columns in the table. */
-    private final ColumnDefinition<T>[] COLUMN_DEFINITIONS;
-    private final String[] ALL_COLUMN_NAMES;
-    private final ItemBuilder<T> ITEM_BUILDER;
+    private final ColumnDefinition<T>[] columnDefinitions;
+    private final String[] allColumnNames;
+    private final ItemBuilder<T> itemBuilder;
 
     private final String allColumnNamesStmt;
     private final String selectAllColumnsStmt;
@@ -67,24 +66,24 @@ public class SqlReader <T> {
      * @param itemBuilder Responsible for reading a single row of the result set and constructing an item
      */
     public SqlReader(String tableName, ColumnDefinition<T>[] columnDefinitions, ItemBuilder<T> itemBuilder) {
-        this.TABLE_NAME = tableName;
-        this.COLUMN_DEFINITIONS = columnDefinitions;
-        this.ALL_COLUMN_NAMES = Arrays.stream(columnDefinitions)
+        this.tableName = tableName;
+        this.columnDefinitions = columnDefinitions;
+        this.allColumnNames = Arrays.stream(columnDefinitions)
                 .map(ColumnDefinition::columnName).toArray(String[]::new);
-        this.ITEM_BUILDER = itemBuilder;
+        this.itemBuilder = itemBuilder;
 
         // Several pre-constructed statement fragments
-        this.allColumnNamesStmt = String.join(", ", ALL_COLUMN_NAMES);
-        this.selectAllColumnsStmt = "SELECT " + allColumnNamesStmt + " FROM " + TABLE_NAME + " ";
+        this.allColumnNamesStmt = String.join(", ", allColumnNames);
+        this.selectAllColumnsStmt = "SELECT " + allColumnNamesStmt + " FROM " + this.tableName + " ";
 
         this.insertStatement = buildInsertStatement();
         this.insertWildCardIndexPositions = this.prepareWildcardIndices(columnDefinitions);
     }
 
     private String buildInsertStatement() {
-        String valueWildcards = String.join(", ", Collections.nCopies(ALL_COLUMN_NAMES.length, "?"));
+        String valueWildcards = String.join(", ", Collections.nCopies(allColumnNames.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
-                .formatted(TABLE_NAME, allColumnNamesStmt, valueWildcards);
+                .formatted(tableName, allColumnNamesStmt, valueWildcards);
     }
     private Map<String, Integer> prepareWildcardIndices(ColumnDefinition<T>[] columnDefinitions) {
         Map<String, Integer> out = new HashMap<>();
@@ -111,14 +110,14 @@ public class SqlReader <T> {
              PreparedStatement preparedStatement = connection.prepareStatement(insertStatement)
         ) {
             int colIndex;
-            for (var colDef : COLUMN_DEFINITIONS) {
+            for (var colDef : columnDefinitions) {
                 colIndex = insertWildCardIndexPositions.get(colDef.columnName());
                 setValue(preparedStatement, colIndex, item, colDef);
             }
 
             preparedStatement.executeUpdate();
         } catch (Exception e) {
-            throw new DataAccessException("Error inserting item into table " + TABLE_NAME, e);
+            throw new DataAccessException("Error inserting item into table " + tableName, e);
         }
     }
 
@@ -162,7 +161,7 @@ public class SqlReader <T> {
      * @throws SQLException When SQL has an issue.
      */
     public Collection<T> readItems(@NonNull PreparedStatement statement) throws SQLException {
-        return readItems(statement, ITEM_BUILDER, ArrayList::new);
+        return readItems(statement, itemBuilder, ArrayList::new);
     }
     /**
      * Executes a given {@link PreparedStatement},
@@ -352,6 +351,6 @@ public class SqlReader <T> {
      * @return A string with the table name (configured upon construction).
      */
     public String getTableName() {
-        return TABLE_NAME;
+        return tableName;
     }
 }
