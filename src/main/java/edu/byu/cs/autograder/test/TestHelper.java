@@ -192,16 +192,6 @@ public class TestHelper {
         return testFileNames;
     }
 
-    public static boolean checkIfPassedPassoffTests(Rubric rubric) {
-        boolean passed = true;
-
-        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
-                passed = false;
-
-        return passed;
-    }
-
     private static String removeSparkLines(String errorOutput) {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
