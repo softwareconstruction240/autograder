@@ -63,12 +63,12 @@ public class PassoffTestGrader extends TestGrader {
 
     @Override
     protected float getScore(TestAnalyzer.TestNode testResults) {
-        float totalStandardTests = testResults.numTestsFailed + testResults.numTestsPassed;
-        float totalECTests = testResults.numExtraCreditPassed + testResults.numExtraCreditFailed;
+        float totalStandardTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
+        float totalECTests = testResults.getNumExtraCreditPassed() + testResults.getNumExtraCreditFailed();
 
         if (totalStandardTests == 0) return 0;
 
-        float score = testResults.numTestsPassed / totalStandardTests;
+        float score = testResults.getNumTestsPassed() / totalStandardTests;
         if (totalECTests == 0) return score;
 
         // extra credit calculation
@@ -89,7 +89,7 @@ public class PassoffTestGrader extends TestGrader {
 
         if (testResults == null) return "No tests were run";
 
-        if (testResults.numTestsFailed == 0) notes.append("All required tests passed");
+        if (testResults.getNumTestsFailed() == 0) notes.append("All required tests passed");
         else notes.append("Some required tests failed");
 
         Map<String, Float> ecScores = getECScores(testResults);
@@ -114,10 +114,10 @@ public class PassoffTestGrader extends TestGrader {
 
         while (!unchecked.isEmpty()) {
             TestAnalyzer.TestNode node = unchecked.remove();
-            for (TestAnalyzer.TestNode child : node.children.values()) {
-                if (child.ecCategory != null) {
-                    scores.put(child.ecCategory, (float) child.numExtraCreditPassed /
-                            (child.numExtraCreditPassed + child.numExtraCreditFailed));
+            for (TestAnalyzer.TestNode child : node.getChildren().values()) {
+                if (child.getEcCategory() != null) {
+                    scores.put(child.getEcCategory(), (float) child.getNumExtraCreditPassed() /
+                            (child.getNumExtraCreditPassed() + child.getNumExtraCreditFailed()));
                     unchecked.remove(child);
                 } else unchecked.add(child);
             }

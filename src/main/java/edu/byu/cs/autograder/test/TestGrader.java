@@ -64,7 +64,7 @@ public abstract class TestGrader {
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 
-        results.root().testName = testName();
+        results.root().setTestName(testName());
 
         float score = getScore(results.root());
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
