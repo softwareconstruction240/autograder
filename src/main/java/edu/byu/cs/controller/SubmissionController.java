@@ -200,11 +200,12 @@ public class SubmissionController {
 
     public static final Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
-        Phase phaseEnum = PhaseUtils.getPhaseByString(phase);
-
-        if (phaseEnum == null) {
-            res.status(400);
-            return "Invalid phase";
+        Phase phaseEnum = null;
+        try {
+            phaseEnum = Phase.valueOf(phase);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            halt(400, "Invalid phase");
         }
 
         User user = req.session().attribute("user");
