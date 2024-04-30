@@ -10,7 +10,8 @@ public record RubricConfig(
     public record RubricConfigItem(
             String category,
             String criteria,
-            int points
+            int points,
+            String rubricId
     ) {
     }
 }
