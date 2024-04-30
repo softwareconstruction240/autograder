@@ -88,6 +88,7 @@ public class SqlDb {
                                 `category` TEXT NOT NULL,
                                 `criteria` TEXT NOT NULL,
                                 `points` INT NOT NULL,
+                                `rubric_id` VARCHAR(20),
                                 PRIMARY KEY (`phase`, `type`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);

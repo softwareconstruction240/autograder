@@ -47,21 +47,22 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     @Override
     public void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException {
         if (rubricConfig.passoffTests() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.PASSOFF_TESTS, rubricConfig.passoffTests().category(), rubricConfig.passoffTests().criteria(), rubricConfig.passoffTests().points());
+            addRubricConfigItem(phase, Rubric.RubricType.PASSOFF_TESTS, rubricConfig.passoffTests());
         if (rubricConfig.unitTests() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.UNIT_TESTS, rubricConfig.unitTests().category(), rubricConfig.unitTests().criteria(), rubricConfig.unitTests().points());
+            addRubricConfigItem(phase, Rubric.RubricType.UNIT_TESTS, rubricConfig.unitTests());
         if (rubricConfig.quality() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.QUALITY, rubricConfig.quality().category(), rubricConfig.quality().criteria(), rubricConfig.quality().points());
+            addRubricConfigItem(phase, Rubric.RubricType.QUALITY, rubricConfig.quality());
     }
 
-    private void addRubricConfigItem(Phase phase, Rubric.RubricType type, String category, String criteria, int points) throws DataAccessException {
+    private void addRubricConfigItem(Phase phase, Rubric.RubricType type, RubricConfig.RubricConfigItem item) throws DataAccessException {
         try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO rubric_config (phase, type, category, criteria, points) VALUES (?, ?, ?, ?, ?)");
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) VALUES (?, ?, ?, ?, ?, ?)");
             statement.setString(1, phase.name());
             statement.setString(2, type.toString());
-            statement.setString(3, category);
-            statement.setString(4, criteria);
-            statement.setInt(5, points);
+            statement.setString(3, item.category());
+            statement.setString(4, item.criteria());
+            statement.setInt(5, item.points());
+            statement.setString(6, item.rubricId());
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error getting rubric item", e);
@@ -76,7 +77,7 @@ public class RubricConfigSqlDao implements RubricConfigDao {
             try(ResultSet results = statement.executeQuery()) {
                 if (results.next()) {
                     return new RubricConfig.RubricConfigItem(results.getString("category"),
-                            results.getString("criteria"), results.getInt("points"));
+                            results.getString("criteria"), results.getInt("points"), results.getString("rubric_id"));
                 }
             }
         } catch (Exception e) {
