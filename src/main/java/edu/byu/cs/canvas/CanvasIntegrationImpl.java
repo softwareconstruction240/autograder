@@ -222,11 +222,15 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     @Override
     public User getTestStudent() throws CanvasException {
+        return getTestStudent(COURSE_NUMBER);
+    }
+
+    public User getTestStudent(int courseNum) throws CanvasException {
         String testStudentName = "Test%20Student";
 
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
+                "/courses/" + courseNum + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
                 CanvasUser[].class).body();
 
         if (users.length == 0)
@@ -261,9 +265,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return assignment.due_at();
     }
 
-    public List<CanvasAssignment> getAssignmentsForClass() throws CanvasException {
-        int testStudentId = getTestStudent().canvasUserId();
-        String path = "/users/" + testStudentId + "/courses/" + COURSE_NUMBER + "/assignments";
+    public List<CanvasAssignment> getAssignmentsForClass(int courseNum) throws CanvasException {
+        int testStudentId = getTestStudent(courseNum).canvasUserId();
+        String path = "/users/" + testStudentId + "/courses/" + courseNum + "/assignments";
         return makePaginatedCanvasRequest(path, CanvasAssignment.class);
     }
 
