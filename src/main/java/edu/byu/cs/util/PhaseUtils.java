@@ -1,21 +1,15 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
 import java.util.Set;
 
 public class PhaseUtils {
-
-    // FIXME: dynamically get assignment numbers
-    private static final int PHASE0_ASSIGNMENT_NUMBER = 880445;
-    private static final int PHASE1_ASSIGNMENT_NUMBER = 880446;
-    private static final int PHASE3_ASSIGNMENT_NUMBER = 880448;
-    private static final int PHASE4_ASSIGNMENT_NUMBER = 880449;
-
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 880450;
-    private static final int PHASE6_ASSIGNMENT_NUMBER = 880451;
 
     /**
      * Given a phase, returns the phase before it, or null.
@@ -58,16 +52,22 @@ public class PhaseUtils {
      * @param phase the phase in question
      * @return its assignment number in Canvas
      */
-    public static int getPhaseAssignmentNumber(Phase phase) {
-        return switch (phase) {
-            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
-            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
-            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
-            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
-            case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
-            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
-            case Quality -> 0;
+    public static int getPhaseAssignmentNumber(Phase phase) throws GradingException {
+        ConfigurationDao.Configuration config = switch (phase) {
+            case Phase0 -> ConfigurationDao.Configuration.PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> ConfigurationDao.Configuration.PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> ConfigurationDao.Configuration.PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> ConfigurationDao.Configuration.PHASE4_ASSIGNMENT_NUMBER;
+            case Phase5 -> ConfigurationDao.Configuration.PHASE5_ASSIGNMENT_NUMBER;
+            case Phase6 -> ConfigurationDao.Configuration.PHASE6_ASSIGNMENT_NUMBER;
+            default -> throw new GradingException("Phase not graded");
         };
+        ConfigurationDao configurationDao = DaoService.getConfigurationDao();
+        try {
+            return configurationDao.getConfiguration(config, Integer.class);
+        } catch (DataAccessException e) {
+            throw new GradingException("Could not access configuration database", e);
+        }
     }
 
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
@@ -136,7 +136,6 @@ public class PhaseUtils {
     }
 
     public static String getModuleUnderTest(Phase phase) {
-        //FIXME : Not sure what's wrong with this but there was a empty fixme comment when I refactored -Michael
         return switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4, Phase6 -> "server";
