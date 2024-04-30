@@ -72,9 +72,9 @@ public class PhaseUtils {
 
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
-            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
+            case Phase0 -> Set.of("passoff.chess", "passoff.chess.piece");
+            case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
+            case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
             case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
         };
     }
@@ -82,9 +82,9 @@ public class PhaseUtils {
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> Set.of("serviceTests");
-            case Phase4 -> Set.of("dataAccessTests");
-            case Phase5 -> Set.of("clientTests");
+            case Phase3 -> Set.of("service");
+            case Phase4 -> Set.of("dataaccess");
+            case Phase5 -> Set.of("client");
         };
     }
 
