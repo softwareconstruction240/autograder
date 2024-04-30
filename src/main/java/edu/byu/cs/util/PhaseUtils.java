@@ -9,13 +9,13 @@ import java.util.Set;
 public class PhaseUtils {
 
     // FIXME: dynamically get assignment numbers
-    private static final int PHASE0_ASSIGNMENT_NUMBER = 880445;
-    private static final int PHASE1_ASSIGNMENT_NUMBER = 880446;
-    private static final int PHASE3_ASSIGNMENT_NUMBER = 880448;
-    private static final int PHASE4_ASSIGNMENT_NUMBER = 880449;
+    private static final int PHASE0_ASSIGNMENT_NUMBER = 921303;
+    private static final int PHASE1_ASSIGNMENT_NUMBER = 921304;
+    private static final int PHASE3_ASSIGNMENT_NUMBER = 921306;
+    private static final int PHASE4_ASSIGNMENT_NUMBER = 921307;
 
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 880450;
-    private static final int PHASE6_ASSIGNMENT_NUMBER = 880451;
+    private static final int PHASE5_ASSIGNMENT_NUMBER = 921308;
+    private static final int PHASE6_ASSIGNMENT_NUMBER = 921309;
 
     /**
      * Given a phase, returns the phase before it, or null.
@@ -119,12 +119,13 @@ public class PhaseUtils {
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "_930";
-                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90346_5755";
+                case QUALITY -> "90346_8398";
             };
             case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "_8849";
-                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90347_2215";
+                case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case QUALITY -> "90347_9378";
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";

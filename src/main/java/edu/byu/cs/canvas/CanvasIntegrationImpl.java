@@ -27,10 +27,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
     // FIXME: set this dynamically or pull from config
-    private static final int COURSE_NUMBER = 24410;
+    private static final int COURSE_NUMBER = 26141;
 
     // FIXME: set this dynamically or pull from config
-    private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
+    private static final int GIT_REPO_ASSIGNMENT_NUMBER = 921299;
 
     private record Enrollment(EnrollmentType type) {
 
