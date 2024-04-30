@@ -11,7 +11,6 @@ import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
-import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +57,10 @@ public class SubmissionController {
     private static Boolean getSubmissionsEnabledConfig() {
         boolean submissionsEnabled;
         try {
-            submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
-                    ConfigurationDao.Configuration.STUDENT_SUBMISSION_ENABLED,
-                    Boolean.class);
+            long beginTime = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSION_START, Long.class);
+            long endTime = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSION_END, Long.class);
+            long nowTime = System.currentTimeMillis();
+            submissionsEnabled = beginTime <= nowTime && nowTime <= endTime;
         } catch (Exception e) {
             LOGGER.error("Error getting configuration", e);
             halt(500);
