@@ -53,25 +53,6 @@ public class PhaseUtils {
     }
 
     /**
-     * Given an integer representation of a phase as a string, returns the phase
-     *
-     * @param str examples include "0", "3"
-     * @return the phase as an enum
-     */
-    public static Phase getPhaseByString(String str) {
-        return switch (str) {
-            case "0" -> Phase.Phase0;
-            case "1" -> Phase.Phase1;
-            case "3" -> Phase.Phase3;
-            case "4" -> Phase.Phase4;
-            case "5" -> Phase.Phase5;
-            case "6" -> Phase.Phase6;
-            case "42" -> Phase.Quality;
-            default -> null;
-        };
-    }
-
-    /**
      * Produces the Canvas assignment number for this phase
      *
      * @param phase the phase in question
@@ -91,9 +72,9 @@ public class PhaseUtils {
 
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
-            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
+            case Phase0 -> Set.of("passoff.chess", "passoff.chess.piece");
+            case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
+            case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
             case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
         };
     }
@@ -101,9 +82,9 @@ public class PhaseUtils {
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> Set.of("serviceTests");
-            case Phase4 -> Set.of("dataAccessTests");
-            case Phase5 -> Set.of("clientTests");
+            case Phase3 -> Set.of("service");
+            case Phase4 -> Set.of("dataaccess");
+            case Phase5 -> Set.of("client");
         };
     }
 

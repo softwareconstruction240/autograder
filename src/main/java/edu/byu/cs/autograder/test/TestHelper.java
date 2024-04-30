@@ -45,46 +45,46 @@ public class TestHelper {
     /**
      * Compiles the tests in the given directory
      *
-     * @param stageRepoPath The path to the student's repository
-     * @param module        The module to compile
-     * @param testsLocation The location of the tests
-     * @param stagePath     The path to the stage directory
+     * @param stageRepoPath     The path to the student's repository
+     * @param module            The module to compile
+     * @param testsLocations    The location of the tests
+     * @param stagePath         The path to the stage directory
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath)
+    void compileTests(File stageRepoPath, String module, Set<File> testsLocations, String stagePath)
             throws GradingException {
-        if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
-        // absolute path to student's chess jar
-
         try {
+            for(File testsLocation : testsLocations) {
+                if (!testsLocation.exists()) continue;
+                /* Find files to compile */
+                List<String> findCommands = getFindCommands();
 
-            /* Find files to compile */
-            List<String> findCommands = getFindCommands();
+                ProcessBuilder findProcessBuilder = new ProcessBuilder()
+                        .directory(testsLocation)
+                        .command(findCommands);
 
-            ProcessBuilder findProcessBuilder = new ProcessBuilder()
-                    .directory(testsLocation)
-                    .command(findCommands);
+                String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
-            String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
+                /* Compile files */
+                String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
+                        .getCanonicalPath();
 
-            /* Compile files */
-            String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
-                    .getCanonicalPath();
+                List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
 
-            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
+                ProcessBuilder compileProcessBuilder =
+                        new ProcessBuilder()
+                                .directory(testsLocation)
+                                .command(compileCommands);
 
-            ProcessBuilder compileProcessBuilder =
-                    new ProcessBuilder()
-                            .directory(testsLocation)
-                            .command(compileCommands);
+                ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            if (compileOutput.statusCode() != 0) {
-                LOGGER.error("Error compiling tests: {}", compileOutput.stdErr());
-                throw new GradingException("Error compiling tests:", compileOutput.stdErr());
+                if (compileOutput.statusCode() != 0) {
+                    LOGGER.error("Error compiling tests: {}", compileOutput.stdErr());
+                    throw new GradingException("Error compiling tests:", compileOutput.stdErr());
+                }
             }
         } catch (IOException | ProcessUtils.ProcessException e) {
             LOGGER.error("Error compiling tests", e);

@@ -1,5 +1,8 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
@@ -39,7 +42,7 @@ public class FakeCanvasIntegration implements CanvasIntegration {
     }
 
     @Override
-    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment) {
+    public void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment) {
 
     }
 
@@ -62,5 +65,10 @@ public class FakeCanvasIntegration implements CanvasIntegration {
     @Override
     public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) {
         return null;
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return new CanvasSection[]{new CanvasSection(0, "Fake Section")};
     }
 }

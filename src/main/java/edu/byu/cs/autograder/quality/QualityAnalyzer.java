@@ -38,7 +38,7 @@ public class QualityAnalyzer {
      */
     public QualityAnalysis runQualityChecks(File stageRepo) throws GradingException {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
-                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
+                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo/shared", "repo/server", "repo/client");
 
         String output;
         try {

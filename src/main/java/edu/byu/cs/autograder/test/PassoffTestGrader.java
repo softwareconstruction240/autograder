@@ -37,8 +37,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected File testsToCompile() {
-        return phaseTests;
+    protected Set<File> testsToCompile() {
+        return Set.of(phaseTests);
     }
 
     @Override
@@ -57,7 +57,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestNode testResults) {
+    protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) {
+        TestAnalyzer.TestNode testResults = testAnalysis.root();
         float totalStandardTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
         float totalECTests = testResults.getNumExtraCreditPassed() + testResults.getNumExtraCreditFailed();
 
@@ -79,7 +80,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestNode testResults) {
+    protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) {
+        TestAnalyzer.TestNode testResults = testAnalysis.root();
         StringBuilder notes = new StringBuilder();
 
         if (testResults == null) return "No tests were run";

@@ -1,5 +1,9 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -27,18 +31,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
-
-    // FIXME: set this dynamically or pull from config
-    public static final Map<Integer, Integer> sectionIDs;
-
-    static {
-        sectionIDs = new HashMap<>();
-        sectionIDs.put(1, 26512);
-        sectionIDs.put(2, 26513);
-        sectionIDs.put(3, 25972);
-        sectionIDs.put(4, 25496);
-        sectionIDs.put(5, 25971);
-    }
 
     private record Enrollment(EnrollmentType type) {
 
@@ -176,7 +168,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @throws CanvasException If there is an error with Canvas
      */
     @Override
-    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment) throws CanvasException {
+    public void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment) throws CanvasException {
         CanvasSubmission submission = getSubmission(userId, assignmentNum);
         if(submission.rubric_assessment() != null) {
             submission.rubric_assessment().items().putAll(assessment.items());
@@ -191,9 +183,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 null);
     }
 
-    private String buildRubricSubmissionQueryString(RubricAssessment assessment, String assignmentComment) {
+    private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
-        for(Map.Entry<String, RubricItem> entry : assessment.items().entrySet()) {
+        for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
             queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
                     .append(entry.getValue().points());
             if(entry.getValue().comments() != null) {
@@ -290,6 +282,13 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             throw new CanvasException("Unable to get due date for assignment");
 
         return assignment.due_at();
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return makeCanvasRequest("GET",
+                "/courses/" + COURSE_NUMBER + "/sections",
+                CanvasSection[].class);
     }
 
     private enum EnrollmentType {
