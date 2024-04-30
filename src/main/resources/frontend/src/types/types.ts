@@ -67,3 +67,8 @@ export type User = {
     repoUrl: string,
     role: 'STUDENT' | 'ADMIN'
 }
+
+export type CanvasSection = {
+    id: number,
+    name: string
+}

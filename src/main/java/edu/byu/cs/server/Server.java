@@ -92,6 +92,8 @@ public class Server {
                 get("/analytics/commit/:option", commitAnalyticsGet);
 
                 get("/honorChecker/zip/:section", honorCheckerZipGet);
+
+                get("/sections", sectionsGet);
             });
         });
 

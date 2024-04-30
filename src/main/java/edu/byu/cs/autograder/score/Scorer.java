@@ -3,14 +3,19 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.model.*;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.Submission;
+import edu.byu.cs.model.User;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
@@ -59,7 +64,7 @@ public class Scorer {
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-            CanvasIntegration.RubricAssessment assessment =
+            CanvasRubricAssessment assessment =
                     CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
 
             // prevent score from being saved to canvas if it will lower their score
@@ -105,20 +110,20 @@ public class Scorer {
     }
 
     private boolean wouldLowerScore(int userId, int assignmentNum,
-                                    CanvasIntegration.RubricAssessment assessment) {
+                                    CanvasRubricAssessment assessment) {
         try {
-            CanvasIntegration.CanvasSubmission submission =
+            CanvasSubmission submission =
                     CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
             float prevPoints = (submission.score() != null) ? submission.score() : 0;
-            CanvasIntegration.RubricAssessment compareAssessment = assessment;
+            CanvasRubricAssessment compareAssessment = assessment;
 
             if(submission.rubric_assessment() != null) {
                 prevPoints = Math.max(prevPoints, totalPoints(submission.rubric_assessment()));
 
-                HashMap<String, CanvasIntegration.RubricItem> compareItems = new HashMap<>();
+                HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
                 compareItems.putAll(submission.rubric_assessment().items());
                 compareItems.putAll(assessment.items());
-                compareAssessment = new CanvasIntegration.RubricAssessment(compareItems);
+                compareAssessment = new CanvasRubricAssessment(compareItems);
             }
 
             float newPoints = totalPoints(compareAssessment);
@@ -129,10 +134,10 @@ public class Scorer {
         }
     }
 
-    private float totalPoints(CanvasIntegration.RubricAssessment assessment) {
+    private float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
-        for(CanvasIntegration.RubricItem item : assessment.items().values()) {
+        for(CanvasRubricItem item : assessment.items().values()) {
             points += item.points();
         }
         return points;
@@ -214,7 +219,7 @@ public class Scorer {
         return headHash;
     }
 
-    private void sendToCanvas(int userId, int assignmentNum, CanvasIntegration.RubricAssessment assessment, String notes) throws GradingException {
+    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes) throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
