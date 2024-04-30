@@ -64,8 +64,7 @@ public class Scorer {
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-            CanvasRubricAssessment assessment =
-                    CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
+            CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment);
 
             // prevent score from being saved to canvas if it will lower their score
             if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {

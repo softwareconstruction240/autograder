@@ -80,25 +80,20 @@ public class CanvasUtils {
     }
 
     public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config,
-                                                             float lateAdjustment, Phase phase)
+                                                             float lateAdjustment)
             throws GradingException {
         Map<String, CanvasSubmissionRubricItem> items = new HashMap<>();
-        items.putAll(convertToCanvasFormat(rubric.passoffTests(), lateAdjustment, phase, config.passoffTests(),
-                Rubric.RubricType.PASSOFF_TESTS).items());
-        items.putAll(convertToCanvasFormat(rubric.unitTests(), lateAdjustment, phase, config.unitTests(),
-                Rubric.RubricType.UNIT_TESTS).items());
-        items.putAll(convertToCanvasFormat(rubric.quality(), lateAdjustment, phase, config.quality(),
-                Rubric.RubricType.QUALITY).items());
+        items.putAll(convertToCanvasFormat(rubric.passoffTests(), lateAdjustment, config.passoffTests()).items());
+        items.putAll(convertToCanvasFormat(rubric.unitTests(), lateAdjustment, config.unitTests()).items());
+        items.putAll(convertToCanvasFormat(rubric.quality(), lateAdjustment, config.quality()).items());
         return new CanvasRubricAssessment(items);
     }
 
-    private static CanvasRubricAssessment convertToCanvasFormat(Rubric.RubricItem rubricItem,
-                                                                            float lateAdjustment, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
-                                                                            Rubric.RubricType rubricType) throws GradingException {
+    private static CanvasRubricAssessment convertToCanvasFormat(Rubric.RubricItem rubricItem, float lateAdjustment, RubricConfig.RubricConfigItem rubricConfigItem) throws GradingException {
         Map<String, CanvasSubmissionRubricItem> items = new HashMap<>();
         if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
             Rubric.Results results = rubricItem.results();
-            items.put(PhaseUtils.getCanvasRubricId(rubricType, phase),
+            items.put(rubricConfigItem.rubricId(),
                     new CanvasSubmissionRubricItem(results.notes(), results.score() * (1 - lateAdjustment)));
         }
         return new CanvasRubricAssessment(items);
