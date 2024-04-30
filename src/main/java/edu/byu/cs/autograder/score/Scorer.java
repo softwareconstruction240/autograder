@@ -6,7 +6,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
+import edu.byu.cs.canvas.model.CanvasSubmissionRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -120,7 +120,7 @@ public class Scorer {
             if(submission.rubric_assessment() != null) {
                 prevPoints = Math.max(prevPoints, totalPoints(submission.rubric_assessment()));
 
-                HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
+                HashMap<String, CanvasSubmissionRubricItem> compareItems = new HashMap<>();
                 compareItems.putAll(submission.rubric_assessment().items());
                 compareItems.putAll(assessment.items());
                 compareAssessment = new CanvasRubricAssessment(compareItems);
@@ -137,7 +137,7 @@ public class Scorer {
     private float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
-        for(CanvasRubricItem item : assessment.items().values()) {
+        for(CanvasSubmissionRubricItem item : assessment.items().values()) {
             points += item.points();
         }
         return points;

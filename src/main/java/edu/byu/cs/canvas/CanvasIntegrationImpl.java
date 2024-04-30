@@ -1,9 +1,6 @@
 package edu.byu.cs.canvas;
 
-import edu.byu.cs.canvas.model.CanvasRubricAssessment;
-import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
+import edu.byu.cs.canvas.model.*;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -32,28 +29,20 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     // FIXME: set this dynamically or pull from config
     private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
 
-    private record Enrollment(EnrollmentType type) {
+    private record Enrollment(EnrollmentType type) { }
 
-    }
+    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {}
 
-    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
+    private record CanvasSubmissionUser(String url, CanvasUser user) { }
 
-    }
-
-    private record CanvasSubmissionUser(String url, CanvasUser user) {
-
-    }
-
-    private record CanvasAssignment(ZonedDateTime due_at) {
-
-    }
+    private record CanvasResponse<T>(T body, Map<String, List<String>> headers, int responseCode) {}
 
     @Override
     public User getUser(String netId) throws CanvasException {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
-                CanvasUser[].class);
+                CanvasUser[].class).body();
 
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
@@ -100,21 +89,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     }
 
     private static Collection<User> getMultipleStudents(String baseUrl) throws CanvasException {
-        int pageIndex = 1;
-        int batchSize = 100;
-        Set<CanvasSubmissionUser> allSubmissions = new HashSet<>();
+        List<CanvasSubmissionUser> allSubmissions = makePaginatedCanvasRequest(baseUrl, CanvasSubmissionUser.class);
+
         Set<User> allStudents = new HashSet<>();
-
-        while (batchSize == 100) {
-            CanvasSubmissionUser[] batch = makeCanvasRequest(
-                    "GET",
-                    baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
-                    CanvasSubmissionUser[].class);
-            batchSize = batch.length;
-            allSubmissions.addAll(Arrays.asList(batch));
-            pageIndex++;
-        }
-
         for (CanvasSubmissionUser sub : allSubmissions) {
             if (sub.url == null) continue;
             CanvasUser user = sub.user;
@@ -185,7 +162,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
-        for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
+        for(Map.Entry<String, CanvasSubmissionRubricItem> entry : assessment.items().entrySet()) {
             queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
                     .append(entry.getValue().points());
             if(entry.getValue().comments() != null) {
@@ -218,7 +195,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
                 CanvasSubmission.class
-        );
+        ).body();
     }
 
     /**
@@ -250,7 +227,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
-                CanvasUser[].class);
+                CanvasUser[].class).body();
 
         if (users.length == 0)
             throw new CanvasException("Test Student not found in Canvas");
@@ -276,7 +253,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
                 CanvasAssignment[].class
-        )[0];
+        ).body()[0];
 
         if (assignment == null || assignment.due_at() == null)
             throw new CanvasException("Unable to get due date for assignment");
@@ -284,16 +261,21 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return assignment.due_at();
     }
 
+    public List<CanvasAssignment> getAssignmentsForClass() throws CanvasException {
+        int testStudentId = getTestStudent().canvasUserId();
+        String path = "/users/" + testStudentId + "/courses/" + COURSE_NUMBER + "/assignments";
+        return makePaginatedCanvasRequest(path, CanvasAssignment.class);
+    }
+
     @Override
     public CanvasSection[] getAllSections() throws CanvasException {
         return makeCanvasRequest("GET",
                 "/courses/" + COURSE_NUMBER + "/sections",
-                CanvasSection[].class);
+                CanvasSection[].class).body();
     }
 
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
-
     }
 
     /**
@@ -306,7 +288,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
+    private static <T> CanvasResponse<T> makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -323,7 +305,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 throw new CanvasException("Response from canvas wasn't 2xx, was " + https.getResponseCode());
             }
 
-            return readBody(https, responseClass);
+            return new CanvasResponse<>(readBody(https, responseClass), https.getHeaderFields(), https.getResponseCode());
         } catch (Exception ex) {
             throw new CanvasException("Exception while contacting canvas", ex);
         }
@@ -345,6 +327,36 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 if (responseClass != null) {
                     return new CanvasDeserializer<T>().deserialize(reader, responseClass);
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Sends a request to canvas and returns the requested response
+     *
+     * @param path          The path to the endpoint to use (e.g. "/courses/12345")
+     * @param responseClass The class of the response to return
+     * @param <T>           The type of the response to return
+     * @return The list containing the responses from canvas
+     * @throws CanvasException If there is an error while contacting canvas
+     */
+    private static <T> List<T> makePaginatedCanvasRequest(String path, Class<T> responseClass) throws CanvasException {
+        List<T> list = new ArrayList<>();
+        while (path != null) {
+            @SuppressWarnings("unchecked")
+            CanvasResponse<T[]> response = makeCanvasRequest("GET", path, (Class<T[]>) responseClass.arrayType());
+            list.addAll(Arrays.asList(response.body()));
+            List<String> links = response.headers().get("Link");
+            path = (links != null) ? getNextPath(links.getFirst()) : null;
+        }
+        return list;
+    }
+
+    private static String getNextPath(String wholeLink) {
+        for(String group : wholeLink.split(",")) {
+            if (group.contains("rel=\"next\"")) {
+                return group.substring(group.indexOf("/api/v1") + 7, group.indexOf('>'));
             }
         }
         return null;
