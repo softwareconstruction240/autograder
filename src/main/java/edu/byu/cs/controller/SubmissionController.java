@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
@@ -44,11 +45,11 @@ public class SubmissionController {
 
         updateRepoFromCanvas(user, req);
 
-        if (! verifyHasNewCommits(user, request.getPhase()) ) { return null; }
+        if (! verifyHasNewCommits(user, request.phase()) ) { return null; }
 
         LOGGER.info("User " + user.netId() + " submitted phase " + request.phase() + " for grading");
 
-        startGrader(user.netId(), request.getPhase(), user.repoUrl(), false);
+        startGrader(user.netId(), request.phase(), user.repoUrl(), false);
 
         res.status(200);
         return "";
@@ -77,7 +78,7 @@ public class SubmissionController {
 
         LOGGER.info("Admin " + user.netId() + " submitted phase " + request.phase() + " on repo " + request.repoUrl() + " for test grading");
 
-        startGrader(user.netId(), request.getPhase(), request.repoUrl(), true);
+        startGrader(user.netId(), request.phase(), request.repoUrl(), true);
 
         res.status(200);
         return "";
@@ -153,13 +154,8 @@ public class SubmissionController {
             return null;
         }
 
-        if (request == null) {
+        if (request == null || request.phase() == null) {
             halt(400, "Request is invalid");
-            return null;
-        }
-
-        if (!Arrays.asList(0, 1, 3, 4, 5, 6, 42).contains(request.phase())) {
-            halt(400, "Valid phases are 0, 1, 3, 4, 5, 6, or 42");
             return null;
         }
 
@@ -205,16 +201,24 @@ public class SubmissionController {
 
     public static final Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
-        Phase phaseEnum = PhaseUtils.getPhaseByString(phase);
-
-        if (phaseEnum == null) {
-            res.status(400);
-            return "Invalid phase";
+        Phase phaseEnum = null;
+        try {
+            phaseEnum = Phase.valueOf(phase);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            halt(400, "Invalid phase");
         }
 
         User user = req.session().attribute("user");
 
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        Collection<Submission> submissions;
+        try {
+            submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
 
         res.status(200);
         res.type("application/json");
@@ -328,16 +332,24 @@ public class SubmissionController {
 
             @Override
             public void notifyError(String message) {
-                notifyError(message, "");
+                notifyError(message, Map.of());
             }
 
             @Override
             public void notifyError(String message, String details) {
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "error",
-                        "message", message,
-                        "details", details
-                ));
+                notifyError(message, Map.of("details", details));
+            }
+
+            @Override
+            public void notifyError(String message, TestAnalyzer.TestAnalysis analysis) {
+                notifyError(message, Map.of("analysis", analysis));
+            }
+
+            public void notifyError(String message, Map<String, Object> contents) {
+                contents = new HashMap<>(contents);
+                contents.put( "type", "error");
+                contents.put("message", message);
+                TrafficController.getInstance().notifySubscribers(netId, contents);
 
                 TrafficController.sessions.remove(netId);
                 try {

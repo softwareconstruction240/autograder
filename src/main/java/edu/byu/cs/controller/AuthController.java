@@ -2,6 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import org.slf4j.Logger;
@@ -36,7 +37,14 @@ public class AuthController {
         }
 
         UserDao userDao = DaoService.getUserDao();
-        User user = userDao.getUser(netId);
+        User user;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting user from database", e);
+            halt(500);
+            return;
+        }
 
         if (user == null) {
             LOGGER.error("Received request from unregistered user. This shouldn't be possible: " + netId);

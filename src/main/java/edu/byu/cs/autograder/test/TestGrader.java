@@ -66,10 +66,10 @@ public abstract class TestGrader {
 
         results.root().testName = testName();
 
-        float score = getScore(results.root());
+        float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
 
-        return new Rubric.Results(getNotes(results.root()), score, rubricConfigItem(rubricConfig).points(), results,
+        return new Rubric.Results(getNotes(results), score, rubricConfigItem(rubricConfig).points(), results,
                 null);
     }
 
@@ -83,7 +83,7 @@ public abstract class TestGrader {
 
     protected abstract Set<String> excludedTests() throws GradingException;
 
-    protected abstract File testsToCompile();
+    protected abstract Set<File> testsToCompile() throws GradingException;
 
     protected abstract Set<String> packagesToTest() throws GradingException;
 
@@ -91,9 +91,9 @@ public abstract class TestGrader {
 
     protected abstract String testName();
 
-    protected abstract float getScore(TestAnalyzer.TestNode testResults) throws GradingException;
+    protected abstract float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException;
 
-    protected abstract String getNotes(TestAnalyzer.TestNode testResults) throws GradingException;
+    protected abstract String getNotes(TestAnalyzer.TestAnalysis testResults) throws GradingException;
 
     protected abstract RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config);
 

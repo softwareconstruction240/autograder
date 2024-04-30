@@ -29,7 +29,7 @@ public class AdminController {
     public static final Route usersGet = (req, res) -> {
         UserDao userDao = DaoService.getUserDao();
 
-        Collection<User> users = null;
+        Collection<User> users;
         try {
             users = userDao.getUsers();
         } catch (DataAccessException e) {
@@ -97,7 +97,14 @@ public class AdminController {
     };
 
     public static final Route testModeGet = (req, res) -> {
-        User latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+        User latestTestStudent;
+        try {
+            latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+        } catch (CanvasException e) {
+            LOGGER.error("Error getting test student", e);
+            halt(500);
+            return null;
+        }
 
         UserDao userDao = DaoService.getUserDao();
         User user;
