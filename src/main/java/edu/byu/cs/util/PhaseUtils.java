@@ -119,12 +119,13 @@ public class PhaseUtils {
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "_930";
-                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90346_5755";
+                case QUALITY -> "90346_8398";
             };
             case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "_8849";
-                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90347_2215";
+                case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case QUALITY -> "90347_9378";
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";
