@@ -10,7 +10,7 @@ import {useSubmissionStore} from "@/stores/submissions";
 const props = defineProps<{
   phaseTitle: string;
   phaseDescription: string;
-  phase: Phase
+  phase: Phase;
 }>();
 
 const selectedResults = ref<Submission | null>(null);

@@ -53,25 +53,6 @@ public class PhaseUtils {
     }
 
     /**
-     * Given an integer representation of a phase as a string, returns the phase
-     *
-     * @param str examples include "0", "3"
-     * @return the phase as an enum
-     */
-    public static Phase getPhaseByString(String str) {
-        return switch (str) {
-            case "0" -> Phase.Phase0;
-            case "1" -> Phase.Phase1;
-            case "3" -> Phase.Phase3;
-            case "4" -> Phase.Phase4;
-            case "5" -> Phase.Phase5;
-            case "6" -> Phase.Phase6;
-            case "42" -> Phase.Quality;
-            default -> null;
-        };
-    }
-
-    /**
      * Produces the Canvas assignment number for this phase
      *
      * @param phase the phase in question
@@ -86,22 +67,6 @@ public class PhaseUtils {
             case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
             case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
             case Quality -> 0;
-        };
-    }
-
-    /**
-     * Returns the number of points the given phase is worth
-     *
-     * @param phase the phase in question
-     * @return the total points in Canvas as a float
-     */
-    public static float getTotalPoints(Phase phase) {
-        // FIXME
-        return switch (phase) {
-            case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
-            case Phase3 -> 180.0F;
-            case Phase6 -> 155.0F;
-            case Quality -> 0.0F;
         };
     }
 
