@@ -1,4 +1,12 @@
-export type Phase = '0' | '1' | '3' | '4' | '5' | '6' | '42';
+export enum Phase {
+    Phase0,
+    Phase1,
+    Phase3,
+    Phase4,
+    Phase5,
+    Phase6,
+    Quality
+}
 
 export type TestNode = {
     testName: string,
