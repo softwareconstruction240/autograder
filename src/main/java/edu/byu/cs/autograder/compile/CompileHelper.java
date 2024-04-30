@@ -2,10 +2,8 @@ package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 

@@ -223,7 +223,7 @@ public class Scorer {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
-            LOGGER.error("Error submitting to canvas for user " + gradingContext.netId(), e);
+            LOGGER.error("Error submitting to canvas for user {}", gradingContext.netId(), e);
             throw new GradingException("Error contacting canvas to record scores");
         }
     }

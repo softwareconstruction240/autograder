@@ -20,11 +20,6 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected Set<String> excludedTests() throws GradingException {
-        return testHelper.getTestFileNames(phaseTests);
-    }
-
-    @Override
     protected Set<File> testsToCompile() {
         return Set.of(new File(gradingContext.stageRepo(), module + "/src/test/java/"));
     }
@@ -47,28 +42,29 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
         TestAnalyzer.TestNode testResults = testAnalysis.root();
-        float totalTests = testResults.numTestsFailed + testResults.numTestsPassed;
+        float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
 
         if (totalTests == 0) return 0;
 
         int minTests = PhaseUtils.minUnitTests(gradingContext.phase());
 
-        if (totalTests < minTests) return (float) testResults.numTestsPassed / minTests;
+        if (totalTests < minTests) return (float) testResults.getNumTestsPassed() / minTests;
 
-        return testResults.numTestsPassed / totalTests;
+        return testResults.getNumTestsPassed() / totalTests;
     }
 
     @Override
+
     protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
         TestAnalyzer.TestNode testResults = testAnalysis.root();
-        if (testResults.numTestsPassed + testResults.numTestsFailed < PhaseUtils.minUnitTests(gradingContext.phase()))
+        if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
 
-        return switch (testResults.numTestsFailed) {
+        return switch (testResults.getNumTestsFailed()) {
             case 0 -> "All tests passed";
             case 1 -> "1 test failed";
-            default -> testResults.numTestsFailed + " tests failed";
+            default -> testResults.getNumTestsFailed() + " tests failed";
         };
     }
 

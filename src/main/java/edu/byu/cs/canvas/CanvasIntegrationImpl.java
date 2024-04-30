@@ -1,6 +1,5 @@
 package edu.byu.cs.canvas;
 
-import com.google.gson.Gson;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
@@ -14,7 +13,6 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -55,7 +53,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
-                null,
                 CanvasUser[].class);
 
         for (CanvasUser user : users) {
@@ -112,7 +109,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             CanvasSubmissionUser[] batch = makeCanvasRequest(
                     "GET",
                     baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
-                    null,
                     CanvasSubmissionUser[].class);
             batchSize = batch.length;
             allSubmissions.addAll(Arrays.asList(batch));
@@ -157,7 +153,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         makeCanvasRequest(
                 "PUT",
                 path.toString(),
-                null,
                 null);
     }
 
@@ -185,7 +180,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "PUT",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
                         queryString,
-                null,
                 null);
     }
 
@@ -223,7 +217,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
-                null,
                 CanvasSubmission.class
         );
     }
@@ -257,7 +250,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
-                null,
                 CanvasUser[].class);
 
         if (users.length == 0)
@@ -283,7 +275,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
-                null,
                 CanvasAssignment[].class
         )[0];
 
@@ -297,7 +288,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     public CanvasSection[] getAllSections() throws CanvasException {
         return makeCanvasRequest("GET",
                 "/courses/" + COURSE_NUMBER + "/sections",
-                null,
                 CanvasSection[].class);
     }
 
@@ -311,13 +301,12 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      *
      * @param method        The request method to use (e.g. "GET", "PUT", etc.)
      * @param path          The path to the endpoint to use (e.g. "/courses/12345")
-     * @param request       The request body to send (or null if there is no request body)
      * @param responseClass The class of the response to return (or null if there is no response body)
      * @param <T>           The type of the response to return
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+    private static <T> T makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -326,16 +315,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             https.addRequestProperty("Accept-Encoding", "deflate");
             https.addRequestProperty("Authorization", AUTHORIZATION_HEADER);
 
-            if (method.equals("POST") || method.equals("PUT"))
-                https.setDoOutput(true);
-
-            if (request != null) {
-                https.addRequestProperty("Content-Type", "application/json");
-                String reqData = new Gson().toJson(request);
-                try (OutputStream reqBody = https.getOutputStream()) {
-                    reqBody.write(reqData.getBytes());
-                }
-            }
+            https.setDoOutput(false);
 
             https.connect();
 

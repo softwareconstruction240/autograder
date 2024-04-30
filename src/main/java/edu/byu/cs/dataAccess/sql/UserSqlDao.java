@@ -7,10 +7,8 @@ import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.annotations.NonNull;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class UserSqlDao implements UserDao {

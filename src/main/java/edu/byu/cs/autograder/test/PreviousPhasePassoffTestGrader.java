@@ -24,11 +24,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected Set<String> excludedTests() {
-        return new HashSet<>();
-    }
-
-    @Override
     protected Set<File> testsToCompile() throws GradingException {
         return allPreviousPhases((p) -> Set.of(new File("./phases/phase" + PhaseUtils.getPhaseAsString(p))));
     }
@@ -71,13 +66,13 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
 
     @Override
     protected float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException {
-        if (testResults.root().numTestsFailed == 0) return 1f;
+        if (testResults.root().getNumTestsFailed() == 0) return 1f;
         throw new GradingException("Failed previous tests. Cannot pass off until previous tests pass", testResults);
     }
 
     @Override
     protected String getNotes(TestAnalyzer.TestAnalysis results) {
-        if (results.root().numTestsFailed == 0) {
+        if (results.root().getNumTestsFailed() == 0) {
             return "All previous tests passed";
         }
         else {

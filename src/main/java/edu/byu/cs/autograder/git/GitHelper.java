@@ -39,7 +39,7 @@ public class GitHelper {
                 .setDirectory(gradingContext.stageRepo());
 
         try (Git git = cloneCommand.call()) {
-            LOGGER.info("Cloned repo to " + git.getRepository().getDirectory());
+            LOGGER.info("Cloned repo to {}", git.getRepository().getDirectory());
         } catch (GitAPIException e) {
             gradingContext.observer().notifyError("Failed to clone repo: " + e.getMessage());
             LOGGER.error("Failed to clone repo", e);

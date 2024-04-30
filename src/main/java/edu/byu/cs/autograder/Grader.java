@@ -90,7 +90,8 @@ public class Grader implements Runnable {
             LOGGER.error(notification, ge);
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
-            LOGGER.error("Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
+            LOGGER.error("Error running grader for user {} and repository {}", gradingContext.netId(),
+                    gradingContext.repoUrl(), e);
         } finally {
             dbHelper.cleanUp();
             FileUtils.removeDirectory(new File(gradingContext.stagePath()));

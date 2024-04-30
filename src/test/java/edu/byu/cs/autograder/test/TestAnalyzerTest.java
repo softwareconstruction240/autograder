@@ -31,12 +31,12 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(2, root.children.get("PawnMoveTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.children.get("PawnMoveTests").children.values()) {
-            assertTrue(child.passed);
-            assertNull(child.errorMessage);
+        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+            assertTrue(child.getPassed());
+            assertNull(child.getErrorMessage());
         }
     }
 
@@ -69,12 +69,12 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(2, root.children.get("PawnMoveTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.children.get("PawnMoveTests").children.values()) {
-            assertFalse(child.passed);
-            assertNotNull(child.errorMessage);
+        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+            assertFalse(child.getPassed());
+            assertNotNull(child.getErrorMessage());
         }
     }
 
@@ -120,22 +120,22 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(3, root.children.get("PawnMoveTests").children.size());
-        assertEquals(1, root.children.get("RookMoveTests").children.size());
-        assertEquals(1, root.children.get("CastlingTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(3, root.getChildren().get("PawnMoveTests").getChildren().size());
+        assertEquals(1, root.getChildren().get("RookMoveTests").getChildren().size());
+        assertEquals(1, root.getChildren().get("CastlingTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.children.get("PawnMoveTests").children.values()) {
-            switch (child.testName) {
+        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+            switch (child.getTestName()) {
                 case "pawnMiddleOfBoardWhite()", "edgePromotionBlack()" -> {
-                    assertTrue(child.passed);
-                    assertNull(child.errorMessage);
+                    assertTrue(child.getPassed());
+                    assertNull(child.getErrorMessage());
                 }
                 case "pawnCaptureBlack()" -> {
-                    assertFalse(child.passed);
-                    assertNotNull(child.errorMessage);
+                    assertFalse(child.getPassed());
+                    assertNotNull(child.getErrorMessage());
                 }
-                default -> fail("Unexpected test name: " + child.testName);
+                default -> fail("Unexpected test name: " + child.getTestName());
             }
         }
     }
@@ -154,12 +154,12 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(2, root.children.get("PawnMoveTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.children.get("PawnMoveTests").children.values()) {
-            assertTrue(child.passed);
-            assertNull(child.errorMessage);
+        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+            assertTrue(child.getPassed());
+            assertNull(child.getErrorMessage());
         }
     }
 
@@ -190,12 +190,12 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(2, root.children.get("PawnMoveTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.children.get("PawnMoveTests").children.values()) {
-            assertTrue(child.passed);
-            assertNull(child.errorMessage);
+        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+            assertTrue(child.getPassed());
+            assertNull(child.getErrorMessage());
         }
     }
 
@@ -222,14 +222,14 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals(2, root.numTestsPassed);
-        assertEquals(1, root.numTestsFailed);
+        assertEquals(2, root.getNumTestsPassed());
+        assertEquals(1, root.getNumTestsFailed());
 
-        assertEquals(2, root.children.get("PawnMoveTests").numTestsPassed);
-        assertEquals(0, root.children.get("PawnMoveTests").numTestsFailed);
+        assertEquals(2, root.getChildren().get("PawnMoveTests").getNumTestsPassed());
+        assertEquals(0, root.getChildren().get("PawnMoveTests").getNumTestsFailed());
 
-        assertEquals(0, root.children.get("RookMoveTests").numTestsPassed);
-        assertEquals(1, root.children.get("RookMoveTests").numTestsFailed);
+        assertEquals(0, root.getChildren().get("RookMoveTests").getNumTestsPassed());
+        assertEquals(1, root.getChildren().get("RookMoveTests").getNumTestsFailed());
     }
 
     @Test
@@ -245,8 +245,8 @@ class TestAnalyzerTest {
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(2, root.children.get("QueenMoveTests").children.size());
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(2, root.getChildren().get("QueenMoveTests").getChildren().size());
     }
 
     @Test
@@ -279,12 +279,12 @@ class TestAnalyzerTest {
         extraCreditTests.add("EnPassantTests");
 
         TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
-        assertEquals("JUnit Jupiter", root.testName);
-        assertEquals(4, root.numTestsPassed);
-        assertEquals(6, root.numExtraCreditPassed);
-        assertEquals("CastlingTests", root.children.get("CastlingTests").ecCategory);
-        assertEquals("EnPassantTests", root.children.get("EnPassantTests").ecCategory);
-        assertNull(root.children.get("ChessGameTests").ecCategory);
+        assertEquals("JUnit Jupiter", root.getTestName());
+        assertEquals(4, root.getNumTestsPassed());
+        assertEquals(6, root.getNumExtraCreditPassed());
+        assertEquals("CastlingTests", root.getChildren().get("CastlingTests").getEcCategory());
+        assertEquals("EnPassantTests", root.getChildren().get("EnPassantTests").getEcCategory());
+        assertNull(root.getChildren().get("ChessGameTests").getEcCategory());
     }
 
     @Test
