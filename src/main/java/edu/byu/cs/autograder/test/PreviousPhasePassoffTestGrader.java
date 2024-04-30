@@ -82,6 +82,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
 
     @Override
     protected RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config) {
-        return new RubricConfig.RubricConfigItem(null, null, 0);
+        return new RubricConfig.RubricConfigItem(null, null, 0, null);
     }
 }
