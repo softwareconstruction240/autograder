@@ -8,6 +8,8 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.memory.*;
@@ -63,7 +65,7 @@ class ScorerTest {
             );
 
             when(spyCanvasIntegration.getSubmission(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                    new CanvasIntegration.CanvasSubmission("testUrl", new CanvasIntegration.RubricAssessment(new HashMap<>()), 1f)
+                    new CanvasSubmission("testUrl", new CanvasRubricAssessment(new HashMap<>()), 1f)
             );
         } catch (CanvasException e) {
             fail("Unexpected exception thrown: ", e);

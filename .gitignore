@@ -38,5 +38,5 @@ build/
 ### temp files ###
 *.class
 /tmp-*
-logs/
+/logs/
 /phases/

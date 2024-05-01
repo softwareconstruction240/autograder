@@ -18,8 +18,6 @@ import java.util.Properties;
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
-import static edu.byu.cs.controller.LogsController.logGet;
-import static edu.byu.cs.controller.LogsController.logsGet;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
@@ -87,12 +85,6 @@ public class Server {
                     post("/rerun", submissionsReRunPost);
                 });
 
-                path("/logs", () -> {
-                    get("", logsGet);
-
-                    get("/:log", logGet);
-                });
-
                 get("/test_mode", testModeGet);
 
                 get("/analytics/commit", commitAnalyticsGet);
@@ -100,6 +92,8 @@ public class Server {
                 get("/analytics/commit/:option", commitAnalyticsGet);
 
                 get("/honorChecker/zip/:section", honorCheckerZipGet);
+
+                get("/sections", sectionsGet);
             });
         });
 

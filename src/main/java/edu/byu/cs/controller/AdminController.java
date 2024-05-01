@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
@@ -195,6 +196,18 @@ public class AdminController {
             }
         } catch (Exception e) {
             LOGGER.error("Error compiling honor checker", e);
+            res.status(500);
+            return e.getMessage();
+        }
+    };
+
+    public static Route sectionsGet = (req, res) -> {
+        try {
+            CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
+            res.type("application/json");
+            res.status(200);
+            return new Gson().toJson(sections);
+        } catch (CanvasException e) {
             res.status(500);
             return e.getMessage();
         }

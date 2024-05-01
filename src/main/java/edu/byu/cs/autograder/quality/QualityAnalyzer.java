@@ -1,6 +1,7 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.autograder.quality;
 
 import com.google.gson.Gson;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.File;
@@ -37,9 +38,9 @@ public class QualityAnalyzer {
      */
     public QualityAnalysis runQualityChecks(File stageRepo) throws GradingException {
         ProcessBuilder processBuilder = new ProcessBuilder().directory(stageRepo.getParentFile())
-                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo");
+                .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo/shared", "repo/server", "repo/client");
 
-        String output = null;
+        String output;
         try {
             output = ProcessUtils.runProcess(processBuilder).stdOut();
         } catch (ProcessUtils.ProcessException e) {

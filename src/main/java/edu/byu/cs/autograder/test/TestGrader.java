@@ -60,30 +60,27 @@ public abstract class TestGrader {
         if (results.root() == null) {
             results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
             TestAnalyzer.TestNode.countTests(results.root());
-            LOGGER.error(name() + "tests failed to run for " + gradingContext.netId() + " in phase " +
+            LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 
-        results.root().testName = testName();
+        results.root().setTestName(testName());
 
-        float score = getScore(results.root());
+        float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
 
-        return new Rubric.Results(getNotes(results.root()), score, rubricConfigItem(rubricConfig).points(), results,
+        return new Rubric.Results(getNotes(results), score, rubricConfigItem(rubricConfig).points(), results,
                 null);
     }
 
     private void compileTests() throws GradingException {
         gradingContext.observer().update("Compiling " + name() + " tests...");
-        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(), gradingContext.stagePath(),
-                excludedTests());
+        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(), gradingContext.stagePath());
     }
 
     protected abstract String name();
 
-    protected abstract Set<String> excludedTests() throws GradingException;
-
-    protected abstract File testsToCompile();
+    protected abstract Set<File> testsToCompile() throws GradingException;
 
     protected abstract Set<String> packagesToTest() throws GradingException;
 
@@ -91,9 +88,9 @@ public abstract class TestGrader {
 
     protected abstract String testName();
 
-    protected abstract float getScore(TestAnalyzer.TestNode testResults) throws GradingException;
+    protected abstract float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException;
 
-    protected abstract String getNotes(TestAnalyzer.TestNode testResults) throws GradingException;
+    protected abstract String getNotes(TestAnalyzer.TestAnalysis testResults) throws GradingException;
 
     protected abstract RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config);
 

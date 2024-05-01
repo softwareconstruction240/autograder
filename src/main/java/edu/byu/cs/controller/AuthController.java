@@ -47,7 +47,7 @@ public class AuthController {
         }
 
         if (user == null) {
-            LOGGER.error("Received request from unregistered user. This shouldn't be possible: " + netId);
+            LOGGER.error("Received request from unregistered user. This shouldn't be possible: {}", netId);
             halt(400, "You must register first.");
             return;
         }

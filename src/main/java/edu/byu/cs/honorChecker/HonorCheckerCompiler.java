@@ -1,15 +1,17 @@
 package edu.byu.cs.honorChecker;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class HonorCheckerCompiler {
@@ -17,13 +19,15 @@ public class HonorCheckerCompiler {
     /**
      * Creates a .zip file for all students' repos in the given section
      *
-     * @param section the section number (not ID)
+     * @param sectionID the section ID
      * @return the path to the .zip file
      */
-    public static String compileSection(int section) {
-        int sectionID = CanvasIntegrationImpl.sectionIDs.get(section);
-        String tmpDir = "tmp-section-" + section;
-        String zipFilePath = "section-" + section + ".zip";
+    public static String compileSection(int sectionID) throws CanvasException {
+        Optional<CanvasSection> canvasSection = Arrays.stream(CanvasService.getCanvasIntegration().getAllSections())
+                .filter(cs -> sectionID == cs.id()).findFirst();
+        if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
+        String tmpDir = "tmp-section-" + sectionID;
+        String zipFilePath = "section-" + sectionID + ".zip";
 
         FileUtils.createDirectory(tmpDir);
 
@@ -56,8 +60,8 @@ public class HonorCheckerCompiler {
                 Consumer<File> action = file -> {
                     String prefix = repoPath + File.separator;
                     if (!file.getPath().startsWith(prefix + "client") &&
-                        !file.getPath().startsWith(prefix + "server") &&
-                        !file.getPath().startsWith(prefix + "shared")) {
+                            !file.getPath().startsWith(prefix + "server") &&
+                            !file.getPath().startsWith(prefix + "shared")) {
                         file.delete();
                     }
                 };

@@ -7,6 +7,8 @@ import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
+import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
+import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
@@ -78,6 +80,8 @@ public class Grader implements Runnable {
             dbHelper.setUp();
             if (RUN_COMPILATION) compileHelper.compile();
 
+            new PreviousPhasePassoffTestGrader(gradingContext).runTests();
+
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             var evaluationResults = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
             Rubric rubric = assembleResultsToRubric(rubricConfig, evaluationResults);
@@ -86,15 +90,17 @@ public class Grader implements Runnable {
 
             observer.notifyDone(submission);
         } catch (GradingException ge) {
-            if(ge.getDetails() == null) observer.notifyError(ge.getMessage());
-            else observer.notifyError(ge.getMessage(), ge.getDetails());
+            if(ge.getDetails() != null) observer.notifyError(ge.getMessage(), ge.getDetails());
+            else if (ge.getAnalysis() != null) observer.notifyError(ge.getMessage(), ge.getAnalysis());
+            else observer.notifyError(ge.getMessage());
             String notification =
                     "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
             if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
             LOGGER.error(notification, ge);
         } catch (Exception e) {
             observer.notifyError(e.getMessage());
-            LOGGER.error("Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl(), e);
+            LOGGER.error("Error running grader for user {} and repository {}", gradingContext.netId(),
+                    gradingContext.repoUrl(), e);
         } finally {
             dbHelper.cleanUp();
             FileUtils.removeDirectory(new File(gradingContext.stagePath()));
@@ -149,6 +155,8 @@ public class Grader implements Runnable {
         void notifyError(String message);
 
         void notifyError(String message, String details);
+
+        void notifyError(String message, TestAnalyzer.TestAnalysis analysis);
 
         void notifyDone(Submission submission);
     }

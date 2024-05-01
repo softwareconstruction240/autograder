@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
@@ -9,10 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A helper class for running common test operations
@@ -45,47 +45,46 @@ public class TestHelper {
     /**
      * Compiles the tests in the given directory
      *
-     * @param stageRepoPath The path to the student's repository
-     * @param module        The module to compile
-     * @param testsLocation The location of the tests
-     * @param stagePath     The path to the stage directory
-     * @param excludedTests A set of tests to exclude from compilation. Can be directory or file names
+     * @param stageRepoPath     The path to the student's repository
+     * @param module            The module to compile
+     * @param testsLocations    The location of the tests
+     * @param stagePath         The path to the stage directory
      */
-    void compileTests(File stageRepoPath, String module, File testsLocation, String stagePath, Set<String> excludedTests)
+    void compileTests(File stageRepoPath, String module, Set<File> testsLocations, String stagePath)
             throws GradingException {
-        if(!testsLocation.exists()) return;
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
-        // absolute path to student's chess jar
-
         try {
+            for(File testsLocation : testsLocations) {
+                if (!testsLocation.exists()) continue;
+                /* Find files to compile */
+                List<String> findCommands = getFindCommands();
 
-            /* Find files to compile */
-            List<String> findCommands = getFindCommands(excludedTests);
+                ProcessBuilder findProcessBuilder = new ProcessBuilder()
+                        .directory(testsLocation)
+                        .command(findCommands);
 
-            ProcessBuilder findProcessBuilder = new ProcessBuilder()
-                    .directory(testsLocation)
-                    .command(findCommands);
+                String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
 
-            String findOutput = ProcessUtils.runProcess(findProcessBuilder).stdOut().replace("\n", " ");
+                /* Compile files */
+                String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
+                        .getCanonicalPath();
 
-            /* Compile files */
-            String chessJarWithDeps = new File(stageRepoPath, "/" + module + "/target/" + module + "-test-dependencies.jar")
-                    .getCanonicalPath();
+                List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
 
-            List<String> compileCommands = getCompileCommands(stagePath, chessJarWithDeps);
+                ProcessBuilder compileProcessBuilder =
+                        new ProcessBuilder()
+                                .directory(testsLocation)
+                                .command(compileCommands);
 
-            ProcessBuilder compileProcessBuilder =
-                    new ProcessBuilder()
-                            .directory(testsLocation)
-                            .command(compileCommands);
+                ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            ProcessUtils.ProcessOutput compileOutput = ProcessUtils.runProcess(compileProcessBuilder, findOutput);
 
-            if (compileOutput.statusCode() != 0) {
-                LOGGER.error("Error compiling tests: " + compileOutput.stdErr());
-                throw new GradingException("Error compiling tests:", compileOutput.stdErr());
+                if (compileOutput.statusCode() != 0) {
+                    LOGGER.error("Error compiling tests: {}", compileOutput.stdErr());
+                    throw new GradingException("Error compiling tests:", compileOutput.stdErr());
+                }
             }
         } catch (IOException | ProcessUtils.ProcessException e) {
             LOGGER.error("Error compiling tests", e);
@@ -93,7 +92,7 @@ public class TestHelper {
         }
     }
 
-    private static List<String> getFindCommands(Set<String> excludedTests) {
+    private static List<String> getFindCommands() {
         List<String> commands = new ArrayList<>();
         commands.add("find");
         commands.add(".");
@@ -165,41 +164,6 @@ public class TestHelper {
             commands.add(packageToTest);
         }
         return commands;
-    }
-
-
-    /**
-     * Gets the names of all the test files in the phases directory. The expected use case is to
-     * us this list to build the excludedTests set for the compileTests method.
-     *
-     * @return A set of the names of all the test files in the phases directory
-     */
-    Set<String> getTestFileNames(File testDirectory) throws GradingException {
-        Set<String> testFileNames = new HashSet<>();
-        try {
-            Path testDirectoryPath = Path.of(testDirectory.getCanonicalPath());
-            try(Stream<Path> stream = Files.walk(testDirectoryPath)) {
-                stream.filter(Files::isRegularFile).forEach(path -> {
-                    String fileName = path.getFileName().toString();
-                    if (fileName.endsWith(".java")) {
-                        testFileNames.add(fileName);
-                    }
-                });
-            }
-        } catch (IOException e) {
-            throw new GradingException(e);
-        }
-        return testFileNames;
-    }
-
-    public static boolean checkIfPassedPassoffTests(Rubric rubric) {
-        boolean passed = true;
-
-        if (rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
-                passed = false;
-
-        return passed;
     }
 
     private static String removeSparkLines(String errorOutput) {

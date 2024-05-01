@@ -1,20 +1,17 @@
 package edu.byu.cs.canvas;
 
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface CanvasIntegration {
-
-    record RubricItem(String comments, float points) {}
-
-    record RubricAssessment(Map<String, RubricItem> items) {}
-
-    record CanvasSubmission(String url, RubricAssessment rubric_assessment, Float score) {}
-
 
     /**
      * Queries canvas for the user with the given netId
@@ -60,7 +57,7 @@ public interface CanvasIntegration {
      * @throws CanvasException If there is an error with Canvas
      * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
      */
-    void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment)
+    void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment)
             throws CanvasException;
 
 
@@ -87,5 +84,7 @@ public interface CanvasIntegration {
     User getTestStudent() throws CanvasException;
 
     ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException;
+
+    CanvasSection[] getAllSections() throws CanvasException;
 
 }
