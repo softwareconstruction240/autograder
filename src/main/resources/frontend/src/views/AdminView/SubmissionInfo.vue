@@ -7,18 +7,13 @@ import {
   loadRubricRows,
   wrappingColSettings,
 } from "@/utils/tableUtils";
-import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
 import {
   generateClickableLink,
   nameFromNetId,
   readableTimestamp,
   scoreToPercentage
 } from "@/utils/utils";
-import Panel from "@/components/Panel.vue";
-import { submissionPost } from '@/services/submissionService'
-import { useSubmissionStore } from '@/stores/submissions'
 import { approveSubmissionPost } from '@/services/adminService'
-import RubricTable from "@/views/PhaseView/RubricTable.vue";
 
 const { submission } = defineProps<{
   submission: Submission;
