@@ -46,7 +46,7 @@ public class Scorer {
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
         rubric = annotateRubric(rubric);
 
-        // skip penalties if running in admin mode
+        // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
             return saveResults(rubric, commitVerificationResult, 0, getScore(rubric), "");
         }
@@ -54,15 +54,15 @@ public class Scorer {
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
 
+        // Validate several conditions before submitting to the grade-book
         Submission thisSubmission;
-        if (rubric.passed()) {
-            if (!commitVerificationResult.verified()) {
-                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
-            } else {
-                thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
-            }
-        } else {
+        if (!rubric.passed()) {
             thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+        } else if (!commitVerificationResult.verified()) {
+            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+        } else {
+            // The student receives a score!
+            thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
         }
 
         return thisSubmission;
@@ -70,6 +70,8 @@ public class Scorer {
 
     /**
      * Saves the generated submission and carefully submits the score to Canvas when it helps the student's grade.
+     * <br>
+     * Calling this method constitutes a successful, verified submission that will be saved and submitted.
      *
      * @param rubric Required.
      * @param commitVerificationResult Required.
