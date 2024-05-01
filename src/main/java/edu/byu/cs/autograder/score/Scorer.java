@@ -56,26 +56,28 @@ public class Scorer {
         Submission thisSubmission;
 
         // prevent score from being saved to canvas if it will lower their score
-        if (!commitVerificationResult.verified()) {
-            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
-        } else if (rubric.passed()) {
-            UserDao userDao = DaoService.getUserDao();
-            User user = userDao.getUser(gradingContext.netId());
-            int canvasUserId = user.canvasUserId();
-            int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
-
-            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-            CanvasRubricAssessment assessment =
-                    CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
-
-            // prevent score from being saved to canvas if it will lower their score
-            if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
-                String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
-                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
+        if (rubric.passed()) {
+            if (!commitVerificationResult.verified()) {
+                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
             } else {
-                thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
-                sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
+                UserDao userDao = DaoService.getUserDao();
+                User user = userDao.getUser(gradingContext.netId());
+                int canvasUserId = user.canvasUserId();
+                int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
+
+                RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+                float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
+                CanvasRubricAssessment assessment =
+                        CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
+
+                // prevent score from being saved to canvas if it will lower their score
+                if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
+                    String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
+                    thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
+                } else {
+                    thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+                    sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
+                }
             }
         } else {
             thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
