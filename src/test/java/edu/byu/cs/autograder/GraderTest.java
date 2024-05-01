@@ -44,24 +44,28 @@ public class GraderTest {
 
   @Test
   @Tag("cleanRepoUrl")
+  @DisplayName("Should convert to HTTPS URL when given SSH URL")
+  void should_convertToHttpsUrl_when_givenSshUrl() {
+    assertDoesNotThrow(() -> {
+      assertEquals("https://github.com/<USERNAME>/<REPO_NAME>",
+          Grader.cleanRepoUrl("git@github.com:<USERNAME>/<REPO_NAME>.git"));
+    });
+  }
+
+  @Test
+  @Tag("cleanRepoUrl")
   @DisplayName("Should throw exception when given malformed or not related Url")
   void should_throwException_when_givenMalformedOrNotRelatedUrl() {
-
     String[] badUrls = {
         "github.com/user/repo",
         "https://wahoooo.com/user/repo",
-        "https://wahoooo.com/user/repo",
-        "https://wahoooo.com/user/repo"
+        "https://wahoooo.com/user/"
     };
     for (String badUrl: badUrls) {
       assertThrows(IOException.class, () -> {
         Grader.cleanRepoUrl(badUrl);
       });
     }
-
-
-
-
   }
 
 

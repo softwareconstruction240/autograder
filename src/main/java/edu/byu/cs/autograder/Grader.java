@@ -162,12 +162,22 @@ public class Grader implements Runnable {
      * @throws IOException Throws IOException if repoUrl does not follow expected format
      */
     public static String cleanRepoUrl(String repoUrl) throws IOException {
-        Pattern pattern = Pattern.compile("https?://github\\.com/([^/?]+)/([^/?]+)");
-        Matcher matcher = pattern.matcher(repoUrl);
-        if (matcher.find()) {
-            String githubUsername = matcher.group(1);
-            String repositoryName = matcher.group(2);
-            return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
+        String[] regexPatterns = {
+            "https?://github\\.com/([^/?]+)/([^/?]+)", // https
+            "git@github.com:([^/]+)/([^/]+).git" // ssh
+        };
+        Pattern pattern;
+        Matcher matcher;
+        String githubUsername;
+        String repositoryName;
+        for (String regexPattern: regexPatterns) {
+            pattern = Pattern.compile(regexPattern);
+            matcher = pattern.matcher(repoUrl);
+            if (matcher.find()) {
+                githubUsername = matcher.group(1);
+                repositoryName = matcher.group(2);
+                return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
+            }
         }
         throw new IOException("Could not find github username or repository name given '" + repoUrl + "'.");
     }
