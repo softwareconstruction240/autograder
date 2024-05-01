@@ -49,7 +49,7 @@ public interface SubmissionDao {
 
     /**
      * Removes all submissions for the given netId
-     * <br/><strong>Note: this will likely only be used for the test student</strong>
+     * <br/><strong>Note: this will likely only be used for the test student and admins</strong>
      *
      * @param netId the netId to remove submissions for
      */
