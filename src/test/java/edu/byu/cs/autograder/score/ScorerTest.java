@@ -288,7 +288,7 @@ class ScorerTest {
     private void assertNoCanvasGradeSubmitted() {
         try {
             Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), anyFloat(), anyString());
-            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasIntegration.RubricAssessment.class), anyString());
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasRubricAssessment.class), anyString());
         } catch (CanvasException e) {
             throw new RuntimeException(e);
         }
