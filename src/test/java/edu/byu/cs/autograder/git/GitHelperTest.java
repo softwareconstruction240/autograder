@@ -1,25 +1,38 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitThreshold;
-import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.git.RepoGenerationCommands.*;
+import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Instant;
-
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
 
 class GitHelperTest {
+
+    private GradingContext defaultGradingContext;
+
 
     @BeforeAll
     static void initialize() throws Exception {
         initRepoFiles();
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        Grader.Observer mockObserver = Mockito.mock(Grader.Observer.class);
+        defaultGradingContext = new GradingContext(
+                null, null, null, null, null, null,
+                10, 3, 10, 1,
+                mockObserver, false);
     }
 
     @Test
@@ -34,15 +47,46 @@ class GitHelperTest {
         // Works when a non-graded phase has already been submitted
     }
 
+    @Nested
+    class VerifyRegularCommits {
+
+        @Test
+        void insufficentCommitsSufficientDays() throws ProcessUtils.ProcessException {
+            generateCommits(TestRepo.hasCherryPickedCommits.getFile(), List.of(
+                    new CommitTiming(0, 0, 0),
+                    new CommitNItems(15, 1),
+                    new Commit("PHASE 0", 0)
+            ));
+            Assertions.assertFalse(false);
+        }
+        @Test
+        void sufficientCommitsInsufficientDays() {
+            Assertions.assertTrue(true);
+            Assertions.assertFalse(false);
+        }
+
+    }
+
+
+
+
     @Test
     void verifyRegularCommits() {
-        var gitHelper = new GitHelper(null);
+        var gitHelper = new GitHelper(defaultGradingContext);
         // Insufficient commits on sufficient days fails
         // Sufficient commits on insufficient days fails
-        withTestRepo(TestRepo.passesRequirements, git -> {
-            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), GitHelper.getHeadHash(git));
+        var result = withTestRepo(TestRepo.passesRequirements, git -> {
+            String phase0HeadHash;
+//            phase0HeadHash = "d57567de79755e5ef8293c2cdba07c84c4d289ce";
+//            phase0HeadHash = "5d4d714c522a254fc84006b73a7fb5d660b77bef";
+            phase0HeadHash = GitHelper.getHeadHash(git);
+            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
             return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
         });
+        System.out.println(result);
+        Assertions.assertTrue(result.verified());
+        Assertions.assertEquals(12, result.numCommits());
+        Assertions.assertEquals(1, result.numDays());
         // Sufficient commits on sufficient days succeeds
 
         // Cherry-picking an older commit generates a failure message
@@ -51,18 +95,23 @@ class GitHelperTest {
         // Commits authored after the head timestamp trigger failure
         // Commits authored before the tail timestamp trigger failure
 
+//        new ProcessBuilder()
+//        ProcessUtils.
+
     }
 
     private static void initRepoFiles() throws URISyntaxException {
-        String resourcesBase = "gitTestRepos/";
+        String resourcesBase = "src/test/resources/gitTestRepos/";
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         for (var testRepo : TestRepo.values()) {
             String resourcePath = resourcesBase + testRepo.getFilePath();
-            URL url = classLoader.getResource(resourcePath);
-            if (url == null) {
-                throw new RuntimeException("Count not locate resource: " + testRepo.getFilePath());
-            }
-            File file = new File(url.toURI());
+//            URL url = classLoader.getResource(resourcePath);
+//            if (url == null) {
+////                return null;
+//                throw new RuntimeException("Count not locate resource: " + testRepo.getFilePath());
+//            }
+//            File file = new File(url.toURI());
+            File file = new File(resourcePath);
             testRepo.setFile(file);
         }
     }
@@ -72,6 +121,29 @@ class GitHelperTest {
             return gitEvaluator.eval(git);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void generateCommits(File repoTargetDirectory, List<GitGenerationCommand> commands) throws ProcessUtils.ProcessException {
+        // Count the totals days spaced among all commits
+        final int totalDaysChanged = getTotalDaysChanged(commands);
+        final GitRepoState repoState = new GitRepoState();
+
+        commands.addFirst(new InitRepo());
+        runCommands(commands, totalDaysChanged, repoState);
+    }
+    private int getTotalDaysChanged(List<GitGenerationCommand> commands) {
+        return commands.stream().mapToInt(GitGenerationCommand::getDaysChanged).sum();
+    }
+    private void runCommands(List<GitGenerationCommand> commands, int totalDaysChanged, GitRepoState repoState) throws ProcessUtils.ProcessException {
+        int currentDay = totalDaysChanged;
+        ProcessBuilder processBuilder;
+        for (var command : commands) {
+            processBuilder = command.run(currentDay, repoState);
+            ProcessUtils.runProcess(processBuilder);
+            command.evaluateResults(repoState);
+
+            currentDay += command.getDaysChanged();
         }
     }
 

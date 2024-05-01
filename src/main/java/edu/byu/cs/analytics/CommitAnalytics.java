@@ -207,6 +207,10 @@ public class CommitAnalytics {
      * Note that the <b>authorship time</b> differs from the <b>commit time</b>
      * in cases where the commit is amended or changed after original authorship.
      * For example, if a commit is cherry-picked, rebased, or amended.
+     * <br>
+     * Note that it is relatively easy to change the author date of commits,
+     * compared to changing the commit date for an experienced user. However, it makes the most sense to
+     * monitor the author date because the automated tools preserve these generally.
      *
      * @param revCommit The commit to analyze
      * @return A long representing the author time in seconds.

@@ -1,4 +1,7 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.autograder.git.RepoGenerationCommands;
+
+import edu.byu.cs.autograder.git.GitRepoState;
+import edu.byu.cs.util.ProcessUtils;
 
 /**
  * Generates a commit and saves the hash and timestamp
@@ -14,5 +17,19 @@ public record Commit(
     @Override
     public int getDaysChanged() {
         return daysSincePreviousCommit;
+    }
+
+    @Override
+    public ProcessBuilder run(int absoluteDaysAgo, GitRepoState repoState) {
+        return new ProcessBuilder(repoState.scriptRoot + "commit.sh", title, "" + absoluteDaysAgo);
+    }
+
+    @Override
+    public void evaluateResults(GitRepoState repoState) throws ProcessUtils.ProcessException {
+        ProcessBuilder process = new ProcessBuilder("git", "rev-parse", "HEAD");
+        ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(process);
+        String headHash = output.stdOut();
+
+        repoState.namedCommits.put(title, new GitRepoState.NamedCommit(title, headHash));
     }
 }

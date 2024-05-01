@@ -1,9 +1,12 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.autograder.git.RepoGenerationCommands;
 
-public abstract class GitGenerationCommand {
-    abstract int getDaysChanged();
-    abstract ProcessBuilder run(int absoluteDaysAgo, GitRepoState repoState);
-    void evaluateResults(GitRepoState repoState) {
+import edu.byu.cs.autograder.git.GitRepoState;
+import edu.byu.cs.util.ProcessUtils;
+
+public interface GitGenerationCommand {
+    int getDaysChanged();
+    ProcessBuilder run(int absoluteDaysAgo, GitRepoState repoState);
+    default void evaluateResults(GitRepoState repoState) throws ProcessUtils.ProcessException {
         // Do nothing. Override me!
     }
 }

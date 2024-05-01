@@ -1,4 +1,6 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.autograder.git.RepoGenerationCommands;
+
+import edu.byu.cs.autograder.git.GitRepoState;
 
 public record InitRepo() implements GitGenerationCommand {
     @Override
@@ -8,6 +10,6 @@ public record InitRepo() implements GitGenerationCommand {
 
     @Override
     public ProcessBuilder run(int absoluteDaysAgo, GitRepoState repoState) {
-
+        return null;
     }
 }
