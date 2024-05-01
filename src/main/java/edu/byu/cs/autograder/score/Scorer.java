@@ -53,37 +53,62 @@ public class Scorer {
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
-        Submission thisSubmission;
 
-        // prevent score from being saved to canvas if it will lower their score
+        Submission thisSubmission;
         if (rubric.passed()) {
             if (!commitVerificationResult.verified()) {
                 thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
             } else {
-                UserDao userDao = DaoService.getUserDao();
-                User user = userDao.getUser(gradingContext.netId());
-                int canvasUserId = user.canvasUserId();
-                int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
-
-                RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-                float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-                CanvasRubricAssessment assessment =
-                        CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
-
-                // prevent score from being saved to canvas if it will lower their score
-                if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
-                    String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
-                    thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
-                } else {
-                    thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
-                    sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
-                }
+                thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
             }
         } else {
             thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
         }
 
         return thisSubmission;
+    }
+
+    /**
+     * Saves the generated submission and carefully submits the score to Canvas when it helps the student's grade.
+     *
+     * @param rubric Required.
+     * @param commitVerificationResult Required.
+     * @param daysLate Required.
+     * @param thisScore Required.
+     * @return A construction Submission for continued processing
+     * @throws DataAccessException When the database can't be reached.
+     * @throws GradingException When other conditions fail.
+     */
+    private Submission attemptSendToCanvas(
+            Rubric rubric, CommitVerificationResult commitVerificationResult,
+            int daysLate, float thisScore
+    ) throws DataAccessException, GradingException {
+        int canvasUserId = getCanvasUserId();
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
+
+        CanvasRubricAssessment assessment = constructCanvasRubricAssessment(rubric, daysLate);
+
+        // prevent score from being saved to canvas if it will lower their score
+        Submission submission;
+        if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
+            String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
+            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
+        } else {
+            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+            sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
+        }
+
+        return submission;
+    }
+    private int getCanvasUserId() throws DataAccessException {
+        UserDao userDao = DaoService.getUserDao();
+        User user = userDao.getUser(gradingContext.netId());
+        return user.canvasUserId();
+    }
+    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate) throws DataAccessException, GradingException {
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
     }
 
     /**
