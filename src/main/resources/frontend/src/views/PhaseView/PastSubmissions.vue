@@ -2,7 +2,7 @@
 import type {Submission} from "@/types/types";
 import {Phase} from "@/types/types";
 import {useSubmissionStore} from "@/stores/submissions";
-import {readableTimestamp} from "@/utils/utils";
+import {commitVerificationFailed, readableTimestamp} from "@/utils/utils";
 import {computed} from "vue";
 
 defineEmits<{
@@ -17,8 +17,10 @@ useSubmissionStore().getSubmissions(props.phase);
 
 const isPassFail = props.phase !== Phase.Phase6;
 
-const passFail = (submission: Submission) => {
-  return submission.passed ? 'Pass' : 'Fail';
+const description = (submission: Submission) => {
+  if(!submission.passed) return 'Fail';
+  if(commitVerificationFailed(submission)) return "Withheld"
+  return 'Pass';
 }
 
 const scoreText = (submission: Submission) => {
@@ -43,7 +45,7 @@ const submissionsByPhaseDesc = computed(() => {
         :key="`${submission.headHash}-${submission.timestamp}`"
         @click="$emit('show-results', submission)">
       {{ readableTimestamp(submission.timestamp) }} -
-      {{ scoreText(submission) }}{{ isPassFail ? `(${passFail(submission)})` : ''}}
+      {{ scoreText(submission) }}{{ isPassFail ? `(${description(submission)})` : '' }}
     </li>
   </ul>
   <p v-else>No previous results to show</p>
