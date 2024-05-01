@@ -3,7 +3,8 @@ package edu.byu.cs.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -11,7 +12,6 @@ import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
-import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
@@ -295,7 +295,7 @@ public class SubmissionController {
         // This may not be the way we want to actually go with this end-point,
         // the only reflect the data that will need to be transferred.
         String studentNetId = req.params(":studentNetId");
-        Phase phase = PhaseUtils.getPhaseByString(req.params(":phase"));
+        Phase phase = Phase.valueOf(req.params(":phase"));
         Float approvedScore = Float.valueOf(req.params(":approvedScore"));
         Integer penaltyPct = Integer.valueOf(req.params(":penaltyPct"));
         String approvingNetId = req.params(":approvingNetId");

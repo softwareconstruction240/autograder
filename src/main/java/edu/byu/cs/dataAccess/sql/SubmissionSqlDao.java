@@ -96,7 +96,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             var statement = connection.prepareStatement(
                     """
-                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.num_commits, s.head_hash, s.notes, s.rubric, s.admin
+                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.head_hash, s.notes, s.rubric, s.admin, s.verification, s.verified_status
                             FROM submission s
                             INNER JOIN (
                                 SELECT net_id, phase, MAX(timestamp) AS max_timestamp
