@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class PhaseUtils {
@@ -175,4 +176,15 @@ public class PhaseUtils {
             case Phase5, Phase6, Quality -> false;
         };
     }
+
+    public static Set<String> extraCreditTests(Phase phase) {
+        if(phase == Phase.Phase1) return Set.of("CastlingTests", "EnPassantTests");
+        return new HashSet<>();
+    }
+
+    public static float extraCreditValue(Phase phase) {
+        if(phase == Phase.Phase1) return .04f;
+        return 0;
+    }
+
 }

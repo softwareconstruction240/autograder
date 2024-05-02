@@ -27,7 +27,7 @@ public class HonorCheckerCompiler {
                 .filter(cs -> sectionID == cs.id()).findFirst();
         if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
         String tmpDir = "tmp-section-" + sectionID;
-        String zipFilePath = "section-" + sectionID + ".zip";
+        String zipFilePath = canvasSection.get().name() + ".zip";
 
         FileUtils.createDirectory(tmpDir);
 

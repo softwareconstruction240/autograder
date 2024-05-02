@@ -10,10 +10,7 @@ import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.*;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.RubricConfig;
-import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,20 +85,14 @@ public class Scorer {
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
         CanvasRubricAssessment newAssessment =
                 addExistingPoints(constructCanvasRubricAssessment(rubric, daysLate), existingAssessment);
+        setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
 
         // prevent score from being saved to canvas if it will lower their score
         Submission submission;
         if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
-        }
-        else {
-            if(commitVerificationResult.penaltyPct() > 0) {
-                newAssessment.items().put(
-                        PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, gradingContext.phase()),
-                        new CanvasRubricItem(commitVerificationResult.failureMessage(),
-                                (totalPoints(newAssessment) * commitVerificationResult.penaltyPct() / -100)));
-            }
+        } else {
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
@@ -109,13 +100,76 @@ public class Scorer {
         return submission;
     }
 
+    /**
+     * Simplifying overload that modifies the {@link CanvasRubricAssessment} by setting the GIT_COMMITS penalty properly.
+     *
+     * @see Scorer#setCommitVerificationPenalty(CanvasRubricAssessment, Phase, int, String) for more details.
+     *
+     * @param assessment The assessment to modify.
+     * @param gradingContext Represents the current grading.
+     * @param verification The evaluated CommitVerificationResult.
+     * @throws GradingException When grading errors occur such as the phase not having a GIT_COMMITS rubric item.
+     */
+    public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, GradingContext gradingContext,
+                                                    CommitVerificationResult verification) throws GradingException {
+        setCommitVerificationPenalty(assessment, gradingContext.phase(), verification.penaltyPct(), verification.failureMessage());
+    }
+
+    /**
+     * Modifies a received CanvasRubricAssessment by setting the GitCommit rubric item for particular phase to the proper value.
+     * <br>
+     * Calculates the penalty value based on the total score of the assessment excluding any existing commit penalty.
+     * Any existing penalty will be cleared out as part of the calculation process.
+     * <br>
+     * Expects a CanvasRubricAssessment to be passed in with existing values already loaded from Canvas.
+     *
+     * @param assessment The assessment to modify.
+     * @param phase The current phase being graded.
+     * @param penaltyPct The penalty percentage to reduce.
+     * @param commitComment A comment to attach with the score.
+     * @throws GradingException When certain conditions are not met.
+     */
+    public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, Phase phase, int penaltyPct,
+                                                    String commitComment) throws GradingException {
+        String commitRubricId = PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, phase);
+
+        // Prepare conditions and then calculate penalty
+        CanvasRubricItem emptyRubricItem = new CanvasRubricItem("", 0);
+        assessment.addItem(commitRubricId, emptyRubricItem);
+        float commitPenalty = getCommitPenaltyValue(penaltyPct, assessment);
+
+        assessment.addItem(commitRubricId, new CanvasRubricItem(commitComment, commitPenalty));
+    }
+
+    /**
+     * Determines the penalty value that should be placed in the GIT_COMMITS rubric item
+     * so that the overall score calculates properly.
+     * <br>
+     * This method expects any existing GIT_COMMITS penalty to already be cleared out.
+     *
+     * @param penaltyPct The percentage by which to reduce the total score
+     * @param assessment The canvas rubric item that will be scored. Not modified.
+     * @return A float representing the proper score.
+     */
+    private static float getCommitPenaltyValue(int penaltyPct, CanvasRubricAssessment assessment) {
+        if (penaltyPct <= 0) {
+            return 0f;
+        }
+
+        // Calculate the penalty
+        float rawScore = totalPoints(assessment);
+        float approvedScore = SubmissionHelper.prepareModifiedScore(rawScore, penaltyPct);
+        return approvedScore - rawScore;
+    }
+
     private int getCanvasUserId() throws DataAccessException {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(gradingContext.netId());
         return user.canvasUserId();
     }
-    
-    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate) throws DataAccessException, GradingException {
+
+    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate)
+            throws DataAccessException, GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
         float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
         return CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
@@ -149,8 +203,18 @@ public class Scorer {
         return passed;
     }
 
+    /**
+     * Returns a new CanvasRubricAssessment that represents the result of merging `assessment` into `existing`.
+     * <br>
+     * This is used to take as defaults any scores from `existing` that were not modified by `assessment` to produce
+     * a complete CanvasRubricAssessment.
+     *
+     * @param assessment Represents the new scores that will override scores in `existing`.
+     * @param existing These scores will be used if not defined in `assessment`. Should usually come from Canvas.
+     * @return A new CanvasRubricAssessment.
+     */
     private CanvasRubricAssessment addExistingPoints(CanvasRubricAssessment assessment, CanvasRubricAssessment existing) {
-        if(existing == null) return assessment;
+        if(existing == null) return assessment.clone();
 
         HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
         compareItems.putAll(existing.items());
@@ -168,7 +232,7 @@ public class Scorer {
         }
     }
 
-    private float totalPoints(CanvasRubricAssessment assessment) {
+    private static float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
         for(CanvasRubricItem item : assessment.items().values()) {
@@ -205,6 +269,8 @@ public class Scorer {
         if (rubric.quality() != null)
             score += rubric.quality().results().score();
 
+        // TODO: Also account for other RubricItems like GIT_COMMITS?
+
         return score / totalPossiblePoints;
     }
 
@@ -213,7 +279,8 @@ public class Scorer {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
+    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult,
+                                   int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
@@ -254,7 +321,8 @@ public class Scorer {
         return submission;
     }
 
-    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes) throws GradingException {
+    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
+            throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {

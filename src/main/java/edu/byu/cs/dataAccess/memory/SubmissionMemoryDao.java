@@ -6,6 +6,8 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,8 +78,9 @@ public class SubmissionMemoryDao implements SubmissionDao {
     }
 
     @Override
-    public void removeSubmissionsByNetId(String netId) {
-        submissions.removeIf(submission -> submission.netId().equals(netId));
+    public void removeSubmissionsByNetId(String netId, int daysOld) {
+        submissions.removeIf(submission -> submission.netId().equals(netId) &&
+                submission.timestamp().compareTo(Instant.now().minus(daysOld, ChronoUnit.DAYS)) < 0);
     }
 
     @Override
