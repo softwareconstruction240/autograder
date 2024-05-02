@@ -4,6 +4,8 @@ import { computed } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
+import '@/assets/fontawesome/css/fontawesome.css'
+import '@/assets/fontawesome/css/solid.css'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -53,12 +55,15 @@ h1 {
 }
 
 main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: var(--color--surface--background);
   color: var(--color--surface--text);
   padding: 20px;
   border-radius: 3px;
 
-  width: 66vw;
+  width: 60vw;
 
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
 }
@@ -67,5 +72,21 @@ a {
   color: white;
   text-decoration: underline;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 600px) {
+  main {
+    width: 95%;
+    max-width: none;
+    margin: 0 0 20px;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 900px){
+  main {
+    width: 75%;
+    max-width: none;
+    margin: 0 0 20px;
+  }
 }
 </style>

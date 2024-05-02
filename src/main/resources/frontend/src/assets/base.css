@@ -136,6 +136,11 @@ button[disabled] {
     cursor: not-allowed;
 }
 
+select {
+    height: 40px;
+    font-size: 15px;
+}
+
 .success {
     color: green;
 }

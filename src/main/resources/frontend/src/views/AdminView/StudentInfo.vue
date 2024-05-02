@@ -8,7 +8,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import PopUp from "@/components/PopUp.vue";
 import {renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings} from "@/utils/tableUtils";
-import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
+import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
 import {generateClickableLink} from "@/utils/utils";
 
 const { student } = defineProps<{
@@ -29,9 +29,6 @@ onMounted(async () => {
 
 const cellClickHandler = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data;
-  console.log("meme")
-  console.log(event.data)
-  console.log(selectedSubmission.value?.score)
 }
 
 const columnDefs = reactive([
@@ -48,7 +45,7 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p>Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
+  <p v-if="student.repoUrl">Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"

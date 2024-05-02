@@ -203,21 +203,47 @@ public class SubmissionController {
         ));
     };
 
+    public static final Route latestSubmissionForMeGet = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        Submission submission;
+        try {
+            submission = DaoService.getSubmissionDao().getLastSubmissionForUser(user.netId());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submission);
+    };
+
     public static final Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
         Phase phaseEnum = null;
-        try {
-            phaseEnum = Phase.valueOf(phase);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Invalid phase", e);
-            halt(400, "Invalid phase");
+
+        if (phase != null) {
+            try {
+                phaseEnum = Phase.valueOf(phase);
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("Invalid phase", e);
+                halt(400, "Invalid phase");
+            }
         }
 
         User user = req.session().attribute("user");
-
         Collection<Submission> submissions;
         try {
-            submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+            if (phase == null) {
+                submissions = DaoService.getSubmissionDao().getSubmissionsForUser(user.netId());
+            } else {
+                submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+            }
         } catch (DataAccessException e) {
             LOGGER.error("Error getting submissions for user {}", user.netId(), e);
             halt(500);
