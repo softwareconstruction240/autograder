@@ -103,5 +103,5 @@ const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) =
 export const phaseString = (phase: Phase | "Quality") => {
   console.log(phase)
   if (phase == 'Quality') { return "Code Quality Check"; }
-  else { return "Phaseeee " + phase}
+  else { return "Phase " + phase.toString().charAt(5)}
 }

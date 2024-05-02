@@ -33,10 +33,10 @@ const submitSelectedPhase = async () => {
 
 const submitPhase = async (phase: Phase) => {
   try {
-    useSubmissionStore().currentlyGrading = true;
     showResults.value = false;
     await submissionPost(phase);
     openGrader.value = true;
+    useSubmissionStore().currentlyGrading = true;
   } catch (e) {
     alert(e)
     useSubmissionStore().currentlyGrading = false;
@@ -52,28 +52,30 @@ const handleGradingDone = async () => {
 </script>
 
 <template>
-  <div id="phaseDetails">
-    <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
-    <a
-      target="_blank"
-      :href="uiConfig.getSpecLink(selectedPhase)">
-      <span v-if="selectedPhase">Review phase specs on Github</span>
-      <span v-else>Review project specs on Github</span>
-    </a>
-  </div>
+  <div id="submittingZone">
+    <div id="phaseDetails">
+      <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
+      <a
+        target="_blank"
+        :href="uiConfig.getSpecLink(selectedPhase)">
+        <span v-if="selectedPhase">Review phase specs on Github</span>
+        <span v-else>Review project specs on Github</span>
+      </a>
+    </div>
 
-  <div id="submitDialog">
-    <select v-model="selectedPhase">
-      <option :value=null selected disabled>Select a phase</option>
-      <option :value=Phase.Phase0>Phase 0</option>
-      <option :value=Phase.Phase1>Phase 1</option>
-      <option :value=Phase.Phase3>Phase 3</option>
-      <option :value=Phase.Phase4>Phase 4</option>
-      <option :value=Phase.Phase5>Phase 5</option>
-      <option :value=Phase.Phase6>Phase 6</option>
-      <option :value=Phase.Quality>Code Quality Check</option>
-    </select>
-    <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+    <div id="submitDialog">
+      <select v-model="selectedPhase">
+        <option :value=null selected disabled>Select a phase</option>
+        <option :value=Phase.Phase0>Phase 0</option>
+        <option :value=Phase.Phase1>Phase 1</option>
+        <option :value=Phase.Phase3>Phase 3</option>
+        <option :value=Phase.Phase4>Phase 4</option>
+        <option :value=Phase.Phase5>Phase 5</option>
+        <option :value=Phase.Phase6>Phase 6</option>
+        <option :value=Phase.Quality>Code Quality Check</option>
+      </select>
+      <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+    </div>
   </div>
 
   <InfoPanel style="height: 300px; margin: 0" v-if="openGrader">
@@ -105,7 +107,21 @@ h3 {
   font-size: xx-large;
 }
 
+#phaseDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#submittingZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 500px;
+}
+
 #submission-history-header {
+  text-align: center;
   margin: 15px;
 }
 </style>

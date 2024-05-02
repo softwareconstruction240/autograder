@@ -16,16 +16,6 @@ useAdminStore().updateUsers();
 </script>
 
 <template>
-
-  <header>
-    <p @click="stop">Submissions</p>
-    <p @click="stop">Students</p>
-    <p @click="stop">Status</p>
-    <p @click="stop">Downloads</p>
-  </header>
-
-
-
   <div v-if="true" class="container">
     <Tabs>
       <Tab title="Submissions">
@@ -49,11 +39,4 @@ useAdminStore().updateUsers();
 </template>
 
 <style scoped>
-header {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  background-color: var(--plain-300);
-}
 </style>

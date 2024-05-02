@@ -204,8 +204,6 @@ public class SubmissionController {
     };
 
     public static final Route latestSubmissionForMeGet = (req, res) -> {
-        System.out.println("afsdghfrtegwfrgtrs!!!!!!!!!!");
-
         User user = req.session().attribute("user");
 
         Submission submission;
@@ -226,7 +224,6 @@ public class SubmissionController {
     };
 
     public static final Route submissionXGet = (req, res) -> {
-        System.out.println("TESTSETESTSETEST!!!!!!!!!!");
         String phase = req.params(":phase");
         Phase phaseEnum = null;
         try {

@@ -34,7 +34,8 @@ const { submission } = defineProps<{
     <div id="important">
       <InfoPanel class="info-box">
         <p>Score:</p>
-        <h1 v-html="scoreToPercentage(submission.score)"/>
+        <h1 v-if="submission.passed" v-html="scoreToPercentage(submission.score)"/>
+        <h1 v-else>No score</h1>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
         <p>Notes:</p>

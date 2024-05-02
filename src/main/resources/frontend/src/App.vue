@@ -55,6 +55,9 @@ h1 {
 }
 
 main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: var(--color--surface--background);
   color: var(--color--surface--text);
   padding: 20px;
@@ -69,5 +72,13 @@ a {
   color: white;
   text-decoration: underline;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 480px) {
+  main {
+    width: 95%;
+    max-width: none;
+    margin: 0 0 20px;
+  }
 }
 </style>
