@@ -143,7 +143,7 @@ public class GitHelper {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
+        LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
 
         var observer = gradingContext.observer();
         if (commitVerificationResult.verified()) {
