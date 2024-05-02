@@ -18,7 +18,7 @@ const score = roundTwoDecimals(props.submission.score * 100);
 <template>
   <h1 v-if="!submission.passed">Failed</h1>
   <h1 v-else-if="commitVerificationFailed(submission)">Score withheld for commits.<br>Raw score: {{score}}%</h1>
-  <h1 v-else>Passed with {{score}}</h1>
+  <h1 v-else>Passed with {{score}}%</h1>
   <h2 v-html="submission.notes.replace('\n', '<br />')"></h2>
   <Rubric :rubric="submission.rubric" />
 </template>
