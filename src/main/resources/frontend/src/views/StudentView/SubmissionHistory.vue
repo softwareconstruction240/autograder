@@ -25,7 +25,7 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
 }
 
 const handleSubmissionOpen = (event: CellClickedEvent) => {
-  selectedSubmission.value = event.data.submission
+  selectedSubmission.value = event.data
 }
 
 const columnDefs = reactive([
