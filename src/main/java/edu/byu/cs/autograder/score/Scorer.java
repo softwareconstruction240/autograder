@@ -85,25 +85,29 @@ public class Scorer {
         int canvasUserId = getCanvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
 
-        CanvasRubricAssessment assessment = constructCanvasRubricAssessment(rubric, daysLate);
+        CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
+        CanvasRubricAssessment newAssessment =
+                addExistingPoints(constructCanvasRubricAssessment(rubric, daysLate), existingAssessment);
 
         // prevent score from being saved to canvas if it will lower their score
         Submission submission;
-        if (wouldLowerScore(canvasUserId, assignmentNum, assessment)) {
+        if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
         } else {
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
-            sendToCanvas(canvasUserId, assignmentNum, assessment, rubric.notes());
+            sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
 
         return submission;
     }
+
     private int getCanvasUserId() throws DataAccessException {
         UserDao userDao = DaoService.getUserDao();
         User user = userDao.getUser(gradingContext.netId());
         return user.canvasUserId();
     }
+    
     private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate) throws DataAccessException, GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
         float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
@@ -137,28 +141,22 @@ public class Scorer {
         return passed;
     }
 
-    private boolean wouldLowerScore(int userId, int assignmentNum,
-                                    CanvasRubricAssessment assessment) {
+    private CanvasRubricAssessment addExistingPoints(CanvasRubricAssessment assessment, CanvasRubricAssessment existing) {
+        if(existing == null) return assessment;
+
+        HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
+        compareItems.putAll(existing.items());
+        compareItems.putAll(assessment.items());
+        return new CanvasRubricAssessment(compareItems);
+    }
+
+    private CanvasRubricAssessment getExistingAssessment(int userId, int assignmentNum) throws GradingException {
         try {
-            CanvasSubmission submission =
-                    CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            float prevPoints = (submission.score() != null) ? submission.score() : 0;
-            CanvasRubricAssessment compareAssessment = assessment;
-
-            if(submission.rubric_assessment() != null) {
-                prevPoints = Math.max(prevPoints, totalPoints(submission.rubric_assessment()));
-
-                HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
-                compareItems.putAll(submission.rubric_assessment().items());
-                compareItems.putAll(assessment.items());
-                compareAssessment = new CanvasRubricAssessment(compareItems);
-            }
-
-            float newPoints = totalPoints(compareAssessment);
-            return newPoints <= prevPoints;
+            CanvasSubmission submission = CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
+            return submission.rubric_assessment();
         } catch (CanvasException e) {
             LOGGER.error("Exception from canvas", e);
-            return true;
+            throw new GradingException("Could not contact canvas", e);
         }
     }
 
