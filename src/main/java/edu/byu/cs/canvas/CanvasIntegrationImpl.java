@@ -157,9 +157,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     }
 
     /**
-     * Submits the given grade for the given assignment for the given user. Any grades or comments in the rubric not
-     * included in the parameter maps are retrieved from the previous submission to prevent the loss of previous grades
-     * and comments (The canvas API will set items not included to empty/black rather than grabbing the old data)
+     * Submits the given grade for the given assignment for the given user. Note that any grades or comments in the
+     * rubric not included in the assessment are set to empty/blank in canvas. (The canvas API will set items not
+     * included to empty/black rather than grabbing the old data)
      *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
@@ -169,11 +169,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      */
     @Override
     public void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment) throws CanvasException {
-        CanvasSubmission submission = getSubmission(userId, assignmentNum);
-        if(submission.rubric_assessment() != null) {
-            submission.rubric_assessment().items().putAll(assessment.items());
-            assessment = submission.rubric_assessment();
-        }
         String queryString = buildRubricSubmissionQueryString(assessment, assignmentComment);
 
         makeCanvasRequest(

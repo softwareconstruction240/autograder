@@ -12,11 +12,26 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -25,35 +40,159 @@ import java.util.*;
 public class CommitAnalytics {
 
     /**
-     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day
+     * Given an iterable of commits and two timestamps, creates a map of day to number of commits on that day,
+     * counting only commits within the bounds presented.
      *
-     * @param commits the collection of commits
-     * @param lowerBound the lower bound timestamp in Unix seconds
-     * @param upperBound the upper bound timestamp in Unix seconds
-     * @return the map
+     * @param git An open git object for use
+     * @param lowerBound The last commit in this log, exclusive
+     * @param upperBound The first commit in this log, inclusive
+     * @return A {@link CommitsByDay} record with the results
      */
-    public static Map<String, Integer> handleCommits(Iterable<RevCommit> commits, long lowerBound, long upperBound) {
+    public static CommitsByDay countCommitsByDay(
+            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
+            throws GitAPIException, IOException {
+
+        // Prepare data for repeated calculation
+        DiffFormatter diffFormatter = prepareDiffFormatter(git);
+        Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
+        long lowerTimeBoundSecs = lowerBound.timestamp().getEpochSecond();
+        long upperTimeBoundSecs = upperBound.timestamp().getEpochSecond();
+
+        // Will hold results
         Map<String, Integer> days = new TreeMap<>();
+        int singleParentCommits = 0;
+        int mergeCommits = 0;
+        List<Integer> changesPerCommit = new ArrayList<>();
+        boolean commitsInOrder = true;
+        boolean commitsInFuture = false;
+        boolean commitsInPast = false;
+
+        // Iteration helpers
+        long commitTimeSecs;
         for (RevCommit rc : commits) {
-            if (rc.getCommitTime() < lowerBound || rc.getCommitTime() > upperBound) continue;
-            String dayKey = DateTimeUtils.getDateString(rc.getCommitTime(), false);
+            commitTimeSecs = getCommitTime(rc);
+            if (commitTimeSecs <= lowerTimeBoundSecs) {
+                commitsInPast = true;
+                // Actually, we want to just skip these commits since these could legitimately
+                // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
+                continue;
+            }
+            if (commitTimeSecs > upperTimeBoundSecs) {
+                commitsInFuture = true;
+            }
+
+            for (var pc : rc.getParents()) {
+                if (commitTimeSecs < getCommitTime(pc)) {
+                    // Verifies that all parents are older than the child
+                    commitsInOrder = false;
+                    break;
+                }
+            }
+
+            // Skip merge commits
+            if (rc.getParentCount() > 1) {
+                ++mergeCommits;
+                continue;
+            }
+
+            // Count changes in each commit
+            changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+
+            // Add the commit to results
+            String dayKey = DateTimeUtils.getDateString(commitTimeSecs, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
+            ++singleParentCommits;
         }
-        return days;
+        return new CommitsByDay(
+                days, changesPerCommit,
+                singleParentCommits, mergeCommits,
+                commitsInOrder, commitsInFuture, commitsInPast,
+                lowerBound, upperBound);
+    }
+    private static Iterable<RevCommit> getCommitsBetweenBounds(
+            Git git, @NonNull String headHash, @Nullable String tailHash)
+            throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
+        if (git == null || headHash == null) {
+            throw new RuntimeException("Git and headHash are both required parameters.");
+        }
+
+        ObjectId headObjId = ObjectId.fromString(headHash);
+
+        if (tailHash == null) {
+            return git.log().add(headObjId).call();
+        } else {
+            ObjectId tailObjId = ObjectId.fromString(tailHash);
+            return git.log().addRange(tailObjId, headObjId).call();
+        }
     }
 
     /**
-     * Counts the total commits in the given map
+     * Returns the authorship time of the provided commit in seconds.
+     * <br>
+     * Note that the <b>authorship time</b> differs from the <b>commit time</b>
+     * in cases where the commit is amended or changed after original authorship.
+     * For example, if a commit is cherry-picked, rebased, or amended.
      *
-     * @param days a map of day represented as "yyyy-mm-dd" to integer
-     * @return the total of the map's values
+     * @param revCommit The commit to analyze
+     * @return A long representing the author time in seconds.
      */
-    public static int getTotalCommits(Map<String, Integer> days) {
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : days.entrySet()) {
-            total += entry.getValue();
+    private static long getCommitTime(RevCommit revCommit) {
+        long out = revCommit.getCommitTime(); // More efficient, but represents the COMMIT time
+
+        PersonIdent authorIdent = revCommit.getAuthorIdent();
+        if (authorIdent != null) {
+            Date authorTime = authorIdent.getWhen();
+            if (authorTime != null) {
+                out = authorTime.getTime() / 1000;
+            }
         }
-        return total;
+        // CONSIDER: Do we want to flag or display a warning if we are not able to read the actual AUTHOR_TIME
+        // field of the commits? We could auto-reject them...
+
+        return out;
+    }
+    /**
+     * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
+     * <br>
+     * Note: This formatter is configured to ignore all white space differences,
+     * and to not print out any output. This DiffFormatter is intended to be used
+     * to analyze changes in commits programmatically.
+     *
+     * @param git The Git object to read.
+     * @return A prepared {@link DiffFormatter}.
+     */
+    private static DiffFormatter prepareDiffFormatter(Git git) {
+        DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
+        diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
+        diffFormatter.setRepository(git.getRepository());
+
+        return diffFormatter;
+    }
+    /**
+     * Uses a pre-prepared {@link DiffFormatter} to count the lines changed in a target commit, compared to it's first parent.
+     *
+     * @param diffFormatter A pre-prepared DiffFormatter.
+     * @param revCommit The target commit to evaluate
+     * @return An int representing the number of changed lines in the commit
+     * @throws IOException When the system can't read the data properly.
+     */
+    private static int getNumChangesInCommit(DiffFormatter diffFormatter, RevCommit revCommit) throws IOException {
+        int parentCount = revCommit.getParentCount();
+        if (parentCount == 0) {
+            return 0; // Root commit doesn't have any changes
+        } else if (parentCount > 1) {
+            throw new IllegalArgumentException("Cannot count changes in a merge commit.");
+        }
+
+        List<DiffEntry> diffs = diffFormatter.scan(revCommit.getParent(0), revCommit);
+
+        int totalChanges = 0;
+        for (var diff : diffs) {
+            FileHeader fileHeader = diffFormatter.toFileHeader(diff);
+            totalChanges += fileHeader.toEditList().stream().mapToInt(Edit::getLengthB).sum();
+        }
+
+        return totalChanges;
     }
 
     private record CommitDatum(

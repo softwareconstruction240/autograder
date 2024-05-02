@@ -2,6 +2,7 @@ package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
+import org.eclipse.jgit.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -65,5 +66,59 @@ public interface SubmissionDao {
      */
     Submission getFirstPassingSubmission(String netId, Phase phase) throws DataAccessException;
 
+    /**
+     * Retrieves the highest score of a student's submissions for a phase.
+     * <br>
+     * A value of less than zero will be returned if there are no submissions.
+     * Here's a summary:
+     * <ul>
+     *     <li><b>-1.0f</b> means that no submissions exist for the student on the given phase</li>
+     *     <li><b>0.0f</b> means that all submissions have a score of zero</li>
+     *     <li><b>> 0.0f</b> means that the student has received a score on this phase</li>
+     * </ul>
+     *
+     * @param netId Representing a student.
+     * @param phase Representing a phase to submit
+     * @return The score (points) as a float, or -1.0 if no submissions exist.
+     */
     float getBestScoreForPhase(String netId, Phase phase) throws DataAccessException;
+
+    /**
+     * Gets all submissions that `passed` the grading for any phase.
+     * This includes submissions that were not approved for meeting
+     * certain thresholds. Therefore, not all the submissions in this
+     * result set are necessarily in Canvas.
+     *
+     * @param netId The netId of the student to filter by
+     * @return A collection of Submission objects, or an empty collection if none.
+     */
+    Collection<Submission> getAllPassingSubmissions(String netId) throws DataAccessException;
+
+    /**
+     * Modifies an existing submission in the collection to mark it manually approved.
+     * <br>
+     * Does all the following to the submission:
+     * <ul>
+     *     <li>Sets the `verifiedStatus` to {@link Submission.VerifiedStatus#ApprovedManually}</li>
+     *     <li>Sets the `verification` field to the provided object</li>
+     *     <li>Updates the score to the precalculated value</li>
+     * </ul>
+     *
+     * <br>
+     * A submission is considered equal if all the following are equivalent:
+     * <ul>
+     *     <li>netId</li>
+     *     <li>phase</li>
+     *     <li>headHash</li>
+     * </ul>
+     *
+     * @param submission The submission to modify in the data structure
+     * @param scoreVerification The personalized `ScoreVerification` to update in the `Submission`
+     * @throws ItemNotFoundException When the `Submission` cannot be located in the collection.
+     */
+    void manuallyApproveSubmission(
+            @NonNull Submission submission,
+            @NonNull Float newScore,
+            @NonNull Submission.ScoreVerification scoreVerification
+    ) throws ItemNotFoundException, DataAccessException;
 }

@@ -1,14 +1,13 @@
 package edu.byu.cs.dataAccess.memory;
 
+import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
-import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SubmissionMemoryDao implements SubmissionDao {
 
@@ -56,7 +55,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
 
     @Override
     public Collection<Submission> getAllLatestSubmissions(int batchSize) {
-        ConcurrentHashMap<String, Submission> latestSubmissions = new ConcurrentHashMap<>();
+        HashMap<String, Submission> latestSubmissions = new HashMap<>();
         if (batchSize==0) return latestSubmissions.values();
 
         for (Submission submission : submissions) {
@@ -95,10 +94,60 @@ public class SubmissionMemoryDao implements SubmissionDao {
     @Override
     public float getBestScoreForPhase(String netId, Phase phase) {
         Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
-        float bestScore = 0;
+        float bestScore = -1.0f; // This implementation **can** differentiate between submissions and no submissions
         for (Submission s : submissions) {
             if (s.score() > bestScore) { bestScore = s.score(); }
         }
         return bestScore;
     }
+
+    @Override
+    public Collection<Submission> getAllPassingSubmissions(String netId) {
+        return submissions
+                .stream()
+                .filter(submission -> submission.passed() && submission.netId().equals(netId))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void manuallyApproveSubmission(Submission targetSubmission, Float newScore,
+                                          Submission.ScoreVerification scoreVerification) throws ItemNotFoundException {
+        if (targetSubmission == null) {
+            throw new ItemNotFoundException("Target submission must not be null");
+        }
+
+        long matchingSubmissions = submissions.stream().filter(s -> s.equals(targetSubmission)).count();
+        if (matchingSubmissions != 1) {
+            throw new ItemNotFoundException("Did not isolate a single Submission "
+                    + "based on the provided criteria. Found %d".formatted(matchingSubmissions));
+        }
+
+        // Search and replace the item in the deque
+        Submission submission;
+        Iterator<Submission> iterator = submissions.iterator();
+        while (iterator.hasNext()) {
+            submission = iterator.next();
+            if (!targetSubmission.equals(submission)) continue;
+
+            iterator.remove();
+            submissions.add(new Submission(
+                    submission.netId(),
+                    submission.repoUrl(),
+                    submission.headHash(),
+                    submission.timestamp(),
+                    submission.phase(),
+                    submission.passed(),
+                    newScore,                                       // Changed
+                    submission.notes(),
+                    submission.rubric(),
+                    submission.admin(),
+                    Submission.VerifiedStatus.ApprovedManually,     // Changed
+                    scoreVerification                               // Changed
+            ));
+            return; // We found it!
+        }
+
+        throw new ItemNotFoundException("After verifying that 1 item existed, we didn't actually get to modify it");
+    }
+
 }

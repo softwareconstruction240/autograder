@@ -1,6 +1,11 @@
-import { useAdminStore } from '@/stores/admin'
+import {useAdminStore} from "@/stores/admin";
 import type { Phase, RubricItem, Submission, TestNode } from '@/types/types'
+import { VerifiedStatus } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
+
+export const commitVerificationFailed = (submission: Submission) => {
+  return submission.verifiedStatus.toString() === VerifiedStatus[VerifiedStatus.Unapproved];
+}
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;

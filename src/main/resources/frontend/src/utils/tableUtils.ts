@@ -1,6 +1,6 @@
 import type { ValueGetterParams } from 'ag-grid-community'
 import type {RubricItem, RubricItemResults, Submission} from "@/types/types";
-import {generateClickableLink, scoreToPercentage, simpleTimestamp} from "@/utils/utils";
+import { commitVerificationFailed, generateClickableLink, scoreToPercentage, simpleTimestamp } from '@/utils/utils'
 
 /**
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
@@ -32,8 +32,7 @@ export const renderScoreCell = (params: ValueGetterParams) => {
     const iconElement = document.createElement("i");
     let scoreText = "";
 
-    // TODO: When git blocking gets implemented, change this to (!params.data.submission.approved)
-    if (false) {
+    if (commitVerificationFailed(params.data.submission)) {
         cellElement.style.fontWeight = "bold"
         iconElement.classList.add("fa-solid", "fa-circle-exclamation");
         iconElement.style.color = "red";
