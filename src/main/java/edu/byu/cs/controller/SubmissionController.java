@@ -578,30 +578,15 @@ public class SubmissionController {
 
         float scoreDifference = approvedScore - originalScore;
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        Rubric oldRubric = submissionToUse.rubric();
-        Rubric rubicToUse = new Rubric(
-                oldRubric.passoffTests(),
-                oldRubric.unitTests(),
-                oldRubric.quality(),
-                new Rubric.RubricItem(
-                        "Git Commits",
-                        new Rubric.Results(
-                            null,
-                            scoreDifference,
-                            0,
-                            null,
-                            null),
-                        "Regularly commit to your Github"),
-                submissionToUse.passed(),
-                "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId);
+        Rubric rubricToUse = constructGitCommitsRubric(approverNetId, submissionToUse, scoreDifference);
 
 
         int canvasUserId = DaoService.getUserDao().getUser(studentNetId).canvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
-        submissionToUse = submissionToUse.replaceRubric(rubicToUse);
+        submissionToUse = submissionToUse.replaceRubric(rubricToUse);
         try {
-            CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubicToUse, rubricConfig, 0, phase);
+            CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubricToUse, rubricConfig, 0, phase);
             CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
 
             Scorer.sendToCanvas(
@@ -619,6 +604,28 @@ public class SubmissionController {
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
                 .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
+    }
+
+    private static Rubric constructGitCommitsRubric(String approverNetId, Submission submissionToUse, float scoreDifference) {
+        Rubric oldRubric = submissionToUse.rubric();
+
+        Rubric.Results results = new Rubric.Results(
+                null,
+                scoreDifference,
+                0,
+                null,
+                null);
+        Rubric.RubricItem rubricItem = new Rubric.RubricItem(
+                "Git Commits",
+                results,
+                "Regularly commit to your Github");
+        return new Rubric(
+                oldRubric.passoffTests(),
+                oldRubric.unitTests(),
+                oldRubric.quality(),
+                rubricItem,
+                submissionToUse.passed(),
+                "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId);
     }
 
 }
