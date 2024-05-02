@@ -59,10 +59,12 @@ public class Grader implements Runnable {
         int requiredCommits = 10;
         int requiredDaysWithCommits = 3;
         int commitVerificationPenaltyPct = 10;
+        int minimumChangedLinesPerCommit = 20;
+
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
-                    requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct,
+                    requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumChangedLinesPerCommit,
                     observer, admin);
 
         // Init helpers

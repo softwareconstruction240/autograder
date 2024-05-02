@@ -26,6 +26,7 @@ public record GradingContext(
         int requiredCommits,
         int requiredDaysWithCommits,
         int commitVerificationPenaltyPct,
+        int minimumChangedLinesPerCommit,
 
         // Others
         Grader.Observer observer,

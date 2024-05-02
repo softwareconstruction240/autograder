@@ -59,10 +59,13 @@ public class SubmissionHelper {
         );
     }
 
-    public static Float prepareModifiedScore(float originalScore, Submission.ScoreVerification scoreVerification) {
-        return originalScore * (100 - scoreVerification.penaltyPct()) / 100f;
+    public static float prepareModifiedScore(float originalScore, int penaltyPct) {
+        return originalScore * (100 - penaltyPct) / 100f;
     }
-    private static Float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
+    public static float prepareModifiedScore(float originalScore, Submission.ScoreVerification scoreVerification) {
+        return prepareModifiedScore(originalScore, scoreVerification.penaltyPct());
+    }
+    private static float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
         return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification);
     }
 }

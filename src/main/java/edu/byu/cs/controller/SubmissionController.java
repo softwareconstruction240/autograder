@@ -507,7 +507,7 @@ public class SubmissionController {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
         }
         if (studentNetId.isBlank() || approverNetId.isBlank()) {
-            throw  new IllegalArgumentException("Both studentNetId and approverNetId must not be blank");
+            throw new IllegalArgumentException("Both studentNetId and approverNetId must not be blank");
         }
         if (penaltyPct < 0 || (approvedScore != null && approvedScore < 0)) {
             throw new IllegalArgumentException("Both penaltyPct and approvedScore must be greater or equal than 0");
