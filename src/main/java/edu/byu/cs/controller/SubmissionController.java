@@ -86,7 +86,7 @@ public class SubmissionController {
 
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", user.netId(), request.phase(),
                 request.repoUrl());
-        
+
         DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId(), 3);
 
         startGrader(user.netId(), request.phase(), request.repoUrl(), true);
@@ -573,10 +573,10 @@ public class SubmissionController {
             }
         }
         if (approvedScore == null) {
-            approvedScore = submissionToUse.score() * (1 - (penaltyPct / 100));
+            approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), penaltyPct);
         }
 
-        float scoreDifference = originalScore - approvedScore;
+        float scoreDifference = approvedScore - originalScore;
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Rubric oldRubric = submissionToUse.rubric();
         Rubric rubicToUse = new Rubric(
