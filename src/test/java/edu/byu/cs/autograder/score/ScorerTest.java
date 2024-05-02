@@ -92,7 +92,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, false);
 
 
@@ -177,7 +177,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, true);
 
         Submission submission = scoreRubric(constructRubric(1f));
@@ -201,7 +201,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
@@ -278,7 +278,7 @@ class ScorerTest {
         String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
 
         return new CommitVerificationResult(
-                verified, isCached, 0, 0,
+                verified, isCached, 0, 0, 0,
                 "", null, null,
                 headHash, null);
     }

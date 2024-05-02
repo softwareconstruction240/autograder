@@ -19,6 +19,8 @@ Based on all the information above, I propose the following:
 2. We throw an error and refuse to grade if we detect any commits that are authored before their parent commit (indicates intentionally messing with the local clock, or cherry-picking commits).
 3. We withhold the score as “not qualified” if any of the commits are authored in the future of the server timestamp (indicates messing with the local clock, or it could be a simple mistake).
 4. We explicitly preserve a student’s commit verification result for any subsequent submissions on the same phase. I.E. If they pass on their first valid submission, then we’ll continue passing them even if they are resubmitting to fix quality errors etc… And, if they fail on their first submissions, they’ll be able to continue resubmitting, but none of those grades will be submitted to Canvas even if they are resolving quality errors.
+5. Do not count merge commits towards commit verification totals.
+6. Commits are only counted towards the total if they meet a certain threshold of lines changed in the commit.
 
 ### Advantages
 1. A student is able to submit multiple times on the autograder with code that fails, and are only held accountable for meeting commit requirements on their first successful submission.

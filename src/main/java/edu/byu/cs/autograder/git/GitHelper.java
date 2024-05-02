@@ -75,7 +75,7 @@ public class GitHelper {
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
                 true, false,
-                0, 0, null,
+                0, 0, 0, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -116,6 +116,7 @@ public class GitHelper {
         }
 
         // We have a previous result to defer to:
+        Submission.ScoreVerification scoreVerification = firstPassingSubmission.verification();
         boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
         String message = verified ?
                 "You passed the commit verification on your first passing submission! You're good to go!" :
@@ -123,7 +124,7 @@ public class GitHelper {
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, message,
+                0, 0, scoreVerification.penaltyPct(), message,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
@@ -154,21 +155,29 @@ public class GitHelper {
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.requiredCommits();
         int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
         int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
+        long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
         CV[] assertedConditions = {
                 new CV(
                         numCommits < requiredCommits,
                         String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits)),
                 new CV(
+                        numCommits >= requiredCommits && significantCommits < requiredCommits,
+                        String.format("Have some commits, but some of them are too insignificant for credit (%d/%d).", significantCommits, requiredCommits)),
+                new CV(
                         daysWithCommits < requiredDaysWithCommits,
                         String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
                         commitsByDay.commitsInFuture(),
                         "Suspicious commit history. Some commits are authored after the hand in date."),
+                new CV(
+                        commitsByDay.commitsInPast(),
+                        "Suspicious commit history. Some commits are authored before the previous phase hash."),
                 new CV(
                         !commitsByDay.commitsInOrder(),
                         "Suspicious commit history. Not all commits are in order.")
@@ -180,6 +189,7 @@ public class GitHelper {
                 false,
                 numCommits,
                 daysWithCommits,
+                0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),
                 commitsByDay.lowerThreshold().timestamp(),
                 commitsByDay.upperThreshold().timestamp(),
