@@ -82,7 +82,7 @@ const columnDefs = reactive([
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
   { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: notesCellClicked },
+  { headerName: "Notes", field: 'notes', flex:4, onCellClicked: notesCellClicked },
 ])
 const rowData = reactive({
   value: []

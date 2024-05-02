@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Submission } from '@/types/types'
-import { scoreToPercentage, roundTwoDecimals } from '@/utils/utils'
+import { scoreToPercentage, roundTwoDecimals, commitVerificationFailed } from '@/utils/utils'
 import PopUp from '@/components/PopUp.vue'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
@@ -16,7 +16,7 @@ const openDetails = ref<boolean>(false);
   <div class="results-preview-container">
     <div id="submission-score">
 
-      <div v-if="false"> <!-- IF SUBMISSION IS BLOCKED -->
+      <div v-if="commitVerificationFailed(submission)"> <!-- IF SUBMISSION IS BLOCKED -->
         <h2><i class="fa-solid fa-triangle-exclamation" style="color: red"/> Submission blocked! <i class="fa-solid fa-triangle-exclamation" style="color: red"/></h2>
         <h3>You can not receive points on this phase until you talk to a TA</h3>
       </div>
@@ -69,5 +69,6 @@ const openDetails = ref<boolean>(false);
   align-items: center;
   justify-content: center;
   text-align: center;
+  text-wrap: balance;
 }
 </style>

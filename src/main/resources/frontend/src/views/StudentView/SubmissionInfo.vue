@@ -3,6 +3,7 @@ import type {Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
+  commitVerificationFailed,
   generateClickableCommitLink,
   generateClickableLink,
   nameOnSubmission, phaseString,
@@ -26,7 +27,7 @@ const { submission } = defineProps<{
     <p v-html="generateClickableLink(submission.repoUrl)"/>
     <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
     <p>status:
-      <span v-if="false"><b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
+      <span v-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
       <span v-else-if="submission.passed">passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
       <span v-else>failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
     </p>
@@ -34,7 +35,7 @@ const { submission } = defineProps<{
     <div id="important">
       <InfoPanel class="info-box">
         <p>Score:</p>
-        <h1 v-if="submission.passed" v-html="scoreToPercentage(submission.score)"/>
+        <h1 v-if="submission.passed && !commitVerificationFailed(submission)" v-html="scoreToPercentage(submission.score)"/>
         <h1 v-else>No score</h1>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
@@ -79,7 +80,7 @@ const { submission } = defineProps<{
 .container {
   flex-direction: column;
   text-align: left;
-  max-width: 550px;
+  max-width: 600px;
 }
 
 .container p {

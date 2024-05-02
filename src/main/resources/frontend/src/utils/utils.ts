@@ -4,6 +4,11 @@ import { VerifiedStatus } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
 export const commitVerificationFailed = (submission: Submission) => {
+  if (submission.admin) return false; // Admin submissions don't have commit requirements
+  if (!submission.verifiedStatus) { // old submissions lack this info
+    console.error("submission from " + submission.netId + " has no verification info")
+    return false;
+  }
   return submission.verifiedStatus.toString() === VerifiedStatus[VerifiedStatus.Unapproved];
 }
 
