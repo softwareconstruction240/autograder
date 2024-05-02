@@ -117,7 +117,8 @@ const adminSubmit = async () => {
       <button
         :disabled="(selectedAdminPhase === null)
           || useSubmissionStore().currentlyGrading
-          || !adminRepo.value.includes('github.com/')"
+          || !adminRepo.value.includes('github.com/')
+          || !adminRepo.value.includes('http')"
         class="primary"
         @click="adminSubmit">Submit</button>
     </div>
