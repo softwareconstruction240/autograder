@@ -80,7 +80,7 @@ export const generateResultsHtmlString = (rubricItem: RubricItem) => {
     : generateResultsHtmlStringFromText(rubricItem.results.textResults);
 }
 
-const generateResultsHtmlStringFromText = (resultsString: string) => {
+export const generateResultsHtmlStringFromText = (resultsString: string) => {
   return resultsString.replace(/\n/g, '<br />')
 }
 const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) => {

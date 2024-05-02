@@ -2,7 +2,7 @@
 import type { RubricItem } from '@/types/types'
 import { ref } from 'vue'
 import PopUp from '@/components/PopUp.vue'
-import { generateResultsHtmlString } from '@/utils/utils'
+import { generateResultsHtmlString, generateResultsHtmlStringFromText } from '@/utils/utils'
 import MoreInfo from '@/components/MoreInfo.vue'
 
 defineProps<{
@@ -27,7 +27,7 @@ const areErrorDetailsOpen = ref<boolean>(false)
       </div>
       <div class="rubricDetails">
         <h4>Result Notes</h4>
-        <p v-html="rubricItem.results.notes"/>
+        <p v-html="generateResultsHtmlStringFromText(rubricItem.results.notes)"/>
       </div>
 
       <MoreInfo text="details">
