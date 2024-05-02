@@ -74,22 +74,21 @@ export const generateClickableCommitLink = (repoLink: string, hash: string) => {
   return '<a href="' + link + '" target="_blank">' + hash.substring(0,6) + '</a>'
 }
 
-export const generateResultsHtmlString = (rubricItem: RubricItem) => {
-  return rubricItem.results.testResults
-    ? generateResultsHtmlStringFromTestNode(rubricItem.results.testResults.root, "")
-    : generateResultsHtmlStringFromText(rubricItem.results.textResults);
+export const sanitizeHtml = (str: string) => {
+  str = str.replace(/&/g, "&amp;");
+  str = str.replace(/</g, "&lt;");
+  str = str.replace(/>/g, "&gt;");
+  str = str.replace(/"/g, "&quot;");
+  return str.replace(/\n/g, '<br />')
 }
 
-export const generateResultsHtmlStringFromText = (resultsString: string) => {
-  return resultsString.replace(/\n/g, '<br />')
-}
-const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) => {
+export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) => {
   let result = indent + node.testName;
 
   if (node.passed !== undefined) {
     result += node.passed ? ` <span class="success">✓</span>` : ` <span class="failure">✗</span>`;
     if (node.errorMessage !== null && node.errorMessage !== undefined && node.errorMessage !== "") {
-      result += `<br/>${indent}   ↳<span class="failure">${node.errorMessage}</span>`;
+      result += `<br/>${indent}   ↳<span class="failure">${sanitizeHtml(node.errorMessage)}</span>`;
     }
   } else {
     if (node.ecCategory !== undefined) {
