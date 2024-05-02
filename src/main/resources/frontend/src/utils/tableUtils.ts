@@ -30,22 +30,26 @@ export const renderRepoLinkCell = (params: ValueGetterParams):string => {
 export const renderScoreCell = (params: ValueGetterParams) => {
     const cellElement = document.createElement("div");
     const iconElement = document.createElement("i");
+    let scoreText = "";
 
     // TODO: When git blocking gets implemented, change this to (!params.data.submission.approved)
     if (false) {
         cellElement.style.fontWeight = "bold"
         iconElement.classList.add("fa-solid", "fa-circle-exclamation");
-        iconElement.style.color = "var(--failure-color)";
-    } else if (params.data.submission.passed) {
+        iconElement.style.color = "red";
+        scoreText = " TA"
+    } else if (params.data.passed || params.data.submission.passed) {
         iconElement.classList.add("fa-solid", "fa-check");
-        iconElement.style.color = "var(--success-color)";
+        iconElement.style.color = "green";
+        scoreText = " " + scoreToPercentage(params.data.score)
     } else {
         iconElement.classList.add("fa-solid", "fa-ban");
-        iconElement.style.color = "var(--plain-500)"
+        iconElement.style.color = "grey"
+        scoreText = " N/A"
     }
 
     cellElement.append(iconElement)
-    cellElement.append( " " + scoreToPercentage(params.data.score) );
+    cellElement.append( scoreText );
     return cellElement
 }
 
