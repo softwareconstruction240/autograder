@@ -319,7 +319,7 @@ public class SubmissionController {
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -439,7 +439,7 @@ public class SubmissionController {
      * Used if the queue got stuck or if the server crashed while submissions were
      * waiting in the queue.
      */
-    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException {
+    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException, GradingException {
         QueueDao queueDao = DaoService.getQueueDao();
         UserDao userDao = DaoService.getUserDao();
         Collection<QueueItem> inQueue = queueDao.getAll();

@@ -21,6 +21,8 @@ import java.io.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -48,8 +50,11 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
+    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
+        if (!admin) {
+            repoUrl = cleanRepoUrl(repoUrl);
+        }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
         String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
@@ -148,6 +153,34 @@ public class Grader implements Runnable {
         return new Rubric(passoffItem, customTestsItem, qualityItem, null, false, "");
     }
 
+    /**
+     * Cleans the student's by removing trailing characters after the repo name,
+     * unless it ends in `.git`.
+     *
+     * @param repoUrl The student's repository URL.
+     * @return Cleaned URL with everything after the repo name stripped off.
+     * @throws GradingException Throws IOException if repoUrl does not follow expected format
+     */
+    public static String cleanRepoUrl(String repoUrl) throws GradingException {
+        String[] regexPatterns = {
+            "https?://github\\.com/([^/?]+)/([^/?]+)", // https
+            "git@github.com:([^/]+)/([^/]+).git" // ssh
+        };
+        Pattern pattern;
+        Matcher matcher;
+        String githubUsername;
+        String repositoryName;
+        for (String regexPattern: regexPatterns) {
+            pattern = Pattern.compile(regexPattern);
+            matcher = pattern.matcher(repoUrl);
+            if (matcher.find()) {
+                githubUsername = matcher.group(1);
+                repositoryName = matcher.group(2);
+                return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
+            }
+        }
+        throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
+    }
 
     public interface Observer {
         void notifyStarted();
