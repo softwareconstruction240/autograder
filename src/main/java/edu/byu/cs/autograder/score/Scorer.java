@@ -148,8 +148,18 @@ public class Scorer {
         return passed;
     }
 
+    /**
+     * Returns a new CanvasRubricAssessment that represents the result of merging `assessment` into `existing`.
+     * <br>
+     * This is used to take as defaults any scores from `existing` that were not modified by `assessment` to produce
+     * a complete CanvasRubricAssessment.
+     *
+     * @param assessment Represents the new scores that will override scores in `existing`.
+     * @param existing These scores will be used if not defined in `assessment`. Should usually come from Canvas.
+     * @return A new CanvasRubricAssessment.
+     */
     private CanvasRubricAssessment addExistingPoints(CanvasRubricAssessment assessment, CanvasRubricAssessment existing) {
-        if(existing == null) return assessment;
+        if(existing == null) return assessment.clone();
 
         HashMap<String, CanvasRubricItem> compareItems = new HashMap<>();
         compareItems.putAll(existing.items());
