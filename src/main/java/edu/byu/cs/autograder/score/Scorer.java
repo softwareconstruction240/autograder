@@ -9,10 +9,7 @@ import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.SubmissionDao;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Submission;
@@ -216,7 +213,7 @@ public class Scorer {
         String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
-            notes += numDaysLate + " days late. -" + (numDaysLate * 10) + "%";
+            notes += numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
@@ -225,6 +222,10 @@ public class Scorer {
                     VerifiedStatus.PreviouslyApproved : VerifiedStatus.ApprovedAutomatically;
         } else {
             verifiedStatus = VerifiedStatus.Unapproved;
+        }
+        if (commitVerificationResult.penaltyPct() > 0) {
+            score = SubmissionHelper.prepareModifiedScore(score, commitVerificationResult.penaltyPct());
+            notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 
         SubmissionDao submissionDao = DaoService.getSubmissionDao();

@@ -75,7 +75,7 @@ public class GitHelper {
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
                 true, false,
-                0, 0, null,
+                0, 0, 0, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -116,6 +116,7 @@ public class GitHelper {
         }
 
         // We have a previous result to defer to:
+        Submission.ScoreVerification scoreVerification = firstPassingSubmission.verification();
         boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
         String message = verified ?
                 "You passed the commit verification on your first passing submission! You're good to go!" :
@@ -123,7 +124,7 @@ public class GitHelper {
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, message,
+                0, 0, scoreVerification.penaltyPct(), message,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
@@ -188,6 +189,7 @@ public class GitHelper {
                 false,
                 numCommits,
                 daysWithCommits,
+                0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),
                 commitsByDay.lowerThreshold().timestamp(),
                 commitsByDay.upperThreshold().timestamp(),

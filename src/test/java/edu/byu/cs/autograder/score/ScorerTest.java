@@ -278,7 +278,7 @@ class ScorerTest {
         String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
 
         return new CommitVerificationResult(
-                verified, isCached, 0, 0,
+                verified, isCached, 0, 0, 0,
                 "", null, null,
                 headHash, null);
     }
