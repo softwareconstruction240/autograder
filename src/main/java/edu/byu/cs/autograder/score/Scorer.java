@@ -100,7 +100,7 @@ public class Scorer {
                 newAssessment.items().put(
                         PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, gradingContext.phase()),
                         new CanvasRubricItem(commitVerificationResult.failureMessage(),
-                                0 - (totalPoints(newAssessment) * commitVerificationResult.penaltyPct() * 0.01f)));
+                                0 - (totalPoints(newAssessment) * commitVerificationResult.penaltyPct() / 100)));
             }
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
