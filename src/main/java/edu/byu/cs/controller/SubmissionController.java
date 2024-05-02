@@ -4,16 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
+import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
@@ -566,7 +569,7 @@ public class SubmissionController {
 
         // TODO: get assessment to hold git commit penalty
         try { // TODO: calc late adjustment
-            CanvasIntegration.RubricAssessment assessment = CanvasUtils.convertToAssessment(rubicToUse, rubricConfig, 0, phase);
+            CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubicToUse, rubricConfig, 0, phase);
             CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
         } catch (GradingException e) {
             throw new RuntimeException("Error generating rubric assessment");
