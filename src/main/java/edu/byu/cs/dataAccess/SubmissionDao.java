@@ -32,6 +32,8 @@ public interface SubmissionDao {
      */
     Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException;
 
+    Submission getLastSubmissionForUser(String netId) throws DataAccessException;
+
     /**
      * Gets all latest submissions
      *

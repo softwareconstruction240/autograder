@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
@@ -204,21 +205,47 @@ public class SubmissionController {
         ));
     };
 
+    public static final Route latestSubmissionForMeGet = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        Submission submission;
+        try {
+            submission = DaoService.getSubmissionDao().getLastSubmissionForUser(user.netId());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submission);
+    };
+
     public static final Route submissionXGet = (req, res) -> {
         String phase = req.params(":phase");
         Phase phaseEnum = null;
-        try {
-            phaseEnum = Phase.valueOf(phase);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Invalid phase", e);
-            halt(400, "Invalid phase");
+
+        if (phase != null) {
+            try {
+                phaseEnum = Phase.valueOf(phase);
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("Invalid phase", e);
+                halt(400, "Invalid phase");
+            }
         }
 
         User user = req.session().attribute("user");
-
         Collection<Submission> submissions;
         try {
-            submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+            if (phase == null) {
+                submissions = DaoService.getSubmissionDao().getSubmissionsForUser(user.netId());
+            } else {
+                submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(user.netId(), phaseEnum);
+            }
         } catch (DataAccessException e) {
             LOGGER.error("Error getting submissions for user {}", user.netId(), e);
             halt(500);
@@ -322,7 +349,7 @@ public class SubmissionController {
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
         Grader.Observer observer = new Grader.Observer() {
             @Override
             public void notifyStarted() {
@@ -442,7 +469,7 @@ public class SubmissionController {
      * Used if the queue got stuck or if the server crashed while submissions were
      * waiting in the queue.
      */
-    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException {
+    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException, GradingException {
         QueueDao queueDao = DaoService.getQueueDao();
         UserDao userDao = DaoService.getUserDao();
         Collection<QueueItem> inQueue = queueDao.getAll();

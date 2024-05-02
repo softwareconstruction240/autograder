@@ -1,23 +1,12 @@
 <script setup lang="ts">
 
-import {onMounted, ref} from "vue";
-import {honorCheckerZipGet, sectionsGet} from "@/services/adminService";
-import type {CanvasSection} from "@/types/types";
+import {ref} from "vue";
+import {honorCheckerZipGet} from "@/services/adminService";
 
-const selectedSection = ref<number>(0)
+const selectedSection = ref<number>(1)
 const infoText = ref<string>('')
 const buttonDisabled = ref<boolean>(false)
-const sections = ref<CanvasSection[]>([])
 
-onMounted(async () => {
-  await getSections()
-})
-
-const getSections = async () => {
-  sections.value = await sectionsGet();
-  buttonDisabled.value = sections.value.length == 0;
-  if (sections.value.length > 0) selectedSection.value = sections.value[0].id;
-}
 const onSelectionChange = (event: Event) => {
   const selectElement = event.target as HTMLSelectElement;
   selectedSection.value = Number(selectElement.value);
@@ -59,7 +48,11 @@ const triggerDownload = (data: Blob, filename: string) => {
         Each section .zip file contains a .zip file for every student containing their source code.</p>
     <label for="section">Choose a section to download: </label>
     <select name="section" @change="onSelectionChange">
-      <option v-for="section of sections" :key="section.name" :value="section.id">{{ section.name }}</option>
+      <option value="1">Section 1</option>
+      <option value="2">Section 2</option>
+      <option value="3">Section 3</option>
+      <option value="4">Section 4</option>
+      <option value="5">Section 5</option>
     </select>
     <button :disabled="buttonDisabled" @click="getData">Download</button>
     <p>{{ infoText }}</p>

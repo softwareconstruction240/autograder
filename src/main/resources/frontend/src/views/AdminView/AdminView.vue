@@ -34,5 +34,7 @@ useAdminStore().updateUsers();
 </template>
 
 <style scoped>
-
+.container {
+  width: 100%;
+}
 </style>

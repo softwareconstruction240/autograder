@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
 import type {Phase, Submission} from "@/types/types";
-import {submissionsGet, submitGet} from "@/services/submissionService";
+import { lastSubmissionGet, submissionsGet, submitGet } from '@/services/submissionService'
 import {useAppConfigStore} from "@/stores/appConfig";
 import {useAuthStore} from "@/stores/auth";
 
@@ -21,11 +21,16 @@ export const useSubmissionStore = defineStore('submission', () => {
         currentlyGrading.value = await submitGet();
     }
 
+    const getLastSubmission = async () => {
+        return await lastSubmissionGet();
+    }
+
     return {
         submissionsByPhase,
         getSubmissions,
         currentlyGrading,
-        checkGrading
+        checkGrading,
+        getLastSubmission
     };
 });
 
