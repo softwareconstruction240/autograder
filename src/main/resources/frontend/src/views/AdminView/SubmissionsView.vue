@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Phase, Submission, User} from "@/types/types";
+import {Phase, type Submission, type User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
@@ -19,6 +19,7 @@ import {generateClickableLink, nameFromNetId} from "@/utils/utils";
 import {adminSubmissionPost} from "@/services/submissionService";
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
+import { useSubmissionStore } from '@/stores/submissions'
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
@@ -87,9 +88,15 @@ const rowData = reactive({
   value: []
 })
 
-const adminSubmit = async (phase: Phase) => {
+const selectedAdminPhase = ref<Phase | null>(null)
+
+const adminSubmit = async () => {
+  if (selectedAdminPhase.value == null) {
+    console.error("Tried to run an admin submission with no phase")
+    return;
+  }
   try {
-    await adminSubmissionPost(phase, adminRepo.value)
+    await adminSubmissionPost(selectedAdminPhase.value!, adminRepo.value)
     runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) { alert("Error running grader: " + error.message) }
@@ -103,16 +110,24 @@ const adminSubmit = async (phase: Phase) => {
 
   <div class="adminSubmission">
     <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
-    <Dropdown :disabled="!adminRepo.value.includes('github.com/')">
-      <template v-slot:dropdown-parent>
-        <button>Grade Repo</button>
-      </template>
-      <template v-slot:dropdown-items>
-        <template v-for="(phase, index) in Phase">
-          <a v-if="isNaN(Number(index))" @click="adminSubmit(phase)">{{ index }}</a>
-        </template>
-      </template>
-    </Dropdown>
+    <div id="submitDialog">
+      <select v-model="selectedAdminPhase">
+        <option :value=null selected disabled>Select a phase</option>
+        <option :value=Phase.Phase0>Phase 0</option>
+        <option :value=Phase.Phase1>Phase 1</option>
+        <option :value=Phase.Phase3>Phase 3</option>
+        <option :value=Phase.Phase4>Phase 4</option>
+        <option :value=Phase.Phase5>Phase 5</option>
+        <option :value=Phase.Phase6>Phase 6</option>
+        <option :value=Phase.Quality>Code Quality Check</option>
+      </select>
+      <button
+        :disabled="(selectedAdminPhase === null)
+        || useSubmissionStore().currentlyGrading
+        || !adminRepo.value.includes('github.com/')"
+        class="primary"
+        @click="adminSubmit">Submit</button>
+    </div>
   </div>
 
   <ag-grid-vue
