@@ -126,6 +126,11 @@ button {
     letter-spacing: 0.02857em;
 }
 
+button.small {
+    font-size: 0.9rem;
+    padding: 5px;
+}
+
 button:hover {
     filter: brightness(1.1);
     cursor: pointer;

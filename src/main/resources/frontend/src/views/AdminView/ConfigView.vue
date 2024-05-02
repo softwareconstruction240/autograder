@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Phase } from '@/types/types'
+import PopUp from '@/components/PopUp.vue'
 
-const apple = ref<boolean>(false);
+const openLivePhases = ref<boolean>(false);
 const banana = ref<boolean>(true);
 </script>
 
@@ -21,23 +22,52 @@ const banana = ref<boolean>(true);
       </div>
       <button>Change</button>
     </div>
+
     <div class="configCategory">
       <h3>Live Phases</h3>
       <p>These are the phases are live and open for students to submit to</p>
       <div v-for="phase in Object.values(Phase).filter((v) => isNaN(Number(v)))">
         <p><i class="fa-solid fa-circle-check" style="color: green"/> {{phase}}</p>
       </div>
-      <button>Update</button>
+      <button @click="openLivePhases = true">Update</button>
     </div>
+
     <div class="configCategory">
       <h3>Banner message</h3>
       <p>There is currently no banner message</p>
       <button>Change</button>
     </div>
   </div>
+
+  <PopUp
+    v-if="openLivePhases"
+    @closePopUp="openLivePhases = false">
+    <h3>Live Phases</h3>
+    <p>Enable student submissions for the following phases:</p>
+    <div v-for="phase in Object.values(Phase).filter((v) => isNaN(Number(v)))">
+      <p><input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"> {{phase}}</p>
+    </div>
+    <div class="submitChanges">
+      <p><em>This will not effect admin submissions</em></p>
+      <div>
+        <button class="small">Enable all</button> <button class="small">Disable all</button>
+      </div>
+      <button @click="() => {
+        openLivePhases = false;
+      }">Submit Changes</button>
+    </div>
+  </PopUp>
 </template>
 
 <style scoped>
+.submitChanges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.submitChanges >* {
+  margin: 5px;
+}
 .infoDescription {
   font-weight: bold;
 }
