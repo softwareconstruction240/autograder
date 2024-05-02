@@ -94,8 +94,7 @@ public class Scorer {
         if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
-        }
-        else {
+        } else {
             if(commitVerificationResult.penaltyPct() > 0) {
                 newAssessment.items().put(
                         PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, gradingContext.phase()),
@@ -114,8 +113,9 @@ public class Scorer {
         User user = userDao.getUser(gradingContext.netId());
         return user.canvasUserId();
     }
-    
-    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate) throws DataAccessException, GradingException {
+
+    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate)
+            throws DataAccessException, GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
         float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
         return CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
@@ -222,7 +222,8 @@ public class Scorer {
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult, int numDaysLate, float score, String notes)
+    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult,
+                                   int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
@@ -263,7 +264,8 @@ public class Scorer {
         return submission;
     }
 
-    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes) throws GradingException {
+    private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
+            throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
