@@ -16,7 +16,7 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #adadad;
+  background-color: #bdbdbd;
   display: flex;
   flex-direction: column;
 }

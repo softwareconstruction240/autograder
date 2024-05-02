@@ -78,7 +78,7 @@ const handleGradingDone = async () => {
     </div>
   </div>
 
-  <InfoPanel style="height: 300px; margin: 0" v-if="openGrader">
+  <InfoPanel style="max-width: 600px; height: 325px; margin: 0" v-if="openGrader">
     <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
     <ResultsPreview v-if="showResults" :submission="lastSubmission"/>
   </InfoPanel>
