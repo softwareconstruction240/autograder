@@ -4,7 +4,6 @@ import {useAppConfigStore} from "@/stores/appConfig";
 
 export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
     let url = useAppConfigStore().backendUrl + '/api/submission' + (phase === null ? "" : "/" + Phase[phase])
-    console.log(url)
     const response = await fetch(url, {
         method: 'GET',
         credentials: 'include'

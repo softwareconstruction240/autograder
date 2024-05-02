@@ -81,7 +81,6 @@ export const generateResultsHtmlString = (rubricItem: RubricItem) => {
 }
 
 const generateResultsHtmlStringFromText = (resultsString: string) => {
-  console.log(resultsString)
   return resultsString.replace(/\n/g, '<br />')
 }
 const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) => {
@@ -111,7 +110,6 @@ const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: string) =
 }
 
 export const phaseString = (phase: Phase | "Quality") => {
-  console.log(phase)
   if (phase == 'Quality') { return "Code Quality Check"; }
   else { return "Phase " + phase.toString().charAt(5)}
 }

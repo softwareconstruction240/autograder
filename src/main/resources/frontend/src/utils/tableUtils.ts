@@ -31,12 +31,12 @@ export const renderScoreCell = (params: ValueGetterParams) => {
     const iconElement = document.createElement("i");
     let scoreText = "";
 
-    if (commitVerificationFailed(params.data.submission)) {
+    if (commitVerificationFailed(params.data)) {
         cellElement.style.fontWeight = "bold"
         iconElement.classList.add("fa-solid", "fa-circle-exclamation");
         iconElement.style.color = "red";
         scoreText = " TA"
-    } else if (params.data.passed || params.data.submission.passed) {
+    } else if (params.data.passed || params.data.passed) {
         iconElement.classList.add("fa-solid", "fa-check");
         iconElement.style.color = "green";
         scoreText = " " + scoreToPercentage(params.data.score)

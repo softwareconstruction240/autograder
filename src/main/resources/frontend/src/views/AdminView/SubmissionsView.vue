@@ -50,22 +50,16 @@ const loadSubmissionsToTable = (submissionsData : Submission[]) => {
   var dataToShow: any = []
   submissionsData.forEach(submission => {
     dataToShow.push( {
+        ...submission,
           name: nameFromNetId(submission.netId),
-          phase: submission.phase,
-          timestamp: submission.timestamp,
-          score: submission.score,
-          notes: submission.notes,
-          netId: submission.netId,
-          admin: submission.admin,
-          submission: submission
         }
     )
   })
   rowData.value = dataToShow
 }
 
-const notesCellClicked = (event: CellClickedEvent) => {
-  selectedSubmission.value = event.data.submission
+const openSubmission = (event: CellClickedEvent) => {
+  selectedSubmission.value = event.data
 }
 
 const adminDoneGrading = async () => {
@@ -80,9 +74,9 @@ const nameCellClicked = (event: CellClickedEvent) => {
 const columnDefs = reactive([
   { headerName: "Name", field: 'name', flex:2, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', flex:4, onCellClicked: notesCellClicked },
+  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell, onCellClicked: openSubmission},
+  { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell, onCellClicked: openSubmission },
+  { headerName: "Notes", field: 'notes', flex:4, onCellClicked: openSubmission },
 ])
 const rowData = reactive({
   value: []

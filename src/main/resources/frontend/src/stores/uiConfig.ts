@@ -1,7 +1,6 @@
 import { Phase } from '@/types/types'
 
 const getPhaseName = (phase: Phase | null) => {
-  console.log(phase)
   switch (phase) {
     case Phase.Phase0:
       return "Phase 0: Move Rules"

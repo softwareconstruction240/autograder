@@ -37,7 +37,7 @@ const openDetails = ref<boolean>(false);
       <p v-if="submission.rubric.quality">Code Quality: {{ roundTwoDecimals(submission.rubric.quality.results.score) }} / {{ submission.rubric.quality.results.possiblePoints }}</p>
       <p v-if="submission.rubric.unitTests">Unit Tests: {{ roundTwoDecimals(submission.rubric.unitTests.results.score) }} / {{ submission.rubric.unitTests.results.possiblePoints }}</p>
     </div>
-    <button @click="() => {openDetails = true; console.log(submission)}" class="secondary">See submission details</button>
+    <button @click="() => {openDetails = true}" class="secondary">See submission details</button>
   </div>
 
   <PopUp

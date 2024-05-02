@@ -16,25 +16,12 @@ const loadSubmissions = async () => {
   try {
     loadSubmissionsToTable( await submissionsGet(null) )
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
 
 const loadSubmissionsToTable = (submissionsData : Submission[]) => {
-  var dataToShow: any = []
-  submissionsData.forEach(submission => {
-    dataToShow.push( {
-        phase: submission.phase,
-        timestamp: submission.timestamp,
-        score: submission.score,
-        notes: submission.notes,
-        netId: submission.netId,
-        headHash: submission.headHash,
-        submission: submission
-      }
-    )
-  })
-  rowData.value = dataToShow
+  rowData.value = submissionsData
 }
 
 const handleSubmissionOpen = (event: CellClickedEvent) => {
@@ -48,7 +35,7 @@ const columnDefs = reactive([
   { headerName: "Notes", field: 'notes', flex:3, onCellClicked: handleSubmissionOpen, sortable: false, hide: (window.innerWidth < 600) },
 ])
 const rowData = reactive({
-  value: []
+  value: [] as Submission[]
 })
 </script>
 

@@ -90,7 +90,7 @@ const handleGradingDone = async () => {
       <h3>Submission History</h3>
       <p>Click on a submission to see details</p>
     </div>
-    <SubmissionHistory :key="lastSubmission?.headHash"/>
+    <SubmissionHistory :key="lastSubmission?.timestamp"/>
   </div>
 
 </template>

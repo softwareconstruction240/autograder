@@ -20,7 +20,6 @@ const selectedSubmission = ref<Submission | null>(null);
 
 onMounted(async () => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
-  console.log(studentSubmissions.value)
   var dataToShow: any = []
   studentSubmissions.value.forEach(submission => {
     dataToShow.push( submission )
@@ -30,9 +29,6 @@ onMounted(async () => {
 
 const cellClickHandler = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data;
-  console.log("meme")
-  console.log(event.data)
-  console.log(selectedSubmission.value?.score)
 }
 
 const columnDefs = reactive([
