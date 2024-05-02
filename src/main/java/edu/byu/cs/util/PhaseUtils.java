@@ -108,34 +108,39 @@ public class PhaseUtils {
 
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1 -> switch (type) {
+            case Phase0 -> switch (type) {
                 case PASSOFF_TESTS -> "_1958";
                 case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-                case GIT_COMMITS -> null;
+                case GIT_COMMITS -> "90342_649";
+            };
+            case Phase1 -> switch (type) {
+                case PASSOFF_TESTS -> "_1958";
+                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> "90342_7800";
             };
             case Phase3 -> switch (type) {
                 case PASSOFF_TESTS -> "_5202";
                 case UNIT_TESTS -> "90344_776";
                 case QUALITY -> "_3003";
-                case GIT_COMMITS -> null;
+                case GIT_COMMITS -> "90344_2520";
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
                 case UNIT_TESTS -> "90346_5755";
                 case QUALITY -> "90346_8398";
-                case GIT_COMMITS -> null;
+                case GIT_COMMITS -> "90346_6245";
             };
             case Phase5 -> switch (type) {
                 case UNIT_TESTS -> "90347_2215";
                 case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
                 case QUALITY -> "90347_9378";
-                case GIT_COMMITS -> null;
+                case GIT_COMMITS -> "90347_8497";
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";
                 case QUALITY -> "90348_3792";
                 case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
-                case GIT_COMMITS -> null;
+                case GIT_COMMITS -> "90348_9048";
             };
             case Quality -> throw new GradingException("Not graded");
         };
