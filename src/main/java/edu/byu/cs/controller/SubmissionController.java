@@ -81,7 +81,7 @@ public class SubmissionController {
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", user.netId(), request.phase(),
                 request.repoUrl());
         
-        DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId());
+        DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId(), 3);
 
         startGrader(user.netId(), request.phase(), request.repoUrl(), true);
 

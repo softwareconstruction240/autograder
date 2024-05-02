@@ -133,7 +133,7 @@ public class AdminController {
         }
 
         try {
-            DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId());
+            DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId(), 0);
         } catch (DataAccessException e) {
             LOGGER.error("Error removing submissions", e);
             halt(500);

@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class SubmissionSqlDao implements SubmissionDao {
@@ -124,13 +125,16 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public void removeSubmissionsByNetId(String netId) throws DataAccessException {
+    public void removeSubmissionsByNetId(String netId, int daysOld) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                         DELETE FROM %s
-                        WHERE net_id = ?
+                        WHERE net_id = ? AND timestamp < ?
                         """.formatted(sqlReader.getTableName()),
-                ps -> ps.setString(1, netId)
+                ps -> {
+                    ps.setString(1, netId);
+                    ps.setTimestamp(2, Timestamp.from(Instant.now().minus(daysOld, ChronoUnit.DAYS)));
+                }
         );
     }
 

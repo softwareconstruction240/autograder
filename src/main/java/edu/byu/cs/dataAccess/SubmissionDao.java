@@ -51,9 +51,10 @@ public interface SubmissionDao {
      * Removes all submissions for the given netId
      * <br/><strong>Note: this will likely only be used for the test student and admins</strong>
      *
-     * @param netId the netId to remove submissions for
+     * @param netId     the netId to remove submissions for
+     * @param daysOld   how many days the submission needs to exist to be removed
      */
-    void removeSubmissionsByNetId(String netId) throws DataAccessException;
+    void removeSubmissionsByNetId(String netId, int daysOld) throws DataAccessException;
 
     /**
      * Gets the first passing submission chronologically for the given phase
