@@ -177,7 +177,12 @@ public class Server {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
 
-        useSqlDaos();
+        try {
+            useSqlDaos();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error setting up database", e);
+            throw new RuntimeException(e);
+        }
 
         int port = setupEndpoints(8080);
 
@@ -190,7 +195,8 @@ public class Server {
         }
     }
 
-    private static void useSqlDaos() {
+    private static void useSqlDaos() throws DataAccessException {
+        SqlDb.setUpDb();
         DaoService.setConfigurationDao(new ConfigurationSqlDao());
         DaoService.setQueueDao(new QueueSqlDao());
         DaoService.setRubricConfigDao(new RubricConfigSqlDao());
