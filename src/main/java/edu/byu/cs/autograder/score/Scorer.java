@@ -214,6 +214,8 @@ public class Scorer {
         if (rubric.quality() != null)
             score += rubric.quality().results().score();
 
+        // TODO: Also account for other RubricItems like GIT_COMMITS?
+
         return score / totalPossiblePoints;
     }
 
