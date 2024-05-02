@@ -45,7 +45,7 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p>Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
+  <p v-if="student.repoUrl">Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"
