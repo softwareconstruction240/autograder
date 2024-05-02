@@ -19,13 +19,17 @@ const studentSubmissions = ref<Submission[]>([])
 const selectedSubmission = ref<Submission | null>(null);
 
 onMounted(async () => {
+  await loadStudentSubmissions()
+});
+
+const loadStudentSubmissions = async() => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
   var dataToShow: any = []
   studentSubmissions.value.forEach(submission => {
     dataToShow.push( submission )
   })
   rowData.value = dataToShow
-});
+}
 
 const cellClickHandler = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data;
@@ -58,7 +62,8 @@ const rowData = reactive({
   <PopUp
       v-if="selectedSubmission"
       @closePopUp="selectedSubmission = null">
-    <SubmissionInfo :submission="selectedSubmission"/>
+    <SubmissionInfo :submission="selectedSubmission"
+                    @approvedSubmission="loadStudentSubmissions"/>
   </PopUp>
 </template>
 

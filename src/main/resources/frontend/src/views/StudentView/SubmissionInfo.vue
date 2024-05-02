@@ -22,7 +22,7 @@ const { submission } = defineProps<{
 
 const unapproved = ref<boolean>(true);
 
-const approve = async (penalize: boolean) => {
+const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) => void) => {
   try {
     await approveSubmissionPost(submission.netId, submission.phase, penalize);
   } catch (e) {
@@ -30,6 +30,7 @@ const approve = async (penalize: boolean) => {
     return
   }
   unapproved.value = false;
+  emit("approvedSubmission")
 }
 
 </script>
@@ -54,8 +55,8 @@ const approve = async (penalize: boolean) => {
         <p>Meet with the student and explain the importance of frequent and consistent commits.</p>
         <p>You may, at your discretion, deduct 10% if it looks like the student is not learning the value/habit of repeated commits</p>
         <div id="approvalButtons" v-if="unapproved">
-          <button @click="approve(true)">Approve with penalty</button>
-          <button @click="approve(false)" class="small" style="font-weight: normal; font-size: 0.9rem">Approve without penalty</button>
+          <button @click="approve(true, $emit)">Approve with penalty</button>
+          <button @click="approve(false, $emit)" class="small" style="font-weight: normal; font-size: 0.9rem">Approve without penalty</button>
         </div>
         <div v-else>
           <h4>Approval was successful! Grade sent to canvas</h4>
