@@ -18,6 +18,7 @@ import java.util.Properties;
 import static edu.byu.cs.controller.AdminController.*;
 import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
+import static edu.byu.cs.controller.ConfigController.*;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static spark.Spark.*;
 
@@ -97,6 +98,11 @@ public class Server {
                 get("/honorChecker/zip/:section", honorCheckerZipGet);
 
                 get("/sections", sectionsGet);
+
+                path("/config", () -> {
+                    post("/phases", updateLivePhases);
+                    post("/banner", updateBannerMessage);
+                });
             });
         });
 

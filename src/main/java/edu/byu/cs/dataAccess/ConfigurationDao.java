@@ -5,6 +5,7 @@ public interface ConfigurationDao {
     <T> T getConfiguration(Configuration key, Class<T> type) throws DataAccessException;
 
     enum Configuration {
-        STUDENT_SUBMISSION_ENABLED
+        STUDENT_SUBMISSION_ENABLED,
+        STUDENT_BANNER_MESSAGE
     }
 }
