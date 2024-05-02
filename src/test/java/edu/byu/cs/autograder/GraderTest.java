@@ -12,7 +12,7 @@ public class GraderTest {
   @Test
   @Tag("cleanRepoUrl")
   @DisplayName("Should strip off trailing characters after repo name when given repo URL")
-  void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() {
+  void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() throws GradingException {
     // Should strip off characters after repo name
     String expectedUrl = "https://github.com/<USERNAME>/<REPO_NAME>";
     String[] urlVariants = {
@@ -21,35 +21,29 @@ public class GraderTest {
         "https://github.com/<USERNAME>/<REPO_NAME>/tree/main/0-chess-moves/starter-code/chess",
         "https://github.com/<USERNAME>/<REPO_NAME>/pull/1"
     };
-    assertDoesNotThrow(() -> {
-      for (String urlVariant : urlVariants) {
-        assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
-      }
-    });
+    for (String urlVariant : urlVariants) {
+      assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+    }
   }
 
   @Test
   @Tag("cleanRepoUrl")
   @DisplayName("Should not strip github URL when given repo URL with no trailing characters")
-  void should_notStripOffGithubUrl_when_givenRepoUrlWithNoTrailingCharacters() {
-    // Should not alter already working URLs
-    assertDoesNotThrow(() -> {
+  void should_notStripOffGithubUrl_when_givenRepoUrlWithNoTrailingCharacters() throws GradingException {
+      // Should not alter already working URLs
       assertEquals("https://github.com/<USERNAME>/<REPO_NAME>",
           Grader.cleanRepoUrl("https://github.com/<USERNAME>/<REPO_NAME>"));
 
       assertEquals("https://github.com/<USERNAME>/<REPO_NAME>.git",
           Grader.cleanRepoUrl("https://github.com/<USERNAME>/<REPO_NAME>.git"));
-    });
   }
 
   @Test
   @Tag("cleanRepoUrl")
   @DisplayName("Should convert to HTTPS URL when given SSH URL")
-  void should_convertToHttpsUrl_when_givenSshUrl() {
-    assertDoesNotThrow(() -> {
+  void should_convertToHttpsUrl_when_givenSshUrl() throws GradingException {
       assertEquals("https://github.com/<USERNAME>/<REPO_NAME>",
           Grader.cleanRepoUrl("git@github.com:<USERNAME>/<REPO_NAME>.git"));
-    });
   }
 
   @Test
