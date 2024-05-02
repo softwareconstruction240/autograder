@@ -57,7 +57,15 @@ export type Submission = {
     notes: string,
     rubric: Rubric,
     passed: boolean,
-    admin: boolean
+    admin: boolean,
+    verifiedStatus: VerifiedStatus
+}
+
+export enum VerifiedStatus {
+    Unapproved,
+    ApprovedAutomatically,
+    ApprovedManually,
+    PreviouslyApproved,
 }
 
 export type User = {

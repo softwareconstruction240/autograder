@@ -14,7 +14,21 @@ import java.io.File;
  * @param requiredCommits The required number of commits (since the last phase) to be able to pass off
  * @param admin           If the submission is an admin submission
  */
-public record GradingContext(String netId, Phase phase, String phasesPath, String stagePath, String repoUrl,
-                             File stageRepo, int requiredCommits, Grader.Observer observer, boolean admin) {
+public record GradingContext(
+        String netId,
+        Phase phase,
+        String phasesPath,
+        String stagePath,
+        String repoUrl,
+        File stageRepo,
 
-}
+        // Commit Configuration
+        int requiredCommits,
+        int requiredDaysWithCommits,
+        int commitVerificationPenaltyPct,
+        int minimumChangedLinesPerCommit,
+
+        // Others
+        Grader.Observer observer,
+        boolean admin
+) { }

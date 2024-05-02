@@ -2,6 +2,7 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
@@ -33,7 +34,6 @@ public class Grader implements Runnable {
     private final DatabaseHelper dbHelper;
 
     private final GitHelper gitHelper;
-
     private final CompileHelper compileHelper;
 
     protected final GradingContext gradingContext;
@@ -49,14 +49,25 @@ public class Grader implements Runnable {
      * @param phase    the phase to grade
      */
     public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
+        // Init files
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
         String stagePath = new File("./tmp-" + repoUrl.hashCode() + "-" + salt).getCanonicalPath();
         File stageRepo = new File(stagePath, "repo");
+
+        // Init Grading Context
         int requiredCommits = 10;
+        int requiredDaysWithCommits = 3;
+        int commitVerificationPenaltyPct = 10;
+        int minimumChangedLinesPerCommit = 20;
+
         this.observer = observer;
-        this.gradingContext =
-                new GradingContext(netId, phase, phasesPath, stagePath, repoUrl, stageRepo, requiredCommits, observer, admin);
+        this.gradingContext = new GradingContext(
+                    netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
+                    requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumChangedLinesPerCommit,
+                    observer, admin);
+
+        // Init helpers
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
         this.gitHelper = new GitHelper(gradingContext);
         this.compileHelper = new CompileHelper(gradingContext);
@@ -67,7 +78,7 @@ public class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            int numCommits = gitHelper.setUp();
+            CommitVerificationResult commitVerificationResult = gitHelper.setUp();
             dbHelper.setUp();
             if (RUN_COMPILATION) compileHelper.compile();
 
@@ -77,7 +88,7 @@ public class Grader implements Runnable {
             var evaluationResults = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
             Rubric rubric = assembleResultsToRubric(rubricConfig, evaluationResults);
 
-            Submission submission = new Scorer(gradingContext).score(rubric, numCommits);
+            Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
 
             observer.notifyDone(submission);
         } catch (GradingException ge) {

@@ -53,6 +53,7 @@ public record Rubric(
     public enum RubricType {
         PASSOFF_TESTS,
         UNIT_TESTS,
-        QUALITY
+        QUALITY,
+        GIT_COMMITS
     }
 }

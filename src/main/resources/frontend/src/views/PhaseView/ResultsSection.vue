@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Rubric from "@/views/PhaseView/RubricTable.vue";
-import type {Submission} from "@/types/types";
+import {type Submission} from "@/types/types";
+import {commitVerificationFailed} from "@/utils/utils";
 
-defineProps<{
+const props = defineProps<{
   submission: Submission;
 }>();
 
@@ -10,11 +11,14 @@ const roundTwoDecimals = (num: number) => {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 
+const score = roundTwoDecimals(props.submission.score * 100);
+
 </script>
 
 <template>
-  <h1 v-if="submission.passed">Passed with {{roundTwoDecimals(submission.score * 100)}}%</h1>
-  <h1 v-else>Failed</h1>
+  <h1 v-if="!submission.passed">Failed</h1>
+  <h1 v-else-if="commitVerificationFailed(submission)">Score withheld for commits.<br>Raw score: {{score}}%</h1>
+  <h1 v-else>Passed with {{score}}%</h1>
   <h2 v-html="submission.notes.replace('\n', '<br />')"></h2>
   <Rubric :rubric="submission.rubric" />
 </template>
