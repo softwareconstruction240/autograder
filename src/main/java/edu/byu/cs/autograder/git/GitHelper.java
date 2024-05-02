@@ -44,8 +44,8 @@ public class GitHelper {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(stageRepo);
 
-        boolean gradedPhase = PhaseUtils.isPhaseGraded(gradingContext.phase());
-        return (gradedPhase  && !gradingContext.admin()) ?
+        boolean requiresVerification = PhaseUtils.isPhaseGraded(gradingContext.phase()) && !gradingContext.admin();
+        return requiresVerification ?
                 verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
     }
 
