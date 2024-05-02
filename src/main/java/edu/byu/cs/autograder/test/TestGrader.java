@@ -84,7 +84,7 @@ public abstract class TestGrader {
 
     protected abstract Set<String> packagesToTest() throws GradingException;
 
-    protected abstract Set<String> extraCreditTests();
+    protected abstract Set<String> extraCreditTests() throws GradingException;
 
     protected abstract String testName();
 
