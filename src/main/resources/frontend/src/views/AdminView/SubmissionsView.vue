@@ -101,7 +101,6 @@ const adminSubmit = async () => {
 
 
 <template>
-
   <div class="adminSubmission">
     <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
     <div id="submitDialog">
@@ -117,19 +116,19 @@ const adminSubmit = async () => {
       </select>
       <button
         :disabled="(selectedAdminPhase === null)
-        || useSubmissionStore().currentlyGrading
-        || !adminRepo.value.includes('github.com/')"
+          || useSubmissionStore().currentlyGrading
+          || !adminRepo.value.includes('github.com/')"
         class="primary"
         @click="adminSubmit">Submit</button>
     </div>
   </div>
 
   <ag-grid-vue
-      class="ag-theme-quartz"
-      style="height: 65vh"
-      :columnDefs="columnDefs"
-      :rowData="rowData.value"
-      :defaultColDef="standardColSettings"
+    class="ag-theme-quartz"
+    style="height: 65vh"
+    :columnDefs="columnDefs"
+    :rowData="rowData.value"
+    :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <div class="container">

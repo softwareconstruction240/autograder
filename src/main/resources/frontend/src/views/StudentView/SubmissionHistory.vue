@@ -31,8 +31,8 @@ const handleSubmissionOpen = (event: CellClickedEvent) => {
 const columnDefs = reactive([
   { headerName: "Phase", field: 'phase', flex:1, onCellClicked: handleSubmissionOpen, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: 'timestamp', onCellClicked: handleSubmissionOpen, sort: 'desc', sortingOrder: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, onCellClicked: handleSubmissionOpen, filter: false, sortable: false, cellRenderer: renderScoreCell },
-  { headerName: "Notes", field: 'notes', flex:3, onCellClicked: handleSubmissionOpen, sortable: false, hide: (window.innerWidth < 600) },
+  { headerName: "Score", field: 'score', flex:1, onCellClicked: handleSubmissionOpen, minWidth: 85, filter: false, sortable: false, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: 'notes', flex:3, onCellClicked: handleSubmissionOpen, sortable: false, hide: (window.innerWidth < 700) },
 ])
 const rowData = reactive({
   value: [] as Submission[]

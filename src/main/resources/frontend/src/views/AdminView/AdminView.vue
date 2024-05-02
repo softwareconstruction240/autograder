@@ -9,7 +9,6 @@ import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 import {useAdminStore} from "@/stores/admin";
 import StudentsView from "@/views/AdminView/StudentsView.vue";
 import LogsView from "@/views/AdminView/LogsView.vue";
-import router from '@/router'
 
 useAdminStore().updateUsers();
 
@@ -39,4 +38,7 @@ useAdminStore().updateUsers();
 </template>
 
 <style scoped>
+.container {
+  width: 100%;
+}
 </style>

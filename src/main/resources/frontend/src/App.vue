@@ -63,8 +63,7 @@ main {
   padding: 20px;
   border-radius: 3px;
 
-  width: 66vw;
-  max-width: 800px;
+  width: 60vw;
 
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
 }
@@ -75,9 +74,17 @@ a {
   cursor: pointer;
 }
 
-@media only screen and (max-width: 480px) {
+@media only screen and (max-width: 600px) {
   main {
     width: 95%;
+    max-width: none;
+    margin: 0 0 20px;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 900px){
+  main {
+    width: 75%;
     max-width: none;
     margin: 0 0 20px;
   }

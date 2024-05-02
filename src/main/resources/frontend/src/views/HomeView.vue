@@ -52,50 +52,57 @@ const handleGradingDone = async () => {
 </script>
 
 <template>
-  <div id="submittingZone">
-    <div id="phaseDetails">
-      <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
-      <a
-        target="_blank"
-        :href="uiConfig.getSpecLink(selectedPhase)">
-        <span v-if="selectedPhase">Review phase specs on Github</span>
-        <span v-else>Review project specs on Github</span>
-      </a>
+  <div id="studentContainer">
+    <div id="submittingZone">
+      <div id="phaseDetails">
+        <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
+        <a
+          target="_blank"
+          :href="uiConfig.getSpecLink(selectedPhase)">
+          <span v-if="selectedPhase">Review phase specs on Github</span>
+          <span v-else>Review project specs on Github</span>
+        </a>
+      </div>
+
+      <div id="submitDialog">
+        <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
+          <option :value=null selected disabled>Select a phase</option>
+          <option :value=Phase.Phase0>Phase 0</option>
+          <option :value=Phase.Phase1>Phase 1</option>
+          <option :value=Phase.Phase3>Phase 3</option>
+          <option :value=Phase.Phase4>Phase 4</option>
+          <option :value=Phase.Phase5>Phase 5</option>
+          <option :value=Phase.Phase6>Phase 6</option>
+          <option :value=Phase.Quality>Code Quality Check</option>
+        </select>
+        <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+      </div>
     </div>
 
-    <div id="submitDialog">
-      <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
-        <option :value=null selected disabled>Select a phase</option>
-        <option :value=Phase.Phase0>Phase 0</option>
-        <option :value=Phase.Phase1>Phase 1</option>
-        <option :value=Phase.Phase3>Phase 3</option>
-        <option :value=Phase.Phase4>Phase 4</option>
-        <option :value=Phase.Phase5>Phase 5</option>
-        <option :value=Phase.Phase6>Phase 6</option>
-        <option :value=Phase.Quality>Code Quality Check</option>
-      </select>
-      <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+    <InfoPanel
+      style="max-width: 600px; min-height: 300px; margin: 0; justify-content: center"
+      v-if="openGrader">
+      <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
+      <ResultsPreview v-if="showResults && lastSubmission" :submission="lastSubmission"/>
+    </InfoPanel>
+
+    <div id="submission-history" style="width: 100%">
+      <div id="submission-history-header">
+        <h3>Submission History</h3>
+        <p>Click on a submission to see details</p>
+      </div>
+      <SubmissionHistory :key="lastSubmission?.timestamp"/>
     </div>
   </div>
-
-  <InfoPanel
-    style="max-width: 600px; min-height: 300px; margin: 0; justify-content: center"
-    v-if="openGrader">
-    <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
-    <ResultsPreview v-if="showResults && lastSubmission" :submission="lastSubmission"/>
-  </InfoPanel>
-
-  <div id="submission-history" style="width: 100%">
-    <div id="submission-history-header">
-      <h3>Submission History</h3>
-      <p>Click on a submission to see details</p>
-    </div>
-    <SubmissionHistory :key="lastSubmission?.timestamp"/>
-  </div>
-
 </template>
 
 <style scoped>
+#studentContainer {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 #submitDialog {
   display: flex;
   align-items: center;
