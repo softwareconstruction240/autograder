@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Submission, User} from "@/types/types";
-import {Phase} from "@/types/types";
+import type {Phase, Submission, User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
-import {AgGridVue} from 'ag-grid-vue3';
-import type {CellClickedEvent} from 'ag-grid-community'
+import { AgGridVue } from 'ag-grid-vue3';
+import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
@@ -16,25 +15,22 @@ import {
   renderTimestampCell
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
 import {generateClickableLink, nameFromNetId} from "@/utils/utils";
 import {adminSubmissionPost} from "@/services/submissionService";
-import Dropdown from "@/components/Dropdown.vue";
-import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
+import LiveStatus from '@/views/StudentView/LiveStatus.vue'
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
 const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
-let adminRepo = reactive({
+let adminRepo = reactive( {
   value: ""
 })
 
 
-onMounted(async () => {
-  await resetPage()
-})
+onMounted(async () => { await resetPage() })
 
 const resetPage = async () => {
   runningAdminRepo.value = false;
@@ -45,14 +41,14 @@ const resetPage = async () => {
 }
 
 const loadAllSubmissions = async () => {
-  loadSubmissionsToTable(await submissionsLatestGet())
+  loadSubmissionsToTable( await submissionsLatestGet() )
   allSubmissionsLoaded = true;
 }
 
-const loadSubmissionsToTable = (submissionsData: Submission[]) => {
+const loadSubmissionsToTable = (submissionsData : Submission[]) => {
   var dataToShow: any = []
   submissionsData.forEach(submission => {
-    dataToShow.push({
+    dataToShow.push( {
           name: nameFromNetId(submission.netId),
           phase: submission.phase,
           timestamp: submission.timestamp,
@@ -81,19 +77,11 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  {headerName: "Name", field: 'name', flex: 2, onCellClicked: nameCellClicked},
-  {headerName: "Phase", field: 'phase', flex: 1, cellRenderer: renderPhaseCell},
-  {
-    headerName: "Timestamp",
-    field: 'timestamp',
-    sort: 'desc',
-    sortedAt: 0,
-    filter: 'agDateColumnFilter',
-    flex: 1.5,
-    cellRenderer: renderTimestampCell
-  },
-  {headerName: "Score", field: 'score', flex: 1, cellRenderer: renderScoreCell},
-  {headerName: "Notes", field: 'notes', flex: 5, onCellClicked: notesCellClicked},
+  { headerName: "Name", field: 'name', flex:2, onCellClicked: nameCellClicked },
+  { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
+  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
+  { headerName: "Score", field: 'score', flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: notesCellClicked },
 ])
 const rowData = reactive({
   value: []
@@ -157,8 +145,8 @@ const adminSubmit = async (phase: Phase) => {
   </PopUp>
 
   <PopUp
-      v-if="runningAdminRepo"
-      @closePopUp="resetPage">
+    v-if="runningAdminRepo"
+    @closePopUp="resetPage">
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
       <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
@@ -177,12 +165,10 @@ const adminSubmit = async (phase: Phase) => {
   padding: 10px;
   margin-right: 10px;
 }
-
 .adminSubmission {
   display: flex;
   padding: 10px;
 }
-
 .container {
   padding: 10px;
   display: grid;

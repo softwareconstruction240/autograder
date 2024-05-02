@@ -3,7 +3,7 @@ import type {Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {generateClickableLink, nameFromNetId, readableTimestamp, scoreToPercentage} from "@/utils/utils";
-import RubricTable from "@/views/PhaseView/RubricTable.vue";
+import RubricTable from "@/views/StudentView/RubricTable.vue";
 
 const { submission } = defineProps<{
   submission: Submission;

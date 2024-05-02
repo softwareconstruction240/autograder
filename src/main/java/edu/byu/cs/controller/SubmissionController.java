@@ -56,6 +56,9 @@ public class SubmissionController {
     };
 
     private static Boolean getSubmissionsEnabledConfig() {
+        return true;
+        //TODO: re-enable lookup
+        /*
         boolean submissionsEnabled;
         try {
             submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
@@ -66,7 +69,7 @@ public class SubmissionController {
             halt(500);
             return null;
         }
-        return submissionsEnabled;
+        return submissionsEnabled; */
     }
 
     public static final Route adminRepoSubmitPost = (req, res) -> {
@@ -200,7 +203,30 @@ public class SubmissionController {
         ));
     };
 
+    public static final Route latestSubmissionForMeGet = (req, res) -> {
+        System.out.println("afsdghfrtegwfrgtrs!!!!!!!!!!");
+
+        User user = req.session().attribute("user");
+
+        Submission submission;
+        try {
+            submission = DaoService.getSubmissionDao().getLastSubmissionForUser(user.netId());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting submissions for user {}", user.netId(), e);
+            halt(500);
+            return null;
+        }
+
+        res.status(200);
+        res.type("application/json");
+
+        return new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+                .create().toJson(submission);
+    };
+
     public static final Route submissionXGet = (req, res) -> {
+        System.out.println("TESTSETESTSETEST!!!!!!!!!!");
         String phase = req.params(":phase");
         Phase phaseEnum = null;
         try {

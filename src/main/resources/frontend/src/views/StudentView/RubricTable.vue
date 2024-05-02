@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type {Rubric, TestResult} from "@/types/types";
-import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
+import ResultsPopup from "@/views/StudentView/ResultsPopup.vue";
 import {ref} from "vue";
-import RubricTableRow from "@/views/PhaseView/RubricTableRow.vue";
+import RubricTableRow from "@/views/StudentView/RubricTableRow.vue";
 
 defineProps<{
   rubric: Rubric;

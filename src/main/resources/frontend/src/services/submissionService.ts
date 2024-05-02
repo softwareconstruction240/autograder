@@ -2,8 +2,8 @@ import type {Submission} from "@/types/types";
 import { Phase } from "@/types/types";
 import {useAppConfigStore} from "@/stores/appConfig";
 
-export const submissionsGet = async (phase: Phase): Promise<Submission[]> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + Phase[phase], {
+export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/submission/' + (phase === null ? "" : Phase[phase]), {
         method: 'GET',
         credentials: 'include'
     });
@@ -14,6 +14,20 @@ export const submissionsGet = async (phase: Phase): Promise<Submission[]> => {
     }
 
     return await response.json() as Submission[];
+};
+
+export const lastSubmissionGet = async (): Promise<Submission | null> => {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/latest', {
+        method: 'GET',
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        console.error(response);
+        return null;
+    }
+
+    return await response.json() as Submission;
 };
 
 export const submissionPost = async (phase: Phase): Promise<void> => {

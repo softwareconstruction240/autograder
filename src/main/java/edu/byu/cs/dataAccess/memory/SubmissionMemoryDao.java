@@ -1,5 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
@@ -35,6 +36,17 @@ public class SubmissionMemoryDao implements SubmissionDao {
                 .filter(submission ->
                         submission.netId().equals(netId))
                 .toList();
+    }
+
+    @Override
+    public Submission getLastSubmissionForUser(String netId) throws DataAccessException {
+        Collection<Submission> submissions = getSubmissionsForUser(netId);
+        Submission latest = null;
+        long max = 0;
+        for (Submission s : submissions) {
+            if (s.passed() && s.timestamp().getEpochSecond() > max) latest = s;
+        }
+        return latest;
     }
 
     @Override

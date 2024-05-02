@@ -1,0 +1,96 @@
+<script setup lang="ts">
+import type {Submission} from "@/types/types";
+import 'ag-grid-community/styles/ag-grid.css';
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import {
+  generateClickableCommitLink,
+  generateClickableLink,
+  nameOnSubmission, phaseString,
+  readableTimestamp,
+  scoreToPercentage
+} from '@/utils/utils'
+import RubricItemView from '@/views/StudentView/RubricItemView.vue'
+import InfoPanel from '@/components/InfoPanel.vue'
+
+const { submission } = defineProps<{
+  submission: Submission;
+}>();
+
+</script>
+
+<template>
+  <div class="container">
+    <h2>{{phaseString(submission.phase)}}</h2>
+    <h3>{{nameOnSubmission(submission)}} ({{submission.netId}})</h3>
+    <p>{{readableTimestamp(submission.timestamp)}}</p>
+    <p v-html="generateClickableLink(submission.repoUrl)"/>
+    <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
+    <p>status:
+      <span v-if="false"><b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
+      <span v-else-if="submission.passed">passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
+      <span v-else>failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
+    </p>
+
+    <div id="important">
+      <InfoPanel class="info-box">
+        <p>Score:</p>
+        <h1 v-html="scoreToPercentage(submission.score)"/>
+      </InfoPanel>
+      <InfoPanel id="notesBox" class="info-box">
+        <p>Notes:</p>
+        <p v-html="submission.notes.replace('\n', '<br />')"/>
+      </InfoPanel>
+    </div>
+  </div>
+  <div class="container">
+    <RubricItemView
+      v-if="submission.rubric.passoffTests"
+      :rubric-item="submission.rubric.passoffTests"
+    />
+    <RubricItemView
+      v-if="submission.rubric.quality"
+      :rubric-item="submission.rubric.quality"
+    />
+    <RubricItemView
+      v-if="submission.rubric.unitTests"
+      :rubric-item="submission.rubric.unitTests"
+    />
+  </div>
+
+
+
+<!--  .info-box {-->
+<!--  background-color: var(&#45;&#45;opposite);-->
+<!--  display: flex;-->
+<!--  flex-direction: column;-->
+<!--  align-items: center;-->
+<!--  justify-content: center;-->
+<!--  color: var(&#45;&#45;opposite-text-color);-->
+<!--  margin: 10px;-->
+<!--  text-align: center;-->
+<!--  padding: 5px 15px;-->
+<!--  border-radius: 5px;-->
+<!--  }-->
+
+</template>
+
+<style scoped>
+.container {
+  flex-direction: column;
+  text-align: left;
+  max-width: 550px;
+}
+
+.container p {
+  padding: 1px 0;
+}
+
+#important {
+  display: flex;
+  flex-direction: row;
+}
+
+#notesBox {
+  width: 100%;
+}
+</style>

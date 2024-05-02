@@ -4,6 +4,8 @@ import { computed } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
+import '@/assets/fontawesome/css/fontawesome.css'
+import '@/assets/fontawesome/css/solid.css'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {

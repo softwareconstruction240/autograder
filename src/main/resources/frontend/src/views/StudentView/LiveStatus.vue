@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
 import {onMounted, ref} from "vue";
-import type {Submission, TestResult} from "@/types/types";
+import type {Submission} from "@/types/types";
 import {subscribeToGradingUpdates} from "@/stores/submissions";
-import ResultsPopup from "@/views/PhaseView/ResultsPopup.vue";
+import PopUp from "@/components/PopUp.vue";
 
 const emit = defineEmits<{
   "show-results": [submission: Submission];
@@ -11,7 +11,6 @@ const emit = defineEmits<{
 
 const status = ref<string>("");
 const errorDetails = ref<string>("");
-const errorAnalysis = ref<TestResult | undefined>(undefined);
 const displayError = ref<boolean>(false);
 
 onMounted(() => {
@@ -35,7 +34,6 @@ onMounted(() => {
       case 'error':
         status.value = `Error: ${messageData.message}`;
         errorDetails.value = messageData.details;
-        errorAnalysis.value = messageData.analysis;
         return;
     }
   });
@@ -46,16 +44,15 @@ onMounted(() => {
 <template>
 <div class="container">
   <span id="status">{{ status }}</span>
-  <div v-if="errorDetails || errorAnalysis"
+  <div v-if="errorDetails"
        class="selectable">
     <button @click="() => {displayError = true;}">Click here</button>
   </div>
-  <ResultsPopup
+  <PopUp
       v-if="displayError"
-      :text-results="errorDetails"
-      :test-results="errorAnalysis"
-      @closePopUp="() => displayError = false"
-    />
+      @closePopUp="() => {displayError = false}">
+    <p style="white-space: pre">{{errorDetails}}</p>
+  </PopUp>
 </div>
 </template>
 
