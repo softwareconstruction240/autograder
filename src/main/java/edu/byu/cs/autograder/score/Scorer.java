@@ -85,6 +85,7 @@ public class Scorer {
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
         CanvasRubricAssessment newAssessment =
                 addExistingPoints(constructCanvasRubricAssessment(rubric, daysLate), existingAssessment);
+        setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
 
         // prevent score from being saved to canvas if it will lower their score
         Submission submission;
@@ -92,7 +93,6 @@ public class Scorer {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
         } else {
-            setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
