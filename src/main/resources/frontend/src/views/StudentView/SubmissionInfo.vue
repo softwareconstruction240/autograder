@@ -35,8 +35,9 @@ const { submission } = defineProps<{
     <div id="important">
       <InfoPanel class="info-box">
         <p>Score:</p>
-        <h1 v-if="submission.passed && !commitVerificationFailed(submission)" v-html="scoreToPercentage(submission.score)"/>
-        <h1 v-else>No score</h1>
+        <h1 v-if="!submission.passed">Failed</h1>
+        <h1 v-else-if="commitVerificationFailed(submission)">Score withheld for commits<br>Raw Score: {{scoreToPercentage(submission.score)}}</h1>
+        <h1 v-else v-html="scoreToPercentage(submission.score)"/>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
         <p>Notes:</p>
