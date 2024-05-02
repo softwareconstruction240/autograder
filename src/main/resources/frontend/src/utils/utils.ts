@@ -1,4 +1,9 @@
 import {useAdminStore} from "@/stores/admin";
+import {type Submission, VerifiedStatus} from "@/types/types";
+
+export const commitVerificationFailed = (submission: Submission) => {
+  return submission.verifiedStatus.toString() === VerifiedStatus[VerifiedStatus.Unapproved];
+}
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;

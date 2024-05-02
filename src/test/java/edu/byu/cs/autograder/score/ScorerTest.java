@@ -8,6 +8,8 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.memory.*;
@@ -63,7 +65,7 @@ class ScorerTest {
             );
 
             when(spyCanvasIntegration.getSubmission(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                    new CanvasIntegration.CanvasSubmission("testUrl", new CanvasIntegration.RubricAssessment(new HashMap<>()), 1f)
+                    new CanvasSubmission("testUrl", new CanvasRubricAssessment(new HashMap<>()), 1f)
             );
         } catch (CanvasException e) {
             fail("Unexpected exception thrown: ", e);
@@ -90,7 +92,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, false);
 
 
@@ -175,7 +177,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, true);
 
         Submission submission = scoreRubric(constructRubric(1f));
@@ -199,7 +201,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10,
+                10, 3, 10, 0,
                 mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
@@ -276,7 +278,7 @@ class ScorerTest {
         String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
 
         return new CommitVerificationResult(
-                verified, isCached, 0, 0,
+                verified, isCached, 0, 0, 0,
                 "", null, null,
                 headHash, null);
     }
@@ -286,7 +288,7 @@ class ScorerTest {
     private void assertNoCanvasGradeSubmitted() {
         try {
             Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), anyFloat(), anyString());
-            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasIntegration.RubricAssessment.class), anyString());
+            Mockito.verify(spyCanvasIntegration, never()).submitGrade(anyInt(), anyInt(), any(CanvasRubricAssessment.class), anyString());
         } catch (CanvasException e) {
             throw new RuntimeException(e);
         }

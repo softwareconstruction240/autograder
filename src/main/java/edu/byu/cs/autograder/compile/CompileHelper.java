@@ -2,10 +2,8 @@ package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -15,7 +13,7 @@ public class CompileHelper {
     public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
 
     private final Collection<StudentCodeModifier> currentModifiers =
-            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier());
+            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
     public void compile() throws GradingException {
         for(StudentCodeModifier modifier : currentModifiers) {

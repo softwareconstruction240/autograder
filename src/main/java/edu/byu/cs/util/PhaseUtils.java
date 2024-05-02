@@ -9,13 +9,13 @@ import java.util.Set;
 public class PhaseUtils {
 
     // FIXME: dynamically get assignment numbers
-    private static final int PHASE0_ASSIGNMENT_NUMBER = 880445;
-    private static final int PHASE1_ASSIGNMENT_NUMBER = 880446;
-    private static final int PHASE3_ASSIGNMENT_NUMBER = 880448;
-    private static final int PHASE4_ASSIGNMENT_NUMBER = 880449;
+    private static final int PHASE0_ASSIGNMENT_NUMBER = 921303;
+    private static final int PHASE1_ASSIGNMENT_NUMBER = 921304;
+    private static final int PHASE3_ASSIGNMENT_NUMBER = 921306;
+    private static final int PHASE4_ASSIGNMENT_NUMBER = 921307;
 
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 880450;
-    private static final int PHASE6_ASSIGNMENT_NUMBER = 880451;
+    private static final int PHASE5_ASSIGNMENT_NUMBER = 921308;
+    private static final int PHASE6_ASSIGNMENT_NUMBER = 921309;
 
     /**
      * Given a phase, returns the phase before it, or null.
@@ -53,25 +53,6 @@ public class PhaseUtils {
     }
 
     /**
-     * Given an integer representation of a phase as a string, returns the phase
-     *
-     * @param str examples include "0", "3"
-     * @return the phase as an enum
-     */
-    public static Phase getPhaseByString(String str) {
-        return switch (str) {
-            case "0" -> Phase.Phase0;
-            case "1" -> Phase.Phase1;
-            case "3" -> Phase.Phase3;
-            case "4" -> Phase.Phase4;
-            case "5" -> Phase.Phase5;
-            case "6" -> Phase.Phase6;
-            case "42" -> Phase.Quality;
-            default -> null;
-        };
-    }
-
-    /**
      * Produces the Canvas assignment number for this phase
      *
      * @param phase the phase in question
@@ -89,27 +70,11 @@ public class PhaseUtils {
         };
     }
 
-    /**
-     * Returns the number of points the given phase is worth
-     *
-     * @param phase the phase in question
-     * @return the total points in Canvas as a float
-     */
-    public static float getTotalPoints(Phase phase) {
-        // FIXME
-        return switch (phase) {
-            case Phase0, Phase1, Phase4, Phase5 -> 125.0F;
-            case Phase3 -> 180.0F;
-            case Phase6 -> 155.0F;
-            case Quality -> 0.0F;
-        };
-    }
-
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessPieceTests");
-            case Phase1 -> Set.of("passoffTests.chessTests", "passoffTests.chessTests.chessExtraCredit");
-            case Phase3, Phase4, Phase6 -> Set.of("passoffTests.serverTests");
+            case Phase0 -> Set.of("passoff.chess", "passoff.chess.piece");
+            case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
+            case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
             case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
         };
     }
@@ -117,9 +82,9 @@ public class PhaseUtils {
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
-            case Phase3 -> Set.of("serviceTests");
-            case Phase4 -> Set.of("dataAccessTests");
-            case Phase5 -> Set.of("clientTests");
+            case Phase3 -> Set.of("service");
+            case Phase4 -> Set.of("dataaccess");
+            case Phase5 -> Set.of("client");
         };
     }
 
@@ -152,29 +117,32 @@ public class PhaseUtils {
                 case PASSOFF_TESTS -> "_1958";
                 case GIT_COMMITS -> "90342_7800";
                 case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> "90342_7800";
             };
             case Phase3 -> switch (type) {
                 case PASSOFF_TESTS -> "_5202";
                 case UNIT_TESTS -> "90344_776";
                 case QUALITY -> "_3003";
-                case GIT_COMMITS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> "90344_2520";
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "_930";
-                case GIT_COMMITS -> "90346_6985";
-                case QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90346_5755";
+                case QUALITY -> "90346_8398";
+                case GIT_COMMITS -> "90346_6245";
             };
             case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "_8849";
-                case GIT_COMMITS -> "90347_6127";
-                case PASSOFF_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case UNIT_TESTS -> "90347_2215";
+                case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case QUALITY -> "90347_9378";
+                case GIT_COMMITS -> "90347_8497";
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";
                 case QUALITY -> "90348_3792";
                 case GIT_COMMITS -> "90348_9048";
                 case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> "90348_9048";
             };
             case Quality -> throw new GradingException("Not graded");
         };

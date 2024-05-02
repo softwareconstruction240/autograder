@@ -51,8 +51,8 @@ public class DatabaseHelper {
             cleanupDatabase();
             deleteUser();
         } catch (GradingException e) {
-            LOGGER.error("Error cleaning up after user " + gradingContext.netId() +
-                    " and repository " + gradingContext.repoUrl(), e);
+            LOGGER.error("Error cleaning up after user {} and repository {}", gradingContext.netId(),
+                    gradingContext.repoUrl(), e);
         }
     }
 

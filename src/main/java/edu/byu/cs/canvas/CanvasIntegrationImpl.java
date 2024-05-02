@@ -1,6 +1,9 @@
 package edu.byu.cs.canvas;
 
-import com.google.gson.Gson;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -10,7 +13,6 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -25,22 +27,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
     // FIXME: set this dynamically or pull from config
-    private static final int COURSE_NUMBER = 24410;
+    private static final int COURSE_NUMBER = 26141;
 
     // FIXME: set this dynamically or pull from config
-    private static final int GIT_REPO_ASSIGNMENT_NUMBER = 880442;
-
-    // FIXME: set this dynamically or pull from config
-    public static final Map<Integer, Integer> sectionIDs;
-
-    static {
-        sectionIDs = new HashMap<>();
-        sectionIDs.put(1, 26512);
-        sectionIDs.put(2, 26513);
-        sectionIDs.put(3, 25972);
-        sectionIDs.put(4, 25496);
-        sectionIDs.put(5, 25971);
-    }
+    private static final int GIT_REPO_ASSIGNMENT_NUMBER = 921299;
 
     private record Enrollment(EnrollmentType type) {
 
@@ -63,7 +53,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
-                null,
                 CanvasUser[].class);
 
         for (CanvasUser user : users) {
@@ -120,7 +109,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             CanvasSubmissionUser[] batch = makeCanvasRequest(
                     "GET",
                     baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
-                    null,
                     CanvasSubmissionUser[].class);
             batchSize = batch.length;
             allSubmissions.addAll(Arrays.asList(batch));
@@ -165,16 +153,13 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         makeCanvasRequest(
                 "PUT",
                 path.toString(),
-                null,
                 null);
     }
 
     /**
-     * Submits the given grade for the given assignment for the given user. Any grades or comments in the rubric not
-     * included in the parameter maps are retrieved from the previous submission to prevent the loss of previous grades
-     * and comments (The canvas API will set items not included to empty/black rather than grabbing the old data)
-     *
-     * @requires The maps passed in must support the putIfAbsent method (Map.of() does not)
+     * Submits the given grade for the given assignment for the given user. Note that any grades or comments in the
+     * rubric not included in the assessment are set to empty/blank in canvas. (The canvas API will set items not
+     * included to empty/black rather than grabbing the old data)
      *
      * @param userId            The canvas user id of the user to submit the grade for
      * @param assignmentNum     The assignment number to submit the grade for
@@ -183,25 +168,19 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @throws CanvasException If there is an error with Canvas
      */
     @Override
-    public void submitGrade(int userId, int assignmentNum, RubricAssessment assessment, String assignmentComment) throws CanvasException {
-        CanvasSubmission submission = getSubmission(userId, assignmentNum);
-        if(submission.rubric_assessment() != null) {
-            submission.rubric_assessment().items().putAll(assessment.items());
-            assessment = submission.rubric_assessment();
-        }
+    public void submitGrade(int userId, int assignmentNum, CanvasRubricAssessment assessment, String assignmentComment) throws CanvasException {
         String queryString = buildRubricSubmissionQueryString(assessment, assignmentComment);
 
         makeCanvasRequest(
                 "PUT",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
                         queryString,
-                null,
                 null);
     }
 
-    private String buildRubricSubmissionQueryString(RubricAssessment assessment, String assignmentComment) {
+    private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
-        for(Map.Entry<String, RubricItem> entry : assessment.items().entrySet()) {
+        for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
             queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
                     .append(entry.getValue().points());
             if(entry.getValue().comments() != null) {
@@ -233,7 +212,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
-                null,
                 CanvasSubmission.class
         );
     }
@@ -267,7 +245,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
                 "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
-                null,
                 CanvasUser[].class);
 
         if (users.length == 0)
@@ -293,7 +270,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
                 "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
-                null,
                 CanvasAssignment[].class
         )[0];
 
@@ -301,6 +277,13 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             throw new CanvasException("Unable to get due date for assignment");
 
         return assignment.due_at();
+    }
+
+    @Override
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return makeCanvasRequest("GET",
+                "/courses/" + COURSE_NUMBER + "/sections",
+                CanvasSection[].class);
     }
 
     private enum EnrollmentType {
@@ -313,13 +296,12 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      *
      * @param method        The request method to use (e.g. "GET", "PUT", etc.)
      * @param path          The path to the endpoint to use (e.g. "/courses/12345")
-     * @param request       The request body to send (or null if there is no request body)
      * @param responseClass The class of the response to return (or null if there is no response body)
      * @param <T>           The type of the response to return
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Object request, Class<T> responseClass) throws CanvasException {
+    private static <T> T makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -328,16 +310,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             https.addRequestProperty("Accept-Encoding", "deflate");
             https.addRequestProperty("Authorization", AUTHORIZATION_HEADER);
 
-            if (method.equals("POST") || method.equals("PUT"))
-                https.setDoOutput(true);
-
-            if (request != null) {
-                https.addRequestProperty("Content-Type", "application/json");
-                String reqData = new Gson().toJson(request);
-                try (OutputStream reqBody = https.getOutputStream()) {
-                    reqBody.write(reqData.getBytes());
-                }
-            }
+            https.setDoOutput(false);
 
             https.connect();
 

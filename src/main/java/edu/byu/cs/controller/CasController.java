@@ -67,7 +67,7 @@ public class CasController {
             }
 
             if (userDao.repoUrlClaimed(user.repoUrl())) {
-                LOGGER.error("Repo URL already claimed: " + user.repoUrl());
+                LOGGER.error("Repo URL already claimed: {}", user.repoUrl());
 
                 String errorUrlParam = URLEncoder.encode("Repo URL already claimed. Meet with a TA for help resolving this.", StandardCharsets.UTF_8);
                 res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
@@ -76,7 +76,7 @@ public class CasController {
             }
 
             userDao.insertUser(user);
-            LOGGER.info("Registered " + user);
+            LOGGER.info("Registered {}", user);
         }
 
         // FIXME: secure cookie with httpOnly

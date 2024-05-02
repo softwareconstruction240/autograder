@@ -6,12 +6,9 @@ import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
-import edu.byu.cs.model.Submission;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class QueueSqlDao implements QueueDao {

@@ -16,38 +16,70 @@ public class TestAnalyzer {
     public record TestAnalysis(TestNode root, String error) {}
 
     public static class TestNode implements Comparable<TestNode>, Cloneable {
-        String testName;
-        Boolean passed;
-        String ecCategory;
-        String errorMessage;
-        Map<String, TestNode> children = new HashMap<>();
+        private String testName;
+        private Boolean passed;
+        private String ecCategory;
+        private String errorMessage;
+        private Map<String, TestNode> children = new HashMap<>();
 
         /**
          * The number of tests that passed under this node (excluding extra credit)
          */
-        Integer numTestsPassed;
+        private Integer numTestsPassed;
 
         /**
          * The number of tests that failed under this node (excluding extra credit)
          */
-        Integer numTestsFailed;
+        private Integer numTestsFailed;
 
         /**
          * The number of extra credit tests that passed under this node
          */
-        Integer numExtraCreditPassed;
+        private Integer numExtraCreditPassed;
 
         /**
          * The number of extra credit tests that failed under this node
          */
-        Integer numExtraCreditFailed;
+        private Integer numExtraCreditFailed;
+
+        public String getTestName() {
+            return testName;
+        }
 
         public Boolean getPassed() {
             return passed;
         }
 
+        public String getEcCategory() {
+            return ecCategory;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+
+        public Map<String, TestNode> getChildren() {
+            return children;
+        }
+
+        public Integer getNumTestsPassed() {
+            return numTestsPassed;
+        }
+
+        public Integer getNumTestsFailed() {
+            return numTestsFailed;
+        }
+
+        public Integer getNumExtraCreditPassed() {
+            return numExtraCreditPassed;
+        }
+
         public Integer getNumExtraCreditFailed() {
             return numExtraCreditFailed;
+        }
+
+        public void setTestName(String testName) {
+            this.testName = testName;
         }
 
         @Override
