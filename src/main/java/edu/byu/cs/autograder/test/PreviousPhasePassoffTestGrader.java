@@ -14,8 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PreviousPhasePassoffTestGrader extends TestGrader{
-    private static final String ERROR_MESSAGE =
-            "Failed previous tests. Cannot pass off until previous tests (excluding extra credit tests) pass";
+    private static final String ERROR_MESSAGE = "Failed previous tests. Cannot pass off until previous tests pass";
 
     public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -70,7 +69,13 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     @Override
     protected float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
+        removeExtraCreditTests(testResults.root(), extraCreditTests());
         throw new GradingException(ERROR_MESSAGE, testResults);
+    }
+
+    private void removeExtraCreditTests(TestAnalyzer.TestNode node, Set<String> extraCreditTests) {
+        extraCreditTests.forEach((ecTest) -> node.getChildren().remove(ecTest));
+        node.getChildren().forEach((s, child) -> removeExtraCreditTests(child, extraCreditTests));
     }
 
     @Override
