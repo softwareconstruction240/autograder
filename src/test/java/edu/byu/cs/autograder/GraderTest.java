@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,17 @@ public class GraderTest {
                 Grader.cleanRepoUrl(badUrl);
             });
         }
+    }
+
+    @Test
+    @Tag("cleanRepoUrl")
+    @DisplayName("Admin submissions are not cleaned")
+    void adminSubmissionsAreNotCleaned() throws GradingException, IOException {
+        String originalUrl = "https://github.com/<USERNAME>/<REPO_NAME>/tree/main/0-chess-moves/starter-code/chess";
+        // This cannot be easily tested since `Grader` has many other dependencies that would need to be organized as well.
+        // As this point, we are not spending the time to make `Grader` into a more testable format.
+//        var grader = new Grader(originalUrl, "student_id", null, null , true);
+//        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
     }
 
 }
