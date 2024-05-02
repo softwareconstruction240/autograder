@@ -33,6 +33,11 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
         return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
     }
 
+    @Override
+    protected Set<String> extraCreditTests() throws GradingException {
+        return allPreviousPhases(PhaseUtils::extraCreditTests);
+    }
+
     private <T> Set<T> allPreviousPhases(PhaseFunction<T> func) throws GradingException {
         try {
             Set<T> set = new HashSet<>();
@@ -52,11 +57,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     @FunctionalInterface
     private interface PhaseFunction<T> {
         Collection<T> apply(Phase phase) throws GradingException;
-    }
-
-    @Override
-    protected Set<String> extraCreditTests() {
-        return new HashSet<>();
     }
 
     @Override
