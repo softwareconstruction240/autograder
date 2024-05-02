@@ -62,7 +62,7 @@ public class GraderTest {
         "https://wahoooo.com/user/"
     };
     for (String badUrl: badUrls) {
-      assertThrows(IOException.class, () -> {
+      assertThrows(GradingException.class, () -> {
         Grader.cleanRepoUrl(badUrl);
       });
     }

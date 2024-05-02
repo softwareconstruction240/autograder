@@ -50,7 +50,7 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException {
+    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
             repoUrl = cleanRepoUrl(repoUrl);
@@ -159,9 +159,9 @@ public class Grader implements Runnable {
      *
      * @param repoUrl The student's repository URL.
      * @return Cleaned URL with everything after the repo name stripped off.
-     * @throws IOException Throws IOException if repoUrl does not follow expected format
+     * @throws GradingException Throws IOException if repoUrl does not follow expected format
      */
-    public static String cleanRepoUrl(String repoUrl) throws IOException {
+    public static String cleanRepoUrl(String repoUrl) throws GradingException {
         String[] regexPatterns = {
             "https?://github\\.com/([^/?]+)/([^/?]+)", // https
             "git@github.com:([^/]+)/([^/]+).git" // ssh
@@ -179,7 +179,7 @@ public class Grader implements Runnable {
                 return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
             }
         }
-        throw new IOException("Could not find github username or repository name given '" + repoUrl + "'.");
+        throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
     }
 
     public interface Observer {
