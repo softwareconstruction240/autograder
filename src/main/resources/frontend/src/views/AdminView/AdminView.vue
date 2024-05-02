@@ -16,7 +16,7 @@ useAdminStore().updateUsers();
 </script>
 
 <template>
-  <div v-if="true" class="container">
+  <div class="container">
     <Tabs>
       <Tab title="Submissions">
         <SubmissionsView/>

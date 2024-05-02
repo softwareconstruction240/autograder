@@ -1,5 +1,4 @@
 import type { ValueGetterParams } from 'ag-grid-community'
-import type {RubricItem, RubricItemResults, Submission} from "@/types/types";
 import { commitVerificationFailed, generateClickableLink, scoreToPercentage, simpleTimestamp } from '@/utils/utils'
 
 /**
@@ -61,35 +60,4 @@ export const standardColSettings = {
 export const wrappingColSettings = {
     wrapText: true,
     cellStyle: {"wordBreak": "normal", "lineHeight": "unset"}
-}
-
-type RubricRow = {
-    category: string,
-    criteria: string,
-    notes: string,
-    points: string,
-    results: RubricItemResults
-}
-
-export const loadRubricRows = (submission: Submission) => {
-    const possibleRubricItems: RubricItem[] = [
-        submission.rubric.passoffTests,
-        submission.rubric.unitTests,
-        submission.rubric.quality,
-    ];
-    const rubricRows: any = []
-    for (let i = 0; i < possibleRubricItems.length; i++) {
-        const item = possibleRubricItems[i]
-        if(item) {
-            const row: RubricRow = {
-                category: item.category,
-                criteria: item.criteria,
-                notes: item.results.notes,
-                points: Math.round(item.results.score) + "/" + item.results.possiblePoints,
-                results: item.results
-            }
-            rubricRows.push(row)
-        }
-    }
-    return rubricRows
 }

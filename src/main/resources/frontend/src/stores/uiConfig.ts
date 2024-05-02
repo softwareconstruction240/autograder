@@ -14,7 +14,7 @@ const getPhaseName = (phase: Phase | null) => {
     case Phase.Phase5:
       return "Phase 5: Chess Client"
     case Phase.Phase6:
-      return "Phase 6: Idk yet Paul"
+      return "Phase 6: Gameplay"
     case Phase.Quality:
       return "Code Quality Check"
     default:
