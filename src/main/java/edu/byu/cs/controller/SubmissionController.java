@@ -58,9 +58,6 @@ public class SubmissionController {
     };
 
     private static Boolean getSubmissionsEnabledConfig() {
-        return true;
-        //TODO: re-enable lookup
-        /*
         boolean submissionsEnabled;
         try {
             submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
@@ -71,7 +68,7 @@ public class SubmissionController {
             halt(500);
             return null;
         }
-        return submissionsEnabled; */
+        return submissionsEnabled;
     }
 
     public static final Route adminRepoSubmitPost = (req, res) -> {
