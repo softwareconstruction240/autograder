@@ -59,6 +59,7 @@ public class Server {
 
             get("/latest", latestSubmissionForMeGet);
 
+            get("/submission", submissionXGet);
             get("/submission/:phase", submissionXGet);
 
             get("/me", meGet);
