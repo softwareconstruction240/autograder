@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import type { RubricItem } from '@/types/types'
-import { ref } from 'vue'
-import PopUp from '@/components/PopUp.vue'
-import { generateResultsHtmlString, generateResultsHtmlStringFromText } from '@/utils/utils'
+import type {RubricItem} from '@/types/types'
+import {sanitizeHtml} from '@/utils/utils'
 import MoreInfo from '@/components/MoreInfo.vue'
+import RubricItemResultsView from "@/views/StudentView/RubricItemResultsView.vue";
 
 defineProps<{
   rubricItem: RubricItem;
 }>();
 
-const areErrorDetailsOpen = ref<boolean>(false)
 </script>
 
 <template>
@@ -27,7 +25,7 @@ const areErrorDetailsOpen = ref<boolean>(false)
       </div>
       <div class="rubricDetails">
         <h4>Result Notes</h4>
-        <p v-html="generateResultsHtmlStringFromText(rubricItem.results.notes)"/>
+        <p v-html="sanitizeHtml(rubricItem.results.notes)"/>
       </div>
 
       <MoreInfo text="details">
@@ -36,37 +34,14 @@ const areErrorDetailsOpen = ref<boolean>(false)
           <span id="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints + '<br/>'"/>
         </div>
         <hr style="min-width: 250px; width: 100%"> <!-- the min-width is a round about way to make the window wide enough the button -->
-        <span v-html="generateResultsHtmlString(rubricItem)"/>
-
-        <div class="itemHeader" id="programErrorWarning" v-if="rubricItem.results.testResults && rubricItem.results.testResults.error" >
-          <h3 class="failure">Your program produced errors</h3>
-          <button id="errorLogButton" @click="areErrorDetailsOpen = true">View error output</button>
-        </div>
+        <RubricItemResultsView :test-results="rubricItem.results.testResults" :text-results="rubricItem.results.textResults"/>
       </MoreInfo>
 
     </div>
   </div>
-
-  <PopUp v-if="areErrorDetailsOpen"
-         @closePopUp="areErrorDetailsOpen = false">
-    <p id="category">Program Error Output</p>
-    <hr>
-    <span class="failure">{{rubricItem.results.testResults.error}}</span>
-  </PopUp>
 </template>
 
 <style scoped>
-#programErrorWarning {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  text-align: center;
-}
-#errorLogButton {
-  font-size: 15px;
-  margin-top: 10px;
-}
 #category {
   font-weight: 700;
   font-size: 20px;
