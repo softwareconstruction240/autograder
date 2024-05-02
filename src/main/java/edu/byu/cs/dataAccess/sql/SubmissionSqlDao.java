@@ -87,6 +87,23 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
+    public Submission getLastSubmissionForUser(String netId) throws DataAccessException {
+        var submissions = sqlReader.executeQuery(
+                """
+                        WHERE net_id = ?
+                        ORDER BY timestamp DESC
+                        LIMIT 1
+                        """,
+                ps -> {
+                    ps.setString(1, netId);
+                }
+        );
+        return sqlReader.expectOneItem(submissions);
+    }
+
+
+
+    @Override
     public Collection<Submission> getAllLatestSubmissions() throws DataAccessException {
         return getAllLatestSubmissions(-1);
     }

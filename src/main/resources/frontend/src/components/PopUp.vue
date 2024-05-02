@@ -9,7 +9,7 @@ defineEmits({
 <template>
   <div class="popup-overlay" @click="$emit('closePopUp')">
     <div class="popup" @click.stop>
-      <button @click="$emit('closePopUp')" class="close-button">X</button>
+      <i @click="$emit('closePopUp')" class="clickable-style close-button fa-solid fa-square-xmark"></i>
       <div class="popup-content">
         <slot />
       </div>
@@ -47,8 +47,9 @@ defineEmits({
 
 .close-button {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   cursor: pointer;
+  font-size: 40px;
 }
 </style>

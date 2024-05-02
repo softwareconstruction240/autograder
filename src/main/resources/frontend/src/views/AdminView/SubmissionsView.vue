@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue";
-import type {Submission, User} from "@/types/types";
-import {Phase} from "@/types/types";
+import {Phase, type Submission, type User} from "@/types/types";
 import {submissionsLatestGet} from "@/services/adminService";
 import {useAdminStore} from "@/stores/admin";
 import PopUp from "@/components/PopUp.vue";
-import {AgGridVue} from 'ag-grid-vue3';
-import type {CellClickedEvent} from 'ag-grid-community'
+import { AgGridVue } from 'ag-grid-vue3';
+import type { CellClickedEvent } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
@@ -16,25 +15,23 @@ import {
   renderTimestampCell
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import SubmissionInfo from "@/views/AdminView/SubmissionInfo.vue";
 import {generateClickableLink, nameFromNetId} from "@/utils/utils";
 import {adminSubmissionPost} from "@/services/submissionService";
-import Dropdown from "@/components/Dropdown.vue";
-import LiveStatus from "@/views/PhaseView/LiveStatus.vue";
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
+import LiveStatus from '@/views/StudentView/LiveStatus.vue'
+import { useSubmissionStore } from '@/stores/submissions'
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
 const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
-let adminRepo = reactive({
+let adminRepo = reactive( {
   value: ""
 })
 
 
-onMounted(async () => {
-  await resetPage()
-})
+onMounted(async () => { await resetPage() })
 
 const resetPage = async () => {
   runningAdminRepo.value = false;
@@ -45,33 +42,24 @@ const resetPage = async () => {
 }
 
 const loadAllSubmissions = async () => {
-  loadSubmissionsToTable(await submissionsLatestGet())
+  loadSubmissionsToTable( await submissionsLatestGet() )
   allSubmissionsLoaded = true;
 }
 
-const loadSubmissionsToTable = (submissionsData: Submission[]) => {
+const loadSubmissionsToTable = (submissionsData : Submission[]) => {
   var dataToShow: any = []
   submissionsData.forEach(submission => {
     dataToShow.push( {
-      name: nameFromNetId(submission.netId),
-      phase: submission.phase,
-      timestamp: submission.timestamp,
-      score: submission.score,
-      notes: submission.notes,
-      netId: submission.netId,
-      admin: submission.admin,
-      passed: submission.passed,
-      approved: submission.verifiedStatus != 'Unapproved',
-      submission: submission
-      }
+        ...submission,
+          name: nameFromNetId(submission.netId),
+        }
     )
   })
   rowData.value = dataToShow
 }
 
-const openSubmissionInfo = (event: CellClickedEvent) => {
-  console.log(event.data.submission)
-  selectedSubmission.value = event.data.submission
+const openSubmission = (event: CellClickedEvent) => {
+  selectedSubmission.value = event.data
 }
 
 const adminDoneGrading = async () => {
@@ -84,19 +72,25 @@ const nameCellClicked = (event: CellClickedEvent) => {
 }
 
 const columnDefs = reactive([
-  { headerName: "Name", field: 'name', flex:2, minWidth: 100, onCellClicked: nameCellClicked },
+  { headerName: "Name", field: 'name', flex:2, onCellClicked: nameCellClicked },
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
-  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell, onCellClicked: openSubmissionInfo },
-  { headerName: "Notes", field: 'notes', flex:5, onCellClicked: openSubmissionInfo },
+  { headerName: "Timestamp", field: 'timestamp', sort: 'desc', sortedAt: 0, filter: 'agDateColumnFilter', flex:1.5, cellRenderer: renderTimestampCell, onCellClicked: openSubmission},
+  { headerName: "Score", field: 'score', flex:1, minWidth: 85, cellRenderer: renderScoreCell, onCellClicked: openSubmission },
+  { headerName: "Notes", field: 'notes', flex:4, onCellClicked: openSubmission },
 ])
 const rowData = reactive({
   value: []
 })
 
-const adminSubmit = async (phase: Phase) => {
+const selectedAdminPhase = ref<Phase | null>(null)
+
+const adminSubmit = async () => {
+  if (selectedAdminPhase.value == null) {
+    console.error("Tried to run an admin submission with no phase")
+    return;
+  }
   try {
-    await adminSubmissionPost(phase, adminRepo.value)
+    await adminSubmissionPost(selectedAdminPhase.value!, adminRepo.value)
     runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) { alert("Error running grader: " + error.message) }
@@ -107,27 +101,35 @@ const adminSubmit = async (phase: Phase) => {
 
 
 <template>
-
   <div class="adminSubmission">
     <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
-    <Dropdown :disabled="!adminRepo.value.includes('github.com/')">
-      <template v-slot:dropdown-parent>
-        <button>Grade Repo</button>
-      </template>
-      <template v-slot:dropdown-items>
-        <template v-for="(phase, index) in Phase">
-          <a v-if="isNaN(Number(index))" @click="adminSubmit(phase)">{{ index }}</a>
-        </template>
-      </template>
-    </Dropdown>
+    <div id="submitDialog">
+      <select v-model="selectedAdminPhase">
+        <option :value=null selected disabled>Select a phase</option>
+        <option :value=Phase.Phase0>Phase 0</option>
+        <option :value=Phase.Phase1>Phase 1</option>
+        <option :value=Phase.Phase3>Phase 3</option>
+        <option :value=Phase.Phase4>Phase 4</option>
+        <option :value=Phase.Phase5>Phase 5</option>
+        <option :value=Phase.Phase6>Phase 6</option>
+        <option :value=Phase.Quality>Code Quality Check</option>
+      </select>
+      <button
+        :disabled="(selectedAdminPhase === null)
+          || useSubmissionStore().currentlyGrading
+          || !adminRepo.value.includes('github.com/')
+          || !adminRepo.value.includes('http')"
+        class="primary"
+        @click="adminSubmit">Submit</button>
+    </div>
   </div>
 
   <ag-grid-vue
-      class="ag-theme-quartz"
-      style="height: 65vh"
-      :columnDefs="columnDefs"
-      :rowData="rowData.value"
-      :defaultColDef="standardColSettings"
+    class="ag-theme-quartz"
+    style="height: 65vh"
+    :columnDefs="columnDefs"
+    :rowData="rowData.value"
+    :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
   <div class="container">
@@ -152,8 +154,8 @@ const adminSubmit = async (phase: Phase) => {
   </PopUp>
 
   <PopUp
-      v-if="runningAdminRepo"
-      @closePopUp="resetPage">
+    v-if="runningAdminRepo"
+    @closePopUp="resetPage">
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
       <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
@@ -172,12 +174,10 @@ const adminSubmit = async (phase: Phase) => {
   padding: 10px;
   margin-right: 10px;
 }
-
 .adminSubmission {
   display: flex;
   padding: 10px;
 }
-
 .container {
   padding: 10px;
   display: grid;

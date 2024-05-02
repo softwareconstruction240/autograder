@@ -1,11 +1,14 @@
 <script setup lang="ts">
 
-import Tabs from "@/components/tabs/Tabs.vue";
-import Tab from "@/components/tabs/Tab.vue";
-import PhaseView from "@/views/PhaseView/PhaseView.vue";
-import {onMounted} from "vue";
+import { onMounted, ref } from 'vue'
 import {useSubmissionStore} from "@/stores/submissions";
-import {Phase} from "@/types/types";
+import { Phase, type Submission } from '@/types/types'
+import { uiConfig } from '@/stores/uiConfig'
+import { submissionPost } from '@/services/submissionService'
+import LiveStatus from '@/views/StudentView/LiveStatus.vue'
+import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
+import InfoPanel from '@/components/InfoPanel.vue'
+import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -15,41 +18,119 @@ onMounted(async () => {
   }, 5000);
 })
 
+const selectedPhase = ref<Phase | null>(null);
+const openGrader = ref<boolean>(false);
+const showResults = ref<boolean>(false);
+const lastSubmission = ref<Submission | null>(null);
+
+const submitSelectedPhase = async () => {
+  if (selectedPhase.value === null) { // make typescript happy
+    console.error("submitPhase() was called without a phase selected")
+    return
+  }
+  await submitPhase(selectedPhase.value)
+}
+
+const submitPhase = async (phase: Phase) => {
+  try {
+    showResults.value = false;
+    await submissionPost(phase);
+    openGrader.value = true;
+    useSubmissionStore().currentlyGrading = true;
+  } catch (e) {
+    alert(e)
+    useSubmissionStore().currentlyGrading = false;
+  }
+}
+
+const handleGradingDone = async () => {
+  useSubmissionStore().currentlyGrading = false;
+  lastSubmission.value = await useSubmissionStore().getLastSubmission();
+  showResults.value = true;
+}
+
 </script>
 
 <template>
-  <div>
-    <h3 id="instruction-text">Select a phase from below to submit code, view test results, and review past attempts</h3>
+  <div id="studentContainer">
+    <div id="submittingZone">
+      <div id="phaseDetails">
+        <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
+        <a
+          target="_blank"
+          :href="uiConfig.getSpecLink(selectedPhase)">
+          <span v-if="selectedPhase">Review phase specs on Github</span>
+          <span v-else>Review project specs on Github</span>
+        </a>
+      </div>
+
+      <div id="submitDialog">
+        <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
+          <option :value=null selected disabled>Select a phase</option>
+          <option :value=Phase.Phase0>Phase 0</option>
+          <option :value=Phase.Phase1>Phase 1</option>
+          <option :value=Phase.Phase3>Phase 3</option>
+          <option :value=Phase.Phase4>Phase 4</option>
+          <option :value=Phase.Phase5>Phase 5</option>
+          <option :value=Phase.Phase6>Phase 6</option>
+          <option :value=Phase.Quality>Code Quality Check</option>
+        </select>
+        <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+      </div>
+    </div>
+
+    <InfoPanel
+      style="max-width: 600px; min-height: 300px; margin: 0; justify-content: center"
+      v-if="openGrader">
+      <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
+      <ResultsPreview v-if="showResults && lastSubmission" :submission="lastSubmission"/>
+    </InfoPanel>
+
+    <div id="submission-history" style="width: 100%">
+      <div id="submission-history-header">
+        <h3>Submission History</h3>
+        <p>Click on a submission to see details</p>
+      </div>
+      <SubmissionHistory :key="lastSubmission?.timestamp"/>
+    </div>
   </div>
-  <Tabs>
-    <Tab title="Phase 0">
-      <PhaseView phase-title="Phase 0: Chess piece move rules" phaseDescription="For this phase you must pass all of the provided automated tests." :phase=Phase.Phase0 />
-    </Tab>
-    <Tab title="Phase 1">
-      <PhaseView phase-title="Phase 1: Full chess game logic" phaseDescription="For this phase you must pass all of the provided automated tests." :phase=Phase.Phase1 />
-    </Tab>
-    <Tab title="Phase 3">
-      <PhaseView phase-title="Phase 3: Web API" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." :phase=Phase.Phase3 />
-    </Tab>
-    <Tab title="Phase 4">
-      <PhaseView phase-title="Phase 4: SQL DAOs" phaseDescription="For this phase you must pass all of the provided automated tests and pass all of the unit tests that you were required to write." :phase=Phase.Phase4 />
-    </Tab>
-    <Tab title="Phase 5">
-      <PhaseView phase-title="Phase 5: Chess Client" phaseDescription="For this phase you must pass all of the unit tests that you were required to write." :phase=Phase.Phase5 />
-    </Tab>
-    <Tab title="Phase 6">
-      <PhaseView phase-title="Phase 6: Websockets" phaseDescription="For this phase you must pass all of the provided automated tests." :phase=Phase.Phase6 />
-    </Tab>
-    <Tab title="Quality">
-      <PhaseView phase-title="Run only code quality (not graded)" phaseDescription="Use this to run just the code quality without running test cases. This is NOT graded and will NOT be submitted to Canvas." :phase=Phase.Quality />
-    </Tab>
-  </Tabs>
 </template>
 
 <style scoped>
-#instruction-text {
+#studentContainer {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#submitDialog {
+  display: flex;
+  align-items: center;
+}
+
+#submitDialog * {
+  margin: 20px 5px;
+}
+
+h3 {
+  font-size: xx-large;
+}
+
+#phaseDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#submittingZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 500px;
+}
+
+#submission-history-header {
   text-align: center;
-  margin-top: 5px;
-  margin-bottom: 15px;
+  margin: 15px;
 }
 </style>
