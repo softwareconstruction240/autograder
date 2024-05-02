@@ -111,26 +111,31 @@ public class PhaseUtils {
             case Phase0, Phase1 -> switch (type) {
                 case PASSOFF_TESTS -> "_1958";
                 case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> null;
             };
             case Phase3 -> switch (type) {
                 case PASSOFF_TESTS -> "_5202";
                 case UNIT_TESTS -> "90344_776";
                 case QUALITY -> "_3003";
+                case GIT_COMMITS -> null;
             };
             case Phase4 -> switch (type) {
                 case PASSOFF_TESTS -> "_2614";
                 case UNIT_TESTS -> "90346_5755";
                 case QUALITY -> "90346_8398";
+                case GIT_COMMITS -> null;
             };
             case Phase5 -> switch (type) {
                 case UNIT_TESTS -> "90347_2215";
                 case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
                 case QUALITY -> "90347_9378";
+                case GIT_COMMITS -> null;
             };
             case Phase6 -> switch (type) {
                 case PASSOFF_TESTS -> "90348_899";
                 case QUALITY -> "90348_3792";
                 case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
+                case GIT_COMMITS -> null;
             };
             case Quality -> throw new GradingException("Not graded");
         };

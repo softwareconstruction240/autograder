@@ -94,7 +94,14 @@ public class Scorer {
         if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
-        } else {
+        }
+        else {
+            if(commitVerificationResult.penaltyPct() > 0) {
+                newAssessment.items().put(
+                        PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, gradingContext.phase()),
+                        new CanvasRubricItem(commitVerificationResult.failureMessage(),
+                                0 - (totalPoints(newAssessment) * 0.1f)));
+            }
             submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
