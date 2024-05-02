@@ -9,6 +9,7 @@ import HonorChecker from "@/views/AdminView/HonorChecker.vue";
 import {useAdminStore} from "@/stores/admin";
 import StudentsView from "@/views/AdminView/StudentsView.vue";
 import LogsView from "@/views/AdminView/LogsView.vue";
+import ConfigView from '@/views/AdminView/ConfigView.vue'
 
 useAdminStore().updateUsers();
 
@@ -19,12 +20,10 @@ useAdminStore().updateUsers();
     <Tabs>
       <Tab title="Submissions">
         <SubmissionsView/>
+        <QueueStatus/>
       </Tab>
       <Tab title="Students">
         <StudentsView/>
-      </Tab>
-      <Tab title="Queue Status">
-        <QueueStatus/>
       </Tab>
       <Tab title="Logs">
         <LogsView/>
@@ -32,6 +31,9 @@ useAdminStore().updateUsers();
       <Tab title="Downloads">
         <Analytics/>
         <HonorChecker/>
+      </Tab>
+      <Tab title="Config">
+        <ConfigView/>
       </Tab>
     </Tabs>
   </div>
