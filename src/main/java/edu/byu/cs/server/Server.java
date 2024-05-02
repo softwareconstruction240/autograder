@@ -1,5 +1,6 @@
 package edu.byu.cs.server;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
@@ -184,7 +185,7 @@ public class Server {
 
         try {
             SubmissionController.reRunSubmissionsInQueue();
-        } catch (IOException | DataAccessException e) {
+        } catch (IOException | DataAccessException | GradingException e) {
             LOGGER.error("Error rerunning submissions already in queue", e);
         }
     }
