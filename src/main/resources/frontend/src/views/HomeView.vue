@@ -82,7 +82,7 @@ const handleGradingDone = async () => {
     style="max-width: 600px; min-height: 300px; margin: 0; justify-content: center"
     v-if="openGrader">
     <LiveStatus v-if="useSubmissionStore().currentlyGrading" @show-results="handleGradingDone"/>
-    <ResultsPreview v-if="showResults" :submission="lastSubmission"/>
+    <ResultsPreview v-if="showResults && lastSubmission" :submission="lastSubmission"/>
   </InfoPanel>
 
   <div id="submission-history" style="width: 100%">
@@ -90,7 +90,7 @@ const handleGradingDone = async () => {
       <h3>Submission History</h3>
       <p>Click on a submission to see details</p>
     </div>
-    <SubmissionHistory :key="lastSubmission"/>
+    <SubmissionHistory :key="lastSubmission?.headHash"/>
   </div>
 
 </template>
