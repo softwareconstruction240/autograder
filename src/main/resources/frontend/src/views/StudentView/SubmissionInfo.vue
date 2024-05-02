@@ -12,10 +12,25 @@ import {
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
+import { useAuthStore } from '@/stores/auth'
+import { approveSubmissionPost } from '@/services/adminService'
+import { ref } from 'vue'
 
 const { submission } = defineProps<{
   submission: Submission;
 }>();
+
+const unapproved = ref<boolean>(true);
+
+const approve = async (penalize: boolean) => {
+  try {
+    await approveSubmissionPost(submission.netId, submission.phase, penalize);
+  } catch (e) {
+    console.log("Error while approving submission for " + submission.netId + " on phase " + submission.phase)
+    return
+  }
+  unapproved.value = false;
+}
 
 </script>
 
@@ -31,6 +46,22 @@ const { submission } = defineProps<{
       <span v-else-if="submission.passed">passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
       <span v-else>failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
     </p>
+
+    <div v-if="useAuthStore().user?.role == 'ADMIN' && commitVerificationFailed(submission)">
+      <InfoPanel id="approveSubmission">
+        <h4>Approve Blocked Submission</h4>
+        <p>This submission was blocked because it did not meet the git commit requirements.</p>
+        <p>Meet with the student and explain the importance of frequent and consistent commits.</p>
+        <p>You may, at your discretion, deduct 10% if it looks like the student is not learning the value/habit of repeated commits</p>
+        <div id="approvalButtons" v-if="unapproved">
+          <button @click="approve(true)">Approve with penalty</button>
+          <button @click="approve(false)" class="small" style="font-weight: normal; font-size: 0.9rem">Approve without penalty</button>
+        </div>
+        <div v-else>
+          <h4>Approval was successful! Grade sent to canvas</h4>
+        </div>
+      </InfoPanel>
+    </div>
 
     <div id="important">
       <InfoPanel class="info-box">
@@ -60,24 +91,17 @@ const { submission } = defineProps<{
     />
   </div>
 
-
-
-<!--  .info-box {-->
-<!--  background-color: var(&#45;&#45;opposite);-->
-<!--  display: flex;-->
-<!--  flex-direction: column;-->
-<!--  align-items: center;-->
-<!--  justify-content: center;-->
-<!--  color: var(&#45;&#45;opposite-text-color);-->
-<!--  margin: 10px;-->
-<!--  text-align: center;-->
-<!--  padding: 5px 15px;-->
-<!--  border-radius: 5px;-->
-<!--  }-->
-
 </template>
 
 <style scoped>
+#approveSubmission {
+  text-align: left;
+  align-items: start;
+}
+#approvalButtons {
+  text-align: center;
+  width: 100%;
+}
 .container {
   flex-direction: column;
   text-align: left;

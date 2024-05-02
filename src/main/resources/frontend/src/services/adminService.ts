@@ -29,7 +29,6 @@ export const submissionsForUserGet = async (netId: string): Promise<Submission[]
 }
 
 export const approveSubmissionPost = async (netId: string, phase: Phase, penalize: boolean) => {
-    if (phase == "42") throw new Error("Code quality submissions never need approving");
     const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/approve', {
         method: 'POST',
         credentials: 'include',
