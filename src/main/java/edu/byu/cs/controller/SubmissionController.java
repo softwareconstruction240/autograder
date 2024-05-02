@@ -42,7 +42,7 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Boolean submissionsEnabled = true; //getSubmissionsEnabledConfig();
+        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
         if (submissionsEnabled == null) return null;
 
         if (!submissionsEnabled) {
@@ -542,12 +542,14 @@ public class SubmissionController {
             throw new IllegalArgumentException("Both penaltyPct and approvedScore must be greater or equal than 0");
         }
 
-
-
-
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+
+        // Check that this phase hasn't already been approved
+        if (withheldSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved) {
+            throw new IllegalArgumentException(studentNetId + " needs no approval for phase " + phase);
+        }
 
         // Update Submissions
         Float originalScore = withheldSubmission.score();

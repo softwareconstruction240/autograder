@@ -27,6 +27,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
     await approveSubmissionPost(submission.netId, submission.phase, penalize);
   } catch (e) {
     console.log("Error while approving submission for " + submission.netId + " on phase " + submission.phase)
+    alert("Something went wrong while sending the approval. Try refreshing the page before trying again")
     return
   }
   unapproved.value = false;
