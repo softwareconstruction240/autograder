@@ -31,19 +31,19 @@ export const renderScoreCell = (params: ValueGetterParams) => {
     const iconElement = document.createElement("i");
     let scoreText = "";
 
-    if (commitVerificationFailed(params.data)) {
+    if(!params.data.passed) {
+        iconElement.classList.add("fa-solid", "fa-ban");
+        iconElement.style.color = "grey"
+        scoreText = " N/A"
+    } else if (commitVerificationFailed(params.data)) {
         cellElement.style.fontWeight = "bold"
         iconElement.classList.add("fa-solid", "fa-circle-exclamation");
         iconElement.style.color = "red";
         scoreText = " TA"
-    } else if (params.data.passed || params.data.passed) {
+    } else {
         iconElement.classList.add("fa-solid", "fa-check");
         iconElement.style.color = "green";
         scoreText = " " + scoreToPercentage(params.data.score)
-    } else {
-        iconElement.classList.add("fa-solid", "fa-ban");
-        iconElement.style.color = "grey"
-        scoreText = " N/A"
     }
 
     cellElement.append(iconElement)
