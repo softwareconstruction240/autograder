@@ -181,7 +181,13 @@ public class GitHelper {
                         "Suspicious commit history. Some commits are authored before the previous phase hash."),
                 new CV(
                         !commitsByDay.commitsInOrder(),
-                        "Suspicious commit history. Not all commits are in order.")
+                        "Suspicious commit history. Not all commits are in order."),
+                new CV(
+                        commitsByDay.commitsBackdated(),
+                        "Suspicious commit history. Some commits have been backdated."),
+                new CV(
+                        commitsByDay.commitTimestampsDuplicated(),
+                        "Suspicious commit history. Multiple commits have the exact same timestamp.")
         };
         ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
 
