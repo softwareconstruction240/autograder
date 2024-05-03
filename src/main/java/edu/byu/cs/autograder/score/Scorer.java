@@ -42,7 +42,9 @@ public class Scorer {
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            return saveResults(rubric, commitVerificationResult, 0, getScore(rubric), "");
+            Submission submission = generateSubmissionObject(rubric, commitVerificationResult, 0, getScore(rubric), "");
+            DaoService.getSubmissionDao().insertSubmission(submission);
+            return submission;
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
@@ -51,21 +53,23 @@ public class Scorer {
         // Validate several conditions before submitting to the grade-book
         Submission thisSubmission;
         if (!rubric.passed()) {
-            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+            thisSubmission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
         } else if (!commitVerificationResult.verified()) {
-            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+            thisSubmission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
         } else {
-            // The student receives a score!
+            // The student receives a score in canvas!
             thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
         }
 
+        DaoService.getSubmissionDao().insertSubmission(thisSubmission);
         return thisSubmission;
     }
 
     /**
      * Saves the generated submission and carefully submits the score to Canvas when it helps the student's grade.
      * <br>
-     * Calling this method constitutes a successful, verified submission that will be saved and submitted.
+     * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
+     * It DOES NOT save the submission in the DAOs.
      *
      * @param rubric Required.
      * @param commitVerificationResult Required.
@@ -91,9 +95,9 @@ public class Scorer {
         Submission submission;
         if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
-            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
+            submission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, notes);
         } else {
-            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+            submission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
 
@@ -275,12 +279,12 @@ public class Scorer {
     }
 
     /**
-     * Saves the results of the grading to the database if the submission passed
+     * Takes provided inputs and generates a Submission object that can be sent to canvas or saved in the database
      *
      * @param rubric the rubric for the phase
      */
-    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult,
-                                   int numDaysLate, float score, String notes)
+    private Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
+                                                int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
@@ -301,8 +305,7 @@ public class Scorer {
             notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = new Submission(
+        return new Submission(
                 netId,
                 gradingContext.repoUrl(),
                 headHash,
@@ -316,9 +319,6 @@ public class Scorer {
                 verifiedStatus,
                 null
         );
-
-        submissionDao.insertSubmission(submission);
-        return submission;
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)

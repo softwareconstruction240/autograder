@@ -42,7 +42,7 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
+        Boolean submissionsEnabled = true; //getSubmissionsEnabledConfig();
         if (submissionsEnabled == null) return null;
 
         if (!submissionsEnabled) {
@@ -548,7 +548,7 @@ public class SubmissionController {
 
         // Check that this phase hasn't already been approved
         if (withheldSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved) {
-            throw new IllegalArgumentException(studentNetId + " needs no approval for phase " + phase);
+            throw new RuntimeException(studentNetId + " needs no approval for phase " + phase);
         }
 
         // Update Submissions

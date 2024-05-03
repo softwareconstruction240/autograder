@@ -94,6 +94,7 @@ public class Grader implements Runnable {
             Rubric rubric = assembleResultsToRubric(rubricConfig, evaluationResults);
 
             Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
+            DaoService.getSubmissionDao().insertSubmission(submission);
 
             observer.notifyDone(submission);
         } catch (GradingException ge) {
