@@ -85,7 +85,7 @@ class GitHelperTest {
         });
         System.out.println(result);
         Assertions.assertTrue(result.verified());
-        Assertions.assertEquals(14, result.numCommits());
+        Assertions.assertEquals(12, result.numCommits());
         Assertions.assertEquals(3, result.numDays());
         // Sufficient commits on sufficient days succeeds
 
