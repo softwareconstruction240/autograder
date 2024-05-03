@@ -68,21 +68,21 @@ public class CommitAnalytics {
         boolean commitsInPast = false;
 
         // Iteration helpers
-        long commitTimeSecs;
+        CommitTimestamps commitTimes;
         for (RevCommit rc : commits) {
-            commitTimeSecs = getCommitTime(rc);
-            if (commitTimeSecs <= lowerTimeBoundSecs) {
+            commitTimes = getCommitTime(rc);
+            if (commitTimes.seconds <= lowerTimeBoundSecs) {
                 commitsInPast = true;
                 // Actually, we want to just skip these commits since these could legitimately
                 // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
                 continue;
             }
-            if (commitTimeSecs > upperTimeBoundSecs) {
+            if (commitTimes.seconds > upperTimeBoundSecs) {
                 commitsInFuture = true;
             }
 
             for (var pc : rc.getParents()) {
-                if (commitTimeSecs < getCommitTime(pc)) {
+                if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
                     commitsInOrder = false;
                     break;
@@ -99,7 +99,7 @@ public class CommitAnalytics {
             changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
 
             // Add the commit to results
-            String dayKey = DateTimeUtils.getDateString(commitTimeSecs, false);
+            String dayKey = DateTimeUtils.getDateString(commitTimes.seconds, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             ++singleParentCommits;
         }
@@ -136,20 +136,21 @@ public class CommitAnalytics {
      * @param revCommit The commit to analyze
      * @return A long representing the author time in seconds.
      */
-    private static long getCommitTime(RevCommit revCommit) {
-        long out = revCommit.getCommitTime(); // More efficient, but represents the COMMIT time
+    private static CommitTimestamps getCommitTime(RevCommit revCommit) {
+        long commitTimestamp = revCommit.getCommitTime();
+        long bestTimestamp = commitTimestamp;
 
+        long authorTimestamp = -1;
         PersonIdent authorIdent = revCommit.getAuthorIdent();
         if (authorIdent != null) {
             Date authorTime = authorIdent.getWhen();
             if (authorTime != null) {
-                out = authorTime.getTime() / 1000;
+                authorTimestamp = authorTime.getTime() / 1000;
+                bestTimestamp = authorTimestamp;
             }
         }
-        // CONSIDER: Do we want to flag or display a warning if we are not able to read the actual AUTHOR_TIME
-        // field of the commits? We could auto-reject them...
 
-        return out;
+        return new CommitTimestamps(commitTimestamp, authorTimestamp, bestTimestamp);
     }
     /**
      * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
@@ -204,6 +205,21 @@ public class CommitAnalytics {
             String section,
             String timestamp
     ) {}
+
+    /**
+     * Represents the timestamps relating to a commit.
+     * <br>
+     * Both values are `long`'s representing the number of seconds since the epoch.
+     *
+     * @param commit Represents the commit timestamp. Will always exist.
+     * @param author Represents the authorship timestamp, or -1 if it cannot be extracted
+     * @param seconds Represents the author timestamp, or the commit timestamp if not available.
+     */
+    private record CommitTimestamps(
+         long commit,
+         long author,
+         long seconds
+    ) { }
 
     /**
      * generates a CSV-formatted string of all commit data
