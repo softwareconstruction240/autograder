@@ -55,13 +55,10 @@ public class GitHelper {
             throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
         }
 
-        File stageRepo = gradingContext.stageRepo();
         try {
-            boolean requiresVerification = PhaseUtils.isPhaseGraded(gradingContext.phase()) && !gradingContext.admin();
-            if (!requiresVerification) {
-                return skipCommitVerification(true, headHash, null);
-            }
-            return verifyCommitRequirements(stageRepo);
+            return shouldVerifyCommits() ?
+                    verifyCommitRequirements(gradingContext.stageRepo()) :
+                    skipCommitVerification(true, headHash, null);
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
             String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
@@ -69,6 +66,15 @@ public class GitHelper {
             LOGGER.error("Failed to evaluate commit history", e);
             return skipCommitVerification(false, headHash, errorStr);
         }
+    }
+
+    /**
+     * Determines if the current grading context requires verifying the commit history.
+     *
+     * @return True if the commits should be verified; otherwise, false.
+     */
+    private boolean shouldVerifyCommits() {
+        return !gradingContext.admin() && PhaseUtils.isPhaseGraded(gradingContext.phase());
     }
 
     /**
