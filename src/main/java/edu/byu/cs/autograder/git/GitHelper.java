@@ -151,7 +151,7 @@ public class GitHelper {
         }
 
         // We have a previous result to defer to:
-        Submission.ScoreVerification scoreVerification = firstPassingSubmission.verification();
+        int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
         boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
         String message = verified ?
                 "You passed the commit verification on your first passing submission! You're good to go!" :
@@ -159,7 +159,7 @@ public class GitHelper {
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, scoreVerification.penaltyPct(), message,
+                0, 0, 0, originalPenaltyPct, message,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );

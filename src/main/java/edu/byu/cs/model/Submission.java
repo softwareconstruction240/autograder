@@ -111,6 +111,21 @@ public record Submission(
         return Objects.hash(netId, headHash, phase);
     }
 
+    /**
+     * Returns the penalty percentage within a submission, or 0 if it doesn't exist.
+     * <br>
+     * The existence of the penalty pct doesn't necessarily mean it should be applied.
+     * Make sure to respect other related status flags. When needed, this will give a value.
+     *
+     * @return An int representing the penalty pct.
+     */
+    public int getPenaltyPct() {
+        if (verification == null || verification.penaltyPct() == null) {
+            return 0;
+        }
+        return verification.penaltyPct();
+    }
+
     public static String serializeScoreVerification(@NonNull Submission submission) {
         return serializeScoreVerification(submission.verification);
     }
