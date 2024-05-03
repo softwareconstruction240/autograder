@@ -30,8 +30,12 @@ const isAdmin = useAuthStore().user?.role === "ADMIN";
     <p v-html="generateClickableLink(submission.repoUrl)"/>
     <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
     <div v-if="isAdmin">
-      <span v-if="submission.verifiedStatus">{{submission.verifiedStatus}}</span>
-      <span v-if="submission.verification">{{submission.verification}}</span>
+      <p v-if="submission.verifiedStatus">
+        Commit Verification Status: {{submission.verifiedStatus}}
+        <i v-if="commitVerificationFailed(submission)" class="fa-solid fa-circle-xmark" style="color: red"/>
+        <i v-else class="fa-solid fa-circle-check" style="color: green"/>
+      </p>
+      <p v-if="submission.verification">Commit Verification Data: {{submission.verification}}</p>
     </div>
     <p>status:
       <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
