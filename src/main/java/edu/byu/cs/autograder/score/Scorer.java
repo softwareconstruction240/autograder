@@ -61,7 +61,6 @@ public class Scorer {
             thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
         }
 
-        DaoService.getSubmissionDao().insertSubmission(thisSubmission);
         return thisSubmission;
     }
 
