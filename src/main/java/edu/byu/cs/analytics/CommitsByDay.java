@@ -13,9 +13,15 @@ import java.util.Map;
  * @param dayMap Represents each of the calendar days,
  *               with the number of commits on that day.
  * @param changesPerCommit One entry for each commit processed, representing the number of lines changed in the commit.
+ * @param erroringCommits Reports commit hashes that triggered any of the failure conditions,
+ *                        grouped by a natural key into the kinds of conditions that they failed.
+ *                        This will be empty when there are no erroring commits.
  * @param totalCommits The total number of commits processed, excluding merge commits.
  * @param mergeCommits The total number of merge commits.
  * @param commitsInOrder Reports whether all commits were authored strictly after their parents.
+ * @param commitsInPast Reports whether any commits were found before the tail hash chronologically.
+ *                      This flag has been deemed unhelpful and intentionally ignored.
+ *                      Therefore, these are NOT counted as erroring commits.
  * @param commitsInFuture Reports whether any commits were found after the end point chronologically.
  * @param commitsBackdated Reports whether any commit was detected to have been backdated.
  * @param lowerThreshold The {@link CommitThreshold}, exclusive.
@@ -24,6 +30,7 @@ import java.util.Map;
 public record CommitsByDay(
         Map<String, Integer> dayMap,
         List<Integer> changesPerCommit,
+        Map<String, List<String>> erroringCommits,
         int totalCommits,
         int mergeCommits,
         boolean commitsInOrder,

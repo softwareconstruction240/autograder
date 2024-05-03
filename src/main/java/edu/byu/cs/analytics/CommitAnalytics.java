@@ -25,7 +25,6 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
@@ -62,7 +61,8 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         int singleParentCommits = 0;
         int mergeCommits = 0;
-        List<Integer> changesPerCommit = new ArrayList<>();
+        List<Integer> changesPerCommit = new LinkedList<>();
+        Map<String, List<String>> erroringCommits = new HashMap<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
         boolean commitsInPast = false;
@@ -70,21 +70,26 @@ public class CommitAnalytics {
 
         // Iteration helpers
         CommitTimestamps commitTimes;
+        String commitHash;
         for (RevCommit rc : commits) {
             commitTimes = getCommitTime(rc);
+            commitHash = rc.getName();
             if (commitTimes.seconds <= lowerTimeBoundSecs) {
+                groupCommitsByKey(erroringCommits, "commitsInPast", commitHash);
                 commitsInPast = true;
                 // Actually, we want to just skip these commits since these could legitimately
                 // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
                 continue;
             }
             if (commitTimes.seconds > upperTimeBoundSecs) {
+                groupCommitsByKey(erroringCommits, "commitsInFuture", commitHash);
                 commitsInFuture = true;
             }
 
             for (var pc : rc.getParents()) {
                 if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
+                    groupCommitsByKey(erroringCommits, "commitsInOrder", commitHash);
                     commitsInOrder = false;
                     break;
                 }
@@ -97,6 +102,7 @@ public class CommitAnalytics {
             }
 
             if (detectCommitBackdating(commitTimes)) {
+                groupCommitsByKey(erroringCommits, "commitsBackdated", commitHash);
                 commitsBackdated = true;
             }
 
@@ -109,11 +115,17 @@ public class CommitAnalytics {
             ++singleParentCommits;
         }
         return new CommitsByDay(
-                days, changesPerCommit,
+                days, changesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
                 commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated,
                 lowerBound, upperBound);
     }
+
+    private static <T> void groupCommitsByKey(Map<T, List<String>> dataMap, T groupId, String commitHash) {
+        dataMap.putIfAbsent(groupId, new LinkedList<>());
+        dataMap.get(groupId).add(commitHash);
+    }
+
     private static Iterable<RevCommit> getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
             throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
