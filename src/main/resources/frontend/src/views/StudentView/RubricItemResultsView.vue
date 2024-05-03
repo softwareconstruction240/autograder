@@ -24,7 +24,7 @@ const areErrorDetailsOpen = ref<boolean>(false)
 
   <PopUp v-if="areErrorDetailsOpen"
          @closePopUp="areErrorDetailsOpen = false">
-    <p id="category">Program Error Output</p>
+    <p class="category">Program Error Output</p>
     <hr>
     <span class="failure">{{testResults.error}}</span>
   </PopUp>
