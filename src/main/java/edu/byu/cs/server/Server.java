@@ -1,5 +1,6 @@
 package edu.byu.cs.server;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
@@ -182,7 +183,12 @@ public class Server {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
 
-        useSqlDaos();
+        try {
+            useSqlDaos();
+        } catch (DataAccessException e) {
+            LOGGER.error("Error setting up database", e);
+            throw new RuntimeException(e);
+        }
 
         int port = setupEndpoints(8080);
 
@@ -190,12 +196,13 @@ public class Server {
 
         try {
             SubmissionController.reRunSubmissionsInQueue();
-        } catch (IOException | DataAccessException e) {
+        } catch (IOException | DataAccessException | GradingException e) {
             LOGGER.error("Error rerunning submissions already in queue", e);
         }
     }
 
-    private static void useSqlDaos() {
+    private static void useSqlDaos() throws DataAccessException {
+        SqlDb.setUpDb();
         DaoService.setConfigurationDao(new ConfigurationSqlDao());
         DaoService.setQueueDao(new QueueSqlDao());
         DaoService.setRubricConfigDao(new RubricConfigSqlDao());

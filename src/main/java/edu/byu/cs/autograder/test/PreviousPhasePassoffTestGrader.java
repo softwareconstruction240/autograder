@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PreviousPhasePassoffTestGrader extends TestGrader{
+    private static final String ERROR_MESSAGE = "Failed previous tests. Cannot pass off until previous tests pass";
+
     public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
     }
@@ -31,6 +33,11 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     @Override
     protected Set<String> packagesToTest() throws GradingException {
         return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
+    }
+
+    @Override
+    protected Set<String> extraCreditTests() throws GradingException {
+        return allPreviousPhases(PhaseUtils::extraCreditTests);
     }
 
     private <T> Set<T> allPreviousPhases(PhaseFunction<T> func) throws GradingException {
@@ -55,11 +62,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected Set<String> extraCreditTests() {
-        return new HashSet<>();
-    }
-
-    @Override
     protected String testName() {
         return "Previous Passoff Tests";
     }
@@ -67,17 +69,19 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     @Override
     protected float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
-        throw new GradingException("Failed previous tests. Cannot pass off until previous tests pass", testResults);
+        removeExtraCreditTests(testResults.root(), extraCreditTests());
+        throw new GradingException(ERROR_MESSAGE, testResults);
+    }
+
+    private void removeExtraCreditTests(TestAnalyzer.TestNode node, Set<String> extraCreditTests) {
+        extraCreditTests.forEach((ecTest) -> node.getChildren().remove(ecTest));
+        node.getChildren().forEach((s, child) -> removeExtraCreditTests(child, extraCreditTests));
     }
 
     @Override
     protected String getNotes(TestAnalyzer.TestAnalysis results) {
-        if (results.root().getNumTestsFailed() == 0) {
-            return "All previous tests passed";
-        }
-        else {
-            return "Failed previous tests. Cannot pass off until previous tests pass";
-        }
+        if (results.root().getNumTestsFailed() == 0) return "All previous tests passed";
+        else return ERROR_MESSAGE;
     }
 
     @Override

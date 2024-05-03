@@ -40,3 +40,4 @@ build/
 /tmp-*
 /logs/
 /phases/
+/commit-cache/

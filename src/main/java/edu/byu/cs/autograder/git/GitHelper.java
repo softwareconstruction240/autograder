@@ -44,8 +44,9 @@ public class GitHelper {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(stageRepo);
 
-        boolean gradedPhase = PhaseUtils.isPhaseGraded(gradingContext.phase());
-        return gradedPhase ? verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
+        boolean requiresVerification = PhaseUtils.isPhaseGraded(gradingContext.phase()) && !gradingContext.admin();
+        return requiresVerification ?
+                verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
     }
 
     /**
@@ -142,7 +143,7 @@ public class GitHelper {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
+        LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
 
         var observer = gradingContext.observer();
         if (commitVerificationResult.verified()) {

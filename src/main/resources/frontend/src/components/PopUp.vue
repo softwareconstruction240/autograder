@@ -38,6 +38,9 @@ defineEmits({
   position: relative;
   max-height: 80vh;
   overflow-y: auto;
+  min-width: 200px;
+  max-width: 90%;
+  width: fit-content;
 }
 
 .popup-content {

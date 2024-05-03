@@ -27,16 +27,17 @@ const { submission } = defineProps<{
     <p v-html="generateClickableLink(submission.repoUrl)"/>
     <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
     <p>status:
-      <span v-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
-      <span v-else-if="submission.passed">passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
-      <span v-else>failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
+      <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
+      <span v-else-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
+      <span v-else>passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
     </p>
 
     <div id="important">
       <InfoPanel class="info-box">
         <p>Score:</p>
-        <h1 v-if="submission.passed && !commitVerificationFailed(submission)" v-html="scoreToPercentage(submission.score)"/>
-        <h1 v-else>No score</h1>
+        <h1 v-if="!submission.passed">Failed</h1>
+        <h1 v-else-if="commitVerificationFailed(submission)">Score withheld for commits<br>Raw Score: {{scoreToPercentage(submission.score)}}</h1>
+        <h1 v-else v-html="scoreToPercentage(submission.score)"/>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
         <p>Notes:</p>
