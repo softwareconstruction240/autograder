@@ -152,7 +152,7 @@ public class GitHelper {
 
         // We have a previous result to defer to:
         int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
-        boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
+        boolean verified = firstPassingSubmission.verifiedStatus().isApproved();
         String message = verified ?
                 "You passed the commit verification on your first passing submission! You're good to go!" :
                 "You have previously failed commit verification.\n"+

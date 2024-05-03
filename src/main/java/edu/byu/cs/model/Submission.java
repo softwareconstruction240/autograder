@@ -95,7 +95,11 @@ public record Submission(
         Unapproved,
         ApprovedAutomatically,
         ApprovedManually,
-        PreviouslyApproved,
+        PreviouslyApproved;
+
+        public boolean isApproved() {
+            return this != VerifiedStatus.Unapproved;
+        }
     }
 
     @Override
