@@ -36,8 +36,6 @@ defineProps<{
   align-items: center;
 }
 #slotInfo {
-  min-width: 200px;
-  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: start;
