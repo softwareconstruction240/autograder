@@ -97,7 +97,10 @@ public class GitHelper {
         String headHash = getHeadHash(stageRepo);
         return skipCommitVerification(verified, headHash, null);
     }
-    private CommitVerificationResult skipCommitVerification(boolean verified, String headHash, String failureMessage) {
+    private CommitVerificationResult skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
+        if (headHash == null) {
+            throw new IllegalArgumentException("Head hash cannot be null");
+        }
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
