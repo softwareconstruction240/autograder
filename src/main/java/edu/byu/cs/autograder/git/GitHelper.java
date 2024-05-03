@@ -188,7 +188,7 @@ public class GitHelper {
         return new CommitVerificationResult(
                 errorMessages.isEmpty(),
                 false,
-                numCommits,
+                (int) significantCommits,
                 daysWithCommits,
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),
