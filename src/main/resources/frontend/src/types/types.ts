@@ -53,12 +53,13 @@ export type Submission = {
     headHash: string,
     timestamp: string,
     phase: Phase,
+    passed: boolean,
     score: number,
     notes: string,
     rubric: Rubric,
-    passed: boolean,
     admin: boolean,
-    verifiedStatus: VerifiedStatus
+    verifiedStatus: VerifiedStatus,
+    verification: ScoreVerification
 }
 
 export enum VerifiedStatus {
@@ -66,6 +67,13 @@ export enum VerifiedStatus {
     ApprovedAutomatically,
     ApprovedManually,
     PreviouslyApproved,
+}
+
+export type ScoreVerification = {
+    originalScore: number,
+    approvingNetId: string,
+    approvedTimestamp: string,
+    penaltyPct: number
 }
 
 export type User = {
