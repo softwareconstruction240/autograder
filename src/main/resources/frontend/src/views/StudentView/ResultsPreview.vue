@@ -16,20 +16,21 @@ const openDetails = ref<boolean>(false);
   <div class="results-preview-container">
     <div id="submission-score">
 
-      <div v-if="commitVerificationFailed(submission)"> <!-- IF SUBMISSION IS BLOCKED -->
+      <div v-if="!submission.passed"> <!-- IF SUBMISSION FAILED -->
+        <h2>Submission failed <i class="fa-solid fa-circle-xmark" style="color: red"/></h2>
+        <h3>You received no points for this submission</h3>
+      </div>
+
+      <div v-else-if="commitVerificationFailed(submission)"> <!-- IF SUBMISSION IS BLOCKED -->
         <h2><i class="fa-solid fa-triangle-exclamation" style="color: red"/> Submission blocked! <i class="fa-solid fa-triangle-exclamation" style="color: red"/></h2>
         <h3>You can not receive points on this phase until you talk to a TA</h3>
       </div>
 
-      <div v-else-if="submission.passed"> <!-- IF SUBMISSION PASSED -->
+      <div v-else>
         <h2>Submission passed! <i class="fa-solid fa-circle-check" style="color: green"/></h2>
         <h3>Score: {{scoreToPercentage(submission.score)}}</h3>
       </div>
 
-      <div v-else>
-        <h2>Submission failed <i class="fa-solid fa-circle-xmark" style="color: red"/></h2>
-        <h3>You received no points for this submission</h3>
-      </div>
     </div>
     <p class="submission-notes" v-html="submission.notes.replace('\n', '<br />')"></p>
     <div class="rubric-item-summaries">
