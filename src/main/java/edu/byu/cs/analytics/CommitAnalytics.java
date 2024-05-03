@@ -68,6 +68,9 @@ public class CommitAnalytics {
         boolean commitsInPast = false;
         boolean commitsBackdated = false;
 
+        Map<Long, List<String>> commitsByTimestamp = new HashMap<>();
+        boolean commitsWithSameTimestamp = false;
+
         // Iteration helpers
         CommitTimestamps commitTimes;
         String commitHash;
@@ -108,22 +111,40 @@ public class CommitAnalytics {
 
             // Count changes in each commit
             changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+            groupCommitsByKey(commitsByTimestamp, commitTimes.seconds, commitHash);
 
             // Add the commit to results
             String dayKey = DateTimeUtils.getDateString(commitTimes.seconds, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             ++singleParentCommits;
         }
+
+        // Check for multiple commits with the same timestamp
+        var duplicatedTimestampCommits = analyzeDuplicatedTimestamps(commitsByTimestamp);
+        if (!duplicatedTimestampCommits.isEmpty()) {
+            commitsWithSameTimestamp = true;
+            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits);
+        }
+
         return new CommitsByDay(
                 days, changesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated,
+                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp,
                 lowerBound, upperBound);
     }
 
     private static <T> void groupCommitsByKey(Map<T, List<String>> dataMap, T groupId, String commitHash) {
         dataMap.putIfAbsent(groupId, new LinkedList<>());
         dataMap.get(groupId).add(commitHash);
+    }
+    private static List<String> analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
+        List<String> out = new LinkedList<>();
+        for (var commitsAtTimestamp : dataMap.values()) {
+            if (commitsAtTimestamp.size() > 1) {
+                out.addAll(commitsAtTimestamp);
+            }
+        }
+        return out;
     }
 
     private static Iterable<RevCommit> getCommitsBetweenBounds(

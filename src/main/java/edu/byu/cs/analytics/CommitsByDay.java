@@ -24,6 +24,7 @@ import java.util.Map;
  *                      Therefore, these are NOT counted as erroring commits.
  * @param commitsInFuture Reports whether any commits were found after the end point chronologically.
  * @param commitsBackdated Reports whether any commit was detected to have been backdated.
+ * @param commitTimestampsDuplicated Reports where any two commits were discovered to have the same timestamp.
  * @param lowerThreshold The {@link CommitThreshold}, exclusive.
  * @param upperThreshold The {@link CommitThreshold}, inclusive.
  */
@@ -37,6 +38,7 @@ public record CommitsByDay(
         boolean commitsInFuture,
         boolean commitsInPast,
         boolean commitsBackdated,
+        boolean commitTimestampsDuplicated,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
 ) { }
