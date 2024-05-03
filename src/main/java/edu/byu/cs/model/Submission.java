@@ -41,7 +41,7 @@ import java.util.Objects;
  *                       <p>Old submissions will have a `null` value;
  *                       in this case, verification is assumed to equal
  *                       the {@link Submission#passed} field.</p>
- * @param verification Represents the approval of the submission.
+ * @param verification Represents the manual approval of the submission.
  *                     Added only after the submission is approved manually.
  */
 public record Submission(
