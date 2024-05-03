@@ -12,10 +12,13 @@ import {
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
+import {useAuthStore} from "@/stores/auth";
 
 const { submission } = defineProps<{
   submission: Submission;
 }>();
+
+const isAdmin = useAuthStore().user?.role === "ADMIN";
 
 </script>
 
@@ -26,6 +29,10 @@ const { submission } = defineProps<{
     <p>{{readableTimestamp(submission.timestamp)}}</p>
     <p v-html="generateClickableLink(submission.repoUrl)"/>
     <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
+    <div v-if="isAdmin">
+      <span v-if="submission.verifiedStatus">{{submission.verifiedStatus}}</span>
+      <span v-if="submission.verification">{{submission.verification}}</span>
+    </div>
     <p>status:
       <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
       <span v-else-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
