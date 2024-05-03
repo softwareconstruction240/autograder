@@ -14,8 +14,8 @@ defineProps<{
   <div id="rubric-item-container">
 
     <p class="itemHeader">
-      <span id="category" v-html="rubricItem.category + ' '"/>
-      <span id="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
+      <span class="category" v-html="rubricItem.category + ' '"/>
+      <span class="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
     </p>
     <hr/>
     <div id="details">
@@ -30,8 +30,8 @@ defineProps<{
 
       <MoreInfo text="details">
         <div>
-          <span id="category" v-html="rubricItem.category + ' '"/>
-          <span id="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints + '<br/>'"/>
+          <span class="category" v-html="rubricItem.category + ' '"/>
+          <span class="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints + '<br/>'"/>
         </div>
         <hr style="min-width: 250px; width: 100%"> <!-- the min-width is a round about way to make the window wide enough the button -->
         <RubricItemResultsView :test-results="rubricItem.results.testResults" :text-results="rubricItem.results.textResults"/>
@@ -42,12 +42,12 @@ defineProps<{
 </template>
 
 <style scoped>
-#category {
+.category {
   font-weight: 700;
   font-size: 20px;
 }
 
-#score {
+.score {
   font-weight: normal;
 }
 

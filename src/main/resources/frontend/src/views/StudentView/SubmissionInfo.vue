@@ -27,9 +27,9 @@ const { submission } = defineProps<{
     <p v-html="generateClickableLink(submission.repoUrl)"/>
     <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
     <p>status:
-      <span v-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
-      <span v-else-if="submission.passed">passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
-      <span v-else>failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
+      <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
+      <span v-else-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
+      <span v-else>passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
     </p>
 
     <div id="important">
