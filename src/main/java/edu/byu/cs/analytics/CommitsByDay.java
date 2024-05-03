@@ -17,6 +17,7 @@ import java.util.Map;
  * @param mergeCommits The total number of merge commits.
  * @param commitsInOrder Reports whether all commits were authored strictly after their parents.
  * @param commitsInFuture Reports whether any commits were found after the end point chronologically.
+ * @param commitsBackdated Reports whether any commit was detected to have been backdated.
  * @param lowerThreshold The {@link CommitThreshold}, exclusive.
  * @param upperThreshold The {@link CommitThreshold}, inclusive.
  */
@@ -28,6 +29,7 @@ public record CommitsByDay(
         boolean commitsInOrder,
         boolean commitsInFuture,
         boolean commitsInPast,
+        boolean commitsBackdated,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
 ) { }

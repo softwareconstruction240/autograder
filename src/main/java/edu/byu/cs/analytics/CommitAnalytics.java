@@ -66,6 +66,7 @@ public class CommitAnalytics {
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
         boolean commitsInPast = false;
+        boolean commitsBackdated = false;
 
         // Iteration helpers
         CommitTimestamps commitTimes;
@@ -95,6 +96,10 @@ public class CommitAnalytics {
                 continue;
             }
 
+            if (detectCommitBackdating(commitTimes)) {
+                commitsBackdated = true;
+            }
+
             // Count changes in each commit
             changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
 
@@ -106,7 +111,7 @@ public class CommitAnalytics {
         return new CommitsByDay(
                 days, changesPerCommit,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast,
+                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated,
                 lowerBound, upperBound);
     }
     private static Iterable<RevCommit> getCommitsBetweenBounds(
@@ -152,6 +157,36 @@ public class CommitAnalytics {
 
         return new CommitTimestamps(commitTimestamp, authorTimestamp, bestTimestamp);
     }
+
+    private static final long secondsInDay = 60*60*24;
+
+    /**
+     * Performs several checks to determine if the commits may have been manually backdated (not allowed).
+     *
+     * @param timestamps The CommitTimestamps of the commit
+     * @return A boolean indicating if backdating was detected
+     */
+    private static boolean detectCommitBackdating(CommitTimestamps timestamps) {
+        if (timestamps.author == -1) {
+            // CONSIDER: Throwing an error instead if the author timestamp isn't available?
+            return false;
+        }
+
+        // Detect if the author timestamp is after than the commit timestamp
+        if (timestamps.author > timestamps.commit) {
+            return true;
+        }
+
+        // When git backdates commits, it uses the time part as the commit timestamp.
+        // Detect if the commit and author timestamps are separated exactly by a multiple of days.
+        if ((timestamps.commit != timestamps.author) && (timestamps.commit - timestamps.author) % secondsInDay == 0) {
+            return true;
+        }
+
+        return false; // No backdating detected
+    }
+
+
     /**
      * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
      * <br>
