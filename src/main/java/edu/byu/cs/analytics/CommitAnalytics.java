@@ -189,7 +189,8 @@ public class CommitAnalytics {
         int totalChanges = 0;
         for (var diff : diffs) {
             FileHeader fileHeader = diffFormatter.toFileHeader(diff);
-            totalChanges += fileHeader.toEditList().stream().mapToInt(Edit::getLengthB).sum();
+            // https://archive.eclipse.org/jgit/docs/jgit-2.0.0.201206130900-r/apidocs/org/eclipse/jgit/diff/Edit.html
+            totalChanges += fileHeader.toEditList().stream().mapToInt(e -> e.getLengthA() + e.getLengthB()).sum();
         }
 
         return totalChanges;
