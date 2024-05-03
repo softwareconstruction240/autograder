@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.TrafficController;
+import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -42,7 +43,7 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Boolean submissionsEnabled = true; //getSubmissionsEnabledConfig();
+        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
         if (submissionsEnabled == null) return null;
 
         if (!submissionsEnabled) {
@@ -574,10 +575,7 @@ public class SubmissionController {
         if (approvedScore == null) {
             approvedScore = submissionToUse.score() * (1 - (penaltyPct / 100));
         }
-        //approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), scoreVerification);
 
-        //TODO: Make it send the actual score with git and late penalty
-        // Update grade-book
         float scoreDifference = originalScore - approvedScore;
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Rubric oldRubric = submissionToUse.rubric();
@@ -601,10 +599,17 @@ public class SubmissionController {
         int canvasUserId = DaoService.getUserDao().getUser(studentNetId).canvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
-        // TODO: get assessment to hold git commit penalty
-        try { // TODO: calc late adjustment
+        submissionToUse = submissionToUse.replaceRubric(rubicToUse);
+        try {
             CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubicToUse, rubricConfig, 0, phase);
             CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
+
+            Scorer.sendToCanvas(
+                    DaoService.getUserDao().getUser(studentNetId).canvasUserId(),
+                    assignmentNum,
+                    assessment,
+                    "Submission approved by %s after insufficient git commits".formatted(approverNetId),
+                    studentNetId);
         } catch (GradingException e) {
             throw new RuntimeException("Error generating rubric assessment");
         } catch (CanvasException e) {

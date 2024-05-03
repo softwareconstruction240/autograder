@@ -322,10 +322,14 @@ public class Scorer {
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
             throws GradingException {
+        sendToCanvas(userId, assignmentNum, assessment, notes, gradingContext.netId());
+    }
+
+    public static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes, String netId) throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
-            LOGGER.error("Error submitting to canvas for user {}", gradingContext.netId(), e);
+            LOGGER.error("Error submitting to canvas for user {}", netId, e);
             throw new GradingException("Error contacting canvas to record scores");
         }
     }
