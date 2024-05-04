@@ -6,7 +6,6 @@ import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
-import edu.byu.cs.model.appConfig.BannerMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
@@ -60,7 +59,8 @@ public class ConfigController {
     public static final Route updateBannerMessage = (req, res) -> {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
-        String message = new Gson().fromJson(req.body(), BannerMessage.class).bannerMessage().strip();
+        JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
+        String message = new Gson().fromJson(jsonObject.get("bannerMessage"), String.class);
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, message, String.class);
 
         User user = req.session().attribute("user");
