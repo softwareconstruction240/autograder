@@ -1,15 +1,19 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.User;
 import edu.byu.cs.model.appConfig.BannerMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
+
+import java.util.ArrayList;
 
 public class ConfigController {
 
@@ -40,8 +44,18 @@ public class ConfigController {
     }
 
     public static final Route updateLivePhases = (req, res) -> {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
 
-        return null;
+        JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
+        ArrayList phasesArray = new Gson().fromJson(jsonObject.get("phases"), ArrayList.class);
+
+        dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
+
+        User user = req.session().attribute("user");
+        LOGGER.info("[CONFIG] Admin %s has set the following phases as live: %s".formatted(user.netId(), phasesArray));
+
+        res.status(200);
+        return "";
     };
 
     public static final Route updateBannerMessage = (req, res) -> {

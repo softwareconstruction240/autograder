@@ -8,6 +8,17 @@ export enum Phase {
     Quality
 }
 
+export const listOfPhases = ():Array<Phase> => {
+    let result = []
+    for (var phase in Phase) {
+        var isValueProperty = Number(phase) >= 0
+        if (isValueProperty) {
+            result.push(Phase[phase] as unknown as Phase);
+        }
+    }
+    return result
+}
+
 export type TestNode = {
     testName: string,
     passed: boolean,

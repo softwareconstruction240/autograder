@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { type Config, Phase } from '@/types/types'
+import { type Config, listOfPhases, Phase } from '@/types/types'
 import PopUp from '@/components/PopUp.vue'
-import { getConfig, setBannerMessage } from '@/services/configService'
+import { getConfig, setBannerMessage, setLivePhases } from '@/services/configService'
+import { phaseString } from '@/utils/utils'
 
 // PopUp Control
 const openLivePhases = ref<boolean>(false);
@@ -16,6 +17,7 @@ const loadConfig = async () => {
   config.value = await getConfig()
 
   bannerMessage.value = config.value?.bannerMessage
+  //TODO: add live phases here
 }
 // =========================
 
@@ -31,9 +33,37 @@ const submitBannerMessage = async () => {
     alert("There was a problem in saving the updated banner message")
   }
   openBannerMessage.value = false
-  loadConfig()
+  await loadConfig()
 }
 // =========================
+
+// Live Phase Setting
+const activePhaseList = ref<Array<boolean>>([]) // using the enum, if activePhaseList[phase] == true, then that phase is active
+const deactivateAllPhases = () => { setAllPhases(false) }
+const activateAllPhases = () => { setAllPhases(true) }
+const setAllPhases = (setting: boolean) => {
+  for (const phase of listOfPhases() as Phase[]) {
+    activePhaseList.value[phase] = setting
+  }
+}
+const submitLivePhases = async () => {
+  let livePhases: Phase[] = []
+  for (const phase of listOfPhases() as Phase[]) {
+    if (activePhaseList.value[phase]) {
+      livePhases.push(phase);
+    }
+  }
+
+  try {
+    await setLivePhases(livePhases)
+  } catch (e) {
+    alert("There was a problem in saving live phases")
+  }
+  openLivePhases.value = false
+  await loadConfig()
+}
+// =========================
+
 </script>
 
 <template>
@@ -43,7 +73,7 @@ const submitBannerMessage = async () => {
       <p><span class="infoDescription">Course ID:</span> 234563</p>
 
       <h4>Assignments</h4>
-      <div v-for="phase in Object.values(Phase).filter((v) => isNaN(Number(v)))">
+      <div v-for="phase in Object.values(Phase) as Phase[]">
         <p><span class="infoDescription">{{phase}} Assignment ID:</span> 234563</p>
         <p><span class="infoDescription">-Quality Rubric ID:</span> 34543</p>
         <p><span class="infoDescription">-Git Rubric ID:</span> 34543</p>
@@ -55,8 +85,11 @@ const submitBannerMessage = async () => {
     <div class="configCategory">
       <h3>Live Phases</h3>
       <p>These are the phases are live and open for students to submit to</p>
-      <div v-for="phase in Object.values(Phase).filter((v) => isNaN(Number(v)))">
-        <p><i class="fa-solid fa-circle-check" style="color: green"/> {{phase}}</p>
+      <div v-for="phase in listOfPhases()">
+        <p>
+          <i v-if="activePhaseList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
+          <i v-else class="fa-solid fa-x" style="color: red"/>
+          {{phase}}</p>
       </div>
       <button @click="openLivePhases = true">Update</button>
     </div>
@@ -74,17 +107,17 @@ const submitBannerMessage = async () => {
     @closePopUp="openLivePhases = false">
     <h3>Live Phases</h3>
     <p>Enable student submissions for the following phases:</p>
-    <div v-for="phase in Object.values(Phase).filter((v) => isNaN(Number(v)))">
-      <p><input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"> {{phase}}</p>
-    </div>
+    <label v-for="(phase, index) in listOfPhases()" :key="index">
+      <input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}
+    </label>
+
     <div class="submitChanges">
       <p><em>This will not effect admin submissions</em></p>
       <div>
-        <button class="small">Enable all</button> <button class="small">Disable all</button>
+        <button @click="activateAllPhases" class="small">Enable all</button>
+        <button @click="deactivateAllPhases" class="small">Disable all</button>
       </div>
-      <button @click="() => {
-        openLivePhases = false;
-      }">Submit Changes</button>
+      <button @click="submitLivePhases">Submit Changes</button>
     </div>
   </PopUp>
 

@@ -1,5 +1,5 @@
 import { useAppConfigStore } from '@/stores/appConfig'
-import type { Config } from '@/types/types'
+import { type Config, Phase } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
 export const getConfig = async ():Promise<Config> => {
@@ -31,6 +31,24 @@ export const setBannerMessage = async (message: String): Promise<void> => {
     },
     body: JSON.stringify({
       "bannerMessage": message,
+    })
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error(await response.text());
+  }
+}
+
+export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
+  const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/config/phases', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "phases": phases,
     })
   });
 

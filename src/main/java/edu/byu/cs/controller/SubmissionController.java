@@ -62,7 +62,7 @@ public class SubmissionController {
         boolean submissionsEnabled;
         try {
             submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
-                    ConfigurationDao.Configuration.STUDENT_SUBMISSION_ENABLED,
+                    ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED,
                     Boolean.class);
         } catch (Exception e) {
             LOGGER.error("Error getting configuration", e);
