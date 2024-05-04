@@ -78,20 +78,6 @@ const submitLivePhases = async () => {
 <template>
   <div id="configContainer">
     <div class="configCategory">
-      <h3>Canvas Integration</h3>
-      <p><span class="infoDescription">Course ID:</span> 234563</p>
-
-      <h4>Assignments</h4>
-      <div v-for="phase in Object.values(Phase) as Phase[]">
-        <p><span class="infoDescription">{{phase}} Assignment ID:</span> 234563</p>
-        <p><span class="infoDescription">-Quality Rubric ID:</span> 34543</p>
-        <p><span class="infoDescription">-Git Rubric ID:</span> 34543</p>
-        <p><span class="infoDescription">-Main Rubric ID:</span> 34543</p>
-      </div>
-      <button>Change</button>
-    </div>
-
-    <div class="configCategory">
       <h3>Live Phases</h3>
       <p>These are the phases are live and open for students to submit to</p>
       <div v-for="phase in listOfPhases()">
