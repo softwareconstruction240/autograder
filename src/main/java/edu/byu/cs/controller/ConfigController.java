@@ -1,12 +1,10 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.User;
 import edu.byu.cs.model.appConfig.BannerMessage;
 import org.slf4j.Logger;
@@ -37,7 +35,6 @@ public class ConfigController {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
         JsonObject response = new JsonObject();
-        Gson gson = new Gson();
 
         response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
         response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
