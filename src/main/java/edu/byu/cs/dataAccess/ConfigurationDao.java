@@ -6,6 +6,6 @@ public interface ConfigurationDao {
 
     enum Configuration {
         STUDENT_SUBMISSION_ENABLED,
-        STUDENT_BANNER_MESSAGE
+        BANNER_MESSAGE
     }
 }

@@ -1,10 +1,39 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Phase } from '@/types/types'
+import { onMounted, ref } from 'vue'
+import { type Config, Phase } from '@/types/types'
 import PopUp from '@/components/PopUp.vue'
+import { getConfig, setBannerMessage } from '@/services/configService'
 
+// PopUp Control
 const openLivePhases = ref<boolean>(false);
-const banana = ref<boolean>(true);
+const openBannerMessage = ref<boolean>(false);
+// =========================
+
+// Initial Config Loading
+const config = ref<Config>();
+onMounted(async () => { loadConfig() })
+const loadConfig = async () => {
+  config.value = await getConfig()
+
+  bannerMessage.value = config.value?.bannerMessage
+}
+// =========================
+
+// Banner Message Setting
+const bannerMessage = ref<string>("Default Message")
+const clearBannerMessage = () => {
+  bannerMessage.value = ""
+}
+const submitBannerMessage = async () => {
+  try {
+    await setBannerMessage(bannerMessage.value)
+  } catch (e) {
+    alert("There was a problem in saving the updated banner message")
+  }
+  openBannerMessage.value = false
+  loadConfig()
+}
+// =========================
 </script>
 
 <template>
@@ -34,8 +63,9 @@ const banana = ref<boolean>(true);
 
     <div class="configCategory">
       <h3>Banner message</h3>
-      <p>There is currently no banner message</p>
-      <button>Change</button>
+      <p v-if="config?.bannerMessage"><span class="infoDescription">Current Message: </span><span v-text="config.bannerMessage"/></p>
+      <p v-else>There is currently no banner message</p>
+      <button @click="openBannerMessage = true">Set</button>
     </div>
   </div>
 
@@ -55,6 +85,18 @@ const banana = ref<boolean>(true);
       <button @click="() => {
         openLivePhases = false;
       }">Submit Changes</button>
+    </div>
+  </PopUp>
+
+  <PopUp
+    v-if="openBannerMessage"
+    @closePopUp="openBannerMessage = false">
+    <h3>Banner Message</h3>
+    <p>Set a message for students to see from the Autograder</p>
+    <input v-model="bannerMessage" type="text" id="repoUrlInput" placeholder="No Banner Message"/>
+    <div>
+      <button class="small" @click="submitBannerMessage">Save</button>
+      <button class="small" @click="clearBannerMessage">Clear</button>
     </div>
   </PopUp>
 </template>
@@ -77,5 +119,15 @@ const banana = ref<boolean>(true);
   grid-template-columns: 1fr 1fr 1fr; /* Three columns of 100px each */
   grid-gap: 10px; /* Gap between grid items */
   margin: 10px;
+}
+
+button {
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+input {
+  padding: 5px;
+  width: 100%;
 }
 </style>

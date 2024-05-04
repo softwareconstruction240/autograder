@@ -80,3 +80,7 @@ export type CanvasSection = {
     id: number,
     name: string
 }
+
+export type Config = {
+    bannerMessage: string
+}

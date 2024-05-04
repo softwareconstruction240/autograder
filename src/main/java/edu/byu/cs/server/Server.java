@@ -101,6 +101,8 @@ public class Server {
                 get("/sections", sectionsGet);
 
                 path("/config", () -> {
+                    get("", getConfig);
+
                     post("/phases", updateLivePhases);
                     post("/banner", updateBannerMessage);
                 });

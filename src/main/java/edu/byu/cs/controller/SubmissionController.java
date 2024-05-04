@@ -38,8 +38,6 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-
-
         Boolean submissionsEnabled = getSubmissionsEnabledConfig();
         if (submissionsEnabled == null) return null;
 
