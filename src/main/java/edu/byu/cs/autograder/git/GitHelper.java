@@ -76,7 +76,7 @@ public class GitHelper {
         String headHash = getHeadHash(stageRepo);
         return new CommitVerificationResult(
                 true, false,
-                0, 0, 0, null,
+                0, 0, 0, 0, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -125,7 +125,7 @@ public class GitHelper {
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, scoreVerification.penaltyPct(), message,
+                0, 0, 0, scoreVerification.penaltyPct(), message,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
@@ -188,6 +188,7 @@ public class GitHelper {
         return new CommitVerificationResult(
                 errorMessages.isEmpty(),
                 false,
+                numCommits,
                 (int) significantCommits,
                 daysWithCommits,
                 0, // Penalties are applied by TA's upon approval of unapproved submissions

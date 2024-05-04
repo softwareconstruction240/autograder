@@ -12,6 +12,7 @@ import java.time.Instant;
  *
  * @param verified Officially reports the verified status of the submission.
  * @param isCachedResponse Whether this was freshly generated, or passed through from a previous decision.
+ * @param totalCommits Total number of relevant commits analyzed. Excludes merges and commits before the tail threshold.
  * @param significantCommits Total number of commits above the minimum line threshold.
  * @param numDays The number of unique days with commits. Insignificant commits contribute to this number.
  * @param penaltyPct A reduction to the phase, if any, when a TA approved an unapproved score. [0-100]
@@ -24,6 +25,7 @@ import java.time.Instant;
 public record CommitVerificationResult(
         @NonNull boolean verified,
         boolean isCachedResponse,
+        int totalCommits,
         int significantCommits,
         int numDays,
         int penaltyPct,
