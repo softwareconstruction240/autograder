@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import { type Config, listOfPhases, Phase } from '@/types/types'
 import PopUp from '@/components/PopUp.vue'
 import { getConfig, setBannerMessage, setLivePhases } from '@/services/configService'
-import { phaseString } from '@/utils/utils'
 
 // PopUp Control
 const openLivePhases = ref<boolean>(false);
@@ -103,9 +102,10 @@ const submitLivePhases = async () => {
     <h3>Live Phases</h3>
     <p>Enable student submissions for the following phases:</p>
     <label v-for="(phase, index) in listOfPhases()" :key="index">
-      <input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}
+      <span>
+        <input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}
+      </span>
     </label>
-
     <div class="submitChanges">
       <p><em>This will not effect admin submissions</em></p>
       <div>
@@ -130,6 +130,12 @@ const submitLivePhases = async () => {
 </template>
 
 <style scoped>
+label {
+  display: inline-block;
+  background-color: #bdbdbd;
+  margin: 5px;
+  align-items: center;
+}
 .submitChanges {
   display: flex;
   flex-direction: column;
