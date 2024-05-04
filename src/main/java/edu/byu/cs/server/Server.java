@@ -66,6 +66,8 @@ public class Server {
 
             get("/me", meGet);
 
+            get("/config", getConfigStudent);
+
             path("/admin", () -> {
                 before("/*", (req, res) -> {
                     if (!req.requestMethod().equals("OPTIONS"))
@@ -101,7 +103,7 @@ public class Server {
                 get("/sections", sectionsGet);
 
                 path("/config", () -> {
-                    get("", getConfig);
+                    get("", getConfigAdmin);
 
                     post("/phases", updateLivePhases);
                     post("/banner", updateBannerMessage);

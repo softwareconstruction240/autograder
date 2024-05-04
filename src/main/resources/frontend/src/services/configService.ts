@@ -1,9 +1,16 @@
 import { useAppConfigStore } from '@/stores/appConfig'
 import type { Config } from '@/types/types'
+import { useAuthStore } from '@/stores/auth'
 
 export const getConfig = async ():Promise<Config> => {
+  let path = "/api"
+  if (useAuthStore().user?.role == 'ADMIN') {
+    path += "/admin"
+  }
+  path += "/config"
+
   try {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/config', {
+    const response = await fetch(useAppConfigStore().backendUrl + path, {
       method: 'GET',
       credentials: 'include'
     });
