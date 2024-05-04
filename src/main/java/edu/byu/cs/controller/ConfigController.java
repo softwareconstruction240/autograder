@@ -37,8 +37,10 @@ public class ConfigController {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
         JsonObject response = new JsonObject();
+        Gson gson = new Gson();
 
         response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
+        response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
 
         return response;
     }

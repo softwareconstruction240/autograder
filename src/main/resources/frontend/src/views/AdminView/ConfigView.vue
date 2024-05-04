@@ -17,7 +17,7 @@ const loadConfig = async () => {
   config.value = await getConfig()
 
   bannerMessage.value = config.value?.bannerMessage
-  //TODO: add live phases here
+  loadPhasesFromConfig(config.value?.phases)
 }
 // =========================
 
@@ -39,8 +39,17 @@ const submitBannerMessage = async () => {
 
 // Live Phase Setting
 const activePhaseList = ref<Array<boolean>>([]) // using the enum, if activePhaseList[phase] == true, then that phase is active
-const deactivateAllPhases = () => { setAllPhases(false) }
-const activateAllPhases = () => { setAllPhases(true) }
+const loadPhasesFromConfig = (configPhaseList: Array<Phase>) => {
+  console.log(configPhaseList)
+  console.log(activePhaseList.value)
+  for (const phase of listOfPhases() as Phase[]) {
+    if (configPhaseList.includes(phase)) {
+      activePhaseList.value[phase] = true
+    } else {
+      activePhaseList.value[phase] = false
+    }
+  }
+}
 const setAllPhases = (setting: boolean) => {
   for (const phase of listOfPhases() as Phase[]) {
     activePhaseList.value[phase] = setting
@@ -114,8 +123,8 @@ const submitLivePhases = async () => {
     <div class="submitChanges">
       <p><em>This will not effect admin submissions</em></p>
       <div>
-        <button @click="activateAllPhases" class="small">Enable all</button>
-        <button @click="deactivateAllPhases" class="small">Disable all</button>
+        <button @click="setAllPhases(true)" class="small">Enable all</button>
+        <button @click="setAllPhases(false)" class="small">Disable all</button>
       </div>
       <button @click="submitLivePhases">Submit Changes</button>
     </div>

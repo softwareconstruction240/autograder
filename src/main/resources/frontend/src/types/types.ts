@@ -94,4 +94,5 @@ export type CanvasSection = {
 
 export type Config = {
     bannerMessage: string
+    phases: Array<Phase>
 }
