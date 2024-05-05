@@ -101,11 +101,13 @@ const submitLivePhases = async () => {
     @closePopUp="openLivePhases = false">
     <h3>Live Phases</h3>
     <p>Enable student submissions for the following phases:</p>
-    <label v-for="(phase, index) in listOfPhases()" :key="index">
-      <span>
-        <input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}
-      </span>
-    </label>
+
+    <div class="checkboxes">
+      <label v-for="(phase, index) in listOfPhases()" :key="index">
+        <span><input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}</span>
+      </label>
+    </div>
+
     <div class="submitChanges">
       <p><em>This will not effect admin submissions</em></p>
       <div>
@@ -130,12 +132,6 @@ const submitLivePhases = async () => {
 </template>
 
 <style scoped>
-label {
-  display: inline-block;
-  background-color: #bdbdbd;
-  margin: 5px;
-  align-items: center;
-}
 .submitChanges {
   display: flex;
   flex-direction: column;
@@ -160,8 +156,13 @@ button {
   margin-top: 5px;
 }
 
-input {
+input[type="text"]{
   padding: 5px;
   width: 100%;
+}
+
+.checkboxes {
+  display: flex;
+  flex-direction: column;
 }
 </style>
