@@ -34,19 +34,47 @@ import java.util.Collection;
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
+    private String headHash;
 
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
 
     // ## Entry Point ##
-    public CommitVerificationResult setUp() throws GradingException {
+    public CommitVerificationResult setUpAndVerifyHistory() throws GradingException {
+        setUp();
+        return verifyCommitHistory();
+    }
+    public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchRepo(stageRepo);
+        fetchRepo(gradingContext.stageRepo());
+        headHash = getHeadHash(stageRepo);
+    }
+    public CommitVerificationResult verifyCommitHistory() {
+        if (headHash == null) {
+            throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
+        }
 
-        boolean requiresVerification = PhaseUtils.isPhaseGraded(gradingContext.phase()) && !gradingContext.admin();
-        return requiresVerification ?
-                verifyCommitRequirements(stageRepo) : skipCommitVerification(stageRepo);
+        try {
+            return shouldVerifyCommits() ?
+                    verifyCommitRequirements(gradingContext.stageRepo()) :
+                    skipCommitVerification(true, headHash, null);
+        } catch (GradingException e) {
+            // Grading can continue, we'll just alert them of the error.
+            String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
+            gradingContext.observer().update(errorStr);
+            LOGGER.error("Failed to evaluate commit history", e);
+            return skipCommitVerification(false, headHash, errorStr);
+        }
+    }
+
+    /**
+     * Determines if the current grading context requires verifying the commit history.
+     *
+     * @return True if the commits should be verified; otherwise, false.
+     */
+    private boolean shouldVerifyCommits() {
+        return !gradingContext.admin() && PhaseUtils.isPhaseGraded(gradingContext.phase());
     }
 
     /**
@@ -71,12 +99,18 @@ public class GitHelper {
     }
 
     // Early decisions
-    private CommitVerificationResult skipCommitVerification(File stageRepo) throws GradingException {
-        LOGGER.debug("Skipping commit verification");
+    private CommitVerificationResult skipCommitVerification(boolean verified, File stageRepo) throws GradingException {
         String headHash = getHeadHash(stageRepo);
+        return skipCommitVerification(verified, headHash, null);
+    }
+    private CommitVerificationResult skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
+        if (headHash == null) {
+            throw new IllegalArgumentException("Head hash cannot be null");
+        }
+        LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
-                true, false,
-                0, 0, 0, null,
+                verified, false,
+                0, 0, 0, 0, failureMessage,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -117,15 +151,15 @@ public class GitHelper {
         }
 
         // We have a previous result to defer to:
-        Submission.ScoreVerification scoreVerification = firstPassingSubmission.verification();
-        boolean verified = firstPassingSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved;
+        int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
+        boolean verified = firstPassingSubmission.verifiedStatus().isApproved();
         String message = verified ?
                 "You passed the commit verification on your first passing submission! You're good to go!" :
                 "You have previously failed commit verification.\n"+
                     "You still need to meet with a TA or a professor to gain credit for this phase.";
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, scoreVerification.penaltyPct(), message,
+                0, 0, 0, originalPenaltyPct, message,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
@@ -181,7 +215,13 @@ public class GitHelper {
                         "Suspicious commit history. Some commits are authored before the previous phase hash."),
                 new CV(
                         !commitsByDay.commitsInOrder(),
-                        "Suspicious commit history. Not all commits are in order.")
+                        "Suspicious commit history. Not all commits are in order."),
+                new CV(
+                        commitsByDay.commitsBackdated(),
+                        "Suspicious commit history. Some commits have been backdated."),
+                new CV(
+                        commitsByDay.commitTimestampsDuplicated(),
+                        "Suspicious commit history. Multiple commits have the exact same timestamp.")
         };
         ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
 
@@ -189,6 +229,7 @@ public class GitHelper {
                 errorMessages.isEmpty(),
                 false,
                 numCommits,
+                (int) significantCommits,
                 daysWithCommits,
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),

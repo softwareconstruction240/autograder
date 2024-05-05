@@ -83,7 +83,7 @@ public class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            CommitVerificationResult commitVerificationResult = gitHelper.setUp();
+            CommitVerificationResult commitVerificationResult = gitHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION) compileHelper.compile();
 
