@@ -98,7 +98,7 @@ const submitLivePhases = async () => {
 
   <PopUp
     v-if="openLivePhases"
-    @closePopUp="openLivePhases = false">
+    @closePopUp="openLivePhases = false; loadConfig()">
     <h3>Live Phases</h3>
     <p>Enable student submissions for the following phases:</p>
 
