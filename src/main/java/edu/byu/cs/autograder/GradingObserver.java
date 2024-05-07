@@ -14,5 +14,7 @@ public interface GradingObserver {
 
     void notifyError(String message, TestAnalyzer.TestAnalysis analysis);
 
+    void notifyWarning(String message);
+
     void notifyDone(Submission submission);
 }
