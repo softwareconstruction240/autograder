@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
@@ -350,7 +351,7 @@ public class SubmissionController {
      * @throws IOException if there is an error creating the grader
      */
     private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
-        Grader.Observer observer = new Grader.Observer() {
+        GradingObserver observer = new GradingObserver() {
             @Override
             public void notifyStarted() {
                 try {
