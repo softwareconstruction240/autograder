@@ -7,7 +7,7 @@ import java.io.File;
 
 public class PassoffJarModifier implements StudentCodeInteractor {
     @Override
-    public void interact(GradingContext context) {
+    public void interact(GradingContext context, StudentCodeReader reader) {
         File oldJar = new File(context.stageRepo(), "server/lib/passoff-dependencies.jar");
         File newJar = new File(context.phasesPath(), "libs/passoff-dependencies.jar");
         FileUtils.copyFile(oldJar, newJar);

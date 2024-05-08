@@ -12,7 +12,7 @@ import java.io.File;
  */
 public class ProjectStructureVerifier implements StudentCodeInteractor {
     @Override
-    public void interact(GradingContext context) throws GradingException {
+    public void interact(GradingContext context, StudentCodeReader reader) throws GradingException {
         verifyRootPom(context);
         verifyDirectoryStructure(context);
     }
