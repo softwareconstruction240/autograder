@@ -5,9 +5,9 @@ import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
 
-public class PomModifier implements StudentCodeModifier {
+public class PomModifier implements StudentCodeInteractor {
     @Override
-    public void modifyCode(GradingContext context) {
+    public void interact(GradingContext context) {
         File oldRootPom = new File(context.stageRepo(), "pom.xml");
         File oldServerPom = new File(context.stageRepo(), "server/pom.xml");
         File oldClientPom = new File(context.stageRepo(), "client/pom.xml");

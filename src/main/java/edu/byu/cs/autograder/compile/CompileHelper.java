@@ -10,15 +10,19 @@ import java.util.List;
 public class CompileHelper {
     private final GradingContext gradingContext;
 
-    public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
+    public CompileHelper(GradingContext gradingContext) {
+        this.gradingContext = gradingContext;
+    }
 
-    private final Collection<StudentCodeModifier> currentModifiers =
-            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
+    private final Collection<StudentCodeInteractor> currentVerifiers =
+            List.of(new ProjectStructureVerifier());
+
+    private final Collection<StudentCodeInteractor> currentModifiers =
+            List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
     public void compile() throws GradingException {
-        for(StudentCodeModifier modifier : currentModifiers) {
-            modifier.modifyCode(gradingContext);
-        }
+        for(StudentCodeInteractor verifier : currentVerifiers) verifier.interact(gradingContext);
+        for(StudentCodeInteractor modifier : currentModifiers) modifier.interact(gradingContext);
         packageRepo();
     }
 

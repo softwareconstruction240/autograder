@@ -10,9 +10,9 @@ import java.io.File;
  * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
  * which is checked by looking for a pom.xml file
  */
-public class ProjectStructureVerifier implements StudentCodeModifier {
+public class ProjectStructureVerifier implements StudentCodeInteractor {
     @Override
-    public void modifyCode(GradingContext context) throws GradingException {
+    public void interact(GradingContext context) throws GradingException {
         verifyRootPom(context);
         verifyDirectoryStructure(context);
     }
