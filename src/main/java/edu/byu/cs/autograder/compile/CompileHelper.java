@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -15,15 +16,20 @@ public class CompileHelper {
     }
 
     private final Collection<StudentCodeInteractor> currentVerifiers =
-            List.of(new ProjectStructureVerifier());
+            List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier());
 
     private final Collection<StudentCodeInteractor> currentModifiers =
             List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
     public void compile() throws GradingException {
-        for(StudentCodeInteractor verifier : currentVerifiers) verifier.interact(gradingContext);
-        for(StudentCodeInteractor modifier : currentModifiers) modifier.interact(gradingContext);
-        packageRepo();
+        try {
+            StudentCodeReader reader = StudentCodeReader.from(gradingContext);
+            for(StudentCodeInteractor verifier : currentVerifiers) verifier.interact(gradingContext, reader);
+            for(StudentCodeInteractor modifier : currentModifiers) modifier.interact(gradingContext, reader);
+            packageRepo();
+        } catch (IOException e) {
+            throw new GradingException("Failed to read project contents", e);
+        }
     }
 
 
