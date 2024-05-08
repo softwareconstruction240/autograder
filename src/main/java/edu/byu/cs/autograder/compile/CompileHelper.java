@@ -23,9 +23,12 @@ public class CompileHelper {
 
     public void compile() throws GradingException {
         try {
+            gradingContext.observer().update("Verifying code...");
+
             StudentCodeReader reader = StudentCodeReader.from(gradingContext);
             for(StudentCodeInteractor verifier : currentVerifiers) verifier.interact(gradingContext, reader);
             for(StudentCodeInteractor modifier : currentModifiers) modifier.interact(gradingContext, reader);
+
             packageRepo();
         } catch (IOException e) {
             throw new GradingException("Failed to read project contents", e);
@@ -37,7 +40,7 @@ public class CompileHelper {
      * Packages the student repo into a jar
      */
     private void packageRepo() throws GradingException {
-        gradingContext.observer().update("Packaging repo...");
+        gradingContext.observer().update("Compiling code...");
 
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(gradingContext.stageRepo());
@@ -50,8 +53,6 @@ public class CompileHelper {
         } catch (ProcessUtils.ProcessException ex) {
             throw new GradingException("Failed to package repo", ex);
         }
-
-        gradingContext.observer().update("Successfully packaged repo");
     }
 
     /**

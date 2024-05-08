@@ -45,15 +45,19 @@ public class GitHelper {
         setUp();
         return verifyCommitHistory();
     }
+
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(gradingContext.stageRepo());
         headHash = getHeadHash(stageRepo);
     }
+
     public CommitVerificationResult verifyCommitHistory() {
         if (headHash == null) {
             throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
         }
+
+        gradingContext.observer().update("Verifying commits...");
 
         try {
             return shouldVerifyCommits() ?
@@ -94,8 +98,6 @@ public class GitHelper {
             LOGGER.error("Failed to clone repo", e);
             throw new GradingException("Failed to clone repo: ",  e.getMessage());
         }
-
-        gradingContext.observer().update("Successfully fetched repo");
     }
 
     // Early decisions
@@ -179,12 +181,6 @@ public class GitHelper {
         CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
         LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
 
-        var observer = gradingContext.observer();
-        if (commitVerificationResult.verified()) {
-            observer.update("Passed commit verification.");
-        } else {
-            observer.update("Failed commit verification. Continuing with grading anyways.");
-        }
         return commitVerificationResult;
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
