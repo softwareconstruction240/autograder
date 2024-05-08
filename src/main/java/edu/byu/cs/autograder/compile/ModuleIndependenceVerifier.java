@@ -6,12 +6,10 @@ import edu.byu.cs.autograder.GradingException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ModuleIndependenceVerifier implements StudentCodeInteractor {
     @Override
@@ -47,7 +45,7 @@ public class ModuleIndependenceVerifier implements StudentCodeInteractor {
         for(File file : files) {
             List<String> contents = reader.getFileContents(file);
             for (String line : contents) {
-                if (line.matches("public (?:(?:abstract)? class|interface|record) .* \\{")) break;
+                if (line.matches("(?:abstract )?class|interface|record")) break;
                 for (String classImport : classes) {
                     if (line.matches("import %s;".formatted(classImport))) {
                         String warning = "File %s imports %s. The client and server modules should be independent"
