@@ -5,6 +5,8 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Phase;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
@@ -25,23 +27,25 @@ public class ProjectStructureVerifier implements StudentCodeInteractor {
     }
 
     private void verifyDirectoryStructure(GradingContext context) {
-        verifyDirectory(context, "shared/src/main/java");
-        verifyDirectory(context, "shared/src/test/java");
-        verifyDirectory(context, "server/src/main/java");
-        verifyDirectory(context, "client/src/main/java");
-        if(context.phase() == Phase.Phase0 || context.phase() == Phase.Phase1) return;
+        Set<String> filePaths = new HashSet<>();
+        switch (context.phase()) {
+            case Phase5, Phase6:
+                filePaths.add("client/src/test/java");
+            case Phase3, Phase4:
+                filePaths.add("server/src/test/java");
+                filePaths.add("server/src/main/resources");
+            default:
+                filePaths.add("shared/src/main/java");
+                filePaths.add("shared/src/test/java");
+                filePaths.add("server/src/main/java");
+                filePaths.add("client/src/main/java");
+        }
 
-        verifyDirectory(context, "server/src/test/java");
-        verifyDirectory(context,  "server/src/main/resources");
-        if(context.phase() == Phase.Phase3 || context.phase() == Phase.Phase4) return;
-
-        verifyDirectory(context,  "client/src/test/java");
-    }
-
-    private void verifyDirectory(GradingContext context, String filePath) {
-        File file = new File(context.stageRepo(), filePath);
-        if(!file.exists() || !file.isDirectory()) {
-            context.observer().notifyWarning("Directory %s could not be found".formatted(filePath));
+        for(String filePath : filePaths) {
+            File file = new File(context.stageRepo(), filePath);
+            if(!file.exists() || !file.isDirectory()) {
+                context.observer().notifyWarning("Directory %s could not be found".formatted(filePath));
+            }
         }
     }
 }
