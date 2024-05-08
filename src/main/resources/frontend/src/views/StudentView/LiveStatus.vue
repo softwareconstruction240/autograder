@@ -19,6 +19,8 @@ const statuses = ref<GradingStatus[]>([]);
 const errorDetails = ref<string>("");
 const errorTestResults = ref<TestResult | undefined>(undefined);
 const displayError = ref<boolean>(false);
+const warnings = ref<boolean>(false);
+const submission = ref<Submission | undefined>(undefined);
 
 onMounted(() => {
   subscribeToGradingUpdates((event: MessageEvent) => {
@@ -31,13 +33,18 @@ onMounted(() => {
       case 'started':
         statuses.value.push({type: 'update', status: `Autograding has started`});
         return;
-      case 'update':
       case 'warning':
+        warnings.value = true;
+        statuses.value.push({type: messageData.type, status: messageData.message});
+        return;
+      case 'update':
         statuses.value.push({type: messageData.type, status: messageData.message});
         return;
       case 'results':
         statuses.value.push({type: 'update', status: `Finished!`});
-        emit("show-results", JSON.parse(messageData.results));
+        const results = JSON.parse(messageData.results);
+        if(!warnings.value) showResults(results);
+        else submission.value = results;
         return;
       case 'error':
         statuses.value.push({type: 'error', status: `Error: ${messageData.message}`});
@@ -47,6 +54,10 @@ onMounted(() => {
     }
   });
 });
+
+const showResults = (results: Submission) => {
+  emit("show-results", results);
+}
 
 const getStatusClass = (status: GradingStatus) => {
   switch (status.type) {
@@ -64,6 +75,7 @@ const getStatusClass = (status: GradingStatus) => {
 <template>
 <div class="status-container">
   <span v-for="status of statuses" :class=getStatusClass(status)>{{ status.status }}</span>
+  <button v-if="warnings && submission" @click="() => {showResults(submission!)}">See Results</button>
   <div v-if="errorDetails || errorTestResults"
        class="selectable">
     <button @click="() => {displayError = true;}">Click here</button>
