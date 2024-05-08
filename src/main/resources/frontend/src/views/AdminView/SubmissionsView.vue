@@ -20,6 +20,7 @@ import {adminSubmissionPost} from "@/services/submissionService";
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
 import { useSubmissionStore } from '@/stores/submissions'
+import InfoPanel from "@/components/InfoPanel.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
@@ -159,7 +160,9 @@ const adminSubmit = async () => {
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
       <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
-      <LiveStatus @show-results="adminDoneGrading"/>
+      <InfoPanel>
+        <LiveStatus @show-results="adminDoneGrading"/>
+      </InfoPanel>
     </div>
     <SubmissionInfo
         v-if="selectedSubmission"
