@@ -15,23 +15,34 @@ public class CompileHelper {
         this.gradingContext = gradingContext;
     }
 
-    private final Collection<StudentCodeInteractor> currentVerifiers =
+    private final Collection<StudentCodeVerifier> currentVerifiers =
             List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier());
 
-    private final Collection<StudentCodeInteractor> currentModifiers =
+    private final Collection<StudentCodeModifier> currentModifiers =
             List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
     public void compile() throws GradingException {
+        verify();
+        modify();
+        packageRepo();
+    }
+
+    public void verify() throws GradingException {
         try {
             gradingContext.observer().update("Verifying code...");
 
             StudentCodeReader reader = StudentCodeReader.from(gradingContext);
-            for(StudentCodeInteractor verifier : currentVerifiers) verifier.interact(gradingContext, reader);
-            for(StudentCodeInteractor modifier : currentModifiers) modifier.interact(gradingContext, reader);
-
-            packageRepo();
+            for(StudentCodeVerifier verifier : currentVerifiers) {
+                verifier.verify(gradingContext, reader);
+            }
         } catch (IOException e) {
             throw new GradingException("Failed to read project contents", e);
+        }
+    }
+
+    public void modify() throws GradingException {
+        for(StudentCodeModifier modifier : currentModifiers) {
+            modifier.modify(gradingContext);
         }
     }
 

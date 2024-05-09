@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ModuleIndependenceVerifier implements StudentCodeInteractor {
+public class ModuleIndependenceVerifier implements StudentCodeVerifier {
     @Override
-    public void interact(GradingContext context, StudentCodeReader reader) throws GradingException {
+    public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         Set<File> serverFiles = reader.filesMatching(".*server/src/main/java/.*").collect(Collectors.toSet());
         Path serverPath = context.stageRepo().toPath().resolve("server/src/main/java");
         Set<String> serverClasses = qualifiedNames(serverFiles, serverPath);

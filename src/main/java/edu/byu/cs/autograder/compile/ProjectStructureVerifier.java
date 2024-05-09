@@ -11,9 +11,9 @@ import java.util.Set;
  * Verifies that the project is structured correctly. The project should be at the top level of the git repository,
  * which is checked by looking for a pom.xml file
  */
-public class ProjectStructureVerifier implements StudentCodeInteractor {
+public class ProjectStructureVerifier implements StudentCodeVerifier {
     @Override
-    public void interact(GradingContext context, StudentCodeReader reader) throws GradingException {
+    public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         verifyRootPom(context);
         verifyDirectoryStructure(context);
     }
