@@ -59,10 +59,10 @@ public class CompileHelper {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                throw new GradingException("Failed to package repo: ", getMavenError(output.stdOut()));
+                throw new GradingException("Failed to compile", getMavenError(output.stdOut()));
             }
         } catch (ProcessUtils.ProcessException ex) {
-            throw new GradingException("Failed to package repo", ex);
+            throw new GradingException("Failed to compile: %s".formatted(ex.getMessage()), ex);
         }
     }
 
