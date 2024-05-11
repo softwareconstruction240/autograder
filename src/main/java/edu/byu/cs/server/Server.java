@@ -151,6 +151,9 @@ public class Server {
             if (cmd.hasOption("use-canvas")) {
                 properties.setProperty("use-canvas", cmd.getOptionValue("use-canvas"));
             }
+            if (cmd.hasOption("disable-compilation")) {
+                properties.setProperty("run-compilation", "false");
+            }
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line arguments", e);
         }
@@ -169,6 +172,7 @@ public class Server {
         options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
         options.addOption(null, "canvas-token", true, "Canvas Token");
         options.addOption(null, "use-canvas", true, "Using Canvas");
+        options.addOption(null, "disable-compilation", false, "Turn off student code compilation");
         return options;
     }
 

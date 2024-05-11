@@ -67,4 +67,8 @@ public class ApplicationProperties {
     public static boolean useCanvas() {
         return Boolean.parseBoolean(get("use-canvas", "true"));
     }
+
+    public static boolean runCompilation() {
+        return Boolean.parseBoolean(get("run-compilation", "true"));
+    }
 }
