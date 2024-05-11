@@ -17,5 +17,5 @@ for ((i=2;i<=NUM_LINES;i++)); do
     echo "$CONTENT" >> $file
 done
 
-
+git add -- $file
 git commit -m "$CONTENT" --date="$DATE_VALUE" -- $file
