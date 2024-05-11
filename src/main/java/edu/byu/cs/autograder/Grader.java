@@ -87,7 +87,7 @@ public class Grader implements Runnable {
             dbHelper.setUp();
             if (RUN_COMPILATION) compileHelper.compile();
 
-            new PreviousPhasePassoffTestGrader(gradingContext).runTests();
+            if (RUN_COMPILATION) new PreviousPhasePassoffTestGrader(gradingContext).runTests();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             var evaluationResults = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
