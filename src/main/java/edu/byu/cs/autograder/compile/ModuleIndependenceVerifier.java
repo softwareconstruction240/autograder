@@ -20,6 +20,11 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
             Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*").collect(Collectors.toSet());
             Set<String> clientPackages = packageNames(clientFiles, reader);
 
+            Set<String> duplicatedPackages = new HashSet<>(serverPackages);
+            duplicatedPackages.removeIf(packageName -> !clientPackages.contains(packageName));
+            serverPackages.removeIf(duplicatedPackages::contains);
+            clientPackages.removeIf(duplicatedPackages::contains);
+
             checkImports(context, reader, serverFiles, clientPackages);
             checkImports(context, reader, clientFiles, serverPackages);
         } catch (IOException e) {
