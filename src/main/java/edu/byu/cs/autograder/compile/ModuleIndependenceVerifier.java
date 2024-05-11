@@ -48,9 +48,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
             for (int i = 0; i < contents.size(); i++) {
                 String line = contents.get(i).trim();
                 if (line.isEmpty()) continue;
-                if (!(line.startsWith("package") || line.startsWith("import"))) {
-                    break;
-                }
+                if (line.matches("^(?!import|package|//).*\\b(class|record|enum|@?interface)\\b")) break;
 
                 String packageImport = line.substring(line.indexOf(' ')).trim();
                 if (packageImport.startsWith("static")) {
