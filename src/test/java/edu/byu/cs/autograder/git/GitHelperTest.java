@@ -36,6 +36,16 @@ class GitHelperTest {
     }
 
     @Test
+    void arbitraryRepoFileTest() {
+        String repoPath;
+        repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
+        repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/temp-failing-repo-michael";
+        File repo = new File(repoPath);
+        var result = withTestRepo(repo, evaluateRepo());
+        System.out.println(result);
+    }
+
+    @Test
     void setUpTest() {
     }
 
@@ -72,17 +82,9 @@ class GitHelperTest {
 
     @Test
     void verifyRegularCommits() {
-        var gitHelper = new GitHelper(defaultGradingContext);
         // Insufficient commits on sufficient days fails
         // Sufficient commits on insufficient days fails
-        var result = withTestRepo(TestRepo.passesRequirements, git -> {
-            String phase0HeadHash;
-//            phase0HeadHash = "d57567de79755e5ef8293c2cdba07c84c4d289ce";
-//            phase0HeadHash = "5d4d714c522a254fc84006b73a7fb5d660b77bef";
-            phase0HeadHash = GitHelper.getHeadHash(git);
-            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
-            return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
-        });
+        var result = withTestRepo(TestRepo.passesRequirements, evaluateRepo());
         System.out.println(result);
         Assertions.assertTrue(result.verified());
         Assertions.assertEquals(12, result.numCommits());
@@ -117,12 +119,34 @@ class GitHelperTest {
     }
 
     private <T> T withTestRepo(TestRepo repo, GitEvaluator<T> gitEvaluator) {
-        try (var git = Git.open(repo.getFile())) {
+        return withTestRepo(repo.getFile(), gitEvaluator);
+    }
+    private <T> T withTestRepo(File file, GitEvaluator<T> gitEvaluator) {
+        try (var git = Git.open(file)) {
             return gitEvaluator.eval(git);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+
+    private GitEvaluator<CommitVerificationResult> evaluateRepo() {
+        return evaluateRepo(defaultGradingContext);
+    }
+    private GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext) {
+        return evaluateRepo(new GitHelper(gradingContext));
+    }
+    private GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper) {
+        return git -> {
+            String phase0HeadHash;
+//            phase0HeadHash = "d57567de79755e5ef8293c2cdba07c84c4d289ce";
+//            phase0HeadHash = "5d4d714c522a254fc84006b73a7fb5d660b77bef";
+            phase0HeadHash = GitHelper.getHeadHash(git);
+            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
+            return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
+        };
+    }
+
 
     private void generateCommits(File repoTargetDirectory, List<GitGenerationCommand> commands) throws ProcessUtils.ProcessException {
         // Count the totals days spaced among all commits
