@@ -32,7 +32,7 @@ public class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
 
     /** DEV ONLY. Default: true. Skips compilation and evaluation of student projects. */
-    private static final boolean RUN_COMPILATION = ApplicationProperties.runCompilation();
+    private final boolean RUN_COMPILATION = ApplicationProperties.runCompilation();
 
     private final DatabaseHelper dbHelper;
 
