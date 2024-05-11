@@ -27,6 +27,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public class CommitAnalytics {
                 commitsInFuture = true;
             }
 
-            for (var pc : rc.getParents()) {
+            for (var pc : getCommitParents(git, rc)) {
                 if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
                     groupCommitsByKey(erroringCommits, "commitsInOrder", commitHash);
@@ -145,6 +146,42 @@ public class CommitAnalytics {
             }
         }
         return out;
+    }
+
+
+    /**
+     * Returns the parents of the specified commit with a buffer included for detailed parsing.
+     * If the data isn't immediately available, it will be freshly retrieved from the repo.
+     * <br>
+     * This method works even when the parents of the commit were marked as "uninteresting" during
+     * initial processing. When this happens, the library includes the parents but excludes
+     * all buffer data which causes a NPE when attempting to access their authorship data.
+     *
+     * @param git The Git repo being processed
+     * @param commit An existing {@link RevCommit} that will be traversed.
+     * @return An array of RevCommits representing all parents, or an empty array.
+     * @throws IOException When Jgit has an issue reading the disk.
+     */
+    private static RevCommit[] getCommitParents(Git git, RevCommit commit) throws IOException {
+        // If the parents are already available, return them. Otherwise, fetch them anew from Git with a RevWalk
+        var allParentsHaveBuffer = true;
+        var parents = commit.getParents();
+        for (var parent : parents) {
+            allParentsHaveBuffer &= parent.getRawBuffer() != null;
+        }
+
+        if (allParentsHaveBuffer) return parents;
+
+        // Replace existing parent commit objects with freshly loaded objects from the repo
+        // RevWalk.parseCommit is expensive and can be used multiple times, but only once per commit.
+        // That is sufficient for our purposes here.
+        // Generally speaking, this code will only on run the first commit authored after a passing submission.
+        var revWalk = new RevWalk(git.getRepository());
+        for (int i = 0; i < parents.length; ++i) {
+            if (parents[i].getRawBuffer() != null) continue;
+            parents[i] = revWalk.parseCommit(parents[i].toObjectId());
+        }
+        return parents;
     }
 
     private static Iterable<RevCommit> getCommitsBetweenBounds(
