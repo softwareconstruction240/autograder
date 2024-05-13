@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Usage: sh ../commit.sh "Commit message" [[<DATE_VALUE> [NUM_LINES]]
+# Usage: sh ../commit.sh "Commit message" [<DATE_VALUE> [<NUM_LINES>]]
 # Use within the sub directors to change a file with a given commit message
 # Change will be to the named file.
 # If provided, the days ago flag will set the commit to N days ago
