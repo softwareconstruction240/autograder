@@ -52,46 +52,46 @@ class GitHelperTest {
         evaluateTest("multi-phase-successful-passoff", List.of(
                 new VerificationCheckpoint(
                         repoContext -> {
-                            makeCommit(repoContext, "Change 1", 24, 20);
-                            makeCommit(repoContext, "Change 2", 24, 10);
-                            makeCommit(repoContext, "Change 3", 24, 10);
-                            makeCommit(repoContext, "Change 4", 24, 10);
-                            makeCommit(repoContext, "Change 5", 23, 10);
-                            makeCommit(repoContext, "Change 6", 22, 10);
-                            makeCommit(repoContext, "Change 7", 22, 10);
-                            makeCommit(repoContext, "Change 8", 22, 10);
-                            makeCommit(repoContext, "Change 9", 21, 10);
-                            makeCommit(repoContext, "Change 10", 20, 10);
+                            makeCommit(repoContext, "Change 1", 24, 39, 20);
+                            makeCommit(repoContext, "Change 2", 24, 38, 10);
+                            makeCommit(repoContext, "Change 3", 24, 37, 10);
+                            makeCommit(repoContext, "Change 4", 24, 36, 10);
+                            makeCommit(repoContext, "Change 5", 23, 35, 10);
+                            makeCommit(repoContext, "Change 6", 22, 34, 10);
+                            makeCommit(repoContext, "Change 7", 22, 33, 10);
+                            makeCommit(repoContext, "Change 8", 22, 32, 10);
+                            makeCommit(repoContext, "Change 9", 21, 31, 10);
+                            makeCommit(repoContext, "Change 10", 20, 30, 10);
                         },
                         generalCommitVerificationResult(true, 10, 5)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
-                            makeCommit(repoContext, "Change 11", 14, 10);
-                            makeCommit(repoContext, "Change 12", 14, 10);
-                            makeCommit(repoContext, "Change 13", 14, 10);
-                            makeCommit(repoContext, "Change 14", 14, 10);
-                            makeCommit(repoContext, "Change 15", 13, 10);
-                            makeCommit(repoContext, "Change 16", 12, 10);
-                            makeCommit(repoContext, "Change 17", 12, 10);
-                            makeCommit(repoContext, "Change 18", 12, 10);
-                            makeCommit(repoContext, "Change 19", 11, 10);
-                            makeCommit(repoContext, "Change 20", 10, 10);
+                            makeCommit(repoContext, "Change 11", 14, 29, 10);
+                            makeCommit(repoContext, "Change 12", 14, 28, 10);
+                            makeCommit(repoContext, "Change 13", 14, 27, 10);
+                            makeCommit(repoContext, "Change 14", 14, 26, 10);
+                            makeCommit(repoContext, "Change 15", 13, 25, 10);
+                            makeCommit(repoContext, "Change 16", 12, 24, 10);
+                            makeCommit(repoContext, "Change 17", 12, 23, 10);
+                            makeCommit(repoContext, "Change 18", 12, 22, 10);
+                            makeCommit(repoContext, "Change 19", 11, 21, 10);
+                            makeCommit(repoContext, "Change 20", 10, 20, 10);
                         },
                         generalCommitVerificationResult(true, 10, 5)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
-                            makeCommit(repoContext, "Change 31", 4, 10);
-                            makeCommit(repoContext, "Change 32", 4, 10);
-                            makeCommit(repoContext, "Change 33", 4, 10);
-                            makeCommit(repoContext, "Change 34", 4, 10);
-                            makeCommit(repoContext, "Change 35", 3, 10);
-                            makeCommit(repoContext, "Change 36", 2, 10);
-                            makeCommit(repoContext, "Change 37", 2, 10);
-                            makeCommit(repoContext, "Change 38", 2, 10);
-                            makeCommit(repoContext, "Change 39", 1, 10);
-                            makeCommit(repoContext, "Change 40", 0, 10);
+                            makeCommit(repoContext, "Change 31", 4, 19, 10);
+                            makeCommit(repoContext, "Change 32", 4, 18, 10);
+                            makeCommit(repoContext, "Change 33", 4, 17, 10);
+                            makeCommit(repoContext, "Change 34", 4, 16, 10);
+                            makeCommit(repoContext, "Change 35", 3, 15, 10);
+                            makeCommit(repoContext, "Change 36", 2, 14, 10);
+                            makeCommit(repoContext, "Change 37", 2, 13, 10);
+                            makeCommit(repoContext, "Change 38", 2, 12, 10);
+                            makeCommit(repoContext, "Change 39", 1, 11, 10);
+                            makeCommit(repoContext, "Change 40", 0, 10, 10);
                         },
                         generalCommitVerificationResult(true, 10, 5)
                 )
@@ -214,17 +214,24 @@ class GitHelperTest {
     }
     private CommitVerificationResult generalCommitVerificationResult(
             boolean verified, int significantCommits, int totalCommits, int numDays) {
+        // Note: Unfortunately, we were not able to configure Mockito to properly accept these `any` object times
+        // to also accept null. We've moved a different direction now, but we're preserving the `Mockito.nullable/any()`
+        // for clarity. They still work, and
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays, 0,
-                Mockito.anyString(), Mockito.any(Instant.class), Mockito.any(Instant.class), Mockito.anyString(), Mockito.anyString());
+                Mockito.nullable(String.class), Mockito.nullable(Instant.class), Mockito.nullable(Instant.class),
+                Mockito.anyString(), Mockito.nullable(String.class));
     }
 
 
     private void makeCommit(RepoContext repoContext, String content) {
         makeCommit(repoContext, content, Instant.now());
     }
-    private void makeCommit(RepoContext repoContext, String content, int daysAgo, int numLines) {
-        makeCommit(repoContext, content, Instant.now().minus(Duration.ofDays(daysAgo)), numLines);
+    private void makeCommit(RepoContext repoContext, String content, int daysAgo, int minsAgo, int numLines) {
+        Instant time = Instant.now()
+                .minus(Duration.ofDays(daysAgo))
+                .minus(Duration.ofMinutes(minsAgo));
+        makeCommit(repoContext, content, time, numLines);
     }
     private void makeCommit(RepoContext repoContext, String content, Instant dateValue) {
         makeCommit(repoContext, content, dateValue, 20);
