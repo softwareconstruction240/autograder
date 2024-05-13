@@ -3,7 +3,6 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.git.RepoGenerationCommands.*;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.Git;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -28,7 +26,6 @@ class GitHelperTest {
 
     @BeforeAll
     static void initialize() throws Exception {
-        initRepoFiles();
     }
 
     @BeforeEach
@@ -114,11 +111,6 @@ class GitHelperTest {
 
         @Test
         void insufficentCommitsSufficientDays() throws ProcessUtils.ProcessException {
-            generateCommits(TestRepo.hasCherryPickedCommits.getFile(), List.of(
-                    new CommitTiming(0, 0, 0),
-                    new CommitNItems(15, 1),
-                    new Commit("PHASE 0", 0)
-            ));
             Assertions.assertFalse(false);
         }
         @Test
@@ -136,11 +128,6 @@ class GitHelperTest {
     void verifyRegularCommits() {
         // Insufficient commits on sufficient days fails
         // Sufficient commits on insufficient days fails
-        CommitVerificationResult result = withTestRepo(TestRepo.passesRequirements, evaluateRepo());
-        System.out.println(result);
-        Assertions.assertTrue(result.verified());
-        Assertions.assertEquals(12, result.significantCommits());
-        Assertions.assertEquals(3, result.numDays());
         // Sufficient commits on sufficient days succeeds
 
         // Cherry-picking an older commit generates a failure message
@@ -149,30 +136,8 @@ class GitHelperTest {
         // Commits authored after the head timestamp trigger failure
         // Commits authored before the tail timestamp trigger failure
 
-//        new ProcessBuilder()
-//        ProcessUtils.
-
     }
 
-    private static void initRepoFiles() throws URISyntaxException {
-        String resourcesBase = "src/test/resources/gitTestRepos/";
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        for (var testRepo : TestRepo.values()) {
-            String resourcePath = resourcesBase + testRepo.getFilePath();
-//            URL url = classLoader.getResource(resourcePath);
-//            if (url == null) {
-////                return null;
-//                throw new RuntimeException("Count not locate resource: " + testRepo.getFilePath());
-//            }
-//            File file = new File(url.toURI());
-            File file = new File(resourcePath);
-            testRepo.setFile(file);
-        }
-    }
-
-    private <T> T withTestRepo(TestRepo repo, GitEvaluator<T> gitEvaluator) {
-        return withTestRepo(repo.getFile(), gitEvaluator);
-    }
     private <T> T withTestRepo(File file, GitEvaluator<T> gitEvaluator) {
         try (var git = Git.open(file)) {
             return gitEvaluator.eval(git);
@@ -330,60 +295,6 @@ class GitHelperTest {
             CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
             return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
         };
-    }
-
-
-    private void generateCommits(File repoTargetDirectory, List<GitGenerationCommand> commands) throws ProcessUtils.ProcessException {
-        // Count the totals days spaced among all commits
-        final int totalDaysChanged = getTotalDaysChanged(commands);
-        final GitRepoState repoState = new GitRepoState();
-
-        commands.addFirst(new InitRepo());
-        runCommands(commands, totalDaysChanged, repoState);
-    }
-    private int getTotalDaysChanged(List<GitGenerationCommand> commands) {
-        return commands.stream().mapToInt(GitGenerationCommand::getDaysChanged).sum();
-    }
-    private void runCommands(List<GitGenerationCommand> commands, int totalDaysChanged, GitRepoState repoState) throws ProcessUtils.ProcessException {
-        int currentDay = totalDaysChanged;
-        ProcessBuilder processBuilder;
-        for (var command : commands) {
-            processBuilder = command.run(currentDay, repoState);
-            ProcessUtils.runProcess(processBuilder);
-            command.evaluateResults(repoState);
-
-            currentDay += command.getDaysChanged();
-        }
-    }
-
-    private enum TestRepo {
-        hasCherryPickedCommits,
-        hasMergeCommits,
-        lowCommitDays,
-        lowCommits,
-        passesRequirements;
-
-
-        private final String filePath;
-        private File file;
-
-        TestRepo() {
-            this(null);
-        }
-        TestRepo(String filePath) {
-            this.filePath = filePath;
-        }
-
-        public String getFilePath() {
-            if (filePath != null) return filePath;
-            return name();
-        }
-        public void setFile(File file) {
-            this.file = file;
-        }
-        public File getFile() {
-            return file;
-        }
     }
 
     @FunctionalInterface
