@@ -4,21 +4,26 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.git.RepoGenerationCommands.*;
+import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
+import java.time.ZoneId;
+import java.util.*;
 
 class GitHelperTest {
 
     private GradingContext defaultGradingContext;
+
+    private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
 
     @BeforeAll
@@ -125,6 +130,135 @@ class GitHelperTest {
         try (var git = Git.open(file)) {
             return gitEvaluator.eval(git);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Simplifying overload that evaluates a test requiring only a single checkpoint.
+     * <br>
+     * @see GitHelperTest#evaluateTest(String, List) Implementing method for more details.
+     *
+     * @param checkpoint The verification checkpoint to evaluate
+     */
+    private void evaluateTest(String testName, VerificationCheckpoint checkpoint) {
+        evaluateTest(testName, List.of(checkpoint));
+    }
+    /**
+     * Evaluates all checkpoints sequentially.
+     * <br>
+     * Automatically remembers the verification from previous checkpoints, and uses those as
+     * the minimum threshold for subsequent verification.
+     * <br>
+     * Bash scrips have a few aliases made available to them including:
+     * <ul>
+     *     <li><code>commit "Commit message" [DATE_VALUE [NUM_LINES]]</code></li>
+     *     <li><code>generate START_CHANGE_NUM END_CHANGE_NUM [DAYS_AGO]</code></li>
+     * </ul>
+     * @param checkpoints A list of checkpoints to evaluate in the same directory, sequentially
+     */
+    private void evaluateTest(String testName, List<VerificationCheckpoint> checkpoints) {
+        CommitVerificationResult prevVerification = null;
+
+        try {
+            RepoContext repoContext = initializeTest(testName, "file-2.txt");
+
+            CommitVerificationResult verificationResult;
+            for (var checkpoint : checkpoints) {
+                checkpoint.setupCommands.setup(repoContext);
+
+                // Evaluate repo
+                // TODO: Inject previously captured data for tail hash
+                verificationResult = withTestRepo(repoContext.directory, evaluateRepo());
+                Assertions.assertEquals(checkpoint.expectedVerification(), verificationResult);
+
+                prevVerification = verificationResult;
+            }
+
+        } catch (GitAPIException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private RepoContext initializeTest(String testName, String changeFileName) throws GitAPIException {
+        File testDirectory = new File("src/test/resources/gitTestRepos", testName);
+        File changeFile = new File(testDirectory, changeFileName);
+
+        FileUtils.removeDirectory(testDirectory);
+        Git git = Git.init().setDirectory(testDirectory).call();
+
+        return new RepoContext(
+                git,
+                testName,
+                testDirectory,
+                changeFile,
+                changeFileName
+        );
+    }
+
+    private CommitVerificationResult generalCommitVerificationResult(boolean verified, int numCommits, int numDays) {
+        return new CommitVerificationResult(
+                verified, false, numCommits, numDays, 0,
+                Mockito.anyString(), Mockito.any(Instant.class), Mockito.any(Instant.class), Mockito.anyString(), Mockito.anyString());
+    }
+
+    /**
+     * Represents one stage of a potentially multi-stage test.
+     * <br>
+     * It performs the following:
+     * <ol>
+     *     <li>Creates a fresh directory</li>
+     *     <li>Runs `setupCommands` as a bash script in the directory</li>
+     *     <li>If `expectedVerification` is non-null, runs commit verification and asserts the result</li>
+     *     <li>Calls the callback after completion</li>
+     * </ol>
+     *
+     * @param setupCommands
+     * @param expectedVerification
+     */
+    private record VerificationCheckpoint(
+            SetupCommands setupCommands,
+            CommitVerificationResult expectedVerification
+    ) { }
+
+    @FunctionalInterface
+    private interface SetupCommands {
+        void setup(RepoContext repoContext);
+    }
+    private record RepoContext (
+            Git git,
+            String testName,
+            File directory,
+            File changeFile,
+            String changeFilename
+    ) { }
+
+    private void makeCommit(RepoContext repoContext, String content) {
+        makeCommit(repoContext, content, Instant.now());
+    }
+    private void makeCommit(RepoContext repoContext, String content, int daysAgo, int numLines) {
+        makeCommit(repoContext, content, Instant.now().minus(Duration.ofDays(daysAgo)), numLines);
+    }
+    private void makeCommit(RepoContext repoContext, String content, Instant dateValue) {
+        makeCommit(repoContext, content, dateValue, 20);
+    }
+    private void makeCommit(RepoContext repoContext, String content, Instant commitTimestamp, int numLines) {
+        try {
+            // Write the file
+            String fileContents = (content + "\n").repeat(numLines);
+            FileUtils.writeStringToFile(fileContents, repoContext.changeFile);
+
+            // Add the file to index
+            Git git = repoContext.git;
+            git.add().addFilepattern(repoContext.changeFilename).call();
+
+            // Commit with particular timestamp
+            PersonIdent authorIdent = new PersonIdent(
+                    "TESTING " + repoContext.testName,
+                    COMMIT_AUTHOR_EMAIL,
+                    commitTimestamp,
+                    ZoneId.systemDefault());
+            git.commit().setMessage(content).setAuthor(authorIdent).call();
+        } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
     }
