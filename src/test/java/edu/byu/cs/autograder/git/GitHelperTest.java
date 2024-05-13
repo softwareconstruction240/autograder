@@ -136,10 +136,10 @@ class GitHelperTest {
     void verifyRegularCommits() {
         // Insufficient commits on sufficient days fails
         // Sufficient commits on insufficient days fails
-        var result = withTestRepo(TestRepo.passesRequirements, evaluateRepo());
+        CommitVerificationResult result = withTestRepo(TestRepo.passesRequirements, evaluateRepo());
         System.out.println(result);
         Assertions.assertTrue(result.verified());
-        Assertions.assertEquals(12, result.numCommits());
+        Assertions.assertEquals(12, result.significantCommits());
         Assertions.assertEquals(3, result.numDays());
         // Sufficient commits on sufficient days succeeds
 
@@ -242,9 +242,13 @@ class GitHelperTest {
         );
     }
 
-    private CommitVerificationResult generalCommitVerificationResult(boolean verified, int numCommits, int numDays) {
+    private CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays) {
+        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays);
+    }
+    private CommitVerificationResult generalCommitVerificationResult(
+            boolean verified, int significantCommits, int totalCommits, int numDays) {
         return new CommitVerificationResult(
-                verified, false, numCommits, numDays, 0,
+                verified, false, totalCommits, significantCommits, numDays, 0,
                 Mockito.anyString(), Mockito.any(Instant.class), Mockito.any(Instant.class), Mockito.anyString(), Mockito.anyString());
     }
 
