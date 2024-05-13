@@ -138,6 +138,8 @@ class GitHelperTest {
 
     }
 
+    // Testing Helpers
+
     private <T> T withTestRepo(File file, GitEvaluator<T> gitEvaluator) {
         try (var git = Git.open(file)) {
             return gitEvaluator.eval(git);
@@ -177,11 +179,11 @@ class GitHelperTest {
 
             CommitVerificationResult verificationResult;
             for (var checkpoint : checkpoints) {
-                checkpoint.setupCommands.setup(repoContext);
+                checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
                 // TODO: Inject previously captured data for tail hash
-                verificationResult = withTestRepo(repoContext.directory, evaluateRepo());
+                verificationResult = withTestRepo(repoContext.directory(), evaluateRepo());
                 Assertions.assertEquals(checkpoint.expectedVerification(), verificationResult);
 
                 prevVerification = verificationResult;
@@ -217,36 +219,6 @@ class GitHelperTest {
                 Mockito.anyString(), Mockito.any(Instant.class), Mockito.any(Instant.class), Mockito.anyString(), Mockito.anyString());
     }
 
-    /**
-     * Represents one stage of a potentially multi-stage test.
-     * <br>
-     * It performs the following:
-     * <ol>
-     *     <li>Creates a fresh directory</li>
-     *     <li>Runs `setupCommands` as a bash script in the directory</li>
-     *     <li>If `expectedVerification` is non-null, runs commit verification and asserts the result</li>
-     *     <li>Calls the callback after completion</li>
-     * </ol>
-     *
-     * @param setupCommands
-     * @param expectedVerification
-     */
-    private record VerificationCheckpoint(
-            SetupCommands setupCommands,
-            CommitVerificationResult expectedVerification
-    ) { }
-
-    @FunctionalInterface
-    private interface SetupCommands {
-        void setup(RepoContext repoContext);
-    }
-    private record RepoContext (
-            Git git,
-            String testName,
-            File directory,
-            File changeFile,
-            String changeFilename
-    ) { }
 
     private void makeCommit(RepoContext repoContext, String content) {
         makeCommit(repoContext, content, Instant.now());
@@ -261,15 +233,15 @@ class GitHelperTest {
         try {
             // Write the file
             String fileContents = (content + "\n").repeat(numLines);
-            FileUtils.writeStringToFile(fileContents, repoContext.changeFile);
+            FileUtils.writeStringToFile(fileContents, repoContext.changeFile());
 
             // Add the file to index
-            Git git = repoContext.git;
-            git.add().addFilepattern(repoContext.changeFilename).call();
+            Git git = repoContext.git();
+            git.add().addFilepattern(repoContext.changeFilename()).call();
 
             // Commit with particular timestamp
             PersonIdent authorIdent = new PersonIdent(
-                    "TESTING " + repoContext.testName,
+                    "TESTING " + repoContext.testName(),
                     COMMIT_AUTHOR_EMAIL,
                     commitTimestamp,
                     ZoneId.systemDefault());
