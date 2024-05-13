@@ -184,7 +184,8 @@ class GitHelperTest {
                 // Evaluate repo
                 // TODO: Inject previously captured data for tail hash
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo());
-                Assertions.assertEquals(checkpoint.expectedVerification(), verificationResult);
+                System.out.println(verificationResult);
+                assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
                 prevVerification = verificationResult;
             }
@@ -216,7 +217,7 @@ class GitHelperTest {
             boolean verified, int significantCommits, int totalCommits, int numDays) {
         // Note: Unfortunately, we were not able to configure Mockito to properly accept these `any` object times
         // to also accept null. We've moved a different direction now, but we're preserving the `Mockito.nullable/any()`
-        // for clarity. They still work, and
+        // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays, 0,
                 Mockito.nullable(String.class), Mockito.nullable(Instant.class), Mockito.nullable(Instant.class),
@@ -279,5 +280,16 @@ class GitHelperTest {
     @FunctionalInterface
     private interface GitEvaluator <T> {
         T eval(Git git) throws Exception;
+    }
+
+    // Assertion Helpers
+
+    void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {
+        Assertions.assertEquals(expected.verified(), actual.verified());
+        Assertions.assertEquals(expected.isCachedResponse(), actual.isCachedResponse());
+        Assertions.assertEquals(expected.totalCommits(), actual.totalCommits());
+        Assertions.assertEquals(expected.significantCommits(), actual.significantCommits());
+        Assertions.assertEquals(expected.numDays(), actual.numDays());
+        Assertions.assertEquals(expected.penaltyPct(), actual.penaltyPct());
     }
 }
