@@ -51,7 +51,54 @@ class GitHelperTest {
     }
 
     @Test
-    void setUpTest() {
+    void multiPhaseSuccessfullPassoff() {
+        evaluateTest("multi-phase-successful-passoff", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 1", 24, 20);
+                            makeCommit(repoContext, "Change 2", 24, 10);
+                            makeCommit(repoContext, "Change 3", 24, 10);
+                            makeCommit(repoContext, "Change 4", 24, 10);
+                            makeCommit(repoContext, "Change 5", 23, 10);
+                            makeCommit(repoContext, "Change 6", 22, 10);
+                            makeCommit(repoContext, "Change 7", 22, 10);
+                            makeCommit(repoContext, "Change 8", 22, 10);
+                            makeCommit(repoContext, "Change 9", 21, 10);
+                            makeCommit(repoContext, "Change 10", 20, 10);
+                        },
+                        generalCommitVerificationResult(true, 10, 5)
+                ),
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 11", 14, 10);
+                            makeCommit(repoContext, "Change 12", 14, 10);
+                            makeCommit(repoContext, "Change 13", 14, 10);
+                            makeCommit(repoContext, "Change 14", 14, 10);
+                            makeCommit(repoContext, "Change 15", 13, 10);
+                            makeCommit(repoContext, "Change 16", 12, 10);
+                            makeCommit(repoContext, "Change 17", 12, 10);
+                            makeCommit(repoContext, "Change 18", 12, 10);
+                            makeCommit(repoContext, "Change 19", 11, 10);
+                            makeCommit(repoContext, "Change 20", 10, 10);
+                        },
+                        generalCommitVerificationResult(true, 10, 5)
+                ),
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 31", 4, 10);
+                            makeCommit(repoContext, "Change 32", 4, 10);
+                            makeCommit(repoContext, "Change 33", 4, 10);
+                            makeCommit(repoContext, "Change 34", 4, 10);
+                            makeCommit(repoContext, "Change 35", 3, 10);
+                            makeCommit(repoContext, "Change 36", 2, 10);
+                            makeCommit(repoContext, "Change 37", 2, 10);
+                            makeCommit(repoContext, "Change 38", 2, 10);
+                            makeCommit(repoContext, "Change 39", 1, 10);
+                            makeCommit(repoContext, "Change 40", 0, 10);
+                        },
+                        generalCommitVerificationResult(true, 10, 5)
+                )
+        ));
     }
 
     @Test
