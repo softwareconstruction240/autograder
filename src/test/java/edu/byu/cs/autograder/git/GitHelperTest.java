@@ -175,7 +175,7 @@ class GitHelperTest {
         CommitVerificationResult prevVerification = null;
 
         try {
-            RepoContext repoContext = initializeTest(testName, "file-2.txt");
+            RepoContext repoContext = initializeTest(testName, "file.txt");
 
             CommitVerificationResult verificationResult;
             for (var checkpoint : checkpoints) {
