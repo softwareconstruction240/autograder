@@ -112,6 +112,7 @@ class GitHelperTest {
                     makeCommit(repoContext, "Change 7", 22, 33, 10);
                     makeCommit(repoContext, "Change 8", 22, 32, 10);
                     makeCommit(repoContext, "Change 9", 21, 31, 10);
+                    // Notice only nine commits
                 },
                 generalCommitVerificationResult(false, 9, 4)
         ));
@@ -121,10 +122,12 @@ class GitHelperTest {
     void sufficientCommitsOnInsufficientDays() {
         evaluateTest("sufficient-commits-insufficient-days", new VerificationCheckpoint(
                 repoContext -> {
+                    // Four commits two days ago
                     makeCommit(repoContext, "Change 1", 2, 39, 20);
                     makeCommit(repoContext, "Change 2", 2, 38, 10);
                     makeCommit(repoContext, "Change 3", 2, 37, 10);
                     makeCommit(repoContext, "Change 4", 2, 36, 10);
+                    // Six commits today
                     makeCommit(repoContext, "Change 5", 0, 35, 10);
                     makeCommit(repoContext, "Change 6", 0, 34, 10);
                     makeCommit(repoContext, "Change 7", 0, 33, 10);
@@ -141,7 +144,7 @@ class GitHelperTest {
         evaluateTest("commits-out-of-order", new VerificationCheckpoint(
                 repoContext -> {
                     makeCommit(repoContext, "Change 1", 2, 39, 20);
-                    makeCommit(repoContext, "Change 5", 1, 35, 10);
+                    makeCommit(repoContext, "Change 5", 1, 35, 10); // Cherry-picked!
                     makeCommit(repoContext, "Change 2", 2, 38, 10);
                     makeCommit(repoContext, "Change 3", 2, 37, 10);
                     makeCommit(repoContext, "Change 4", 2, 36, 10);
@@ -156,6 +159,39 @@ class GitHelperTest {
     }
 
     @Test
+    void insignificantCommits() {
+        gradingContext = generateGradingContext(10, 0, 0, 10);
+        evaluateTest("insignificant-commits", new VerificationCheckpoint(
+                repoContext -> {
+                    makeCommit(repoContext, "Change 1", 24, 39, 10); // Significant
+                    makeCommit(repoContext, "Change 2", 24, 38, 1); // Also significant
+                    makeCommit(repoContext, "Change 3", 24, 37, 4);
+                    makeCommit(repoContext, "Change 4", 24, 36, 1);
+                    makeCommit(repoContext, "Change 5", 23, 35, 4);
+                    makeCommit(repoContext, "Change 6", 22, 34, 6); // Significant
+                    makeCommit(repoContext, "Change 7", 22, 33, 1);
+                    makeCommit(repoContext, "Change 8", 22, 32, 1);
+                    makeCommit(repoContext, "Change 9", 21, 31, 1);
+                    makeCommit(repoContext, "Change 10", 20, 30, 900); // Significant
+                },
+                generalCommitVerificationResult(false, 4, 10, 5)
+        ));
+    }
+
+    @Test
+    void simpleBackdatingCommits() {
+        gradingContext = generateGradingContext(3, 0, 10, 0);
+        evaluateTest("simple-backdating-commits", new VerificationCheckpoint(
+                repoContext -> {
+                    makeCommit(repoContext, "Change 1", 2, 20, 10);
+                    makeCommit(repoContext, "Change 2", 1, 0, 10); // Simply backdated!
+                    makeCommit(repoContext, "Change 3", 0, 10, 10);
+                },
+                generalCommitVerificationResult(false, 3, 3)
+        ));
+    }
+
+    @Test
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
         // Fails when submitting new phase with same head hash
@@ -166,7 +202,6 @@ class GitHelperTest {
     @Test
     void verifyRegularCommits() {
         // Counts commits from merges properly
-        // Low change-content commits do not count towards total
         // Commits authored after the head timestamp trigger failure
         // Commits authored before the tail timestamp trigger failure
     }
