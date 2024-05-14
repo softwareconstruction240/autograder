@@ -223,8 +223,8 @@ class GitHelperTest {
         // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays, 0,
-                Mockito.nullable(String.class), Mockito.nullable(Instant.class), Mockito.nullable(Instant.class),
-                Mockito.anyString(), Mockito.nullable(String.class));
+                null, null, null,
+                "ANY_HEAD_HASH", null);
     }
 
 
