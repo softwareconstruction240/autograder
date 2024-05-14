@@ -22,6 +22,11 @@ public class GitHelperPerformanceTest {
         utils = new GitHelperUtils();
     }
 
+    @Test
+    void reasonablePerformanceTest() throws GitAPIException {
+        executePerformanceTest(200, 100, 1, true);
+    }
+
     /**
      * This test executes many consecutive performance tests of diverse sizes.
      * This is primarily focused on gathering data for different test sizes,
