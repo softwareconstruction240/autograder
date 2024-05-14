@@ -20,13 +20,8 @@ import java.util.*;
 class GitHelperTest {
 
     private GradingContext defaultGradingContext;
-
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
-
-    @BeforeAll
-    static void initialize() throws Exception {
-    }
 
     @BeforeEach
     void beforeEach() {
@@ -99,43 +94,78 @@ class GitHelperTest {
     }
 
     @Test
+    void insufficientCommits() {
+        evaluateTest("insufficient-commits",
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 1", 24, 39, 20);
+                            makeCommit(repoContext, "Change 2", 24, 38, 10);
+                            makeCommit(repoContext, "Change 3", 24, 37, 10);
+                            makeCommit(repoContext, "Change 4", 24, 36, 10);
+                            makeCommit(repoContext, "Change 5", 23, 35, 10);
+                            makeCommit(repoContext, "Change 6", 22, 34, 10);
+                            makeCommit(repoContext, "Change 7", 22, 33, 10);
+                            makeCommit(repoContext, "Change 8", 22, 32, 10);
+                            makeCommit(repoContext, "Change 9", 21, 31, 10);
+                        },
+                        generalCommitVerificationResult(false, 9, 4)
+                ));
+    }
+
+    @Test
+    void sufficientCommitsOnInsufficientDays() {
+        evaluateTest("sufficient-commits-insufficient-days",
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 1", 2, 39, 20);
+                            makeCommit(repoContext, "Change 2", 2, 38, 10);
+                            makeCommit(repoContext, "Change 3", 2, 37, 10);
+                            makeCommit(repoContext, "Change 4", 2, 36, 10);
+                            makeCommit(repoContext, "Change 5", 0, 35, 10);
+                            makeCommit(repoContext, "Change 6", 0, 34, 10);
+                            makeCommit(repoContext, "Change 7", 0, 33, 10);
+                            makeCommit(repoContext, "Change 8", 0, 32, 10);
+                            makeCommit(repoContext, "Change 9", 0, 31, 10);
+                            makeCommit(repoContext, "Change 10", 0, 30, 10);
+                        },
+                        generalCommitVerificationResult(false, 10, 2)
+                ));
+    }
+
+    @Test
+    void commitsOutOfOrder() {
+        evaluateTest("commits-out-of-order",
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            makeCommit(repoContext, "Change 1", 2, 39, 20);
+                            makeCommit(repoContext, "Change 5", 1, 35, 10);
+                            makeCommit(repoContext, "Change 2", 2, 38, 10);
+                            makeCommit(repoContext, "Change 3", 2, 37, 10);
+                            makeCommit(repoContext, "Change 4", 2, 36, 10);
+                            makeCommit(repoContext, "Change 6", 0, 34, 10);
+                            makeCommit(repoContext, "Change 7", 0, 33, 10);
+                            makeCommit(repoContext, "Change 8", 0, 32, 10);
+                            makeCommit(repoContext, "Change 9", 0, 31, 10);
+                            makeCommit(repoContext, "Change 10", 0, 30, 10);
+                        },
+                        generalCommitVerificationResult(false, 10, 3)
+                ));
+    }
+
+    @Test
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
-        // Works properly on Phase 0 (no previous submissions)
         // Fails when submitting new phase with same head hash
         // Works when a non-graded phase has already been submitted
     }
 
-    @Nested
-    class VerifyRegularCommits {
-
-        @Test
-        void insufficentCommitsSufficientDays() throws ProcessUtils.ProcessException {
-            Assertions.assertFalse(false);
-        }
-        @Test
-        void sufficientCommitsInsufficientDays() {
-            Assertions.assertTrue(true);
-            Assertions.assertFalse(false);
-        }
-
-    }
-
-
-
 
     @Test
     void verifyRegularCommits() {
-        // Insufficient commits on sufficient days fails
-        // Sufficient commits on insufficient days fails
-        // Sufficient commits on sufficient days succeeds
-
-        // Cherry-picking an older commit generates a failure message
         // Counts commits from merges properly
         // Low change-content commits do not count towards total
         // Commits authored after the head timestamp trigger failure
         // Commits authored before the tail timestamp trigger failure
-
     }
 
     // Testing Helpers
