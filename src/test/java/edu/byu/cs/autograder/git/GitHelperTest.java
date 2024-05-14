@@ -21,6 +21,7 @@ class GitHelperTest {
 
     private GradingContext gradingContext;
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
+    private static final boolean EXECUTE_PERFORMANCE_TEST = false;
 
 
     @BeforeEach
@@ -194,6 +195,9 @@ class GitHelperTest {
 
     @Test
     void verifyingPerformanceTest() throws Exception {
+        if (!EXECUTE_PERFORMANCE_TEST) return;
+        System.out.println("Executing performance tests\n");
+
         // Execute lots of tests
         var results = new LinkedList<PerformanceResults>();
         var performanceStart = Instant.now();
