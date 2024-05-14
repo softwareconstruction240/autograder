@@ -178,12 +178,15 @@ class GitHelperTest {
             RepoContext repoContext = initializeTest(testName, "file.txt");
 
             CommitVerificationResult verificationResult;
+            CommitThreshold minThreshold;
             for (var checkpoint : checkpoints) {
                 checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
-                // TODO: Inject previously captured data for tail hash
-                verificationResult = withTestRepo(repoContext.directory(), evaluateRepo());
+                minThreshold = prevVerification == null ?
+                        GitHelper.MIN_COMMIT_THRESHOLD :
+                        new CommitThreshold(Instant.MIN, prevVerification.headHash());
+                verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 System.out.println(verificationResult);
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
@@ -261,19 +264,22 @@ class GitHelperTest {
 
 
     private GitEvaluator<CommitVerificationResult> evaluateRepo() {
-        return evaluateRepo(defaultGradingContext);
+        return evaluateRepo(defaultGradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
     }
-    private GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext) {
-        return evaluateRepo(new GitHelper(gradingContext));
+    private GitEvaluator<CommitVerificationResult> evaluateRepo(CommitThreshold minThreshold) {
+        return evaluateRepo(defaultGradingContext, minThreshold);
     }
-    private GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper) {
+    private GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, CommitThreshold minThreshold) {
+        return evaluateRepo(new GitHelper(gradingContext), minThreshold);
+    }
+    private GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, CommitThreshold minThreshold) {
         return git -> {
             String phase0HeadHash;
 //            phase0HeadHash = "d57567de79755e5ef8293c2cdba07c84c4d289ce";
 //            phase0HeadHash = "5d4d714c522a254fc84006b73a7fb5d660b77bef";
             phase0HeadHash = GitHelper.getHeadHash(git);
             CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
-            return gitHelper.verifyRegularCommits(git, GitHelper.MIN_COMMIT_THRESHOLD, maxThreshold);
+            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
         };
     }
 
