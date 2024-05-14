@@ -4,7 +4,6 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.util.FileUtils;
-import edu.byu.cs.util.ProcessUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -36,9 +35,12 @@ class GitHelperTest {
     void arbitraryRepoFileTest() {
         String repoPath;
         repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
-        repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/temp-failing-repo-michael";
+        repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/temp-failing-repo-michael-2";
         File repo = new File(repoPath);
+        if (!repo.exists()) return;
+        System.out.printf("Evaluating repo at path:\n\t%s%n\n", repoPath);
         var result = withTestRepo(repo, evaluateRepo());
+        System.out.println("Finished results:");
         System.out.println(result);
     }
 
@@ -217,7 +219,6 @@ class GitHelperTest {
                         GitHelper.MIN_COMMIT_THRESHOLD :
                         new CommitThreshold(Instant.MIN, prevVerification.headHash());
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
-                System.out.println(verificationResult);
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
                 prevVerification = verificationResult;
@@ -227,6 +228,7 @@ class GitHelperTest {
             throw new RuntimeException(e);
         }
     }
+
     private RepoContext initializeTest(String testName, String changeFileName) throws GitAPIException {
         File testDirectory = new File("src/test/resources/gitTestRepos", testName);
         File changeFile = new File(testDirectory, changeFileName);
