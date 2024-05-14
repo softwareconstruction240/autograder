@@ -16,6 +16,10 @@ public class ConfigController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
+    private static void logConfigChange(String changeMessage, String adminNetId) {
+        LOGGER.info("[CONFIG] Admin %s has %s".formatted(adminNetId, changeMessage));
+    }
+
     public static final Route getConfigAdmin = (req, res) -> {
         JsonObject response = getPublicConfig();
 
@@ -50,7 +54,7 @@ public class ConfigController {
         dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         User user = req.session().attribute("user");
-        LOGGER.info("[CONFIG] Admin %s has set the following phases as live: %s".formatted(user.netId(), phasesArray));
+        logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
 
         res.status(200);
         return "";
@@ -65,9 +69,9 @@ public class ConfigController {
 
         User user = req.session().attribute("user");
         if (message.isEmpty()) {
-            LOGGER.info("[CONFIG] Admin %s has cleared the banner message".formatted(user.netId()));
+            logConfigChange("cleared the banner message", user.netId());
         } else {
-            LOGGER.info("[CONFIG] Admin %s has set the banner message to: '%s'".formatted(user.netId(), message));
+            logConfigChange("set the banner message to: '%s'".formatted(message), user.netId());
         }
 
         res.status(200);
