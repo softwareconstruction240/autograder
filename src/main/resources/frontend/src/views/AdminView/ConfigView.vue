@@ -1,63 +1,40 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { type Config, listOfPhases, Phase } from '@/types/types'
+import { ref } from 'vue'
+import { listOfPhases, Phase } from '@/types/types'
 import PopUp from '@/components/PopUp.vue'
-import { getConfig, setBannerMessage, setLivePhases } from '@/services/configService'
+import { setBannerMessage, setLivePhases } from '@/services/configService'
+import { useAppConfigStore } from '@/stores/appConfig'
 
 // PopUp Control
 const openLivePhases = ref<boolean>(false);
 const openBannerMessage = ref<boolean>(false);
 // =========================
 
-// Initial Config Loading
-const config = ref<Config>();
-onMounted(async () => { loadConfig() })
-const loadConfig = async () => {
-  config.value = await getConfig()
-
-  bannerMessage.value = config.value?.bannerMessage
-  loadPhasesFromConfig(config.value?.phases)
-}
-// =========================
-
 // Banner Message Setting
-const bannerMessage = ref<string>("Default Message")
+const bannerMessageToSubmit = ref<string>("")
 const clearBannerMessage = () => {
-  bannerMessage.value = ""
+  bannerMessageToSubmit.value = ""
 }
 const submitBannerMessage = async () => {
   try {
-    await setBannerMessage(bannerMessage.value)
+    await setBannerMessage(bannerMessageToSubmit.value)
   } catch (e) {
     alert("There was a problem in saving the updated banner message")
   }
   openBannerMessage.value = false
-  await loadConfig()
 }
 // =========================
 
 // Live Phase Setting
-const activePhaseList = ref<Array<boolean>>([]) // using the enum, if activePhaseList[phase] == true, then that phase is active
-const loadPhasesFromConfig = (configPhaseList: Array<Phase>) => {
-  console.log(configPhaseList)
-  console.log(activePhaseList.value)
-  for (const phase of listOfPhases() as Phase[]) {
-    if (configPhaseList.includes(phase)) {
-      activePhaseList.value[phase] = true
-    } else {
-      activePhaseList.value[phase] = false
-    }
-  }
-}
 const setAllPhases = (setting: boolean) => {
   for (const phase of listOfPhases() as Phase[]) {
-    activePhaseList.value[phase] = setting
+    useAppConfigStore().phaseActivationList[phase] = setting
   }
 }
 const submitLivePhases = async () => {
   let livePhases: Phase[] = []
   for (const phase of listOfPhases() as Phase[]) {
-    if (activePhaseList.value[phase]) {
+    if (useAppConfigStore().phaseActivationList[phase]) {
       livePhases.push(phase);
     }
   }
@@ -68,7 +45,6 @@ const submitLivePhases = async () => {
     alert("There was a problem in saving live phases")
   }
   openLivePhases.value = false
-  await loadConfig()
 }
 // =========================
 
@@ -81,7 +57,7 @@ const submitLivePhases = async () => {
       <p>These are the phases are live and open for students to submit to</p>
       <div v-for="phase in listOfPhases()">
         <p>
-          <i v-if="activePhaseList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
+          <i v-if="useAppConfigStore().phaseActivationList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
           <i v-else class="fa-solid fa-x" style="color: red"/>
           {{phase}}</p>
       </div>
@@ -90,7 +66,7 @@ const submitLivePhases = async () => {
 
     <div class="configCategory">
       <h3>Banner message</h3>
-      <p v-if="config?.bannerMessage"><span class="infoDescription">Current Message: </span><span v-text="config.bannerMessage"/></p>
+      <p v-if="useAppConfigStore().bannerMessage"><span class="infoDescription">Current Message: </span><span v-text="useAppConfigStore().bannerMessage"/></p>
       <p v-else>There is currently no banner message</p>
       <button @click="openBannerMessage = true">Set</button>
     </div>
@@ -98,13 +74,13 @@ const submitLivePhases = async () => {
 
   <PopUp
     v-if="openLivePhases"
-    @closePopUp="openLivePhases = false; loadConfig()">
+    @closePopUp="openLivePhases = false; useAppConfigStore().updateConfig()">
     <h3>Live Phases</h3>
     <p>Enable student submissions for the following phases:</p>
 
     <div class="checkboxes">
       <label v-for="(phase, index) in listOfPhases()" :key="index">
-        <span><input type="checkbox" v-model="activePhaseList[phase]"> {{ phase }}</span>
+        <span><input type="checkbox" v-model="useAppConfigStore().phaseActivationList[phase]"> {{ phase }}</span>
       </label>
     </div>
 
@@ -123,7 +99,7 @@ const submitLivePhases = async () => {
     @closePopUp="openBannerMessage = false">
     <h3>Banner Message</h3>
     <p>Set a message for students to see from the Autograder</p>
-    <input v-model="bannerMessage" type="text" id="repoUrlInput" placeholder="No Banner Message"/>
+    <input v-model="bannerMessageToSubmit" type="text" id="repoUrlInput" placeholder="No Banner Message"/>
     <div>
       <button class="small" @click="submitBannerMessage">Save</button>
       <button class="small" @click="clearBannerMessage">Clear</button>

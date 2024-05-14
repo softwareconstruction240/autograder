@@ -1,12 +1,12 @@
 <script setup lang="ts">
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
-import { getConfig } from '@/services/configService'
+import { useAppConfigStore } from '@/stores/appConfig'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -24,13 +24,14 @@ const logOut = async () => {
   router.push({name: "login"})
 }
 
-const bannerMessage = ref<string>()
-// TODO: Build central store for config, so that you don't have to have it in each component
-const loadConfig = async () => {
-  bannerMessage.value = (await getConfig()).bannerMessage
-}
-onMounted( () => {
-  loadConfig()
+const bannerMessage = computed(() => {
+  if (useAuthStore().isLoggedIn) {
+    return useAppConfigStore().bannerMessage
+  }
+});
+
+onMounted( async () => {
+  await useAppConfigStore().updateConfig();
 })
 </script>
 

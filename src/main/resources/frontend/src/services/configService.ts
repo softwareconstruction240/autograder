@@ -1,5 +1,5 @@
-import { useAppConfigStore } from '@/stores/appConfig'
-import { type Config, Phase } from '@/types/types'
+import { type Config, useAppConfigStore } from '@/stores/appConfig'
+import { Phase } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
 export const getConfig = async ():Promise<Config> => {
@@ -38,6 +38,7 @@ export const setBannerMessage = async (message: String): Promise<void> => {
     console.error(response);
     throw new Error(await response.text());
   }
+  await useAppConfigStore().updateConfig();
 }
 
 export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
@@ -56,4 +57,5 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
     console.error(response);
     throw new Error(await response.text());
   }
+  await useAppConfigStore().updateConfig();
 }
