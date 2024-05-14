@@ -6,6 +6,7 @@ import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
@@ -41,8 +42,9 @@ public class LateDayCalculator {
     }
 
     public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        if (!ApplicationProperties.useCanvas()) return 0;
 
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
         ZonedDateTime dueDate;
