@@ -145,9 +145,9 @@ public class GitHelperPerformanceTest {
     /**
      * Prints out the result, and also returns the duration in milliseconds.
      *
-     * @param name
-     * @param start
-     * @param end
+     * @param name The name of the test. Usually lower case, space separated brief description.
+     * @param start The {@link Instant} captured when the phase started
+     * @param end The {@link Instant} captured when the test ended
      * @return A long representing the duration of the operation in millis.
      */
     private long printTimeElapsed(String name, Instant start, Instant end) {

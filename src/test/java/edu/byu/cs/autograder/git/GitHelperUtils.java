@@ -192,10 +192,7 @@ public class GitHelperUtils {
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, CommitThreshold minThreshold) {
         return git -> {
-            String phase0HeadHash;
-//            phase0HeadHash = "d57567de79755e5ef8293c2cdba07c84c4d289ce";
-//            phase0HeadHash = "5d4d714c522a254fc84006b73a7fb5d660b77bef";
-            phase0HeadHash = GitHelper.getHeadHash(git);
+            String phase0HeadHash = GitHelper.getHeadHash(git);
             CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
             return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
         };
