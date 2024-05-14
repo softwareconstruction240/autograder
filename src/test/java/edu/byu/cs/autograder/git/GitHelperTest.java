@@ -242,9 +242,7 @@ class GitHelperTest {
     private void evaluateTest(String testName, List<VerificationCheckpoint> checkpoints) {
         CommitVerificationResult prevVerification = null;
 
-        try {
-            RepoContext repoContext = initializeTest(testName, "file.txt");
-
+        try (RepoContext repoContext = initializeTest(testName, "file.txt")) {
             CommitVerificationResult verificationResult;
             CommitThreshold minThreshold;
             for (var checkpoint : checkpoints) {
@@ -259,7 +257,6 @@ class GitHelperTest {
 
                 prevVerification = verificationResult;
             }
-
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
