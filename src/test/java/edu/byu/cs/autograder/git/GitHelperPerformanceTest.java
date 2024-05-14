@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class GitHelperPerformanceTest {
     private GitHelperUtils utils;
     private static final boolean RUN_PERFORMANCE_SUITE = false;
+
+    @AfterAll
+    static void cleanUp() {
+        GitHelperUtils.cleanUpTests();
+    }
 
     @BeforeEach
     void preparation() {

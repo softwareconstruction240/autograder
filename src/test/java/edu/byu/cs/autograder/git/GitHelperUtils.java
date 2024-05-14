@@ -19,6 +19,17 @@ import java.util.List;
 public class GitHelperUtils {
 
     private GradingContext gradingContext;
+    static final String TEST_REPO_DIR_ROOT = "src/test/resources/gitTestRepos";
+    /**
+     * Much more destructive by nature;
+     * Deletes the entire directory including other tests that may not have run
+     */
+    private static final boolean CLEANUP_TEST_REPOS_AT_END = false;
+    /**
+     * A sensible option to have turned on.
+     * These are only cleaned up automatically when successfully pass.
+     */
+    private static final boolean CLEANUP_TEST_REPOS_AFTER_EACH = true;
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
     public GitHelperUtils() {
@@ -52,6 +63,10 @@ public class GitHelperUtils {
      *     <li><code>commit "Commit message" [DATE_VALUE [NUM_LINES]]</code></li>
      *     <li><code>generate START_CHANGE_NUM END_CHANGE_NUM [DAYS_AGO]</code></li>
      * </ul>
+     * <br>
+     * This will clean up the test when it succeeds, otherwise, the test is left behind for inspection
+     * by a developer.
+     *
      * @param checkpoints A list of checkpoints to evaluate in the same directory, sequentially
      */
     void evaluateTest(String testName, List<VerificationCheckpoint> checkpoints) {
@@ -72,13 +87,16 @@ public class GitHelperUtils {
 
                 prevVerification = verificationResult;
             }
+
+            // Only cleanup if it succeeded
+            cleanUpTest(repoContext);
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
     }
 
     RepoContext initializeTest(String testName, String changeFileName) throws GitAPIException {
-        File testDirectory = new File("src/test/resources/gitTestRepos", testName);
+        File testDirectory = new File(TEST_REPO_DIR_ROOT, testName);
         File changeFile = new File(testDirectory, changeFileName);
 
         FileUtils.removeDirectory(testDirectory);
@@ -91,6 +109,26 @@ public class GitHelperUtils {
                 changeFile,
                 changeFileName
         );
+    }
+
+    void cleanUpTest(RepoContext repoContext) {
+        cleanUpTest(repoContext, CLEANUP_TEST_REPOS_AFTER_EACH);
+    }
+    void cleanUpTest(RepoContext repoContext, boolean force) {
+        if (!force) return;
+        FileUtils.removeDirectory(repoContext.directory());
+    }
+
+    /**
+     * Call this method in the @AfterAll of each test suite.
+     * It respects certain configuration and will clean up after all the tests.
+     */
+    static void cleanUpTests() {
+        cleanUpTests(CLEANUP_TEST_REPOS_AT_END);
+    }
+    static void cleanUpTests(boolean force) {
+        if (!force) return;
+        FileUtils.removeDirectory(new File(TEST_REPO_DIR_ROOT));
     }
 
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays) {

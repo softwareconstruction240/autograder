@@ -20,6 +20,11 @@ import java.util.concurrent.atomic.AtomicLong;
 class GitHelperTest {
     GitHelperUtils utils;
 
+    @AfterAll
+    static void cleanUp() {
+        GitHelperUtils.cleanUpTests();
+    }
+
     @BeforeEach
     void beforeEach() {
         utils = new GitHelperUtils();
