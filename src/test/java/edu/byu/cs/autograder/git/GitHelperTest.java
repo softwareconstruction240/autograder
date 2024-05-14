@@ -18,17 +18,13 @@ import java.util.*;
 
 class GitHelperTest {
 
-    private GradingContext defaultGradingContext;
+    private GradingContext gradingContext;
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
 
     @BeforeEach
     void beforeEach() {
-        Grader.Observer mockObserver = Mockito.mock(Grader.Observer.class);
-        defaultGradingContext = new GradingContext(
-                null, null, null, null, null, null,
-                10, 3, 10, 1,
-                mockObserver, false);
+        gradingContext = generateGradingContext(10, 3, 10, 1);
     }
 
     /**
@@ -301,10 +297,10 @@ class GitHelperTest {
 
 
     private GitEvaluator<CommitVerificationResult> evaluateRepo() {
-        return evaluateRepo(defaultGradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
+        return evaluateRepo(gradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
     }
     private GitEvaluator<CommitVerificationResult> evaluateRepo(CommitThreshold minThreshold) {
-        return evaluateRepo(defaultGradingContext, minThreshold);
+        return evaluateRepo(gradingContext, minThreshold);
     }
     private GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, CommitThreshold minThreshold) {
         return evaluateRepo(new GitHelper(gradingContext), minThreshold);
@@ -326,6 +322,16 @@ class GitHelperTest {
     }
 
     // Assertion Helpers
+
+
+    private GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
+                                                  int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
+        Grader.Observer mockObserver = Mockito.mock(Grader.Observer.class);
+        return new GradingContext(
+                null, null, null, null, null, null,
+                requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumLinesChangedPerCommit,
+                mockObserver, false);
+    }
 
     void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {
         Assertions.assertEquals(expected.verified(), actual.verified());
