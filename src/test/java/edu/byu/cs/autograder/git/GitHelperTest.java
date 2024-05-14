@@ -192,6 +192,35 @@ class GitHelperTest {
     }
 
     @Test
+    void verifyingPerformanceTest() throws Exception {
+        try (var repoContext = initializeTest("verifying-performance-test", "performance.txt")){
+            var generationStart = Instant.now();
+            int totalCommits = 200; // Less than 24*60, the number of seconds in one day
+            for (int i = 0; i < totalCommits; ++i) {
+                makeCommit(
+                        repoContext,
+                        "Change " + i + "\nEmpty line",
+                        0,
+                        totalCommits - i,
+                        900
+                );
+            }
+            var generationEnd = Instant.now();
+            printTimeElapsed("generating commits", generationStart, generationEnd);
+
+            Assertions.assertTimeout(Duration.ofSeconds(15), () -> {
+                var evaluationStart = Instant.now();
+                CommitVerificationResult result = evaluateRepo().eval(repoContext.git());
+                var evaluationEnd = Instant.now();
+                printTimeElapsed("evaluating history", evaluationStart, evaluationEnd);
+
+                CommitVerificationResult expected = generalCommitVerificationResult(false, totalCommits, 1);
+                assertCommitVerification(expected, result);
+            });
+        }
+    }
+
+    @Test
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
         // Fails when submitting new phase with same head hash
@@ -351,6 +380,12 @@ class GitHelperTest {
     @FunctionalInterface
     private interface GitEvaluator <T> {
         T eval(Git git) throws Exception;
+    }
+
+    private void printTimeElapsed(String name, Instant start, Instant end) {
+        long millis = end.minusMillis(start.toEpochMilli()).toEpochMilli();
+        long seconds = end.minusSeconds(start.getEpochSecond()).getEpochSecond();
+        System.out.printf("Finished %s in %d millis (%d) seconds\n", name, millis, seconds);
     }
 
     // Assertion Helpers
