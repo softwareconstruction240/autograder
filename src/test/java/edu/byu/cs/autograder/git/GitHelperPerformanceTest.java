@@ -15,35 +15,51 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class GitHelperPerformanceTest {
     private GitHelperUtils utils;
+    private static final boolean RUN_PERFORMANCE_SUITE = false;
 
     @BeforeEach
     void preparation() {
         utils = new GitHelperUtils();
     }
 
+    /**
+     * This test executes many consecutive performance tests of diverse sizes.
+     * This is primarily focused on gathering data for different test sizes,
+     * and can take 10 minutes to run.
+     * <br>
+     * It prints out the reports while they run, and
+     * saves a .csv file with the results.
+     * <br>
+     * Pay attention to the constants in the loops that define the constraints of the tests.
+     *
+     * @throws Exception When any kind of error occurs.
+     */
     @Test
-    void performanceTest() throws Exception {
+    void entirePerformanceTest() throws Exception {
+        if (!RUN_PERFORMANCE_SUITE) return;
         System.out.println("Executing performance tests\n");
 
-        // Execute lots of tests
         var results = new LinkedList<PerformanceResults>();
-        var performanceStart = Instant.now();
-        for (int commits = 100; commits <= 1000; commits += 100) {
-            for (int patches = 0; patches <= 1000; patches += 200) {
-                results.add(executePerformanceTest(commits, patches, 6000, false));
+        try {
+            // Execute lots of tests
+            var performanceStart = Instant.now();
+            for (int commits = 100; commits <= 1000; commits += 100) {
+                for (int patches = 0; patches <= 1000; patches += 200) {
+                    results.add(executePerformanceTest(commits, patches, 6000, false));
+                }
             }
+            var performanceEnd = Instant.now();
+            printTimeElapsed("performance testing", performanceStart, performanceEnd);
+        } finally {
+            // Print out the results
+            var outputStart = Instant.now();
+            File outputFile = File.createTempFile("git-performance-test", ".csv");
+            String csv = toCsvString(results);
+            FileUtils.writeStringToFile(csv, outputFile);
+            var outputEnd = Instant.now();
+            printTimeElapsed("output generation", outputStart, outputEnd);
+            System.out.printf("Saved results to file: %s", outputFile.getAbsolutePath());
         }
-        var performanceEnd = Instant.now();
-        printTimeElapsed("performance testing", performanceStart, performanceEnd);
-
-        // Print out the results
-        var outputStart = Instant.now();
-        File outputFile = File.createTempFile("git-performance-test", ".csv");
-        String csv = toCsvString(results);
-        FileUtils.writeStringToFile(csv, outputFile);
-        var outputEnd = Instant.now();
-        printTimeElapsed("output generation", outputStart, outputEnd);
-        System.out.printf("Saved results to file: %s", outputFile.getAbsolutePath());
     }
 
     PerformanceResults executePerformanceTest(int totalCommits, int commitLines, int maxSeconds, boolean assertResults) throws GitAPIException {
