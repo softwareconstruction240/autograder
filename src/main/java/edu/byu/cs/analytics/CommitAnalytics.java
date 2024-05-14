@@ -30,7 +30,6 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.ToIntFunction;
 
 /**
  * Analyzes the commit history of every student with a GitHub repo URL submission

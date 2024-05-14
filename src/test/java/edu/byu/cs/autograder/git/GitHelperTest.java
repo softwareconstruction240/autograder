@@ -31,13 +31,21 @@ class GitHelperTest {
                 mockObserver, false);
     }
 
+    /**
+     * This test is designed to help with manual debugging.
+     * <br>
+     * Given a pre-organized git repository, by its full path name,
+     * it evaluates the git repo and prints out the results.
+     * <br>
+     * If the repository doesn't exist, this test does nothing.
+     */
     @Test
     void arbitraryRepoFileTest() {
         String repoPath;
         repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
-        repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/temp-failing-repo-michael-2";
         File repo = new File(repoPath);
         if (!repo.exists()) return;
+
         System.out.printf("Evaluating repo at path:\n\t%s%n\n", repoPath);
         var result = withTestRepo(repo, evaluateRepo());
         System.out.println("Finished results:");
