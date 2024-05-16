@@ -35,7 +35,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
     private Set<String> packageNames(Set<File> files, StudentCodeReader reader) throws IOException {
         Set<String> packages = new HashSet<>();
         for(File file : files) {
-            if(!file.getName().contains(".java")) continue;
+            if(!file.getName().endsWith(".java")) continue;
             List<String> contents = reader.getFileContents(file);
             if(contents.isEmpty()) continue;
             String firstLine = contents.getFirst();
