@@ -17,10 +17,7 @@ import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -207,6 +204,10 @@ public class CommitAnalytics {
      * Note that the <b>authorship time</b> differs from the <b>commit time</b>
      * in cases where the commit is amended or changed after original authorship.
      * For example, if a commit is cherry-picked, rebased, or amended.
+     * <br>
+     * Note that it is relatively easy to change the author date of commits,
+     * compared to changing the commit date for an experienced user. However, it makes the most sense to
+     * monitor the author date because the automated tools preserve these generally.
      *
      * @param revCommit The commit to analyze
      * @return A long representing the author time in seconds.
@@ -283,20 +284,25 @@ public class CommitAnalytics {
      * @throws IOException When the system can't read the data properly.
      */
     private static int getNumChangesInCommit(DiffFormatter diffFormatter, RevCommit revCommit) throws IOException {
+        RevCommit comparisonCommit;
         int parentCount = revCommit.getParentCount();
-        if (parentCount == 0) {
-            return 0; // Root commit doesn't have any changes
-        } else if (parentCount > 1) {
+        if (parentCount == 1) {
+            comparisonCommit = revCommit.getParent(0);
+        } else if (parentCount == 0) {
+            comparisonCommit = null; // Root commits can still have changes
+        } else {
             throw new IllegalArgumentException("Cannot count changes in a merge commit.");
         }
 
-        List<DiffEntry> diffs = diffFormatter.scan(revCommit.getParent(0), revCommit);
+        List<DiffEntry> diffs = diffFormatter.scan(comparisonCommit, revCommit);
 
         int totalChanges = 0;
         for (var diff : diffs) {
             FileHeader fileHeader = diffFormatter.toFileHeader(diff);
-            // https://archive.eclipse.org/jgit/docs/jgit-2.0.0.201206130900-r/apidocs/org/eclipse/jgit/diff/Edit.html
-            totalChanges += fileHeader.toEditList().stream().mapToInt(e -> e.getLengthA() + e.getLengthB()).sum();
+            for (var edit : fileHeader.toEditList()) {
+                // https://archive.eclipse.org/jgit/docs/jgit-2.0.0.201206130900-r/apidocs/org/eclipse/jgit/diff/Edit.html
+                totalChanges += edit.getLengthA() + edit.getLengthB();
+            }
         }
 
         return totalChanges;

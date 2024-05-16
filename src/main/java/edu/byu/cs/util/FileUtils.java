@@ -36,15 +36,11 @@ public class FileUtils {
      * @param file the file to be written to
      */
     public static void writeStringToFile(String data, File file) {
-        try {
-            if (!file.exists()) Files.createFile(file.toPath());
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(data);
-            }
+        try (var os = new FileOutputStream(file)) {
+            os.write(data.getBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to write to file: " + e.getMessage());
         }
-
     }
 
     /**
