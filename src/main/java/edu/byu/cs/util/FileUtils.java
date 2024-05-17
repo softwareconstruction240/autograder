@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -174,5 +176,32 @@ public class FileUtils {
         } catch (IOException e) {
             throw new RuntimeException("Failed to copy file: " + e.getMessage());
         }
+    }
+
+    /**
+     *
+     * @param filePath The path to file/directory to find all the file names and the associated absolute paths
+     * @return A map of the file names and the associated absolute paths given a path
+     * For example:
+     * {
+     *     "ChessBoardTests.java":
+     *     "IdeaProjects/autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
+     * }
+     */
+    public static Map<String, String> getFileNamesToAbsolutePaths(Path filePath) {
+        Map<String, String> fileNamesToAbsolutesPaths = new HashMap<>();
+        try (Stream<Path> paths = Files.walk(filePath)) {
+            for (Path path : paths.toList()) {
+                File file = path.toFile();
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    String absolutePath = file.getAbsolutePath();
+                    fileNamesToAbsolutesPaths.put(fileName, absolutePath);
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return fileNamesToAbsolutesPaths;
     }
 }
