@@ -55,14 +55,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
                 if (line.isEmpty()) continue;
                 if (line.matches("^(/\\*\\*|@|(?!import|package|//).*\\b(class|record|enum|@?interface)\\b).*$")) break;
 
-                String packageImport = line.substring(line.indexOf(' ')).trim();
-                if (packageImport.startsWith("static")) {
-                    packageImport = packageImport.substring(packageImport.indexOf(' '), packageImport.lastIndexOf('.')).trim();
-                }
-                if (packageImport.contains(".")) {
-                    packageImport = packageImport.substring(0, packageImport.lastIndexOf('.'));
-                }
-
+                String packageImport = getPackageImport(line);
                 if (packages.contains(packageImport)) {
                     String warning = ("File %s imports from package %s (line %d), which exists in another module. " +
                             "The client and server modules should be independent")
@@ -71,5 +64,20 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
                 }
             }
         }
+    }
+
+    private static String getPackageImport(String line) {
+        int firstSpace = line.indexOf(' ');
+        if(firstSpace == -1) return line;
+        String packageImport = line.substring(firstSpace).trim();
+        int lastPeriod = packageImport.lastIndexOf('.');
+        if(lastPeriod != -1) {
+            if (packageImport.startsWith("static")) {
+                packageImport = packageImport.substring(packageImport.indexOf(' '), packageImport.lastIndexOf('.')).trim();
+                lastPeriod = packageImport.lastIndexOf('.');
+            }
+            packageImport = packageImport.substring(0, lastPeriod);
+        }
+        return packageImport;
     }
 }
