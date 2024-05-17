@@ -16,7 +16,7 @@ public class CompileHelper {
     }
 
     private final Collection<StudentCodeVerifier> currentVerifiers =
-            List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier());
+            List.of(new ProjectStructureVerifier(), new ModifiedTestFilesVerifier());
 
     private final Collection<StudentCodeModifier> currentModifiers =
             List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
