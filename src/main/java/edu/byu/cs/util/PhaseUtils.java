@@ -187,4 +187,15 @@ public class PhaseUtils {
         return 0;
     }
 
+    public static String getPassoffPackagePath(Phase phase) {
+        return switch (phase) {
+            case Phase0 -> "phases/phase0.passoff.chess";
+            case Phase1 -> "phases/phase1.passoff.chess";
+            case Phase3 -> "phases/phase3.passoff.server";
+            case Phase4 -> "phases/phase4.passoff.server";
+            case Phase6 -> "phases/phase6.passoff.server";
+            case Phase5, Quality -> null;
+        };
+    }
+
 }
