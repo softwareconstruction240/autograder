@@ -56,7 +56,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
                 if (line.matches("^(?!import|package|//)(/\\*\\*|@|.*\\b(class|record|enum|@?interface)\\b).*$")) break;
 
                 String packageImport = getPackageImport(line);
-                if (packages.contains(packageImport)) {
+                if (packageImport != null && packages.contains(packageImport)) {
                     String warning = ("File %s imports from package %s (line %d), which exists in another module. " +
                             "The client and server modules should be independent")
                             .formatted(context.stageRepo().toPath().relativize(file.toPath()), packageImport, i + 1);
@@ -68,7 +68,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
 
     private static String getPackageImport(String line) {
         int firstSpace = line.indexOf(' ');
-        if(firstSpace == -1) return line;
+        if(firstSpace == -1) return null;
         String packageImport = line.substring(firstSpace).trim();
         int lastPeriod = packageImport.lastIndexOf('.');
         if(lastPeriod != -1) {
