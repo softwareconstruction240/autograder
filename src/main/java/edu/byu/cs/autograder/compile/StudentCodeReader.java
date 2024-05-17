@@ -47,4 +47,12 @@ public class StudentCodeReader {
         return files.stream().filter(file -> file.getPath().matches(regex));
     }
 
+    public Map<String, String> getFileNameToAbsolutePath(String regex) {
+        Map<String, String> fileNamesToAbsoluteFilePaths = new HashMap<>();
+        for (File file : filesMatching(regex).toList()) {
+            fileNamesToAbsoluteFilePaths.put(file.getName(), file.getAbsolutePath());
+        }
+        return fileNamesToAbsoluteFilePaths;
+    }
+
 }
