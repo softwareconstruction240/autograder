@@ -71,11 +71,7 @@ class ScorerTest {
             fail("Unexpected exception thrown: ", e);
         }
 
-        DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
-        DaoService.setUserDao(new UserMemoryDao());
-        DaoService.setQueueDao(new QueueMemoryDao());
-        DaoService.setSubmissionDao(new SubmissionMemoryDao());
-        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
+        DaoService.initializeMemoryDAOs();
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
