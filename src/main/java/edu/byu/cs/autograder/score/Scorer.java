@@ -35,11 +35,23 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
+    /**
+     * Main entry point for the {@link Scorer} class.
+     * This method takes in a rubric and a commit verification result
+     * and scores them together.
+     * <br>
+     * When appropriate, it will save the score the grade-book,
+     * but it always returns a {@link Submission} that can be
+     * @param rubric A freshly generated {@link Rubric} from the grading system.
+     * @param commitVerificationResult The associated {@link CommitVerificationResult} from the verification system.
+     * @return A {@link Submission} ready to save in the database.
+     * @throws GradingException When pre-conditions are not met.
+     * @throws DataAccessException When the database cannot be accessed.
+     */
     public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
         gradingContext.observer().update("Grading...");
 
-        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
-        rubric = annotateRubric(rubric);
+        rubric = transformRubric(rubric);
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
@@ -50,24 +62,35 @@ public class Scorer {
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
 
         // Validate several conditions before submitting to the grade-book
-        Submission thisSubmission;
         if (!rubric.passed()) {
-            thisSubmission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
         } else if (!commitVerificationResult.verified()) {
-            thisSubmission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
         } else {
-            // The student receives a score in canvas!
-            thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
+            // The student (may) receive a score in canvas!
+            return attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
         }
-
-        return thisSubmission;
     }
 
     /**
-     * Saves the generated submission and carefully submits the score to Canvas when it helps the student's grade.
+     * Transforms the values in the rubric from percentage grading results to point valued scores.
+     * The resulting {@link Rubric} is ready to save in the database and give to the grade-book system.
+     *
+     * @param rubric A freshly generated Rubric still containing decimal scores from the grading process.
+     * @return A new Rubric with values ready for the grade-book.
+     * @throws GradingException When pre-conditions are not met.
+     * @throws DataAccessException When the database cannot be accessed.
+     */
+    private Rubric transformRubric(Rubric rubric) throws GradingException, DataAccessException {
+        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
+        return annotateRubric(rubric);
+    }
+
+    /**
+     * Carefully submits the score to Canvas when it helps the student's grade.
+     * Returns the submission, now with all missing rubric items populated with their previous values from Canvas.
      * <br>
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
-     * It DOES NOT save the submission in the DAOs.
      *
      * @param rubric Required.
      * @param commitVerificationResult Required.
@@ -283,9 +306,21 @@ public class Scorer {
     }
 
     /**
-     * Takes provided inputs and generates a Submission object that can be sent to canvas or saved in the database
+     * Prepares the necessary data pieces to construct a {@link Submission}.
+     * This can be saved in the database, and has information which is
+     * displayed to the user.
+     * <br>
+     * Note that this object is not sent directly to any grade-book.
+     * Other objects are constructed independently for that purpose.
      *
-     * @param rubric the rubric for the phase
+     * @param rubric A fully transformed and populated Rubric.
+     * @param commitVerificationResult Results from the commit verification system.
+     * @param numDaysLate The number of days late this submission was handed-in.
+     *                    For note generating purposes only; this is not used to
+     *                    calculate any penalties.
+     * @param score The final approved score on the submission represented in points.
+     * @param notes Any notes that are associated with the submission.
+     *              More comments may be added to this string while preparing the Submission.
      */
     private Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
                                                 int numDaysLate, float score, String notes)
