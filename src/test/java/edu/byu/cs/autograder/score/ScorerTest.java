@@ -77,7 +77,8 @@ class ScorerTest {
                 Phase.Phase0,
                 new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS),
                 null,
-                null
+                null,
+                new RubricConfig.RubricConfigItem("commitCategory", "commitCriteria", 0)
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
         DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
@@ -128,7 +129,7 @@ class ScorerTest {
 
     @Test
     void score__noPossiblePoints__error() {
-        RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
+        RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null, null);
         setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
         var scorer = new Scorer(gradingContext);
@@ -190,7 +191,8 @@ class ScorerTest {
                 Phase.Quality,
                 null,
                 null,
-                new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
+                new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30),
+                null
         );
         setRubricConfig(Phase.Quality, phase0RubricConfig);
 
@@ -201,7 +203,7 @@ class ScorerTest {
                 mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
-        Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
+        Rubric emptyRubric = new Rubric(null, null, null, null,true, "testNotes");
         Submission submission = scoreRubric(emptyRubric);
 
         assertNotNull(submission);
@@ -230,6 +232,7 @@ class ScorerTest {
 
         return new Rubric(
                 new Rubric.RubricItem("testCategory", results, "testCriteria"),
+                null,
                 null,
                 null,
                 true,
