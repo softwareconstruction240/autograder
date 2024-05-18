@@ -187,7 +187,7 @@ public class LateDayCalculator {
             dateStrings = extractPublicHolidaysSingleline(encodedPublicHolidays);
         }
 
-        return parsePublicHolidayStrings(dateEncodingFormat, dateStrings);
+        return parsePublicHolidayStrings(dateEncodingFormat, dateStrings, false);
     }
     private String[] extractPublicHolidaysSingleline(String singleLineEncodedHolidays) {
         String DELIMITERS = " ,;";
@@ -202,7 +202,7 @@ public class LateDayCalculator {
         }
         return holidays.toArray(new String[0]);
     }
-    private Set<LocalDate> parsePublicHolidayStrings(@NonNull String dateFormat, String[] holidayDateStrings) {
+    private Set<LocalDate> parsePublicHolidayStrings(@NonNull String dateFormat, String[] holidayDateStrings, boolean quietWarnings) {
         Set<LocalDate> publicHolidays = new HashSet<>();
         var parser = DateTimeFormatter.ofPattern(dateFormat);
         for (var holidayDateString : holidayDateStrings) {
@@ -215,7 +215,7 @@ public class LateDayCalculator {
             try {
                 publicHolidays.add(parser.parse(holidayDateString, LocalDate::from));
             } catch (DateTimeParseException e) {
-                LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
+                if (!quietWarnings) LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
             }
         }
         return publicHolidays;
