@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,10 +21,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
             Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*").collect(Collectors.toSet());
             Set<String> clientPackages = packageNames(clientFiles, reader);
 
-            Set<String> duplicatedPackages = new HashSet<>(serverPackages);
-            duplicatedPackages.removeIf(packageName -> !clientPackages.contains(packageName));
-            serverPackages.removeIf(duplicatedPackages::contains);
-            clientPackages.removeIf(duplicatedPackages::contains);
+            removeCommonItems(serverPackages, clientPackages);
 
             checkImports(context, reader, serverFiles, clientPackages);
             checkImports(context, reader, clientFiles, serverPackages);
@@ -87,5 +85,17 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
             packageImport = packageImport.substring(0, lastPeriod);
         }
         return packageImport;
+    }
+
+    /**
+     * Removes items common in all provided collections
+     *
+     * @param collections variable number of collections
+     */
+    private void removeCommonItems(Collection<?>... collections) {
+        Collection<?> commonItems = new HashSet<>(collections[0]);
+        for(Collection<?> coll : collections) commonItems.removeIf(item -> !coll.contains(item));
+
+        for(Collection<?> coll : collections) coll.removeIf(commonItems::contains);
     }
 }
