@@ -9,9 +9,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ModuleIndependenceVerifier implements StudentCodeVerifier {
+
+    private static final Pattern IMPORT_REGEX = Pattern.compile("^import(\\s+static)?\\s+(\\w+\\.)+\\w+;.*$");
+
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         try {
@@ -50,8 +54,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
             List<String> contents = reader.getFileContents(file);
             for (int i = 0; i < contents.size(); i++) {
                 String line = contents.get(i).trim();
-                if (line.isEmpty()) continue;
-                if (line.matches("^(?!import|package|//)(/\\*\\*|@|.*\\b(class|record|enum|@?interface)\\b).*$")) break;
+                if (!IMPORT_REGEX.matcher(line).matches()) continue;
 
                 String packageImport = getPackageImport(line);
                 if (packageImport != null && packages.contains(packageImport)) {
