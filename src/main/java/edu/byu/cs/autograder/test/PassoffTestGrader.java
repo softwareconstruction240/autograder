@@ -75,7 +75,7 @@ public class PassoffTestGrader extends TestGrader {
 
         Map<String, Float> ecScores = getECScores(testResults);
         float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
-        float totalECPoints = ecScores.values().stream().reduce(0f, Float::sum) * extraCreditValue;
+        float totalECPoints = ecScores.values().stream().reduce(0f, (f1, f2) -> (float) (f1 + Math.floor(f2))) * extraCreditValue;
 
         if (totalECPoints > 0f) notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
 

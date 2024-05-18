@@ -30,6 +30,7 @@ services:
         "--cas-callback-url", "changeme",
         "--canvas-token", "changeme",
         "--use-canvas", "true",
+#        "--disable-compilation", # Enable me, if desired!
     ]
     networks:
       - autograder

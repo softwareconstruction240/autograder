@@ -49,4 +49,13 @@ public class DaoService {
     public static void setConfigurationDao(ConfigurationDao configurationDao) {
         DaoService.configurationDao = configurationDao;
     }
+
+    /** Create and set a memory DAO for every DAO. Used for testing purposes. */
+    public static void initializeMemoryDAOs() {
+        DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
+        DaoService.setUserDao(new UserMemoryDao());
+        DaoService.setQueueDao(new QueueMemoryDao());
+        DaoService.setSubmissionDao(new SubmissionMemoryDao());
+        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
+    }
 }

@@ -11,6 +11,7 @@ import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
+import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +83,12 @@ public class Scorer {
             Rubric rubric, CommitVerificationResult commitVerificationResult,
             int daysLate, float thisScore
     ) throws DataAccessException, GradingException {
+
+        if (!ApplicationProperties.useCanvas()) {
+            return saveResults(rubric, commitVerificationResult, daysLate, thisScore,
+                    "Would have attempted grade-book submission, but skipped due to application properties.");
+        }
+
         int canvasUserId = getCanvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
 

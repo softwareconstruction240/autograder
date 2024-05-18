@@ -13,6 +13,7 @@ import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ public class Grader implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Grader.class);
 
     /** DEV ONLY. Default: true. Skips compilation and evaluation of student projects. */
-    private static final boolean RUN_COMPILATION = true;
+    private final boolean RUN_COMPILATION = ApplicationProperties.runCompilation();
 
     private final DatabaseHelper dbHelper;
 
@@ -64,7 +65,7 @@ public class Grader implements Runnable {
         int requiredCommits = 10;
         int requiredDaysWithCommits = 3;
         int commitVerificationPenaltyPct = 10;
-        int minimumChangedLinesPerCommit = 20;
+        int minimumChangedLinesPerCommit = 5;
 
         this.observer = observer;
         this.gradingContext = new GradingContext(
@@ -83,11 +84,11 @@ public class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            CommitVerificationResult commitVerificationResult = gitHelper.setUp();
+            CommitVerificationResult commitVerificationResult = gitHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION) compileHelper.compile();
 
-            new PreviousPhasePassoffTestGrader(gradingContext).runTests();
+            if (RUN_COMPILATION) new PreviousPhasePassoffTestGrader(gradingContext).runTests();
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             var evaluationResults = evaluateProject(RUN_COMPILATION ? rubricConfig : null);

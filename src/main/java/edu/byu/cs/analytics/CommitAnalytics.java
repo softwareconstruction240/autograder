@@ -17,17 +17,14 @@ import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.File;
@@ -62,28 +59,38 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         int singleParentCommits = 0;
         int mergeCommits = 0;
-        List<Integer> changesPerCommit = new ArrayList<>();
+        List<Integer> changesPerCommit = new LinkedList<>();
+        Map<String, List<String>> erroringCommits = new HashMap<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
         boolean commitsInPast = false;
+        boolean commitsBackdated = false;
+
+        Map<Long, List<String>> commitsByTimestamp = new HashMap<>();
+        boolean commitsWithSameTimestamp = false;
 
         // Iteration helpers
-        long commitTimeSecs;
+        CommitTimestamps commitTimes;
+        String commitHash;
         for (RevCommit rc : commits) {
-            commitTimeSecs = getCommitTime(rc);
-            if (commitTimeSecs <= lowerTimeBoundSecs) {
+            commitTimes = getCommitTime(rc);
+            commitHash = rc.getName();
+            if (commitTimes.seconds <= lowerTimeBoundSecs) {
+                groupCommitsByKey(erroringCommits, "commitsInPast", commitHash);
                 commitsInPast = true;
                 // Actually, we want to just skip these commits since these could legitimately
                 // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
                 continue;
             }
-            if (commitTimeSecs > upperTimeBoundSecs) {
+            if (commitTimes.seconds > upperTimeBoundSecs) {
+                groupCommitsByKey(erroringCommits, "commitsInFuture", commitHash);
                 commitsInFuture = true;
             }
 
-            for (var pc : rc.getParents()) {
-                if (commitTimeSecs < getCommitTime(pc)) {
+            for (var pc : getCommitParents(git, rc)) {
+                if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
+                    groupCommitsByKey(erroringCommits, "commitsInOrder", commitHash);
                     commitsInOrder = false;
                     break;
                 }
@@ -95,20 +102,85 @@ public class CommitAnalytics {
                 continue;
             }
 
+            if (detectCommitBackdating(commitTimes)) {
+                groupCommitsByKey(erroringCommits, "commitsBackdated", commitHash);
+                commitsBackdated = true;
+            }
+
             // Count changes in each commit
             changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+            groupCommitsByKey(commitsByTimestamp, commitTimes.seconds, commitHash);
 
             // Add the commit to results
-            String dayKey = DateTimeUtils.getDateString(commitTimeSecs, false);
+            String dayKey = DateTimeUtils.getDateString(commitTimes.seconds, false);
             days.put(dayKey, days.getOrDefault(dayKey, 0) + 1);
             ++singleParentCommits;
         }
+
+        // Check for multiple commits with the same timestamp
+        var duplicatedTimestampCommits = analyzeDuplicatedTimestamps(commitsByTimestamp);
+        if (!duplicatedTimestampCommits.isEmpty()) {
+            commitsWithSameTimestamp = true;
+            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits);
+        }
+
         return new CommitsByDay(
-                days, changesPerCommit,
+                days, changesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast,
+                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp,
                 lowerBound, upperBound);
     }
+
+    private static <T> void groupCommitsByKey(Map<T, List<String>> dataMap, T groupId, String commitHash) {
+        dataMap.putIfAbsent(groupId, new LinkedList<>());
+        dataMap.get(groupId).add(commitHash);
+    }
+    private static List<String> analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
+        List<String> out = new LinkedList<>();
+        for (var commitsAtTimestamp : dataMap.values()) {
+            if (commitsAtTimestamp.size() > 1) {
+                out.addAll(commitsAtTimestamp);
+            }
+        }
+        return out;
+    }
+
+
+    /**
+     * Returns the parents of the specified commit with a buffer included for detailed parsing.
+     * If the data isn't immediately available, it will be freshly retrieved from the repo.
+     * <br>
+     * This method works even when the parents of the commit were marked as "uninteresting" during
+     * initial processing. When this happens, the library includes the parents but excludes
+     * all buffer data which causes a NPE when attempting to access their authorship data.
+     *
+     * @param git The Git repo being processed
+     * @param commit An existing {@link RevCommit} that will be traversed.
+     * @return An array of RevCommits representing all parents, or an empty array.
+     * @throws IOException When Jgit has an issue reading the disk.
+     */
+    private static RevCommit[] getCommitParents(Git git, RevCommit commit) throws IOException {
+        // If the parents are already available, return them. Otherwise, fetch them anew from Git with a RevWalk
+        var allParentsHaveBuffer = true;
+        var parents = commit.getParents();
+        for (var parent : parents) {
+            allParentsHaveBuffer &= parent.getRawBuffer() != null;
+        }
+
+        if (allParentsHaveBuffer) return parents;
+
+        // Replace existing parent commit objects with freshly loaded objects from the repo
+        // RevWalk.parseCommit is expensive and can be used multiple times, but only once per commit.
+        // That is sufficient for our purposes here.
+        // Generally speaking, this code will only on run the first commit authored after a passing submission.
+        var revWalk = new RevWalk(git.getRepository());
+        for (int i = 0; i < parents.length; ++i) {
+            if (parents[i].getRawBuffer() != null) continue;
+            parents[i] = revWalk.parseCommit(parents[i].toObjectId());
+        }
+        return parents;
+    }
+
     private static Iterable<RevCommit> getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
             throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
@@ -132,25 +204,60 @@ public class CommitAnalytics {
      * Note that the <b>authorship time</b> differs from the <b>commit time</b>
      * in cases where the commit is amended or changed after original authorship.
      * For example, if a commit is cherry-picked, rebased, or amended.
+     * <br>
+     * Note that it is relatively easy to change the author date of commits,
+     * compared to changing the commit date for an experienced user. However, it makes the most sense to
+     * monitor the author date because the automated tools preserve these generally.
      *
      * @param revCommit The commit to analyze
      * @return A long representing the author time in seconds.
      */
-    private static long getCommitTime(RevCommit revCommit) {
-        long out = revCommit.getCommitTime(); // More efficient, but represents the COMMIT time
+    private static CommitTimestamps getCommitTime(RevCommit revCommit) {
+        long commitTimestamp = revCommit.getCommitTime();
+        long bestTimestamp = commitTimestamp;
 
+        long authorTimestamp = -1;
         PersonIdent authorIdent = revCommit.getAuthorIdent();
         if (authorIdent != null) {
             Date authorTime = authorIdent.getWhen();
             if (authorTime != null) {
-                out = authorTime.getTime() / 1000;
+                authorTimestamp = authorTime.getTime() / 1000;
+                bestTimestamp = authorTimestamp;
             }
         }
-        // CONSIDER: Do we want to flag or display a warning if we are not able to read the actual AUTHOR_TIME
-        // field of the commits? We could auto-reject them...
 
-        return out;
+        return new CommitTimestamps(commitTimestamp, authorTimestamp, bestTimestamp);
     }
+
+    private static final long secondsInDay = 60*60*24;
+
+    /**
+     * Performs several checks to determine if the commits may have been manually backdated (not allowed).
+     *
+     * @param timestamps The CommitTimestamps of the commit
+     * @return A boolean indicating if backdating was detected
+     */
+    private static boolean detectCommitBackdating(CommitTimestamps timestamps) {
+        if (timestamps.author == -1) {
+            // CONSIDER: Throwing an error instead if the author timestamp isn't available?
+            return false;
+        }
+
+        // Detect if the author timestamp is after than the commit timestamp
+        if (timestamps.author > timestamps.commit) {
+            return true;
+        }
+
+        // When git backdates commits, it uses the time part as the commit timestamp.
+        // Detect if the commit and author timestamps are separated exactly by a multiple of days.
+        if ((timestamps.commit != timestamps.author) && (timestamps.commit - timestamps.author) % secondsInDay == 0) {
+            return true;
+        }
+
+        return false; // No backdating detected
+    }
+
+
     /**
      * Prepares a {@link DiffFormatter} for efficient use on multiple diffs later.
      * <br>
@@ -177,19 +284,25 @@ public class CommitAnalytics {
      * @throws IOException When the system can't read the data properly.
      */
     private static int getNumChangesInCommit(DiffFormatter diffFormatter, RevCommit revCommit) throws IOException {
+        RevCommit comparisonCommit;
         int parentCount = revCommit.getParentCount();
-        if (parentCount == 0) {
-            return 0; // Root commit doesn't have any changes
-        } else if (parentCount > 1) {
+        if (parentCount == 1) {
+            comparisonCommit = revCommit.getParent(0);
+        } else if (parentCount == 0) {
+            comparisonCommit = null; // Root commits can still have changes
+        } else {
             throw new IllegalArgumentException("Cannot count changes in a merge commit.");
         }
 
-        List<DiffEntry> diffs = diffFormatter.scan(revCommit.getParent(0), revCommit);
+        List<DiffEntry> diffs = diffFormatter.scan(comparisonCommit, revCommit);
 
         int totalChanges = 0;
         for (var diff : diffs) {
             FileHeader fileHeader = diffFormatter.toFileHeader(diff);
-            totalChanges += fileHeader.toEditList().stream().mapToInt(Edit::getLengthB).sum();
+            for (var edit : fileHeader.toEditList()) {
+                // https://archive.eclipse.org/jgit/docs/jgit-2.0.0.201206130900-r/apidocs/org/eclipse/jgit/diff/Edit.html
+                totalChanges += edit.getLengthA() + edit.getLengthB();
+            }
         }
 
         return totalChanges;
@@ -203,6 +316,21 @@ public class CommitAnalytics {
             String section,
             String timestamp
     ) {}
+
+    /**
+     * Represents the timestamps relating to a commit.
+     * <br>
+     * Both values are `long`'s representing the number of seconds since the epoch.
+     *
+     * @param commit Represents the commit timestamp. Will always exist.
+     * @param author Represents the authorship timestamp, or -1 if it cannot be extracted
+     * @param seconds Represents the author timestamp, or the commit timestamp if not available.
+     */
+    private record CommitTimestamps(
+         long commit,
+         long author,
+         long seconds
+    ) { }
 
     /**
      * generates a CSV-formatted string of all commit data

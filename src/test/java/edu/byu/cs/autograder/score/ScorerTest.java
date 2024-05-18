@@ -71,11 +71,7 @@ class ScorerTest {
             fail("Unexpected exception thrown: ", e);
         }
 
-        DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
-        DaoService.setUserDao(new UserMemoryDao());
-        DaoService.setQueueDao(new QueueMemoryDao());
-        DaoService.setSubmissionDao(new SubmissionMemoryDao());
-        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
+        DaoService.initializeMemoryDAOs();
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
@@ -278,7 +274,7 @@ class ScorerTest {
         String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
 
         return new CommitVerificationResult(
-                verified, isCached, 0, 0, 0,
+                verified, isCached, 0, 0, 0, 0,
                 "", null, null,
                 headHash, null);
     }
