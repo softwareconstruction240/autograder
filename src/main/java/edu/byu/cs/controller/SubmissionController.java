@@ -329,10 +329,6 @@ public class SubmissionController {
 
         ApprovalRequest request = new Gson().fromJson(req.body(), ApprovalRequest.class);
 
-        System.out.println(request.netId());
-        System.out.println(request.penalize());
-        System.out.println(request.phase());
-
         int penalty = 0;
         if (request.penalize()) {
             //TODO: Put somewhere better/more configurable
