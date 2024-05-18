@@ -512,8 +512,12 @@ public class SubmissionController {
      * @param approverNetId Identifies the TA or professor approving the score
      * @param penaltyPct The penalty applied for the reduction.
      *                   This should already be reflected in the `approvedScore` if present.
-     * @param approvedScore <p>The final score that should go in the grade-book.</p>
-     *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
+     *                   <p>This will be used to reduce all other submissions,
+     *                   but has no effect in the grade-book when <code>approvedScore</code> is provided.</p>
+     * @param approvedScore <p>The final score that should go in the grade-book.
+     *                      Submissions in the database will <b>not</b> be affected by this value.</p>
+     *                      <p>If `null`, we'll determine this value by applying the penalty to
+     *                      the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
      *                      submission with a penalty instead of any other fixed rule.</p>
      * @param submissionToUse Required when `approvedScored` is passed in.
@@ -541,38 +545,17 @@ public class SubmissionController {
 
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+        assertSubmissionUnapproved(submissionDao, studentNetId, phase);
+        Submission withheldSubmission = determineSubmissionForConsideration(submissionDao, submissionToUse, studentNetId, phase);
 
-        // Check that this phase hasn't already been approved
-        if (withheldSubmission.isApproved()) {
-            throw new RuntimeException(studentNetId + " needs no approval for phase " + phase);
-        }
+        // Modify values in our database first
+        int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
 
-        // Update Submissions
-        Float originalScore = withheldSubmission.score();
-        Instant approvedTimestamp = Instant.now();
-        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
-                originalScore,
-                approverNetId,
-                approvedTimestamp,
-                penaltyPct);
-        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(submissionDao, studentNetId, phase, scoreVerification);
-
-        if (submissionsAffected < 1) {
-            LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
-        }
-
-        if (submissionToUse == null) {
-            submissionToUse = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
-            if (submissionToUse == null) {
-                throw new RuntimeException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
-            }
-        }
         if (approvedScore == null) {
             approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), penaltyPct);
         }
 
-        float scoreDifference = approvedScore - originalScore;
+        float scoreDifference = approvedScore - withheldSubmission.score();
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
         Rubric rubricToUse = constructGitCommitsRubric(approverNetId, submissionToUse, scoreDifference);
 
@@ -600,6 +583,48 @@ public class SubmissionController {
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
                 .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
+    }
+
+    private static void assertSubmissionUnapproved(SubmissionDao submissionDao, String studentNetId, Phase phase) throws DataAccessException {
+        Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+        if (withheldSubmission.isApproved()) {
+            throw new RuntimeException(studentNetId + " needs no approval for phase " + phase);
+        }
+    }
+
+    private static Submission determineSubmissionForConsideration(
+            SubmissionDao submissionDao, Submission providedValue, String studentNetId, Phase phase)
+            throws DataAccessException {
+        if (providedValue != null) return providedValue;
+
+        Submission submission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
+        if (submission == null) {
+            throw new RuntimeException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
+        }
+        return submission;
+    }
+
+    private static int modifySubmissionEntriesInDatabase(
+            SubmissionDao submissionDao, Submission withheldSubmission, String approvingNetId, int penaltyPct)
+            throws DataAccessException {
+
+        Float originalScore = withheldSubmission.score();
+        Instant approvedTimestamp = Instant.now();
+        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
+                originalScore,
+                approvingNetId,
+                approvedTimestamp,
+                penaltyPct);
+        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(
+                submissionDao,
+                withheldSubmission.netId(),
+                withheldSubmission.phase(),
+                scoreVerification);
+
+        if (submissionsAffected < 1) {
+            LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
+        }
+        return submissionsAffected;
     }
 
     private static Rubric constructGitCommitsRubric(String approverNetId, Submission submissionToUse, float scoreDifference) {
