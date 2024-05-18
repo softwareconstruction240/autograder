@@ -43,9 +43,7 @@ public class Scorer {
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            Submission submission = generateSubmissionObject(rubric, commitVerificationResult, 0, getScore(rubric), "");
-            DaoService.getSubmissionDao().insertSubmission(submission);
-            return submission;
+            return generateSubmissionObject(rubric, commitVerificationResult, 0, getScore(rubric), "");
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
@@ -85,7 +83,7 @@ public class Scorer {
     ) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
-            return saveResults(rubric, commitVerificationResult, daysLate, thisScore,
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore,
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
