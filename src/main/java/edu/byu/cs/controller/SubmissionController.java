@@ -548,7 +548,7 @@ public class SubmissionController {
         Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
 
         // Check that this phase hasn't already been approved
-        if (withheldSubmission.verifiedStatus() != Submission.VerifiedStatus.Unapproved) {
+        if (withheldSubmission.isApproved()) {
             throw new RuntimeException(studentNetId + " needs no approval for phase " + phase);
         }
 

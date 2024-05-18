@@ -102,6 +102,13 @@ public record Submission(
         }
     }
 
+    public boolean isApproved() {
+        if (verifiedStatus == null) {
+            return true; // Old submissions without this field are assumed to be approved
+        }
+        return verifiedStatus.isApproved();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
