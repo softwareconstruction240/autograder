@@ -99,7 +99,7 @@ public class CanvasUtils {
                                                                             float lateAdjustment, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
                                                                             Rubric.RubricType rubricType) throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
-        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
+        if (rubricConfigItem != null) {
             Rubric.Results results = rubricItem.results();
             items.put(PhaseUtils.getCanvasRubricId(rubricType, phase),
                     new CanvasRubricItem(results.notes(), results.score() * (1 - lateAdjustment)));
