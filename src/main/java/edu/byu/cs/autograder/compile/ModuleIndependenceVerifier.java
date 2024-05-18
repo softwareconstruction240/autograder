@@ -66,6 +66,14 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
         }
     }
 
+    /**
+     * Gets just the package being imported from a java import statement
+     * <p>For example, "import java.util.Set;" would return "java.util"
+     * <p>For example, "import static java.sql.Types.NULL;" would return "java.sql"
+     *
+     * @param line java import statement
+     * @return package name
+     */
     private static String getPackageImport(String line) {
         int firstSpace = line.indexOf(' ');
         if(firstSpace == -1) return null;
