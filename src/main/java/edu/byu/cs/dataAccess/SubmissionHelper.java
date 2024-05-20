@@ -3,6 +3,8 @@ package edu.byu.cs.dataAccess;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
+import java.util.HashSet;
+
 public class SubmissionHelper {
 
     /**
@@ -27,8 +29,8 @@ public class SubmissionHelper {
             throws DataAccessException {
         int affected = 0;
 
-        var phaseSubmissions = submissionDao.getSubmissionsForPhase(studentNetId, phase);
-        Float modifiedScore;
+        var phaseSubmissions = new HashSet<>(submissionDao.getSubmissionsForPhase(studentNetId, phase));
+        float modifiedScore;
         Submission.ScoreVerification individualVerification;
         for (var submission : phaseSubmissions) {
             if (!submission.passed()) continue;
