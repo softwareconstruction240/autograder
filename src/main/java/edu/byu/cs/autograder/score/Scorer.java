@@ -68,7 +68,7 @@ public class Scorer {
             return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
         } else {
             // The student (may) receive a score in canvas!
-            return attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
+            return attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore, false);
         }
     }
 
@@ -87,22 +87,43 @@ public class Scorer {
     }
 
     /**
+     * Uses several values stored in the {@link GradingContext} to send the provided Rubric to Canvas.
+     * <br>
+     * Note that this operation will be performed carefully so that existing RubricItem's in Canvas
+     * will not be overwritten by the operation.
+     *
+     * @param rubric A {@link Rubric} containing values to set in Canvas.
+     *               Any items not set will be populated with their value from Canvas.
+     * @param forceSendScore Forces the grade to be submitted, even if it would lower the student's score.
+     * @throws GradingException When preconditions are not met.
+     * @throws DataAccessException When the database cannot be reached.
+     */
+    public void attemptSendToCanvas(Rubric rubric, boolean forceSendScore) throws GradingException, DataAccessException {
+        attemptSendToCanvas(rubric, null, 0, 0f, forceSendScore);
+    }
+
+    /**
      * Carefully submits the score to Canvas when it helps the student's grade.
      * Returns the submission, now with all missing rubric items populated with their previous values from Canvas.
      * <br>
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
      *
      * @param rubric Required.
-     * @param commitVerificationResult Required.
-     * @param daysLate Required.
-     * @param thisScore Required.
+     * @param commitVerificationResult Required when originally creating a submission.
+     *                                 Can be null when sending scores to Canvas; this will disable
+     *                                 any automatic point deductions for verification, and also result in
+     *                                 <code>null</code> being returned instead of a {@link Submission}.
+     * @param daysLate Required. Used to add a note to the resulting submission object.
+     * @param thisScore Required. Used to place a value in the {@link Submission} object.
+     *                  The Canvas grade is based entirely on the provided {@link Rubric}.
+     * @param forceSendScore Forces the grade to be submitted, even if it would lower the student's score.
      * @return A construction Submission for continued processing
      * @throws DataAccessException When the database can't be reached.
      * @throws GradingException When other conditions fail.
      */
     private Submission attemptSendToCanvas(
             Rubric rubric, CommitVerificationResult commitVerificationResult,
-            int daysLate, float thisScore
+            int daysLate, float thisScore, boolean forceSendScore
     ) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
@@ -120,7 +141,7 @@ public class Scorer {
 
         // prevent score from being saved to canvas if it will lower their score
         Submission submission;
-        if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
+        if (!forceSendScore && totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
             String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
             submission = generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, notes);
         } else {
@@ -138,11 +159,12 @@ public class Scorer {
      *
      * @param assessment The assessment to modify.
      * @param gradingContext Represents the current grading.
-     * @param verification The evaluated CommitVerificationResult.
+     * @param verification The evaluated CommitVerificationResult. If null, then no effects will take place.
      * @throws GradingException When grading errors occur such as the phase not having a GIT_COMMITS rubric item.
      */
-    public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, GradingContext gradingContext,
+    private static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, GradingContext gradingContext,
                                                     CommitVerificationResult verification) throws GradingException {
+        if (verification == null) return;
         setCommitVerificationPenalty(assessment, gradingContext.phase(), verification.penaltyPct(), verification.failureMessage());
     }
 
@@ -166,10 +188,10 @@ public class Scorer {
 
         // Prepare conditions and then calculate penalty
         CanvasRubricItem emptyRubricItem = new CanvasRubricItem("", 0);
-        assessment.addItem(commitRubricId, emptyRubricItem);
+        assessment.insertItem(commitRubricId, emptyRubricItem);
         float commitPenalty = getCommitPenaltyValue(penaltyPct, assessment);
 
-        assessment.addItem(commitRubricId, new CanvasRubricItem(commitComment, commitPenalty));
+        assessment.insertItem(commitRubricId, new CanvasRubricItem(commitComment, commitPenalty));
     }
 
     /**
@@ -315,6 +337,7 @@ public class Scorer {
      *
      * @param rubric A fully transformed and populated Rubric.
      * @param commitVerificationResult Results from the commit verification system.
+     *                                 If this value is null, the function will return null.
      * @param numDaysLate The number of days late this submission was handed-in.
      *                    For note generating purposes only; this is not used to
      *                    calculate any penalties.
@@ -325,6 +348,10 @@ public class Scorer {
     private Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
                                                 int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
+        if (commitVerificationResult == null) {
+            return null; // This is allowed.
+        }
+
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
@@ -365,7 +392,7 @@ public class Scorer {
         sendToCanvas(userId, assignmentNum, assessment, notes, gradingContext.netId());
     }
 
-    public static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes, String netId) throws GradingException {
+    private static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes, String netId) throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
