@@ -157,7 +157,8 @@ public class TestHelper {
         commands.add("execute");
         commands.add("--class-path");
         commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath);
-        commands.add("--details=testfeed");
+        commands.add("--details=none");
+        commands.add("--reports-dir=./test-output");
 
         for (String packageToTest : packagesToTest) {
             commands.add("-p");
