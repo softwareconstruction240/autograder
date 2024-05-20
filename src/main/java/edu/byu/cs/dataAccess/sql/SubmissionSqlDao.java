@@ -259,7 +259,7 @@ public class SubmissionSqlDao implements SubmissionDao {
     private String getSubmissionIdentDebugInfo(String netId, String headHash, String phase,
                                                Collection<Submission> matchingSubmissions) {
         String debugInfo = "\n\nSearched with the following information:";
-        debugInfo += "\n  net_id: %s\n  phase: %s\n  head_hash: %s".formatted(netId, headHash, phase);
+        debugInfo += "\n  net_id: %s\n  phase: %s\n  head_hash: %s".formatted(netId, phase, headHash);
         if (matchingSubmissions != null && !matchingSubmissions.isEmpty()) {
             // CONSIDER: Printing a summary of each submission on its own numbered line
             debugInfo += "\n  The returned submissions are: " + matchingSubmissions.toString();
