@@ -97,10 +97,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
     @Override
     public Submission getBestSubmissionForPhase(String netId, Phase phase) {
         Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
-        Submission bestSubmission =  null; // This implementation **can** differentiate between submissions and no submissions
+        Submission bestSubmission =  null;
         for (Submission s : submissions) {
             if (bestSubmission == null) { bestSubmission = s; }
-            if (s.score() > bestSubmission.score()) { bestSubmission = s; }
+            else if (s.score() > bestSubmission.score()) { bestSubmission = s; }
         }
         return bestSubmission;
     }

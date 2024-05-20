@@ -180,7 +180,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         var submissions = sqlReader.executeQuery(
                 """
                     WHERE net_id = ? AND phase = ? AND passed = 1
-                        ORDER BY score
+                        ORDER BY score DESC
                         LIMIT 1
                     """,
                 ps -> {
