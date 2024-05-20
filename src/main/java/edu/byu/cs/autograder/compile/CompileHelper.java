@@ -4,22 +4,46 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
 public class CompileHelper {
     private final GradingContext gradingContext;
 
-    public CompileHelper(GradingContext gradingContext) {this.gradingContext = gradingContext;}
+    public CompileHelper(GradingContext gradingContext) {
+        this.gradingContext = gradingContext;
+    }
+
+    private final Collection<StudentCodeVerifier> currentVerifiers =
+            List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier());
 
     private final Collection<StudentCodeModifier> currentModifiers =
-            List.of(new ProjectStructureVerifier(), new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
+            List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
     public void compile() throws GradingException {
-        for(StudentCodeModifier modifier : currentModifiers) {
-            modifier.modifyCode(gradingContext);
-        }
+        verify();
+        modify();
         packageRepo();
+    }
+
+    public void verify() throws GradingException {
+        try {
+            gradingContext.observer().update("Verifying code...");
+
+            StudentCodeReader reader = StudentCodeReader.from(gradingContext);
+            for(StudentCodeVerifier verifier : currentVerifiers) {
+                verifier.verify(gradingContext, reader);
+            }
+        } catch (IOException e) {
+            throw new GradingException("Failed to read project contents", e);
+        }
+    }
+
+    public void modify() throws GradingException {
+        for(StudentCodeModifier modifier : currentModifiers) {
+            modifier.modify(gradingContext);
+        }
     }
 
 
@@ -27,7 +51,7 @@ public class CompileHelper {
      * Packages the student repo into a jar
      */
     private void packageRepo() throws GradingException {
-        gradingContext.observer().update("Packaging repo...");
+        gradingContext.observer().update("Compiling code...");
 
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(gradingContext.stageRepo());
@@ -35,13 +59,11 @@ public class CompileHelper {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                throw new GradingException("Failed to package repo: ", getMavenError(output.stdOut()));
+                throw new GradingException("Failed to compile", getMavenError(output.stdOut()));
             }
         } catch (ProcessUtils.ProcessException ex) {
-            throw new GradingException("Failed to package repo", ex);
+            throw new GradingException("Failed to compile: %s".formatted(ex.getMessage()), ex);
         }
-
-        gradingContext.observer().update("Successfully packaged repo");
     }
 
     /**

@@ -8,7 +8,6 @@ import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
-import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
@@ -41,7 +40,7 @@ public class Grader implements Runnable {
 
     protected final GradingContext gradingContext;
 
-    protected Observer observer;
+    protected GradingObserver observer;
 
     /**
      * Creates a new grader
@@ -51,7 +50,7 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, Observer observer, Phase phase, boolean admin) throws IOException, GradingException {
+    public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
             repoUrl = cleanRepoUrl(repoUrl);
@@ -181,20 +180,6 @@ public class Grader implements Runnable {
             }
         }
         throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
-    }
-
-    public interface Observer {
-        void notifyStarted();
-
-        void update(String message);
-
-        void notifyError(String message);
-
-        void notifyError(String message, String details);
-
-        void notifyError(String message, TestAnalyzer.TestAnalysis analysis);
-
-        void notifyDone(Submission submission);
     }
 
 }

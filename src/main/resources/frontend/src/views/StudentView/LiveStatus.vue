@@ -10,10 +10,17 @@ const emit = defineEmits<{
   "show-results": [submission: Submission];
 }>();
 
-const status = ref<string>("");
+type GradingStatus = {
+  status: string;
+  type: "update" | "warning" | "error";
+}
+
+const statuses = ref<GradingStatus[]>([]);
 const errorDetails = ref<string>("");
 const errorTestResults = ref<TestResult | undefined>(undefined);
 const displayError = ref<boolean>(false);
+const warnings = ref<boolean>(false);
+const submission = ref<Submission | undefined>(undefined);
 
 onMounted(() => {
   subscribeToGradingUpdates((event: MessageEvent) => {
@@ -21,20 +28,26 @@ onMounted(() => {
 
     switch (messageData.type) {
       case 'queueStatus':
-        status.value = `You are currently #${messageData.position} in line`;
+        statuses.value.push({type: 'update', status: `You are currently #${messageData.position} in line`}) ;
         return;
       case 'started':
-        status.value = `Autograding has started`;
+        statuses.value.push({type: 'update', status: `Autograding has started`});
+        return;
+      case 'warning':
+        warnings.value = true;
+        statuses.value.push({type: messageData.type, status: messageData.message});
         return;
       case 'update':
-        status.value =  messageData.message;
+        statuses.value.push({type: messageData.type, status: messageData.message});
         return;
       case 'results':
-        status.value = `Finished!`;
-        emit("show-results", JSON.parse(messageData.results));
+        statuses.value.push({type: 'update', status: `Finished!`});
+        const results = JSON.parse(messageData.results);
+        if(!warnings.value) showResults(results);
+        else submission.value = results;
         return;
       case 'error':
-        status.value = `Error: ${messageData.message}`;
+        statuses.value.push({type: 'error', status: `Error: ${messageData.message}`});
         errorDetails.value = messageData.details;
         errorTestResults.value = messageData.analysis;
         return;
@@ -42,11 +55,27 @@ onMounted(() => {
   });
 });
 
+const showResults = (results: Submission) => {
+  emit("show-results", results);
+}
+
+const getStatusClass = (status: GradingStatus) => {
+  switch (status.type) {
+    case "warning":
+      return "status warning"
+    case "error":
+      return "status error"
+    default:
+      return "status";
+  }
+}
+
 </script>
 
 <template>
-<div class="container">
-  <span id="status">{{ status }}</span>
+<div class="status-container">
+  <span v-for="status of statuses" :class=getStatusClass(status)>{{ status.status }}</span>
+  <button v-if="warnings && submission" @click="() => {showResults(submission!)}">See Results</button>
   <div v-if="errorDetails || errorTestResults"
        class="selectable">
     <button @click="() => {displayError = true;}">Click here</button>
@@ -61,7 +90,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.container {
+.status-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -69,9 +98,17 @@ onMounted(() => {
   height: 100%;
 }
 
-#status {
+.status {
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
+}
+
+.warning {
+  background-color: #ff7;
+}
+
+.error {
+  background-color: #f66;
 }
 </style>

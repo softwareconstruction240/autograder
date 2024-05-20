@@ -1,8 +1,8 @@
 package edu.byu.cs.autograder.score;
 
-import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 
 class ScorerTest {
 
-    Grader.Observer mockObserver = null;
+    GradingObserver mockObserver = null;
     CanvasIntegration spyCanvasIntegration = null;
     GradingContext gradingContext = null;
 
@@ -83,7 +83,7 @@ class ScorerTest {
         DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
         DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), false));
 
-        mockObserver = Mockito.mock(Grader.Observer.class);
+        mockObserver = Mockito.mock(GradingObserver.class);
 
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
