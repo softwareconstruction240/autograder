@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.TrafficController;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
@@ -499,7 +501,7 @@ public class SubmissionController {
      */
     public static void approveSubmission(
             @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct)
-            throws DataAccessException {
+            throws DataAccessException, GradingException {
         approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
     }
     /**
@@ -531,7 +533,7 @@ public class SubmissionController {
             @NonNull Integer penaltyPct,
             @Nullable Float approvedScore,
             @Nullable Submission submissionToUse
-    ) throws DataAccessException {
+    ) throws DataAccessException, GradingException {
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
@@ -551,34 +553,11 @@ public class SubmissionController {
         // Modify values in our database first
         int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
 
+        // Send score to Grade-book
         if (approvedScore == null) {
-            approvedScore = SubmissionHelper.prepareModifiedScore(submissionToUse.score(), penaltyPct);
+            approvedScore = SubmissionHelper.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         }
-
-        float scoreDifference = approvedScore - withheldSubmission.score();
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        Rubric rubricToUse = constructGitCommitsRubric(approverNetId, submissionToUse, scoreDifference);
-
-
-        int canvasUserId = DaoService.getUserDao().getUser(studentNetId).canvasUserId();
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-
-        submissionToUse = submissionToUse.replaceRubric(rubricToUse);
-        try {
-            CanvasRubricAssessment assessment = CanvasUtils.convertToAssessment(rubricToUse, rubricConfig, 0, phase);
-            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, assignmentNum, assessment, submissionToUse.notes());
-
-            Scorer.sendToCanvas(
-                    DaoService.getUserDao().getUser(studentNetId).canvasUserId(),
-                    assignmentNum,
-                    assessment,
-                    "Submission approved by %s after insufficient git commits".formatted(approverNetId),
-                    studentNetId);
-        } catch (GradingException e) {
-            throw new RuntimeException("Error generating rubric assessment");
-        } catch (CanvasException e) {
-            throw new RuntimeException("Error submitting approved rubric to Canvas");
-        }
+        sendScoreToCanvas(withheldSubmission, approvedScore, approverNetId);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
@@ -594,12 +573,12 @@ public class SubmissionController {
 
     private static Submission determineSubmissionForConsideration(
             SubmissionDao submissionDao, Submission providedValue, String studentNetId, Phase phase)
-            throws DataAccessException {
+            throws DataAccessException, GradingException {
         if (providedValue != null) return providedValue;
 
         Submission submission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
         if (submission == null) {
-            throw new RuntimeException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
+            throw new GradingException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
         }
         return submission;
     }
@@ -627,26 +606,66 @@ public class SubmissionController {
         return submissionsAffected;
     }
 
-    private static Rubric constructGitCommitsRubric(String approverNetId, Submission submissionToUse, float scoreDifference) {
-        Rubric oldRubric = submissionToUse.rubric();
+    /**
+     * Submits the <code>approvedScore</code> to Canvas by modifying the GIT_COMMITS rubric item.
+     * <br>
+     * In this context, the <code>withheldSubmission</code> isn't <i>strictly</i> necessary,
+     * but it is used to transfer several fields and values that would need to be transferred individually
+     * without it. The most important of these is the <score>field</score>, which will be used to calculate the penalty.
+     *
+     * @param withheldSubmission The baseline submission to approve
+     * @param approvedScore The approved final score.
+     * @param approverNetId The netId of the approving individual.
+     * @throws DataAccessException When the database cannot be accessed.
+     * @throws GradingException When pre-conditions are not met.
+     */
+    private static void sendScoreToCanvas(Submission withheldSubmission, float approvedScore, String approverNetId) throws DataAccessException, GradingException {
+        // Prepare and assert arguments
+        if (withheldSubmission == null) {
+            throw new IllegalArgumentException("Withheld submission cannot be null");
+        }
+        String studentNetId = withheldSubmission.netId();
+        Phase phase = withheldSubmission.phase();
+        if (approverNetId == null) {
+            throw new IllegalArgumentException("ApproverNetId cannot be null");
+        }
+        if (studentNetId == null) {
+            throw new IllegalArgumentException("Student net ID cannot be null");
+        }
+        if (phase == null) {
+            throw new IllegalArgumentException("Phase cannot be null");
+        }
 
-        Rubric.Results results = new Rubric.Results(
-                null,
-                scoreDifference,
-                0,
-                null,
-                null);
-        Rubric.RubricItem rubricItem = new Rubric.RubricItem(
-                "Git Commits",
-                results,
-                "Regularly commit to your Github");
+        Scorer scorer = new Scorer(new GradingContext(
+                studentNetId, phase, null, null, null, null,
+                0, 0, 0, 0,
+                null, withheldSubmission.admin()
+        ));
+
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        float scoreDifference = approvedScore - withheldSubmission.score();
+        Rubric gitCommitsRubric = constructGitCommitsRubric(approverNetId, scoreDifference, rubricConfig);
+        scorer.attemptSendToCanvas(gitCommitsRubric, true);
+    }
+
+    /**
+     * Constructs a {@link Rubric} that only contains a GIT_COMMITS value.
+     *
+     * @param approverNetId The net ID of the individual approving the score.
+     * @param pointValue The number of points to set for this item. Usually negative in this context.
+     * @param rubricConfig The RubricConfig for extracting important values.
+     * @return A newly constructed {@link Rubric} object.
+     */
+    private static Rubric constructGitCommitsRubric(String approverNetId, float pointValue, RubricConfig rubricConfig) {
+        String rubricNotes = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
+        Rubric.Results commitResults = new Rubric.Results(
+                null, pointValue, 0, null, null);
+        Rubric.RubricItem commitItem = new Rubric.RubricItem(
+                rubricConfig.gitCommits().category(),
+                commitResults,
+                rubricConfig.gitCommits().criteria());
         return new Rubric(
-                oldRubric.passoffTests(),
-                oldRubric.unitTests(),
-                oldRubric.quality(),
-                rubricItem,
-                submissionToUse.passed(),
-                "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId);
+                null, null, null, commitItem, true, rubricNotes);
     }
 
 }
