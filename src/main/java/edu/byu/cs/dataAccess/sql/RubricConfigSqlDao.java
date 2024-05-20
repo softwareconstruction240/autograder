@@ -20,7 +20,15 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         RubricConfig.RubricConfigItem passoffTests = getRubricItem(phase, Rubric.RubricType.PASSOFF_TESTS);
         RubricConfig.RubricConfigItem unitTests = getRubricItem(phase, Rubric.RubricType.UNIT_TESTS);
         RubricConfig.RubricConfigItem quality = getRubricItem(phase, Rubric.RubricType.QUALITY);
-        RubricConfig.RubricConfigItem gitCommits = getRubricItem(phase, Rubric.RubricType.GIT_COMMITS);
+
+        // Use the same `gitCommits` rubric item for all phases.
+        // Currently, it's defined on the `Quality` phase because that's the closest
+        // I could get to a global property. Picking any particular phase doesn't seem appropriate,
+        // and I didn't want to duplicate the table entries for each phase.
+        // If we want to change it from phase to phase, we would need to change this going forward.
+        // However, with configuration as it stands, it is sufficiently general that it shouldn't require
+        // adjusting or varying in the future.
+        RubricConfig.RubricConfigItem gitCommits = getRubricItem(Phase.Commits, Rubric.RubricType.GIT_COMMITS);
 
         return new RubricConfig(
                 phase,

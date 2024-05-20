@@ -1,5 +1,8 @@
 package edu.byu.cs.model;
 
+/**
+ * Represent the phases that can be graded.
+ */
 public enum Phase {
     Phase0,
     Phase1,
@@ -7,6 +10,11 @@ public enum Phase {
     Phase4,
     Phase5,
     Phase6,
+    /**
+     * This special phase is never graded for credit, but
+     * allows students to receive the code-quality checking
+     * feedback from the system without evaluating the project.
+     */
     Quality,
     /**
      * This special phase is never to be graded, but exists to
