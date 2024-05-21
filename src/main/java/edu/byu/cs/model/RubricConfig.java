@@ -14,4 +14,13 @@ public record RubricConfig(
             int points
     ) {
     }
+
+    public RubricConfigItem[] allConfigItems() {
+        return new RubricConfigItem[] {
+                passoffTests,
+                unitTests,
+                quality,
+                gitCommits
+        };
+    }
 }

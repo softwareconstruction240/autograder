@@ -307,22 +307,16 @@ public class Scorer {
      * @return the score
      */
     private float getScore(Rubric rubric) throws GradingException, DataAccessException {
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
+        int totalPossiblePoints = DaoService.getRubricConfigDao().getTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0)
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
 
         float score = 0;
-        if (rubric.passoffTests() != null)
-            score += rubric.passoffTests().results().score();
-
-        if (rubric.unitTests() != null)
-            score += rubric.unitTests().results().score();
-
-        if (rubric.quality() != null)
-            score += rubric.quality().results().score();
-
-        // TODO: Also account for other RubricItems like GIT_COMMITS?
+        for (var rubricItem : rubric.allRubricItems()) {
+            if (rubricItem == null) continue;
+            score += rubricItem.results().score();
+        }
 
         return score / totalPossiblePoints;
     }

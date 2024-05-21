@@ -57,4 +57,13 @@ public record Rubric(
         QUALITY,
         GIT_COMMITS
     }
+
+    public RubricItem[] allRubricItems() {
+        return new RubricItem[] {
+                passoffTests,
+                unitTests,
+                quality,
+                gitCommits
+        };
+    }
 }

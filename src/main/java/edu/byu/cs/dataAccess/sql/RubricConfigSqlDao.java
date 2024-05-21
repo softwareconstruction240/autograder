@@ -40,21 +40,6 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     }
 
     @Override
-    public int getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
-        RubricConfig rubricConfig = getRubricConfig(phase);
-
-        int total = 0;
-        if (rubricConfig.passoffTests() != null)
-            total += rubricConfig.passoffTests().points();
-        if (rubricConfig.unitTests() != null)
-            total += rubricConfig.unitTests().points();
-        if (rubricConfig.quality() != null)
-            total += rubricConfig.quality().points();
-
-        return total;
-    }
-
-    @Override
     public void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException {
         if (rubricConfig.passoffTests() != null)
             addRubricConfigItem(phase, Rubric.RubricType.PASSOFF_TESTS, rubricConfig.passoffTests().category(), rubricConfig.passoffTests().criteria(), rubricConfig.passoffTests().points());
