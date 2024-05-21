@@ -95,11 +95,13 @@ public class CanvasUtils {
         return new CanvasRubricAssessment(items);
     }
 
-    private static CanvasRubricAssessment convertToCanvasFormat(Rubric.RubricItem rubricItem,
-                                                                            float lateAdjustment, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
-                                                                            Rubric.RubricType rubricType) throws GradingException {
+    private static CanvasRubricAssessment convertToCanvasFormat(
+            Rubric.RubricItem rubricItem,
+            float lateAdjustment, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
+            Rubric.RubricType rubricType
+    ) throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
-        if (rubricConfigItem != null) {
+        if (rubricConfigItem != null && rubricItem != null) {
             Rubric.Results results = rubricItem.results();
             items.put(PhaseUtils.getCanvasRubricId(rubricType, phase),
                     new CanvasRubricItem(results.notes(), results.score() * (1 - lateAdjustment)));
