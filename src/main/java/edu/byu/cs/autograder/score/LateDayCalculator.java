@@ -104,27 +104,52 @@ public class LateDayCalculator {
      * @param encodedPublicHolidays A string representing the encoded data.
      */
     public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays) {
-        return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy");
+        return initializePublicHolidays(encodedPublicHolidays, false);
+    }
+    /**
+     * Initializes our public holidays with a common formatting string
+     * that will accept strings matching this example: "9/16/2024"
+     *
+     * @see #initializePublicHolidays(String, String, boolean)
+     *
+     * @param encodedPublicHolidays A string representing the encoded data.
+     */
+    public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, boolean quietWarnings) {
+        return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy", quietWarnings);
     }
 
     /**
      * Initializes our internal public holidays data set with the given string and a given date format.
      * This method also returns the constructed set of dates.
-     *
+     * <br>
      * This must be called before calls to {@code getNumDaysLate()} will properly account for the holidays.
      *
-     * @see #interpretPublicHolidays(String, String)
+     * @see #interpretPublicHolidays(String, String, boolean)
      *
      * @param encodedPublicHolidays @non-nullable A string representing the configured data
      * @param dateEncodingFormat A string representing the intended date format within the data
      */
     public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, @NonNull String dateEncodingFormat) {
+        return initializePublicHolidays(encodedPublicHolidays, dateEncodingFormat, false);
+    }
+    /**
+     * Initializes our internal public holidays data set with the given string and a given date format.
+     * This method also returns the constructed set of dates.
+     * <br>
+     * This must be called before calls to {@code getNumDaysLate()} will properly account for the holidays.
+     *
+     * @see #interpretPublicHolidays(String, String, boolean)
+     *
+     * @param encodedPublicHolidays @non-nullable A string representing the configured data
+     * @param dateEncodingFormat A string representing the intended date format within the data
+     */
+    public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, @NonNull String dateEncodingFormat, boolean quietWarnings) {
         if (encodedPublicHolidays == null || dateEncodingFormat == null) {
             throw new RuntimeException("Error initializing public holidays. Received null as a parameter. " +
                     "If some data isn't available, explicitly call the no argument initializer instead.");
         }
 
-        publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat);
+        publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat, quietWarnings);
         // TODO: Validate that some holidays are configured for the current calendar year and throw an error otherwise
         return publicHolidays;
     }
@@ -175,9 +200,10 @@ public class LateDayCalculator {
      *                              depending on the most convenient form of maintaining this information.
      * @param dateEncodingFormat A string representing the date format.
      *                           This will be interpreted by {@link DateTimeFormatter}.
+     * @param quietWarnings Option to quiet warnings instead of sending them to STDERR.
      * @return A {@code Set<Date>} that will be used to efficiently comparing against this dataset
      */
-    private Set<LocalDate> interpretPublicHolidays(@Nullable String encodedPublicHolidays, @NonNull String dateEncodingFormat) {
+    private Set<LocalDate> interpretPublicHolidays(@Nullable String encodedPublicHolidays, @NonNull String dateEncodingFormat, boolean quietWarnings) {
         String[] dateStrings;
         if (encodedPublicHolidays == null) {
             dateStrings = new String[]{};
@@ -187,7 +213,7 @@ public class LateDayCalculator {
             dateStrings = extractPublicHolidaysSingleline(encodedPublicHolidays);
         }
 
-        return parsePublicHolidayStrings(dateEncodingFormat, dateStrings);
+        return parsePublicHolidayStrings(dateEncodingFormat, dateStrings, quietWarnings);
     }
     private String[] extractPublicHolidaysSingleline(String singleLineEncodedHolidays) {
         String DELIMITERS = " ,;";
@@ -202,7 +228,7 @@ public class LateDayCalculator {
         }
         return holidays.toArray(new String[0]);
     }
-    private Set<LocalDate> parsePublicHolidayStrings(@NonNull String dateFormat, String[] holidayDateStrings) {
+    private Set<LocalDate> parsePublicHolidayStrings(@NonNull String dateFormat, String[] holidayDateStrings, boolean quietWarnings) {
         Set<LocalDate> publicHolidays = new HashSet<>();
         var parser = DateTimeFormatter.ofPattern(dateFormat);
         for (var holidayDateString : holidayDateStrings) {
@@ -215,7 +241,7 @@ public class LateDayCalculator {
             try {
                 publicHolidays.add(parser.parse(holidayDateString, LocalDate::from));
             } catch (DateTimeParseException e) {
-                LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
+                if (!quietWarnings) LOGGER.warning("Skipping unrecognized date string: " + holidayDateString);
             }
         }
         return publicHolidays;

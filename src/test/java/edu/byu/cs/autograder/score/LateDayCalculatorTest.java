@@ -10,6 +10,14 @@ import java.time.format.DateTimeFormatter;
 
 class LateDayCalculatorTest {
 
+    /**
+     * To be enabled in production.
+     * Removes the warning output since the tests are expected to pass in faulty input values.
+     * <br>
+     * Disable during debugging.
+     */
+    private static final boolean QUIET_HOLIDAY_INIT_WARNINGS = true;
+
     @Test
     void getNumDaysLateWithoutHolidays() {
         // Initialize without holidays
@@ -70,7 +78,7 @@ class LateDayCalculatorTest {
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
         LateDayCalculator standardlateDayCalculator = new LateDayCalculator();
-        standardlateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration());
+        standardlateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration(), QUIET_HOLIDAY_INIT_WARNINGS);
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -142,7 +150,7 @@ class LateDayCalculatorTest {
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
         LateDayCalculator customlateDayCalculator = new LateDayCalculator();
-        customlateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
+        customlateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025", QUIET_HOLIDAY_INIT_WARNINGS);
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysLate[] fridayHolidayAndConsecutiveHolidays = {
                 // On Time
@@ -184,7 +192,7 @@ class LateDayCalculatorTest {
 
         // See image: days-late-with-holidays-holidays-on-weekends
         LateDayCalculator customlateDayCalculator2 = new LateDayCalculator();
-        customlateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;");
+        customlateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;", QUIET_HOLIDAY_INIT_WARNINGS);
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
         ExpectedDaysLate[] holidaysOnWeekends = {
                 new ExpectedDaysLate("2028-09-14 02:15:00 PM -07:00", 0), // Due date
@@ -263,7 +271,7 @@ class LateDayCalculatorTest {
     }
     private void validateExpectedHolidays(String encodedPublicHolidays) {
         LateDayCalculator lateDayCalculator = new LateDayCalculator();
-        var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays);
+        var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
                 "Set does not have the right number of public holidays");
