@@ -94,12 +94,25 @@ public class Scorer {
      *
      * @param rubric A {@link Rubric} containing values to set in Canvas.
      *               Any items not set will be populated with their value from Canvas.
+     * @param penaltyPct The approved GIT_COMMITS penalty percentage
      * @param forceSendScore Forces the grade to be submitted, even if it would lower the student's score.
      * @throws GradingException When preconditions are not met.
      * @throws DataAccessException When the database cannot be reached.
      */
-    public void attemptSendToCanvas(Rubric rubric, boolean forceSendScore) throws GradingException, DataAccessException {
-        attemptSendToCanvas(rubric, null, 0, 0f, forceSendScore);
+    public void attemptSendToCanvas(Rubric rubric, int penaltyPct, String commitPenaltyMsg, boolean forceSendScore) throws GradingException, DataAccessException {
+        /**
+         * Set only the fields that will be used by
+         * {@link Scorer#setCommitVerificationPenalty(CanvasRubricAssessment, GradingContext, CommitVerificationResult)}
+         * to reduce the score based on the latest data from the grade-book.
+         */
+        CommitVerificationResult verification = null;
+        if (penaltyPct > 0) {
+            verification = new CommitVerificationResult(
+                    true, true, 0, 0, 0,
+                    penaltyPct, commitPenaltyMsg,
+                    null, null, null, null);
+        }
+        attemptSendToCanvas(rubric, verification, 0, 0f, forceSendScore);
     }
 
     /**
@@ -304,7 +317,7 @@ public class Scorer {
     /**
      * Gets the score for the phase
      *
-     * @return the score
+     * @return the score as a percentage value from [0-1].
      */
     private float getScore(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getTotalPossiblePoints(gradingContext.phase());

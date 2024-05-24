@@ -534,6 +534,10 @@ public class SubmissionController {
             @Nullable Float approvedScore,
             @Nullable Submission submissionToUse
     ) throws DataAccessException, GradingException {
+        if (approvedScore != null) {
+            throw new IllegalArgumentException("Passing in non-null approvedScore is not yet implemented.");
+        }
+
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
@@ -557,7 +561,8 @@ public class SubmissionController {
         if (approvedScore == null) {
             approvedScore = SubmissionHelper.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         }
-        sendScoreToCanvas(withheldSubmission, approvedScore, approverNetId);
+        String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
+        sendScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
@@ -614,21 +619,34 @@ public class SubmissionController {
      * without it. The most important of these is the <score>field</score>, which will be used to calculate the penalty.
      *
      * @param withheldSubmission The baseline submission to approve
-     * @param approvedScore The approved final score.
-     * @param approverNetId The netId of the approving individual.
+     * @param penaltyPct The percentage that should be reduced from the score for GIT_COMMITS.
+     * @param commitPenaltyComment The comment that should be associated with the GIT_COMMITS rubric, if any.
      * @throws DataAccessException When the database cannot be accessed.
      * @throws GradingException When pre-conditions are not met.
      */
-    private static void sendScoreToCanvas(Submission withheldSubmission, float approvedScore, String approverNetId) throws DataAccessException, GradingException {
+    private static void sendScoreToCanvas(Submission withheldSubmission, int penaltyPct, String commitPenaltyComment) throws DataAccessException, GradingException {
         // Prepare and assert arguments
         if (withheldSubmission == null) {
             throw new IllegalArgumentException("Withheld submission cannot be null");
         }
-        String studentNetId = withheldSubmission.netId();
-        Phase phase = withheldSubmission.phase();
-        if (approverNetId == null) {
-            throw new IllegalArgumentException("ApproverNetId cannot be null");
-        }
+        Scorer scorer = getScorer(withheldSubmission);
+
+        // The strategy here is to submit an empty rubric to Canvas,
+        // let our helper methods populate it with the latest data
+        // and automatically reduce the score by the penalty percentage.
+        Rubric emptyRubric = new Rubric(null, null, null, null, withheldSubmission.passed(), "");
+        scorer.attemptSendToCanvas(emptyRubric, penaltyPct, commitPenaltyComment, true);
+    }
+
+    /**
+     * Constructs an instance of {@link Scorer} using the limited data available in a {@link Submission}.
+     *
+     * @param submission A submission containing context to extract.
+     * @return A constructed Scorer instance.
+     */
+    private static Scorer getScorer(Submission submission) {
+        String studentNetId = submission.netId();
+        Phase phase = submission.phase();
         if (studentNetId == null) {
             throw new IllegalArgumentException("Student net ID cannot be null");
         }
@@ -636,36 +654,11 @@ public class SubmissionController {
             throw new IllegalArgumentException("Phase cannot be null");
         }
 
-        Scorer scorer = new Scorer(new GradingContext(
+        return new Scorer(new GradingContext(
                 studentNetId, phase, null, null, null, null,
                 0, 0, 0, 0,
-                null, withheldSubmission.admin()
+                null, submission.admin()
         ));
-
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        float scoreDifference = approvedScore - withheldSubmission.score();
-        Rubric gitCommitsRubric = constructGitCommitsRubric(approverNetId, scoreDifference, rubricConfig);
-        scorer.attemptSendToCanvas(gitCommitsRubric, true);
-    }
-
-    /**
-     * Constructs a {@link Rubric} that only contains a GIT_COMMITS value.
-     *
-     * @param approverNetId The net ID of the individual approving the score.
-     * @param pointValue The number of points to set for this item. Usually negative in this context.
-     * @param rubricConfig The RubricConfig for extracting important values.
-     * @return A newly constructed {@link Rubric} object.
-     */
-    private static Rubric constructGitCommitsRubric(String approverNetId, float pointValue, RubricConfig rubricConfig) {
-        String rubricNotes = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
-        Rubric.Results commitResults = new Rubric.Results(
-                null, pointValue, 0, null, null);
-        Rubric.RubricItem commitItem = new Rubric.RubricItem(
-                rubricConfig.gitCommits().category(),
-                commitResults,
-                rubricConfig.gitCommits().criteria());
-        return new Rubric(
-                null, null, null, commitItem, true, rubricNotes);
     }
 
 }
