@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.score.Scorer;
@@ -351,7 +352,7 @@ public class SubmissionController {
      * @throws IOException if there is an error creating the grader
      */
     private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
-        Grader.Observer observer = new Grader.Observer() {
+        GradingObserver observer = new GradingObserver() {
             @Override
             public void notifyStarted() {
                 try {
@@ -361,9 +362,7 @@ public class SubmissionController {
                     return;
                 }
 
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "started"
-                ));
+                notifySubscribers(Map.of("type", "started"));
 
                 try {
                     TrafficController.broadcastQueueStatus();
@@ -374,14 +373,7 @@ public class SubmissionController {
 
             @Override
             public void update(String message) {
-                try {
-                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                            "type", "update",
-                            "message", message
-                    ));
-                } catch (Exception e) {
-                    LOGGER.error("Error updating subscribers", e);
-                }
+                notifySubscribers(Map.of("type", "update", "message", message));
             }
 
             @Override
@@ -403,14 +395,13 @@ public class SubmissionController {
                 contents = new HashMap<>(contents);
                 contents.put( "type", "error");
                 contents.put("message", message);
-                TrafficController.getInstance().notifySubscribers(netId, contents);
+                notifySubscribers(contents);
+                removeFromQueue();
+            }
 
-                TrafficController.sessions.remove(netId);
-                try {
-                    DaoService.getQueueDao().remove(netId);
-                } catch (DataAccessException e) {
-                    LOGGER.error("Error removing queue item", e);
-                }
+            @Override
+            public void notifyWarning(String message) {
+                notifySubscribers(Map.of("type", "warning", "message", message));
             }
 
             @Override
@@ -418,15 +409,19 @@ public class SubmissionController {
                 Gson gson = new GsonBuilder()
                         .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
                         .create();
+                notifySubscribers(Map.of("type", "results", "results", gson.toJson(submission)));
+                removeFromQueue();
+            }
+
+            private void notifySubscribers(Map<String, Object> contents) {
                 try {
-                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                            "type", "results",
-                            "results", gson.toJson(submission)
-                    ));
+                    TrafficController.getInstance().notifySubscribers(netId, contents);
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);
                 }
+            }
 
+            private void removeFromQueue() {
                 TrafficController.sessions.remove(netId);
                 try {
                     DaoService.getQueueDao().remove(netId);

@@ -29,6 +29,6 @@ public record GradingContext(
         int minimumChangedLinesPerCommit,
 
         // Others
-        Grader.Observer observer,
+        GradingObserver observer,
         boolean admin
 ) { }
