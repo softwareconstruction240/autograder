@@ -4,6 +4,7 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.util.FileUtils;
+import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -182,19 +183,20 @@ public class GitHelperUtils {
 
 
     GitEvaluator<CommitVerificationResult> evaluateRepo() {
-        return evaluateRepo(gradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
+        return evaluateRepo(gradingContext, null);
     }
-    GitEvaluator<CommitVerificationResult> evaluateRepo(CommitThreshold minThreshold) {
+    GitEvaluator<CommitVerificationResult> evaluateRepo(@Nullable CommitThreshold minThreshold) {
         return evaluateRepo(gradingContext, minThreshold);
     }
-    GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, CommitThreshold minThreshold) {
+    GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
         return evaluateRepo(new GitHelper(gradingContext), minThreshold);
     }
-    GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, CommitThreshold minThreshold) {
+    GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
+        var effectiveMinThreshold = minThreshold != null ? minThreshold : GitHelper.MIN_COMMIT_THRESHOLD;
         return git -> {
             String phase0HeadHash = GitHelper.getHeadHash(git);
             CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
-            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            return gitHelper.verifyRegularCommits(git, effectiveMinThreshold, maxThreshold);
         };
     }
 

@@ -49,6 +49,14 @@ public class CommitAnalytics {
             Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
             throws GitAPIException, IOException {
 
+        // Verify arguments
+        if (git == null) {
+            throw new RuntimeException("The git parameter cannot be null");
+        }
+        if (lowerBound == null || upperBound == null) {
+            throw new IllegalArgumentException("Both bounds must not be null");
+        }
+
         // Prepare data for repeated calculation
         DiffFormatter diffFormatter = prepareDiffFormatter(git);
         Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
