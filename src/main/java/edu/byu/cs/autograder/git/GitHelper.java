@@ -177,17 +177,30 @@ public class GitHelper {
 
         // We have a previous result to defer to:
         int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
-        boolean verified = firstPassingSubmission.verifiedStatus().isApproved();
-        String message = verified ?
-                "You passed the commit verification on your first passing submission! You're good to go!" :
-                "You have previously failed commit verification.\n"+
-                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        boolean verified = firstPassingSubmission.isApproved();
+        String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, originalPenaltyPct, message,
+                0, 0, 0, originalPenaltyPct, failureMessage,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
+    }
+
+    private static String generateFailureMessage(boolean verified, Submission firstPassingSubmission) {
+        String message;
+        if (!verified) {
+            message = "You have previously failed commit verification.\n"+
+                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        } else {
+            var verification = firstPassingSubmission.verification();
+            if (verification == null || verification.penaltyPct() <= 0) {
+                message = "You passed the commit verification on your first passing submission! You're good to go!";
+            } else {
+                message = "Your commit verification was previously approved with a penalty. That penalty is being applied to this submission as well.";
+            }
+        }
+        return message;
     }
 
     /**
