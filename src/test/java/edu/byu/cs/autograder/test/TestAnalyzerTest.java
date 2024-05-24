@@ -1,11 +1,14 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,12 +32,12 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+        for (TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
             assertTrue(child.getPassed());
             assertNull(child.getErrorMessage());
         }
@@ -67,12 +70,12 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsFailingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+        for (TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
             assertFalse(child.getPassed());
             assertNotNull(child.getErrorMessage());
         }
@@ -118,14 +121,14 @@ class TestAnalyzerTest {
 
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(3, root.getChildren().get("PawnMoveTests").getChildren().size());
         assertEquals(1, root.getChildren().get("RookMoveTests").getChildren().size());
         assertEquals(1, root.getChildren().get("CastlingTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+        for (TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
             switch (child.getTestName()) {
                 case "pawnMiddleOfBoardWhite()", "edgePromotionBlack()" -> {
                     assertTrue(child.getPassed());
@@ -152,12 +155,12 @@ class TestAnalyzerTest {
                 JUnit Jupiter > PawnMoveTests > edgePromotionBlack() :: SUCCESSFUL
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+        for (TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
             assertTrue(child.getPassed());
             assertNull(child.getErrorMessage());
         }
@@ -188,12 +191,12 @@ class TestAnalyzerTest {
                 [        47 tests failed          ]
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(2, root.getChildren().get("PawnMoveTests").getChildren().size());
 
-        for (TestAnalyzer.TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
+        for (TestNode child : root.getChildren().get("PawnMoveTests").getChildren().values()) {
             assertTrue(child.getPassed());
             assertNull(child.getErrorMessage());
         }
@@ -220,7 +223,7 @@ class TestAnalyzerTest {
                         at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals(2, root.getNumTestsPassed());
         assertEquals(1, root.getNumTestsFailed());
@@ -243,7 +246,7 @@ class TestAnalyzerTest {
                 [32mJUnit Jupiter > QueenMoveTests > queenCaptureEnemy() :: SUCCESSFUL[0m
                 """;
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
 
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(2, root.getChildren().get("QueenMoveTests").getChildren().size());
@@ -278,7 +281,7 @@ class TestAnalyzerTest {
         extraCreditTests.add("CastlingTests");
         extraCreditTests.add("EnPassantTests");
 
-        TestAnalyzer.TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
+        TestNode root = new TestAnalyzer().parse(testsPassingInput.split("\n"), extraCreditTests, null).root();
         assertEquals("JUnit Jupiter", root.getTestName());
         assertEquals(4, root.getNumTestsPassed());
         assertEquals(6, root.getNumExtraCreditPassed());
@@ -320,7 +323,7 @@ class TestAnalyzerTest {
                                ... 9 more
                 """;
 
-        TestAnalyzer.TestAnalysis analysis = new TestAnalyzer().parse(testOutput.split("\n"), extraCreditTests, errorOutput);
+        TestAnalysis analysis = new TestAnalyzer().parse(testOutput.split("\n"), extraCreditTests, errorOutput);
         assertNull(analysis.root());
         assertEquals(errorOutput, analysis.error());
     }

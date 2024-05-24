@@ -4,7 +4,6 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.TrafficController;
-import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
@@ -371,7 +370,7 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyError(String message, TestAnalyzer.TestAnalysis analysis) {
+            public void notifyError(String message, TestAnalysis analysis) {
                 notifyError(message, Map.of("analysis", analysis));
             }
 

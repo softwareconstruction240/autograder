@@ -6,6 +6,8 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -67,19 +69,19 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException {
+    protected float getScore(TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
         removeExtraCreditTests(testResults.root(), extraCreditTests());
         throw new GradingException(ERROR_MESSAGE, testResults);
     }
 
-    private void removeExtraCreditTests(TestAnalyzer.TestNode node, Set<String> extraCreditTests) {
+    private void removeExtraCreditTests(TestNode node, Set<String> extraCreditTests) {
         extraCreditTests.forEach((ecTest) -> node.getChildren().remove(ecTest));
         node.getChildren().forEach((s, child) -> removeExtraCreditTests(child, extraCreditTests));
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestAnalysis results) {
+    protected String getNotes(TestAnalysis results) {
         if (results.root().getNumTestsFailed() == 0) return "All previous tests passed";
         else return ERROR_MESSAGE;
     }

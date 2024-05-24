@@ -3,6 +3,8 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -40,8 +42,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected float getScore(TestAnalysis testAnalysis) throws GradingException {
+        TestNode testResults = testAnalysis.root();
         float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
 
         if (totalTests == 0) return 0;
@@ -54,9 +56,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-
-    protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) throws GradingException {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected String getNotes(TestAnalysis testAnalysis) throws GradingException {
+        TestNode testResults = testAnalysis.root();
         if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";

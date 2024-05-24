@@ -185,5 +185,4 @@ public class Grader implements Runnable {
         }
         throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
     }
-
 }

@@ -3,6 +3,8 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -40,8 +42,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected float getScore(TestAnalysis testAnalysis) {
+        TestNode testResults = testAnalysis.root();
         float totalStandardTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
         float totalECTests = testResults.getNumExtraCreditPassed() + testResults.getNumExtraCreditFailed();
 
@@ -64,8 +66,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected String getNotes(TestAnalysis testAnalysis) {
+        TestNode testResults = testAnalysis.root();
         StringBuilder notes = new StringBuilder();
 
         if (testResults == null) return "No tests were run";
@@ -88,15 +90,15 @@ public class PassoffTestGrader extends TestGrader {
     }
 
 
-    private Map<String, Float> getECScores(TestAnalyzer.TestNode results) {
+    private Map<String, Float> getECScores(TestNode results) {
         Map<String, Float> scores = new HashMap<>();
 
-        Queue<TestAnalyzer.TestNode> unchecked = new PriorityQueue<>();
+        Queue<TestNode> unchecked = new PriorityQueue<>();
         unchecked.add(results);
 
         while (!unchecked.isEmpty()) {
-            TestAnalyzer.TestNode node = unchecked.remove();
-            for (TestAnalyzer.TestNode child : node.getChildren().values()) {
+            TestNode node = unchecked.remove();
+            for (TestNode child : node.getChildren().values()) {
                 if (child.getEcCategory() != null) {
                     scores.put(child.getEcCategory(), (float) child.getNumExtraCreditPassed() /
                             (child.getNumExtraCreditPassed() + child.getNumExtraCreditFailed()));

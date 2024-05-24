@@ -1,7 +1,7 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.model.TestAnalysis;
 
 public interface GradingObserver {
     void notifyStarted();
@@ -12,7 +12,7 @@ public interface GradingObserver {
 
     void notifyError(String message, String details);
 
-    void notifyError(String message, TestAnalyzer.TestAnalysis analysis);
+    void notifyError(String message, TestAnalysis analysis);
 
     void notifyWarning(String message);
 

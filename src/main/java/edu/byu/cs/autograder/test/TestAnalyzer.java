@@ -1,6 +1,8 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,158 +14,6 @@ import java.util.Set;
  * <i>e.g. --details=testfeed</i>
  */
 public class TestAnalyzer {
-
-    public record TestAnalysis(TestNode root, String error) {}
-
-    public static class TestNode implements Comparable<TestNode>, Cloneable {
-        private String testName;
-        private Boolean passed;
-        private String ecCategory;
-        private String errorMessage;
-        private Map<String, TestNode> children = new HashMap<>();
-
-        /**
-         * The number of tests that passed under this node (excluding extra credit)
-         */
-        private Integer numTestsPassed;
-
-        /**
-         * The number of tests that failed under this node (excluding extra credit)
-         */
-        private Integer numTestsFailed;
-
-        /**
-         * The number of extra credit tests that passed under this node
-         */
-        private Integer numExtraCreditPassed;
-
-        /**
-         * The number of extra credit tests that failed under this node
-         */
-        private Integer numExtraCreditFailed;
-
-        public String getTestName() {
-            return testName;
-        }
-
-        public Boolean getPassed() {
-            return passed;
-        }
-
-        public String getEcCategory() {
-            return ecCategory;
-        }
-
-        public String getErrorMessage() {
-            return errorMessage;
-        }
-
-        public Map<String, TestNode> getChildren() {
-            return children;
-        }
-
-        public Integer getNumTestsPassed() {
-            return numTestsPassed;
-        }
-
-        public Integer getNumTestsFailed() {
-            return numTestsFailed;
-        }
-
-        public Integer getNumExtraCreditPassed() {
-            return numExtraCreditPassed;
-        }
-
-        public Integer getNumExtraCreditFailed() {
-            return numExtraCreditFailed;
-        }
-
-        public void setTestName(String testName) {
-            this.testName = testName;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder stringBuilder = new StringBuilder();
-            printNode(this, stringBuilder, "");
-            return stringBuilder.toString();
-        }
-
-        private void printNode(TestNode node, StringBuilder sb, String indent) {
-            sb.append(indent).append(node.testName);
-            if (node.ecCategory != null) sb.append(" (Extra Credit)");
-            if (node.passed != null) {
-                sb.append(node.passed ? " : SUCCESSFUL" : " : FAILED");
-                if (node.errorMessage != null && !node.errorMessage.isEmpty()) {
-                    sb.append("\n").append(indent).append("   Error: ").append(node.errorMessage);
-                }
-            } else {
-                sb.append(" (").append(node.numTestsPassed).append(" passed, ").append(node.numTestsFailed).append(" failed").append(")");
-            }
-            sb.append("\n");
-            for (TestNode child : node.children.values()) {
-                printNode(child, sb, indent + "  ");
-            }
-        }
-
-        public static void countTests(TestNode node) {
-            if (node.passed != null) {
-                if (node.passed) {
-                    if (node.ecCategory != null) {
-                        node.numExtraCreditPassed = 1;
-                        node.numTestsPassed = 0;
-                    } else {
-                        node.numExtraCreditPassed = 0;
-                        node.numTestsPassed = 1;
-                    }
-                    node.numTestsFailed = 0;
-                    node.numExtraCreditFailed = 0;
-                } else {
-                    if (node.ecCategory != null) {
-                        node.numTestsFailed = 0;
-                        node.numExtraCreditFailed = 1;
-                    } else {
-                        node.numTestsFailed = 1;
-                        node.numExtraCreditFailed = 0;
-                    }
-                    node.numTestsPassed = 0;
-                    node.numExtraCreditPassed = 0;
-                }
-            } else {
-                node.numTestsPassed = 0;
-                node.numTestsFailed = 0;
-                node.numExtraCreditPassed = 0;
-                node.numExtraCreditFailed = 0;
-            }
-
-            for (TestNode child : node.children.values()) {
-                countTests(child);
-                node.numTestsPassed += child.numTestsPassed;
-                node.numTestsFailed += child.numTestsFailed;
-                node.numExtraCreditPassed += child.numExtraCreditPassed;
-                node.numExtraCreditFailed += child.numExtraCreditFailed;
-            }
-        }
-
-        @Override
-        public int compareTo(TestNode o) {
-            return this.testName.compareTo(o.testName);
-        }
-
-        @Override
-        public TestNode clone() {
-            try {
-                TestNode clone = (TestNode) super.clone();
-                clone.children = new HashMap<>();
-                for (Map.Entry<String, TestNode> entry : children.entrySet()) {
-                    clone.children.put(entry.getKey(), entry.getValue().clone());
-                }
-                return clone;
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     /**
      * The root of the test tree
@@ -196,7 +46,7 @@ public class TestAnalyzer {
             // the test results section has started
             if (line.startsWith("JUnit Jupiter") && root == null) {
                 root = new TestNode();
-                root.testName = "JUnit Jupiter";
+                root.setTestName("JUnit Jupiter");
 
             }
             // we haven't started the test results section yet
@@ -245,21 +95,21 @@ public class TestAnalyzer {
         TestNode currentNode = root;
         String ec = null;
         for (String part : parts) {
-            if (!currentNode.children.containsKey(part)) {
+            if (!currentNode.getChildren().containsKey(part)) {
                 TestNode newNode = new TestNode();
-                newNode.testName = part;
-                currentNode.children.put(part, newNode);
+                newNode.setTestName(part);
+                currentNode.getChildren().put(part, newNode);
             }
 
             if (ecCategories.contains(part)) ec = part;
-            if (ec != null) currentNode.children.get(part).ecCategory = part;
+            if (ec != null) currentNode.getChildren().get(part).setEcCategory(part);
 
-            currentNode = currentNode.children.get(part);
+            currentNode = currentNode.getChildren().get(part);
         }
 
-        currentNode.passed = line.endsWith("SUCCESSFUL");
+        currentNode.setPassed(line.endsWith("SUCCESSFUL"));
 
-        if (!currentNode.passed) {
+        if (!currentNode.getPassed()) {
             lastFailingTest = currentNode;
         }
     }
@@ -274,9 +124,9 @@ public class TestAnalyzer {
             throw new GradingException("Error message without a test: " + line);
         }
 
-        if (lastFailingTest.errorMessage == null)
-            lastFailingTest.errorMessage = "";
+        if (lastFailingTest.getErrorMessage() == null)
+            lastFailingTest.setErrorMessage("");
 
-        lastFailingTest.errorMessage += (line + "\n");
+        lastFailingTest.setErrorMessage(lastFailingTest.getErrorMessage() + (line + "\n"));
     }
 }
