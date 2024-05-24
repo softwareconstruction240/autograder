@@ -139,11 +139,12 @@ public class TestHelper {
 
         try {
             ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
-            String output = processOutput.stdOut();
             String error = processOutput.stdErr();
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
-            return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
+            File testOutputDirectory = new File(compiledTests, "test-output");
+            File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
+            return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
