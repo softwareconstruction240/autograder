@@ -57,7 +57,10 @@ public class TestAnalyzer {
             }
 
             for(String ecCategory : extraCreditTests) {
-                if (testCase.getClassname().endsWith(ecCategory)) node.setEcCategory(ecCategory);
+                if (testCase.getClassname().endsWith(ecCategory)) {
+                    node.setEcCategory(ecCategory);
+                    parent.setEcCategory(ecCategory);
+                }
             }
         }
 
