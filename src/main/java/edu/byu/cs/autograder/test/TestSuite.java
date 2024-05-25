@@ -30,6 +30,9 @@ public class TestSuite {
         @JsonProperty("failure")
         private CData failure;
 
+        @JsonProperty("error")
+        private CData error;
+
         @JsonProperty("system-out")
         private CData systemOut;
 
@@ -42,7 +45,7 @@ public class TestSuite {
         }
 
         public CData getFailure() {
-            return failure;
+            return (failure != null) ? failure : error;
         }
 
         public CData getSystemOut() {
