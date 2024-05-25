@@ -12,8 +12,7 @@ import java.util.Set;
 
 /**
  * Parses the output of the JUnit Console Runner
- * <b>Important: this class is ONLY compatible with the testfeed details mode on the JUnit standalone client</b><br/>
- * <i>e.g. --details=testfeed</i>
+ * <b>Important: this class is ONLY compatible with the xml output on the JUnit standalone client</b><br/>
  */
 public class TestAnalyzer {
 
@@ -26,6 +25,7 @@ public class TestAnalyzer {
      */
     public TestAnalysis parse(File junitXmlOutput, Set<String> extraCreditTests, String error) throws GradingException {
         TestNode root = new TestNode();
+        TestNode extraCredit = new TestNode();
 
         String xml = FileUtils.readStringFromFile(junitXmlOutput);
         TestSuite suite;
@@ -36,6 +36,16 @@ public class TestAnalyzer {
         }
 
         for (TestSuite.TestCase testCase : suite.getTestcase()) {
+            TestNode base = root;
+            String ecCategory = null;
+            for(String category : extraCreditTests) {
+                if (testCase.getClassname().endsWith(category)) {
+                    ecCategory = category;
+                    base = extraCredit;
+                    break;
+                }
+            }
+
             String name = testCase.getName();
             String[] systemOut = testCase.getSystemOut().getData().split("\n");
             for(String str : systemOut) {
@@ -48,7 +58,7 @@ public class TestAnalyzer {
 
             TestNode node = new TestNode();
             node.setTestName(name);
-            TestNode parent = nodeForClass(root, testCase.getClassname());
+            TestNode parent = nodeForClass(base, testCase.getClassname());
             parent.getChildren().put(name, node);
 
             node.setPassed(testCase.getFailure() == null);
@@ -56,16 +66,15 @@ public class TestAnalyzer {
                 node.setErrorMessage(testCase.getFailure().getData());
             }
 
-            for(String ecCategory : extraCreditTests) {
-                if (testCase.getClassname().endsWith(ecCategory)) {
-                    node.setEcCategory(ecCategory);
-                    parent.setEcCategory(ecCategory);
-                }
+            if(ecCategory != null) {
+                node.setEcCategory(ecCategory);
+                parent.setEcCategory(ecCategory);
             }
         }
 
         TestNode.countTests(root);
-        return new TestAnalysis(root, error);
+        TestNode.countTests(extraCredit);
+        return new TestAnalysis(root, extraCredit, error);
     }
 
     private TestNode nodeForClass(TestNode base, String name) {

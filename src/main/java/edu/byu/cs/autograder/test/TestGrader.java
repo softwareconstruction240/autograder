@@ -51,7 +51,7 @@ public abstract class TestGrader {
 
         TestAnalysis results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
-            results = new TestAnalysis(new TestNode(), null);
+            results = new TestAnalysis(new TestNode(), null, null);
             TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
@@ -60,13 +60,19 @@ public abstract class TestGrader {
         }
 
         if (results.root() == null) {
-            results = new TestAnalysis(new TestNode(), results.error());
+            results = new TestAnalysis(new TestNode(), null, results.error());
             TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 
         results.root().setTestName(testName());
+        if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
+            results = new TestAnalysis(results.root(), null, results.error());
+        }
+        else {
+            results.extraCredit().setTestName("Extra Credit");
+        }
 
         float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());

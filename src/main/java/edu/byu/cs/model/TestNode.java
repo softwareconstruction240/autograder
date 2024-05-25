@@ -20,16 +20,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
      */
     private Integer numTestsFailed;
 
-    /**
-     * The number of extra credit tests that passed under this node
-     */
-    private Integer numExtraCreditPassed;
-
-    /**
-     * The number of extra credit tests that failed under this node
-     */
-    private Integer numExtraCreditFailed;
-
     public String getTestName() {
         return testName;
     }
@@ -56,14 +46,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
 
     public Integer getNumTestsFailed() {
         return numTestsFailed;
-    }
-
-    public Integer getNumExtraCreditPassed() {
-        return numExtraCreditPassed;
-    }
-
-    public Integer getNumExtraCreditFailed() {
-        return numExtraCreditFailed;
     }
 
     public void setTestName(String testName) {
@@ -109,39 +91,21 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
     public static void countTests(TestNode node) {
         if (node.passed != null) {
             if (node.passed) {
-                if (node.ecCategory != null) {
-                    node.numExtraCreditPassed = 1;
-                    node.numTestsPassed = 0;
-                } else {
-                    node.numExtraCreditPassed = 0;
-                    node.numTestsPassed = 1;
-                }
+                node.numTestsPassed = 1;
                 node.numTestsFailed = 0;
-                node.numExtraCreditFailed = 0;
             } else {
-                if (node.ecCategory != null) {
-                    node.numTestsFailed = 0;
-                    node.numExtraCreditFailed = 1;
-                } else {
-                    node.numTestsFailed = 1;
-                    node.numExtraCreditFailed = 0;
-                }
+                node.numTestsFailed = 1;
                 node.numTestsPassed = 0;
-                node.numExtraCreditPassed = 0;
             }
         } else {
             node.numTestsPassed = 0;
             node.numTestsFailed = 0;
-            node.numExtraCreditPassed = 0;
-            node.numExtraCreditFailed = 0;
         }
 
         for (TestNode child : node.children.values()) {
             countTests(child);
             node.numTestsPassed += child.numTestsPassed;
             node.numTestsFailed += child.numTestsFailed;
-            node.numExtraCreditPassed += child.numExtraCreditPassed;
-            node.numExtraCreditFailed += child.numExtraCreditFailed;
         }
     }
 
