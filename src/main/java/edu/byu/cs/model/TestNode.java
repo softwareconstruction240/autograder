@@ -109,6 +109,19 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
         }
     }
 
+    public static void collapsePackages(TestNode node) {
+        while(node.getChildren().size() == 1) {
+            TestNode child = node.getChildren().values().iterator().next();
+            if(child.passed != null) return;
+            node.testName = String.format("%s.%s", node.testName, child.testName);
+            node.children = child.children;
+        }
+
+        for (TestNode child : node.children.values()) {
+            collapsePackages(child);
+        }
+    }
+
     @Override
     public int compareTo(TestNode o) {
         return this.testName.compareTo(o.testName);

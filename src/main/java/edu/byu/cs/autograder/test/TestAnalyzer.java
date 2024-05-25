@@ -72,7 +72,9 @@ public class TestAnalyzer {
             }
         }
 
+        TestNode.collapsePackages(root);
         TestNode.countTests(root);
+        TestNode.collapsePackages(extraCredit);
         TestNode.countTests(extraCredit);
         return new TestAnalysis(root, extraCredit, error);
     }
