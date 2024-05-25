@@ -22,6 +22,7 @@ export type TestNode = {
 
 export type TestResult = {
     root: TestNode,
+    extraCredit: TestNode,
     error: string
 }
 
