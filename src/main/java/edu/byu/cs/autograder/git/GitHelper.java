@@ -202,7 +202,6 @@ public class GitHelper {
             throws GitAPIException, IOException, DataAccessException {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-
         return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
