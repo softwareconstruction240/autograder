@@ -23,15 +23,33 @@ public class Serializer {
             .create();
 
     public static String serialize(Object obj) {
-        return GSON.toJson(obj);
+        try {
+            return GSON.toJson(obj);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
     }
 
     public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
-        return GSON.fromJson(jsonStr, classOfT);
+        try {
+            return GSON.fromJson(jsonStr, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
     }
 
     public static <T> T deserialize(Reader reader, Class<T> classOfT) {
-        return GSON.fromJson(reader, classOfT);
+        try {
+            return GSON.fromJson(reader, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static class SerializationException extends RuntimeException {
+        public SerializationException(Throwable cause) {
+            super(cause);
+        }
     }
 
     private static class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
