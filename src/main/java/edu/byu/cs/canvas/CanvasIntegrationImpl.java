@@ -7,6 +7,7 @@ import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -338,7 +339,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             try (InputStream respBody = https.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if (responseClass != null) {
-                    return new CanvasDeserializer<T>().deserialize(reader, responseClass);
+                    return Serializer.deserialize(reader, responseClass);
                 }
             }
         }
