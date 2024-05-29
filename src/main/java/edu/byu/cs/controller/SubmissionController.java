@@ -15,6 +15,7 @@ import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.ProcessUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
@@ -221,9 +222,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submission);
+        return Serializer.serialize(submission);
     };
 
     public static final Route submissionXGet = (req, res) -> {
@@ -256,9 +255,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route latestSubmissionsGet = (req, res) -> {
@@ -275,9 +272,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
@@ -315,9 +310,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route approveSubmissionPost = (req, res) -> {
@@ -405,10 +398,7 @@ public class SubmissionController {
 
             @Override
             public void notifyDone(Submission submission) {
-                Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                        .create();
-                notifySubscribers(Map.of("type", "results", "results", gson.toJson(submission)));
+                notifySubscribers(Map.of("type", "results", "results", Serializer.serialize(submission)));
                 removeFromQueue();
             }
 

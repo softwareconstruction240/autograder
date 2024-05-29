@@ -5,7 +5,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
-import edu.byu.cs.model.Submission;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -18,7 +17,7 @@ import java.util.Map;
 
 public class Serializer {
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
+            .registerTypeAdapter(Instant.class, new InstantAdapter())
             .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
             .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
             .create();
@@ -67,6 +66,19 @@ public class Serializer {
                 items.put(key, new CanvasRubricItem(comments, score));
             }
             return new CanvasRubricAssessment(items);
+        }
+    }
+
+    private static class InstantAdapter extends TypeAdapter<Instant> {
+
+        @Override
+        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
+            jsonWriter.value(instant.toString());
+        }
+
+        @Override
+        public Instant read(JsonReader jsonReader) throws IOException {
+            return Instant.parse(jsonReader.nextString());
         }
     }
 }

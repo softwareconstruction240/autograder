@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
@@ -135,9 +136,7 @@ public record Submission(
     }
     public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
         if (scoreVerification == null) return null;
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(scoreVerification);
+        return Serializer.serialize(scoreVerification);
     }
 
     public static String serializeVerifiedStatus(@NonNull Submission submission) {
