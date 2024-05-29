@@ -1,8 +1,8 @@
 package edu.byu.cs.autograder.quality;
 
-import com.google.gson.Gson;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
+import edu.byu.cs.util.Serializer;
 
 import java.io.File;
 import java.io.FileReader;
@@ -24,7 +24,7 @@ public class QualityAnalyzer {
         try {
             checkStyleJarPath = new File(libsPath.toFile(), "checkstyle-1.0.jar").getCanonicalPath();
             File qualityRubric = new File(libsPath.toFile(), "qualityRubric.json");
-            qualityRubricItems = new Gson().fromJson(new FileReader(qualityRubric), QualityRubric.class);
+            qualityRubricItems = Serializer.deserialize(new FileReader(qualityRubric), QualityRubric.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

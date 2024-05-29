@@ -1,9 +1,9 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;

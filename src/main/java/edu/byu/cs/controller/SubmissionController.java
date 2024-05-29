@@ -1,8 +1,5 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
@@ -156,8 +153,8 @@ public class SubmissionController {
 
         GradeRequest request;
         try {
-            request = new Gson().fromJson(req.body(), GradeRequest.class);
-        } catch (JsonSyntaxException e) {
+            request = Serializer.deserialize(req.body(), GradeRequest.class);
+        } catch (Serializer.SerializationException e) {
             halt(400, "Request must be valid json");
             return null;
         }
@@ -202,9 +199,7 @@ public class SubmissionController {
 
         res.status(200);
 
-        return new Gson().toJson(Map.of(
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("inQueue", inQueue));
     };
 
     public static final Route latestSubmissionForMeGet = (req, res) -> {
@@ -289,10 +284,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "currentlyGrading", currentlyGrading,
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
     };
 
     public static final Route studentSubmissionsGet = (req, res) -> {
@@ -443,9 +435,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "message", "re-running submissions in queue"
-        ));
+        return Serializer.serialize(Map.of("message", "re-running submissions in queue"));
     };
 
 

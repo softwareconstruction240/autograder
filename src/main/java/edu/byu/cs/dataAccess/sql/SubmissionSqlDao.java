@@ -1,22 +1,23 @@
 package edu.byu.cs.dataAccess.sql;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.util.Serializer;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class SubmissionSqlDao implements SubmissionDao {
     private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
@@ -28,15 +29,13 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("score", Submission::score),
             new ColumnDefinition<Submission>("head_hash", Submission::headHash),
             new ColumnDefinition<Submission>("notes", Submission::notes),
-            new ColumnDefinition<Submission>("rubric", s -> new Gson().toJson(s.rubric())),
+            new ColumnDefinition<Submission>("rubric", s -> Serializer.serialize(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin),
             new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
             new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
     };
 
     private static Submission readSubmission(ResultSet rs) throws SQLException {
-        var gson = new Gson();
-
         String netId = rs.getString("net_id");
         String repoUrl = rs.getString("repo_url");
         String headHash = rs.getString("head_hash");
@@ -45,7 +44,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         Boolean passed = rs.getBoolean("passed");
         float score = rs.getFloat("score");
         String notes = rs.getString("notes");
-        Rubric rubric = gson.fromJson(rs.getString("rubric"), Rubric.class);
+        Rubric rubric = Serializer.deserialize(rs.getString("rubric"), Rubric.class);
         Boolean admin = rs.getBoolean("admin");
 
         String verifiedStatusStr = rs.getString("verified_status");
@@ -53,7 +52,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                 Submission.VerifiedStatus.valueOf(verifiedStatusStr);
         String verificationJson = rs.getString("verification");
         Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
-                gson.fromJson(verificationJson, Submission.ScoreVerification.class);
+                Serializer.deserialize(verificationJson, Submission.ScoreVerification.class);
 
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
