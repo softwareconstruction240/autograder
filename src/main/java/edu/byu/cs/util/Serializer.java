@@ -1,4 +1,4 @@
-package edu.byu.cs.canvas;
+package edu.byu.cs.util;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
@@ -9,19 +9,49 @@ import edu.byu.cs.canvas.model.CanvasRubricItem;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CanvasDeserializer<T> {
-    public T deserialize(Reader reader, Class<T> deserializeClass) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
-                .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
-                .create();
-        return gson.fromJson(reader, deserializeClass);
+public class Serializer {
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(Instant.class, new InstantAdapter())
+            .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
+            .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
+            .create();
+
+    public static String serialize(Object obj) {
+        try {
+            return GSON.toJson(obj);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
     }
+
+    public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
+        try {
+            return GSON.fromJson(jsonStr, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static <T> T deserialize(Reader reader, Class<T> classOfT) {
+        try {
+            return GSON.fromJson(reader, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static class SerializationException extends RuntimeException {
+        public SerializationException(Throwable cause) {
+            super(cause);
+        }
+    }
+
     private static class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
         @Override
         public void write(JsonWriter jsonWriter, ZonedDateTime zonedDateTime) {
@@ -54,6 +84,19 @@ public class CanvasDeserializer<T> {
                 items.put(key, new CanvasRubricItem(comments, score));
             }
             return new CanvasRubricAssessment(items);
+        }
+    }
+
+    private static class InstantAdapter extends TypeAdapter<Instant> {
+
+        @Override
+        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
+            jsonWriter.value(instant.toString());
+        }
+
+        @Override
+        public Instant read(JsonReader jsonReader) throws IOException {
+            return Instant.parse(jsonReader.nextString());
         }
     }
 }

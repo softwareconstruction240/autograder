@@ -3,7 +3,9 @@ package edu.byu.cs.dataAccess.memory;
 import edu.byu.cs.dataAccess.QueueDao;
 import edu.byu.cs.model.QueueItem;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class QueueMemoryDao implements QueueDao {
     private final List<QueueItem> queue = new ArrayList<>();

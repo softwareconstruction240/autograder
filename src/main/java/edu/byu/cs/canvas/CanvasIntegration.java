@@ -8,8 +8,6 @@ import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 public interface CanvasIntegration {
 

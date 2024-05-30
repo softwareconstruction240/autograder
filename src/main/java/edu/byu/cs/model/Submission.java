@@ -1,13 +1,9 @@
 package edu.byu.cs.model;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -58,18 +54,6 @@ public record Submission(
         @Nullable VerifiedStatus verifiedStatus,
         @Nullable ScoreVerification verification
 ) {
-    public static class InstantAdapter extends TypeAdapter<Instant> {
-
-        @Override
-        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
-            jsonWriter.value(instant.toString());
-        }
-
-        @Override
-        public Instant read(JsonReader jsonReader) throws IOException {
-            return Instant.parse(jsonReader.nextString());
-        }
-    }
 
     /**
      * Represents the manual approval of a score after it was withheld.
@@ -135,9 +119,7 @@ public record Submission(
     }
     public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
         if (scoreVerification == null) return null;
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(scoreVerification);
+        return Serializer.serialize(scoreVerification);
     }
 
     public static String serializeVerifiedStatus(@NonNull Submission submission) {
