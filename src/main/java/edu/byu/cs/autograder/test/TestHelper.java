@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
@@ -122,8 +123,8 @@ public class TestHelper {
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalyzer.TestAnalysis runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                                     Set<String> extraCreditTests) throws GradingException {
+    TestAnalysis runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
+                               Set<String> extraCreditTests) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -138,11 +139,12 @@ public class TestHelper {
 
         try {
             ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
-            String output = processOutput.stdOut();
             String error = processOutput.stdErr();
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
-            return testAnalyzer.parse(output.split("\n"), extraCreditTests, removeSparkLines(error));
+            File testOutputDirectory = new File(compiledTests, "test-output");
+            File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
+            return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
@@ -157,7 +159,8 @@ public class TestHelper {
         commands.add("execute");
         commands.add("--class-path");
         commands.add(".:" + uberJarPath + ":" + junitJupiterApiJarPath);
-        commands.add("--details=testfeed");
+        commands.add("--details=none");
+        commands.add("--reports-dir=./test-output");
 
         for (String packageToTest : packagesToTest) {
             commands.add("-p");

@@ -91,11 +91,7 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
       result += `<br/>${indent}   ↳<span class="failure">${sanitizeHtml(node.errorMessage)}</span>`;
     }
   } else {
-    if (node.ecCategory !== undefined) {
-      result += ` (${node.numExtraCreditPassed} passed, ${node.numExtraCreditFailed} failed)`
-    } else {
-      result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
-    }
+    result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
   }
   result += "<br/>";
 

@@ -3,6 +3,8 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -40,10 +42,11 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestAnalysis testAnalysis) {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected float getScore(TestAnalysis testAnalysis) {
+        TestNode testResults = testAnalysis.root();
         float totalStandardTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
-        float totalECTests = testResults.getNumExtraCreditPassed() + testResults.getNumExtraCreditFailed();
+        TestNode extraCredit = testAnalysis.extraCredit();
+        float totalECTests = extraCredit != null ? extraCredit.getNumTestsPassed() + extraCredit.getNumTestsFailed() : 0f;
 
         if (totalStandardTests == 0) return 0;
 
@@ -52,7 +55,7 @@ public class PassoffTestGrader extends TestGrader {
 
         // extra credit calculation
         if (score < 1f) return score;
-        Map<String, Float> ecScores = getECScores(testResults);
+        Map<String, Float> ecScores = getECScores(extraCredit);
         float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
         for (String category : extraCreditTests()) {
             if (ecScores.get(category) == 1f) {
@@ -64,8 +67,8 @@ public class PassoffTestGrader extends TestGrader {
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestAnalysis testAnalysis) {
-        TestAnalyzer.TestNode testResults = testAnalysis.root();
+    protected String getNotes(TestAnalysis testAnalysis) {
+        TestNode testResults = testAnalysis.root();
         StringBuilder notes = new StringBuilder();
 
         if (testResults == null) return "No tests were run";
@@ -73,7 +76,7 @@ public class PassoffTestGrader extends TestGrader {
         if (testResults.getNumTestsFailed() == 0) notes.append("All required tests passed");
         else notes.append("Some required tests failed");
 
-        Map<String, Float> ecScores = getECScores(testResults);
+        Map<String, Float> ecScores = getECScores(testAnalysis.extraCredit());
         float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
         float totalECPoints = ecScores.values().stream().reduce(0f, (f1, f2) -> (float) (f1 + Math.floor(f2))) * extraCreditValue;
 
@@ -88,18 +91,19 @@ public class PassoffTestGrader extends TestGrader {
     }
 
 
-    private Map<String, Float> getECScores(TestAnalyzer.TestNode results) {
+    private Map<String, Float> getECScores(TestNode results) {
         Map<String, Float> scores = new HashMap<>();
+        if(results == null) return scores;
 
-        Queue<TestAnalyzer.TestNode> unchecked = new PriorityQueue<>();
+        Queue<TestNode> unchecked = new PriorityQueue<>();
         unchecked.add(results);
 
         while (!unchecked.isEmpty()) {
-            TestAnalyzer.TestNode node = unchecked.remove();
-            for (TestAnalyzer.TestNode child : node.getChildren().values()) {
+            TestNode node = unchecked.remove();
+            for (TestNode child : node.getChildren().values()) {
                 if (child.getEcCategory() != null) {
-                    scores.put(child.getEcCategory(), (float) child.getNumExtraCreditPassed() /
-                            (child.getNumExtraCreditPassed() + child.getNumExtraCreditFailed()));
+                    scores.put(child.getEcCategory(), (float) child.getNumTestsPassed() /
+                            (child.getNumTestsPassed() + child.getNumTestsFailed()));
                     unchecked.remove(child);
                 } else unchecked.add(child);
             }
