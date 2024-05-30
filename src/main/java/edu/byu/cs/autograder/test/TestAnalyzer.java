@@ -25,7 +25,9 @@ public class TestAnalyzer {
      */
     public TestAnalysis parse(File junitXmlOutput, Set<String> extraCreditTests, String error) throws GradingException {
         TestNode root = new TestNode();
+        root.setTestName("JUnit Jupiter");
         TestNode extraCredit = new TestNode();
+        extraCredit.setTestName("JUnit Jupiter Extra Credit");
 
         String xml = FileUtils.readStringFromFile(junitXmlOutput);
         TestSuite suite;
