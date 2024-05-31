@@ -1,5 +1,6 @@
 package edu.byu.cs.util;
 
+import edu.byu.cs.autograder.GradingException;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -188,7 +189,7 @@ public class FileUtils {
      *     "IdeaProjects/autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
      * }
      */
-    public static Map<String, String> getFileNamesToAbsolutePaths(Path filePath) {
+    public static Map<String, String> getFileNamesToAbsolutePaths(Path filePath) throws GradingException {
         Map<String, String> fileNamesToAbsolutesPaths = new HashMap<>();
         try (Stream<Path> paths = Files.walk(filePath)) {
             for (Path path : paths.toList()) {
@@ -200,7 +201,9 @@ public class FileUtils {
                 }
             }
         } catch (IOException e) {
-            return null;
+            throw new GradingException(
+                    String.format("Could not find file names given %s: %s", filePath, e.getMessage())
+            );
         }
         return fileNamesToAbsolutesPaths;
     }
