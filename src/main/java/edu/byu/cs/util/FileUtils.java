@@ -200,7 +200,9 @@ public class FileUtils {
                 }
             }
         } catch (IOException e) {
-            return null;
+            throw new RuntimeException(
+                    String.format("Could not find file names given %s: %s", filePath, e.getMessage())
+            );
         }
         return fileNamesToAbsolutesPaths;
     }
