@@ -6,8 +6,6 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
-
-
 import java.nio.file.Path;
 import java.util.*;
 
@@ -42,17 +40,16 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
      */
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
-        modifiedFiles.clear();
-        missingFiles.clear();
+        if (!PhaseUtils.isPhaseGraded(context.phase())) return;
 
         // check for modified or missing files
         Map<String, String> studentTestFileNames = getStudentPassoffFileNamesToAbsolutePath(reader);
         Phase currentPhase = context.phase();
         do {
-            Map<String, String> referenceTestFileNames =
+            Map<String, String> referencePhaseFileNames =
                     getPhasePassoffFileNamesToAbsolutePath(context.phasesPath(), currentPhase);
             try {
-                comparePhaseReferencePassoffFilesToStudent(referenceTestFileNames, studentTestFileNames);
+                comparePhaseReferencePassoffFilesToStudent(referencePhaseFileNames, studentTestFileNames);
             } catch (ProcessUtils.ProcessException e) {
                 throw new GradingException("Unable to verify unmodified test files: " + e.getMessage());
             }
@@ -72,6 +69,8 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
                     missingFiles.isEmpty() ? "None" : String.join(", ", missingFiles)
             );
             context.observer().notifyWarning(warningMessage);
+            modifiedFiles.clear();
+            missingFiles.clear();
         }
     }
 
@@ -95,7 +94,7 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
     }
 
     /**
-     * Gets all the phases's test file names based on the phase number and path to the phases folder
+     * Gets all the phases' test file names based on the phase number and path to the phases folder
      * containing those files.
      * Format:
      * {
