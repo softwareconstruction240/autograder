@@ -104,7 +104,10 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
      * @param phase Phase to grab the test files from.
      * @return A map of the phase's file names and the associated absolute path to that file.
      */
-    private Map<String, String> getPhasePassoffFileNamesToAbsolutePath(String phasesPath, Phase phase) {
+    private Map<String, String> getPhasePassoffFileNamesToAbsolutePath(
+            String phasesPath,
+            Phase phase
+    ) throws GradingException {
         String phaseNumber = PhaseUtils.getPhaseAsString(phase);
         String passoffPath = String.format("%s/phase%s/passoff/", phasesPath, phaseNumber);
         return FileUtils.getFileNamesToAbsolutePaths(Path.of(passoffPath));
