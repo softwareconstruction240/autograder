@@ -199,7 +199,9 @@ class ScorerTest {
                 mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
-        Rubric emptyRubric = new Rubric(new EnumMap<>(Rubric.RubricType.class), true, "testNotes");
+        Rubric emptyRubric = new Rubric(new EnumMap<>(Rubric.RubricType.class),
+                null, null, null, //TODO: Remove these between semesters
+                true, "testNotes");
         Submission submission = scoreRubric(emptyRubric);
 
         assertNotNull(submission);
@@ -229,6 +231,7 @@ class ScorerTest {
         return new Rubric(
                 new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
                         new Rubric.RubricItem("testCategory", results, "testCriteria"))),
+                null, null, null, //TODO: Remove these between semesters
                 true,
                 "testNotes"
         );

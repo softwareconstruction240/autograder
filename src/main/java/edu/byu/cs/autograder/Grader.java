@@ -121,7 +121,9 @@ public class Grader implements Runnable {
         // NOTE: Ideally these would be treated with enum types. That will need to be improved with #300.
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
         if (rubricConfig == null) {
-            return new Rubric(new EnumMap<>(Rubric.RubricType.class), false, "No Rubric Config");
+            return new Rubric(new EnumMap<>(Rubric.RubricType.class),
+                    null, null, null, //TODO: Remove these between semesters
+                    false, "No Rubric Config");
         }
 
         for(Rubric.RubricType type : Rubric.RubricType.values()) {
@@ -139,7 +141,9 @@ public class Grader implements Runnable {
             }
         }
 
-        return new Rubric(rubricItems, false, "");
+        return new Rubric(rubricItems,
+                null, null, null, //TODO: Remove these between semesters
+                false, "");
     }
 
     /**

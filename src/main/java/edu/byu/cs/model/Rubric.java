@@ -11,6 +11,9 @@ import java.util.EnumMap;
  */
 public record Rubric(
         EnumMap<RubricType, RubricItem> items,
+        RubricItem passoffTests,
+        RubricItem unitTests,
+        RubricItem quality,
         boolean passed,
         String notes
 ) {

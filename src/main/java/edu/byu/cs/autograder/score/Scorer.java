@@ -191,6 +191,7 @@ public class Scorer {
     private Rubric annotateRubric(Rubric rubric) {
         return new Rubric(
                 rubric.items(),
+                null, null, null, //TODO: Remove these between semesters
                 passed(rubric),
                 rubric.notes()
         );
