@@ -12,6 +12,7 @@ import {
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
+import {getPassoffTests, getQuality, getUnitTests} from "@/utils/deprecationUtils";
 
 const { submission } = defineProps<{
   submission: Submission;
@@ -47,16 +48,16 @@ const { submission } = defineProps<{
   </div>
   <div class="container">
     <RubricItemView
-      v-if="submission.rubric.passoffTests"
-      :rubric-item="submission.rubric.passoffTests"
+      v-if="getPassoffTests(submission.rubric)"
+      :rubric-item="getPassoffTests(submission.rubric)"
     />
     <RubricItemView
-      v-if="submission.rubric.quality"
-      :rubric-item="submission.rubric.quality"
+      v-if="getQuality(submission.rubric)"
+      :rubric-item="getQuality(submission.rubric)"
     />
     <RubricItemView
-      v-if="submission.rubric.unitTests"
-      :rubric-item="submission.rubric.unitTests"
+      v-if="getUnitTests(submission.rubric)"
+      :rubric-item="getUnitTests(submission.rubric)"
     />
   </div>
 

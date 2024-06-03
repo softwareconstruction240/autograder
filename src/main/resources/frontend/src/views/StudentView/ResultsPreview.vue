@@ -4,6 +4,7 @@ import { scoreToPercentage, roundTwoDecimals, commitVerificationFailed } from '@
 import PopUp from '@/components/PopUp.vue'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
+import {getPassoffTests, getQuality, getUnitTests} from "@/utils/deprecationUtils";
 
 defineProps<{
   submission: Submission;
@@ -34,9 +35,9 @@ const openDetails = ref<boolean>(false);
     </div>
     <p class="submission-notes" v-html="submission.notes.replace('\n', '<br />')"></p>
     <div class="rubric-item-summaries">
-      <p v-if="submission.rubric.passoffTests">Functionality: {{ roundTwoDecimals(submission.rubric.passoffTests.results.score) }} / {{ submission.rubric.passoffTests.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.quality">Code Quality: {{ roundTwoDecimals(submission.rubric.quality.results.score) }} / {{ submission.rubric.quality.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.unitTests">Unit Tests: {{ roundTwoDecimals(submission.rubric.unitTests.results.score) }} / {{ submission.rubric.unitTests.results.possiblePoints }}</p>
+      <p v-if="getPassoffTests(submission.rubric)">Functionality: {{ roundTwoDecimals(getPassoffTests(submission.rubric).results.score) }} / {{ getPassoffTests(submission.rubric).results.possiblePoints }}</p>
+      <p v-if="getQuality(submission.rubric)">Code Quality: {{ roundTwoDecimals(getQuality(submission.rubric).results.score) }} / {{ getQuality(submission.rubric).results.possiblePoints }}</p>
+      <p v-if="getUnitTests(submission.rubric)">Unit Tests: {{ roundTwoDecimals(getUnitTests(submission.rubric).results.score) }} / {{ getUnitTests(submission.rubric).results.possiblePoints }}</p>
     </div>
     <button @click="() => {openDetails = true}" class="secondary">See submission details</button>
   </div>
