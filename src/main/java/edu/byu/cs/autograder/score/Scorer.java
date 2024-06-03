@@ -190,9 +190,7 @@ public class Scorer {
      */
     private Rubric annotateRubric(Rubric rubric) {
         return new Rubric(
-                rubric.passoffTests(),
-                rubric.unitTests(),
-                rubric.quality(),
+                rubric.items(),
                 passed(rubric),
                 rubric.notes()
         );
@@ -202,9 +200,11 @@ public class Scorer {
         boolean passed = true;
 
         boolean isPassoffRequired = PhaseUtils.isPassoffRequired(gradingContext.phase());
-        if (isPassoffRequired && rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
-                passed = false;
+        var passoffTestItem = rubric.items().get(Rubric.RubricType.PASSOFF_TESTS);
+        if (isPassoffRequired && passoffTestItem != null && passoffTestItem.results() != null &&
+                passoffTestItem.results().score() < passoffTestItem.results().possiblePoints()) {
+            passed = false;
+        }
 
         return passed;
     }
@@ -262,22 +262,11 @@ public class Scorer {
     private float getScore(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
-        if (totalPossiblePoints == 0)
+        if (totalPossiblePoints == 0) {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
+        }
 
-        float score = 0;
-        if (rubric.passoffTests() != null)
-            score += rubric.passoffTests().results().score();
-
-        if (rubric.unitTests() != null)
-            score += rubric.unitTests().results().score();
-
-        if (rubric.quality() != null)
-            score += rubric.quality().results().score();
-
-        // TODO: Also account for other RubricItems like GIT_COMMITS?
-
-        return score / totalPossiblePoints;
+        return rubric.getTotalPoints() / totalPossiblePoints;
     }
 
     /**

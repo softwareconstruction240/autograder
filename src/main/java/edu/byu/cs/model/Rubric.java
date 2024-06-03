@@ -16,6 +16,21 @@ public record Rubric(
 ) {
 
     /**
+     * Calculates the total number of points in all items
+     *
+     * @return total number of points contained by this rubric
+     */
+    public float getTotalPoints() {
+        float total = 0f;
+        for(RubricItem item : items.values()) {
+            if(item != null) {
+                total += item.results().score();
+            }
+        }
+        return total;
+    }
+
+    /**
      * Represents a single rubric item
      *
      * @param category
