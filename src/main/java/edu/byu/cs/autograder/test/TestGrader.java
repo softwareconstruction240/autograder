@@ -77,8 +77,7 @@ public abstract class TestGrader {
         float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
 
-        return new Rubric.Results(getNotes(results), score, rubricConfigItem(rubricConfig).points(), results,
-                null);
+        return new Rubric.Results(getNotes(results), score, rubricConfig.items().get(rubricType()).points(), results, null);
     }
 
     private void compileTests() throws GradingException {
@@ -100,6 +99,6 @@ public abstract class TestGrader {
 
     protected abstract String getNotes(TestAnalysis testResults) throws GradingException;
 
-    protected abstract RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config);
+    protected abstract Rubric.RubricType rubricType();
 
 }
