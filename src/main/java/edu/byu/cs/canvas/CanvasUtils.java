@@ -10,6 +10,7 @@ import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.util.PhaseUtils;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,47 +27,22 @@ public class CanvasUtils {
      */
     public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) throws GradingException, DataAccessException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
 
-        Rubric.RubricItem convertedPassoffTests = null;
-        Rubric.RubricItem convertedUnitTests = null;
-        Rubric.RubricItem convertedQuality = null;
+        for(Rubric.RubricType type : Rubric.RubricType.values()) {
+            Rubric.RubricItem rubricItem = rubric.items().get(type);
+            if (rubricItem != null) {
+                RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(type);
+                if (configItem == null) {
+                    throw new GradingException(String.format("Rubric not configured for %s %s", phase, type));
+                }
 
-        if (rubric.passoffTests() != null) {
-            if (rubricConfig.passoffTests() == null)
-                throw new GradingException("Rubric not configured for " + phase.toString() + " passoff tests");
-
-            convertedPassoffTests = new Rubric.RubricItem(
-                    rubric.passoffTests().category(),
-                    convertPoints(rubric.passoffTests().results(), rubricConfig.passoffTests().points()),
-                    rubric.passoffTests().criteria());
+                rubricItems.put(type, new Rubric.RubricItem(rubricItem.category(),
+                        convertPoints(rubricItem.results(), configItem.points()), rubricItem.criteria()));
+            }
         }
 
-        if (rubric.unitTests() != null) {
-            if (rubricConfig.unitTests() == null)
-                throw new GradingException("Rubric not configured for " + phase.toString() + " unit tests");
-
-            convertedUnitTests = new Rubric.RubricItem(
-                    rubric.unitTests().category(),
-                    convertPoints(rubric.unitTests().results(), rubricConfig.unitTests().points()),
-                    rubric.unitTests().criteria());
-        }
-
-        if (rubric.quality() != null) {
-            if (rubricConfig.quality() == null)
-                throw new RuntimeException("Rubric not configured for " + phase.toString() + " quality");
-
-            convertedQuality = new Rubric.RubricItem(
-                    rubric.quality().category(),
-                    convertPoints(rubric.quality().results(), rubricConfig.quality().points()),
-                    rubric.quality().criteria());
-        }
-
-        return new Rubric(
-                convertedPassoffTests,
-                convertedUnitTests,
-                convertedQuality,
-                rubric.passed(),
-                rubric.notes());
+        return new Rubric(rubricItems, rubric.passed(), rubric.notes());
     }
 
     private static Rubric.Results convertPoints(Rubric.Results results, int points) {
@@ -83,12 +59,12 @@ public class CanvasUtils {
                                                              float lateAdjustment, Phase phase)
             throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
-        items.putAll(convertToCanvasFormat(rubric.passoffTests(), lateAdjustment, phase, config.passoffTests(),
-                Rubric.RubricType.PASSOFF_TESTS).items());
-        items.putAll(convertToCanvasFormat(rubric.unitTests(), lateAdjustment, phase, config.unitTests(),
-                Rubric.RubricType.UNIT_TESTS).items());
-        items.putAll(convertToCanvasFormat(rubric.quality(), lateAdjustment, phase, config.quality(),
-                Rubric.RubricType.QUALITY).items());
+
+        for(Rubric.RubricType type : Rubric.RubricType.values()) {
+            items.putAll(convertToCanvasFormat(rubric.items().get(type), lateAdjustment, phase,
+                    config.items().get(type), type).items());
+        }
+
         return new CanvasRubricAssessment(items);
     }
 
