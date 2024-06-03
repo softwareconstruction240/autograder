@@ -8,6 +8,8 @@ import edu.byu.cs.model.RubricConfig;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class RubricConfigSqlDao implements RubricConfigDao {
 
@@ -16,17 +18,11 @@ public class RubricConfigSqlDao implements RubricConfigDao {
 
     @Override
     public RubricConfig getRubricConfig(Phase phase) throws DataAccessException {
-
-        RubricConfig.RubricConfigItem passoffTests = getRubricItem(phase, Rubric.RubricType.PASSOFF_TESTS);
-        RubricConfig.RubricConfigItem unitTests = getRubricItem(phase, Rubric.RubricType.UNIT_TESTS);
-        RubricConfig.RubricConfigItem quality = getRubricItem(phase, Rubric.RubricType.QUALITY);
-
-        return new RubricConfig(
-                phase,
-                passoffTests,
-                unitTests,
-                quality
-        );
+        EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> items = new EnumMap<>(Rubric.RubricType.class);
+        for(Rubric.RubricType type : Rubric.RubricType.values()) {
+            items.put(type, getRubricItem(phase, type));
+        }
+        return new RubricConfig(phase, items);
     }
 
     @Override
@@ -34,24 +30,23 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         RubricConfig rubricConfig = getRubricConfig(phase);
 
         int total = 0;
-        if (rubricConfig.passoffTests() != null)
-            total += rubricConfig.passoffTests().points();
-        if (rubricConfig.unitTests() != null)
-            total += rubricConfig.unitTests().points();
-        if (rubricConfig.quality() != null)
-            total += rubricConfig.quality().points();
+        for(RubricConfig.RubricConfigItem item : rubricConfig.items().values()) {
+            if(item != null) {
+                total += item.points();
+            }
+        }
 
         return total;
     }
 
     @Override
     public void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException {
-        if (rubricConfig.passoffTests() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.PASSOFF_TESTS, rubricConfig.passoffTests().category(), rubricConfig.passoffTests().criteria(), rubricConfig.passoffTests().points());
-        if (rubricConfig.unitTests() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.UNIT_TESTS, rubricConfig.unitTests().category(), rubricConfig.unitTests().criteria(), rubricConfig.unitTests().points());
-        if (rubricConfig.quality() != null)
-            addRubricConfigItem(phase, Rubric.RubricType.QUALITY, rubricConfig.quality().category(), rubricConfig.quality().criteria(), rubricConfig.quality().points());
+        for (Map.Entry<Rubric.RubricType, RubricConfig.RubricConfigItem> entry : rubricConfig.items().entrySet()) {
+            RubricConfig.RubricConfigItem item = entry.getValue();
+            if (item != null) {
+                addRubricConfigItem(phase, entry.getKey(), item.category(), item.criteria(), item.points());
+            }
+        }
     }
 
     private void addRubricConfigItem(Phase phase, Rubric.RubricType type, String category, String criteria, int points) throws DataAccessException {
