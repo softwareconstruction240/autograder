@@ -1,18 +1,16 @@
 package edu.byu.cs.model;
 
+import java.util.EnumMap;
+
 /**
  * Represents the rubric for a Canvas assignment. Some rubrics may have null values for some fields.
  *
- * @param passoffTests
- * @param unitTests
- * @param quality
+ * @param items
  * @param passed
  * @param notes
  */
 public record Rubric(
-        RubricItem passoffTests,
-        RubricItem unitTests,
-        RubricItem quality,
+        EnumMap<RubricType, RubricItem> items,
         boolean passed,
         String notes
 ) {
