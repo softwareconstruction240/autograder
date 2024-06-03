@@ -15,18 +15,6 @@ public class RubricConfigMemoryDao implements RubricConfigDao {
     }
 
     @Override
-    public int getPhaseTotalPossiblePoints(Phase phase) {
-        int total = 0;
-        RubricConfig rubricConfig = rubricConfigs.get(phase);
-        for(RubricConfig.RubricConfigItem item : rubricConfig.items().values()) {
-            if(item != null) {
-                total += item.points();
-            }
-        }
-        return total;
-    }
-
-    @Override
     public void setRubricConfig(Phase phase, RubricConfig rubricConfig) {
         rubricConfigs.put(phase, rubricConfig);
     }
