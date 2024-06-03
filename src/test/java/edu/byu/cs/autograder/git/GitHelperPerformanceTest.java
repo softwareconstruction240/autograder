@@ -109,6 +109,7 @@ public class GitHelperPerformanceTest {
                 CommitVerificationResult expected = utils.generalCommitVerificationResult(false, totalCommits, 1);
                 if (assertResults) utils.assertCommitVerification(expected, result);
             });
+            utils.cleanUpTest(repoContext);
         }
 
         return new PerformanceResults(totalCommits, commitLines, testDuration, generationDuration, evaluationDuration.longValue());
