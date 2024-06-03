@@ -125,15 +125,17 @@ public class Grader implements Runnable {
         }
 
         for(Rubric.RubricType type : Rubric.RubricType.values()) {
-            Rubric.Results results = switch (type) {
-                case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
-                case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
-                case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                case GIT_COMMITS -> null;
-            };
-            if(results != null) {
-                RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(type);
-                rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));
+            RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(type);
+            if(configItem != null) {
+                Rubric.Results results = switch (type) {
+                    case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
+                    case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
+                    case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
+                    case GIT_COMMITS -> null;
+                };
+                if (results != null) {
+                    rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));
+                }
             }
         }
 
