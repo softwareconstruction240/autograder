@@ -74,10 +74,13 @@ public abstract class TestGrader {
             results.extraCredit().setTestName("Extra Credit");
         }
 
+        String notes = getNotes(results);
         float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(rubricType());
+        int possiblePoints = configItem != null ? configItem.points() : 0;
 
-        return new Rubric.Results(getNotes(results), score, rubricConfig.items().get(rubricType()).points(), results, null);
+        return new Rubric.Results(notes, score, possiblePoints, results, null);
     }
 
     private void compileTests() throws GradingException {

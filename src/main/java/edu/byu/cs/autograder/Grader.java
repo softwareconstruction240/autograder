@@ -131,7 +131,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GIT_COMMITS -> null;
+                    case GIT_COMMITS, PREVIOUS_TESTS -> null;
                 };
                 if (results != null) {
                     rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));

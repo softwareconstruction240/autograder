@@ -108,47 +108,56 @@ public class PhaseUtils {
     }
 
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0 -> switch (type) {
-                case PASSOFF_TESTS -> "_1958";
-                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-                case GIT_COMMITS -> "90342_649";
-            };
-            case Phase1 -> switch (type) {
-                case PASSOFF_TESTS -> "_1958";
-                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-                case GIT_COMMITS -> "90342_7800";
-            };
-            case Phase3 -> switch (type) {
-                case PASSOFF_TESTS -> "_5202";
-                case UNIT_TESTS -> "90344_776";
-                case QUALITY -> "_3003";
-                case GIT_COMMITS -> "90344_2520";
-            };
-            case Phase4 -> switch (type) {
-                case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "90346_5755";
-                case QUALITY -> "90346_8398";
-                case GIT_COMMITS -> "90346_6245";
-            };
-            case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "90347_2215";
-                case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
-                case QUALITY -> "90347_9378";
-                case GIT_COMMITS -> "90347_8497";
-            };
-            case Phase6 -> switch (type) {
-                case PASSOFF_TESTS -> "90348_899";
-                case QUALITY -> "90348_3792";
-                case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
-                case GIT_COMMITS -> "90348_9048";
-            };
-            case Quality -> throw new GradingException("Not graded");
-        };
+        String rubricId = null;
+        switch (phase) {
+            case Phase0 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_1958";
+                    case GIT_COMMITS -> rubricId = "90342_649";
+                }
+            }
+            case Phase1 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_1958";
+                    case GIT_COMMITS -> rubricId = "90342_7800";
+                }
+            }
+            case Phase3 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_5202";
+                    case UNIT_TESTS -> rubricId = "90344_776";
+                    case QUALITY -> rubricId = "_3003";
+                    case GIT_COMMITS -> rubricId = "90344_2520";
+                }
+            }
+            case Phase4 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_2614";
+                    case UNIT_TESTS -> rubricId = "90346_5755";
+                    case QUALITY -> rubricId = "90346_8398";
+                    case GIT_COMMITS -> rubricId = "90346_6245";
+                }
+            }
+            case Phase5 -> {
+                switch (type) {
+                    case UNIT_TESTS -> rubricId = "90347_2215";
+                    case QUALITY -> rubricId = "90347_9378";
+                    case GIT_COMMITS -> rubricId = "90347_8497";
+                }
+            }
+            case Phase6 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "90348_899";
+                    case QUALITY -> rubricId = "90348_3792";
+                    case GIT_COMMITS -> rubricId = "90348_9048";
+                }
+            }
+        }
+        if(rubricId == null) throw new GradingException(String.format("No %s item for phase %s", type, phase));
+        return rubricId;
     }
 
     public static String getModuleUnderTest(Phase phase) {
-        //FIXME : Not sure what's wrong with this but there was a empty fixme comment when I refactored -Michael
         return switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4, Phase6 -> "server";

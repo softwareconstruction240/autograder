@@ -72,6 +72,7 @@ public record Rubric(
         PASSOFF_TESTS,
         UNIT_TESTS,
         QUALITY,
-        GIT_COMMITS
+        GIT_COMMITS,
+        PREVIOUS_TESTS
     }
 }
