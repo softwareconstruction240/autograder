@@ -17,6 +17,7 @@ import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,15 +66,11 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        int requiredCommits = 10;
-        int requiredDaysWithCommits = 3;
-        int commitVerificationPenaltyPct = 10;
-        int minimumChangedLinesPerCommit = 5;
-
+        var cvConfig = PhaseUtils.verificationConfig(phase);
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
-                    requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumChangedLinesPerCommit,
+                    cvConfig.requiredCommits(), cvConfig.requiredDaysWithCommits(), cvConfig.commitVerificationPenaltyPct(), cvConfig.minimumChangedLinesPerCommit(),
                     observer, admin);
 
         // Init helpers

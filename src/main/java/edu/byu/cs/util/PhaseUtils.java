@@ -1,6 +1,7 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
@@ -185,6 +186,14 @@ public class PhaseUtils {
     public static float extraCreditValue(Phase phase) {
         if(phase == Phase.Phase1) return .04f;
         return 0;
+    }
+
+    public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, 5, 10);
+            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, 5, 10);
+            case Quality -> throw new GradingException("No commit verification for this phase");
+        };
     }
 
     public static String getPassoffPackagePath(Phase phase) {
