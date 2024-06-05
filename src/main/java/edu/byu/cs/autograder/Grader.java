@@ -70,8 +70,7 @@ public class Grader implements Runnable {
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
-                    cvConfig.requiredCommits(), cvConfig.requiredDaysWithCommits(), cvConfig.commitVerificationPenaltyPct(), cvConfig.minimumChangedLinesPerCommit(),
-                    observer, admin);
+                    cvConfig, observer, admin);
 
         // Init helpers
         this.dbHelper = new DatabaseHelper(salt, gradingContext);

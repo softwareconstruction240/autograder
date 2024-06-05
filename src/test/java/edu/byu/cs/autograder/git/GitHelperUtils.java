@@ -220,10 +220,10 @@ public class GitHelperUtils {
     GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
                                                   int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
         GradingObserver mockObserver = Mockito.mock(GradingObserver.class);
+        var cvConfig = new CommitVerificationConfig(requiredCommits, requiredDaysWithCommits, minimumLinesChangedPerCommit, commitVerificationPenaltyPct);
         return new GradingContext(
                 null, null, null, null, null, null,
-                requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumLinesChangedPerCommit,
-                mockObserver, false);
+                cvConfig, mockObserver, false);
     }
 
     void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {

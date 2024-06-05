@@ -217,10 +217,10 @@ public class GitHelper {
         return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-        int requiredCommits = gradingContext.requiredCommits();
-        int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
-        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
+        int requiredCommits = gradingContext.verificationConfig().requiredCommits();
+        int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
