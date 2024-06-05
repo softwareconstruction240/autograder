@@ -186,9 +186,9 @@ class GitHelperTest {
         utils.setGradingContext(utils.generateGradingContext(3, 0, 10, 0));
         utils.evaluateTest("simple-backdating-commits", new VerificationCheckpoint(
                 repoContext -> {
-                    utils.makeCommit(repoContext, "Change 1", 2, 20, 10);
-                    utils.makeCommit(repoContext, "Change 2", 1, 0, 10); // Simply backdated!
-                    utils.makeCommit(repoContext, "Change 3", 0, 10, 10);
+                    utils.makeCommit(repoContext, "Change 1", 2, 20, 10, false);
+                    utils.makeCommit(repoContext, "Change 2", 1, 0, 10, false); // Simply backdated!
+                    utils.makeCommit(repoContext, "Change 3", 0, 10, 10, false);
                 },
                 utils.generalCommitVerificationResult(false, 3, 3)
         ));
