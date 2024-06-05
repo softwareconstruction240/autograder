@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Submission} from "@/types/types";
+import type {Rubric, RubricItem, RubricType, Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
@@ -17,6 +17,14 @@ import {getPassoffTests, getQuality, getUnitTests} from "@/utils/deprecationUtil
 const { submission } = defineProps<{
   submission: Submission;
 }>();
+
+const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[] => {
+  return Object.keys(items).sort((a, b) => {
+    const aPoints = items[a as RubricType].results.possiblePoints;
+    const bPoints = items[b as RubricType].results.possiblePoints;
+    return bPoints - aPoints;
+  }).map((item) => items[item as RubricType]);
+}
 
 </script>
 
@@ -47,17 +55,20 @@ const { submission } = defineProps<{
     </div>
   </div>
   <div class="container">
+    <RubricItemView v-if="submission.rubric.items" v-for="item in sortedItems(submission.rubric.items)" :rubric-item="item"/>
+
+    <!-- TODO: Remove the following three deprecated views after Spring 2024 -->
     <RubricItemView
-      v-if="getPassoffTests(submission.rubric)"
-      :rubric-item="getPassoffTests(submission.rubric)"
+      v-if="submission.rubric.passoffTests"
+      :rubric-item="submission.rubric.passoffTests"
     />
     <RubricItemView
-      v-if="getQuality(submission.rubric)"
-      :rubric-item="getQuality(submission.rubric)"
+      v-if="submission.rubric.quality"
+      :rubric-item="submission.rubric.quality"
     />
     <RubricItemView
-      v-if="getUnitTests(submission.rubric)"
-      :rubric-item="getUnitTests(submission.rubric)"
+      v-if="submission.rubric.unitTests"
+      :rubric-item="submission.rubric.unitTests"
     />
   </div>
 
