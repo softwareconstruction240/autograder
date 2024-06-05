@@ -40,7 +40,7 @@ class ScorerTest {
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
 
-    private static final CommitVerificationConfig standardCVConfig = new CommitVerificationConfig(10, 3, 0, 10);
+    private static final CommitVerificationConfig standardCVConfig = new CommitVerificationConfig(10, 3, 0, 10, 3);
 
     private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION =
             constructCommitVerificationResult(true, false);
