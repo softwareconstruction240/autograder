@@ -40,17 +40,11 @@ export type RubricItem = {
     results: RubricItemResults,
 }
 
-//unfortunately with the way gson serializes maps and the way javascript parses that json each needs to be its own item
-export type RubricItems = {
-    PASSOFF_TESTS: RubricItem,
-    UNIT_TESTS: RubricItem,
-    QUALITY: RubricItem,
-    GIT_COMMITS: RubricItem,
-}
+export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS"
 
 //TODO: Remove deprecated standalone rubric items between semesters when resetting db
 export type Rubric = {
-    items: RubricItems,
+    items: Record<RubricType, RubricItem>,
     passoffTests: RubricItem,
     unitTests: RubricItem,
     quality: RubricItem,
