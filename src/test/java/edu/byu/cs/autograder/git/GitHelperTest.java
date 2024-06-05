@@ -195,6 +195,19 @@ class GitHelperTest {
     }
 
     @Test
+    void extendForgivenessMinutes() {
+        utils.setGradingContext(utils.generateGradingContext(1, 0, 10, 0, 3));
+        utils.evaluateTest("extend-forgiveness-minutes", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 1", 0, -1, 10), // Minor clock issue
+                        utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 2", 0, -6, 10), // Major clock issue
+                        utils.generalCommitVerificationResult(false, 1, 1))
+        ));
+    }
+
+    @Test
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
         // Fails when submitting new phase with same head hash

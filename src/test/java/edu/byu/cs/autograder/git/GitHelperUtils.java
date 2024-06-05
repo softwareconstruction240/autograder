@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitThreshold;
-import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.util.FileUtils;
@@ -216,11 +215,14 @@ public class GitHelperUtils {
 
 
     // ### Assertion Helpers
-
     GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
-                                                  int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
+                                          int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
+        return generateGradingContext(requiredCommits, requiredDaysWithCommits,
+                commitVerificationPenaltyPct, minimumLinesChangedPerCommit, 3);
+    }
+    GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
+                                          int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit, int forgivenessMinutes) {
         GradingObserver mockObserver = Mockito.mock(GradingObserver.class);
-        var forgivenessMinutes = 3;
         var cvConfig = new CommitVerificationConfig(requiredCommits, requiredDaysWithCommits, minimumLinesChangedPerCommit, commitVerificationPenaltyPct, forgivenessMinutes);
         return new GradingContext(
                 null, null, null, null, null, null,
