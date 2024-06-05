@@ -193,16 +193,14 @@ public class Scorer {
     }
 
     private boolean passed(Rubric rubric) {
-        boolean passed = true;
-
-        boolean isPassoffRequired = PhaseUtils.isPassoffRequired(gradingContext.phase());
-        var passoffTestItem = rubric.items().get(Rubric.RubricType.PASSOFF_TESTS);
-        if (isPassoffRequired && passoffTestItem != null && passoffTestItem.results() != null &&
-                passoffTestItem.results().score() < passoffTestItem.results().possiblePoints()) {
-            passed = false;
+        if(!PhaseUtils.isPassoffRequired(gradingContext.phase())) {
+            return true;
         }
-
-        return passed;
+        Rubric.RubricItem passoffTestItem = rubric.items().get(Rubric.RubricType.PASSOFF_TESTS);
+        if (passoffTestItem == null || passoffTestItem.results() == null) {
+            return true;
+        }
+        return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
     }
 
     /**
