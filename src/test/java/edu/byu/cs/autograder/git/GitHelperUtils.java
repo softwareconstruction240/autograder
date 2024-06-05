@@ -145,20 +145,16 @@ public class GitHelperUtils {
                 "ANY_HEAD_HASH", null);
     }
 
-
-    void makeCommit(RepoContext repoContext, String content) {
-        makeCommit(repoContext, content, Instant.now());
-    }
     void makeCommit(RepoContext repoContext, String content, int daysAgo, int minsAgo, int numLines) {
+        makeCommit(repoContext, content, daysAgo, minsAgo, numLines, true);
+    }
+    void makeCommit(RepoContext repoContext, String content, int daysAgo, int minsAgo, int numLines, boolean setCommitter) {
         Instant time = Instant.now()
                 .minus(Duration.ofDays(daysAgo))
                 .minus(Duration.ofMinutes(minsAgo));
-        makeCommit(repoContext, content, time, numLines);
+        makeCommit(repoContext, content, time, numLines, setCommitter);
     }
-    void makeCommit(RepoContext repoContext, String content, Instant dateValue) {
-        makeCommit(repoContext, content, dateValue, 20);
-    }
-    void makeCommit(RepoContext repoContext, String content, Instant commitTimestamp, int numLines) {
+    void makeCommit(RepoContext repoContext, String content, Instant commitTimestamp, int numLines, boolean setCommitter) {
         try {
             // Write the file
             String fileContents = (content + "\n").repeat(numLines);
@@ -174,7 +170,13 @@ public class GitHelperUtils {
                     COMMIT_AUTHOR_EMAIL,
                     commitTimestamp,
                     ZoneId.systemDefault());
-            git.commit().setMessage(content).setAuthor(authorIdent).call();
+            var commitCommand = git.commit();
+            commitCommand.setMessage(content);
+            commitCommand.setAuthor(authorIdent);
+            if (setCommitter) {
+                commitCommand.setCommitter(authorIdent);
+            }
+            commitCommand.call();
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
