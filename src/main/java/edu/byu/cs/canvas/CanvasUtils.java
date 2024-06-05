@@ -42,9 +42,7 @@ public class CanvasUtils {
             }
         }
 
-        return new Rubric(rubricItems,
-                null, null, null, //TODO: Remove these between semesters
-                rubric.passed(), rubric.notes());
+        return new Rubric(rubricItems, rubric.passed(), rubric.notes());
     }
 
     private static Rubric.Results convertPoints(Rubric.Results results, int points) {
