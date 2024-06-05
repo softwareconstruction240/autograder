@@ -189,11 +189,14 @@ public class PhaseUtils {
     }
 
     public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, 5, 10);
-            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, 5, 10);
-            case Quality -> throw new GradingException("No commit verification for this phase");
-        };
+        return new CommitVerificationConfig(10, 3, 5, 10);
+        // TODO: Enable this functionality to change the values in next semester.
+        // Don't forget to also update the rubrics in the phase specs and the grade-book.
+//        return switch (phase) {
+//            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, 5, 10);
+//            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, 5, 10);
+//            case Quality -> throw new GradingException("No commit verification for this phase");
+//        };
     }
 
     public static String getPassoffPackagePath(Phase phase) {
