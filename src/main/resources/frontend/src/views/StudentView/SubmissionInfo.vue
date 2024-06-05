@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Rubric, RubricItem, RubricType, Submission} from "@/types/types";
+import type {Submission} from "@/types/types";
 import 'ag-grid-community/styles/ag-grid.css';
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
@@ -8,23 +8,14 @@ import {
   generateClickableLink,
   nameOnSubmission, phaseString,
   readableTimestamp,
-  scoreToPercentage
+  scoreToPercentage, sortedItems
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
-import {getPassoffTests, getQuality, getUnitTests} from "@/utils/deprecationUtils";
 
 const { submission } = defineProps<{
   submission: Submission;
 }>();
-
-const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[] => {
-  return Object.keys(items).sort((a, b) => {
-    const aPoints = items[a as RubricType].results.possiblePoints;
-    const bPoints = items[b as RubricType].results.possiblePoints;
-    return bPoints - aPoints;
-  }).map((item) => items[item as RubricType]);
-}
 
 </script>
 
