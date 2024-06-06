@@ -2,6 +2,7 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
@@ -66,7 +67,7 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        var cvConfig = PhaseUtils.verificationConfig(phase);
+        CommitVerificationConfig cvConfig = PhaseUtils.verificationConfig(phase);
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
