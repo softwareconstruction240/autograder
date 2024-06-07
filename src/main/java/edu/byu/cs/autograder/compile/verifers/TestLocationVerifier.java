@@ -75,8 +75,11 @@ public class TestLocationVerifier implements StudentCodeVerifier {
             }
             currPhase = PhaseUtils.getPreviousPhase(currPhase);
         } while (currPhase != null);
-
-        context.observer().notifyWarning(buildMessage());
+        
+        String message = buildMessage();
+        if (!message.isBlank()) {
+            context.observer().notifyWarning(message);
+        }
 
         missingPackages.clear();
         foundFiles.clear();
