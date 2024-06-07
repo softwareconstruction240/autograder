@@ -5,10 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.compile.modifiers.PassoffJarModifier;
 import edu.byu.cs.autograder.compile.modifiers.PomModifier;
 import edu.byu.cs.autograder.compile.modifiers.TestFactoryModifier;
-import edu.byu.cs.autograder.compile.verifers.ModifiedTestFilesVerifier;
-import edu.byu.cs.autograder.compile.verifers.ModuleIndependenceVerifier;
-import edu.byu.cs.autograder.compile.verifers.ProjectStructureVerifier;
-import edu.byu.cs.autograder.compile.verifers.TestLocationVerifier;
+import edu.byu.cs.autograder.compile.verifers.*;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.IOException;
@@ -24,7 +21,7 @@ public class CompileHelper {
 
     private final Collection<StudentCodeVerifier> currentVerifiers =
             List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier(), new ModifiedTestFilesVerifier(),
-                    new TestLocationVerifier());
+                    new TestLocationVerifier(), new ServerFacadeTestPortVerifier());
 
 
     private final Collection<StudentCodeModifier> currentModifiers =
