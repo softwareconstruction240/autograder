@@ -90,6 +90,16 @@ public class PhaseUtils {
         };
     }
 
+    public static Set<String> unitTestPackagePaths(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase6, Quality -> new HashSet<>();
+            case Phase1 -> Set.of("shared/src/test/java/passoff/chess/game");
+            case Phase3 -> Set.of("server/src/test/java/service", "server/src/test/java/passoff/server");
+            case Phase4 -> Set.of("server/src/test/java/dataaccess");
+            case Phase5 -> Set.of("client/src/test/java/client");
+        };
+    }
+
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
