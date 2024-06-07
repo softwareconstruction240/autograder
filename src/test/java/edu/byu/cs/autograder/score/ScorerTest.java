@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -38,6 +39,8 @@ class ScorerTest {
     GradingContext gradingContext = null;
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
+
+    private static final CommitVerificationConfig standardCVConfig = new CommitVerificationConfig(10, 3, 0, 10, 3);
 
     private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION =
             constructCommitVerificationResult(true, false);
@@ -88,8 +91,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10, 0,
-                mockObserver, false);
+                standardCVConfig, mockObserver, false);
 
 
     }
@@ -173,8 +175,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10, 0,
-                mockObserver, true);
+                standardCVConfig, mockObserver, true);
 
         Submission submission = scoreRubric(constructRubric(1f));
 
@@ -197,8 +198,7 @@ class ScorerTest {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Quality, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
-                10, 3, 10, 0,
-                mockObserver, false);
+                standardCVConfig, mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
         Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
