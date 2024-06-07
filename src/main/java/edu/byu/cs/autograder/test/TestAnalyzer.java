@@ -29,6 +29,10 @@ public class TestAnalyzer {
         TestNode extraCredit = new TestNode();
         extraCredit.setTestName("JUnit Jupiter Extra Credit");
 
+        if(!junitXmlOutput.exists()) {
+            return compileAnalysis(root, extraCredit, error);
+        }
+
         String xml = FileUtils.readStringFromFile(junitXmlOutput);
         TestSuite suite;
         try {
@@ -74,11 +78,7 @@ public class TestAnalyzer {
             }
         }
 
-        TestNode.collapsePackages(root);
-        TestNode.countTests(root);
-        TestNode.collapsePackages(extraCredit);
-        TestNode.countTests(extraCredit);
-        return new TestAnalysis(root, extraCredit, error);
+        return compileAnalysis(root, extraCredit, error);
     }
 
     private TestNode nodeForClass(TestNode base, String name) {
@@ -97,5 +97,13 @@ public class TestAnalyzer {
 
         if(extra == null) return node;
         else return nodeForClass(node, extra);
+    }
+
+    private TestAnalysis compileAnalysis(TestNode root, TestNode extraCredit, String error) {
+        TestNode.collapsePackages(root);
+        TestNode.countTests(root);
+        TestNode.collapsePackages(extraCredit);
+        TestNode.countTests(extraCredit);
+        return new TestAnalysis(root, extraCredit, error);
     }
 }
