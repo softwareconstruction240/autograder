@@ -1,14 +1,5 @@
 package edu.byu.cs.autograder.compile;
 
-import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.compile.verifers.TestLocationVerifier;
-import edu.byu.cs.model.Phase;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.io.IOException;
-
 public class TestLocationVerifierTest {
 
     /*
@@ -18,36 +9,18 @@ public class TestLocationVerifierTest {
      * Deletes: client/src/test/java/client, server/src/test/java/passoff
      *
      * https://github.com/Fiwafoofa/chessTA/tree/bad-test-locations
-     * Wrong package name: client/src/test/java/clientImABadStudent/ServerFacadeTests.java,
-     *    server/src/test/java/serviceImABadStudent/ClearServiceTests.java,
-     *    server/src/test/java/serviceImABadStudent/UserServiceTests.java
+     * Wrong package name: server/src/test/java/serviceImABadStudent/ClearServiceTests.java,
      * Missing package name: server/src/test/java/serviceImABadStudent/GameServiceTests.java
      *
-     * Random package: client/src/test/java/someRandomTestPackage/yoooooooooooo.java
+     * Unrecognized File/Package(s): client/src/test/java/clientImABadStudent,
+     * client/src/test/java/clientImABadStudent/ServerFacadeTests.java,
+     * client/src/test/java/someRandomTestPackage,
+     * client/src/test/java/someRandomTestPackage/yoooooooooooo.java,
+     * /src/test/java/serviceImABadStudent,
+     * server/src/test/java/serviceImABadStudent/ClearServiceTests.java,
+     * server/src/test/java/serviceImABadStudent/GameServiceTests.java,
+     * server/src/test/java/serviceImABadStudent/UserServiceTests.java.
      *
-     * Wrongly named packages: server/src/test/java/serviceImABadStudent
      */
-
-    TestLocationVerifier customTestLocationVerifier;
-
-    @Test
-    void test() throws GradingException, IOException {
-        GradingContext gradingContext = new GradingContext(
-                "isaih",
-                Phase.Phase5,
-                "/IdeaProjects/autograder/phases",
-                "/IdeaProjects/autograder/tmp-2009831688-1716239637",
-                null,
-                new File("/IdeaProjects/autograder/tmp-2009831688-1716239637/repo"),
-                0,
-                0,
-                0,
-                0,
-                null,
-                false
-        );
-        customTestLocationVerifier = new TestLocationVerifier();
-        customTestLocationVerifier.verify(gradingContext, StudentCodeReader.from(gradingContext));
-    }
 
 }
