@@ -33,7 +33,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
             "dataaccess",
             "client"
     );
-    private static final String PATH_TO_TEST_JAVA_FROM_MODULE = "src/test/java";
+    private static final String PATH_TO_TEST_JAVA_FROM_MODULE = "/src/test/java";
     private static final String DIRECTORY_BEFORE_PACKAGES = "java";
     private final Set<String> missingPackages = new TreeSet<>();
     private final Set<String> foundFiles = new TreeSet<>();
@@ -102,7 +102,6 @@ public class TestLocationVerifier implements StudentCodeVerifier {
             Path unrecognizedPackagePath = Path.of(unrecognizedPackage);
             foundFiles.add(stripOffContextRepo(unrecognizedPackagePath));
             File unrecognizedPackageFile = unrecognizedPackagePath.toFile();
-            System.out.println("Unrecognized " + unrecognizedPackage);
             verifyPackageDirectory(unrecognizedPackageFile);
             String regex = unrecognizedPackage + ".*";
             for (File childFile : reader.filesMatching(regex).toList()) {
@@ -114,21 +113,21 @@ public class TestLocationVerifier implements StudentCodeVerifier {
     /**
      * Verify that the package's files within it contain the correct
      * package statement at the top of the file.
+     *
      * @param packageDirectory File of a package
      */
     private void verifyPackageDirectory(File packageDirectory) throws GradingException {
-        System.out.println(packageDirectory.getAbsolutePath());
         String regex = packageDirectory.getAbsolutePath() + ".+";
         for (File file : reader.filesMatching(regex).toList()) {
             if (file.isDirectory()) continue;
-            System.out.println(file.getName());
-            String packageName = getPackageFromFilePath(file.toPath());
-            fileContainsCorrectPackage(file, packageName);
+            String expectedPackageName = getPackageFromFilePath(file.toPath());
+            fileContainsCorrectPackage(file, expectedPackageName);
         }
     }
 
     /**
      * Verify that the file contains the specified packageName
+     *
      * @param file A file
      * @param packageName A package name
      */
@@ -156,6 +155,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
 
     /**
      * Strips off the context repo from that path.
+     * 
      * @param path Example: "IdeaProjects/autograder/tmp/src/server/.../Server.java
      * @return src/server/.../Server.java
      */
@@ -185,7 +185,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
     private String buildMessage() {
         StringBuilder stringBuilder = new StringBuilder();
         if (!missingPackages.isEmpty()) {
-            stringBuilder.append("Missing package(s): ")
+            stringBuilder.append("Missing expected package(s): ")
                     .append(String.join(", ", missingPackages))
                     .append(".\n");
         }
@@ -205,8 +205,8 @@ public class TestLocationVerifier implements StudentCodeVerifier {
                     .append(".\n");
         }
         if (!stringBuilder.isEmpty()) {
-            stringBuilder.append("You may need to reread the phase's specifications for proper project structure.\n" +
-                    "Make sure the files contain the right package name");
+            stringBuilder.append("You may need to reread the phase's specifications for proper project structure.\n")
+                    .append("Make sure the files contain the right package name.");
         }
         return stringBuilder.toString();
     }
