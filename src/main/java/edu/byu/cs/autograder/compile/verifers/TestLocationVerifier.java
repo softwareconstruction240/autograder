@@ -1,12 +1,17 @@
-package edu.byu.cs.autograder.compile;
+package edu.byu.cs.autograder.compile.verifers;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.compile.StudentCodeReader;
+import edu.byu.cs.autograder.compile.StudentCodeVerifier;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,34 +35,36 @@ public class TestLocationVerifier implements StudentCodeVerifier {
     );
     private static final String PATH_TO_TEST_JAVA_FROM_MODULE = "src/test/java";
     private static final String DIRECTORY_BEFORE_PACKAGES = "java";
-    private static final Integer PACKAGE_DEPTH_SEARCH = 3;
     private final Set<String> missingPackages = new TreeSet<>();
     private final Set<String> foundFiles = new TreeSet<>();
     private final Set<String> incorrectPackageNames = new TreeSet<>();
     private final Set<String> filesMissingPackageNames = new TreeSet<>();
     private final Set<String> visitedModules = new HashSet<>();
     private GradingContext context;
+    private StudentCodeReader reader;
 
     /**
      * Verifies the student's custom test by checking that they are in the correct directory
      * and the files have the correct package name.
      * @param context A grading context
      * @param reader A student code reader
-     * @throws GradingException never
+     * @throws GradingException if autograder cannot derive package from file or could not read file when
+     * scanning for package statement
      */
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         this.context = context;
+        this.reader = reader;
 
         Phase currPhase = context.phase();
         do {
             for (String unitTestPackagePath : PhaseUtils.unitTestPackagePaths(currPhase)) {
-                File packageDirectory = Path.of(context.stageRepo().getPath(), unitTestPackagePath).toFile();
+                File packageDirectory = new File(context.stageRepo(), unitTestPackagePath);
                 if (!packageDirectory.isDirectory()) {
                     missingPackages.add(unitTestPackagePath);
                     String module = PhaseUtils.getModuleUnderTest(currPhase);
-                    File testJavaDirectory =
-                        Path.of(context.stageRepo().getPath(), module, PATH_TO_TEST_JAVA_FROM_MODULE).toFile();
+                    File testJavaDirectory = new File(context.stageRepo(), module + PATH_TO_TEST_JAVA_FROM_MODULE);
+                    // check if the student potentially misspelled a package name.
                     if (testJavaDirectory.isDirectory() && !visitedModules.contains(module)) {
                         checkForUnrecognizedPackages(testJavaDirectory);
                         visitedModules.add(module);
@@ -95,8 +102,10 @@ public class TestLocationVerifier implements StudentCodeVerifier {
             Path unrecognizedPackagePath = Path.of(unrecognizedPackage);
             foundFiles.add(stripOffContextRepo(unrecognizedPackagePath));
             File unrecognizedPackageFile = unrecognizedPackagePath.toFile();
+            System.out.println("Unrecognized " + unrecognizedPackage);
             verifyPackageDirectory(unrecognizedPackageFile);
-            for (File childFile : FileUtils.getChildren(unrecognizedPackageFile, PACKAGE_DEPTH_SEARCH)) {
+            String regex = unrecognizedPackage + ".*";
+            for (File childFile : reader.filesMatching(regex).toList()) {
                 foundFiles.add(stripOffContextRepo(childFile.toPath()));
             }
         }
@@ -105,18 +114,57 @@ public class TestLocationVerifier implements StudentCodeVerifier {
     /**
      * Verify that the package's files within it contain the correct
      * package statement at the top of the file.
-     * @param packageFile File of a package
+     * @param packageDirectory File of a package
      */
-    private void verifyPackageDirectory(File packageFile) throws GradingException {
-        for (File file : FileUtils.getChildren(packageFile, PACKAGE_DEPTH_SEARCH)) {
+    private void verifyPackageDirectory(File packageDirectory) throws GradingException {
+        System.out.println(packageDirectory.getAbsolutePath());
+        String regex = packageDirectory.getAbsolutePath() + ".+";
+        for (File file : reader.filesMatching(regex).toList()) {
             if (file.isDirectory()) continue;
+            System.out.println(file.getName());
             String packageName = getPackageFromFilePath(file.toPath());
             fileContainsCorrectPackage(file, packageName);
         }
     }
 
     /**
-     *
+     * Verify that the file contains the specified packageName
+     * @param file A file
+     * @param packageName A package name
+     */
+    private void fileContainsCorrectPackage(File file, String packageName) throws GradingException {
+        String line;
+        Pattern pattern = Pattern.compile("^package (.+);");
+        try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+            while ((line = reader.readLine()) != null) {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    String filePackageName = matcher.group(1);
+                    if (!filePackageName.equals(packageName)) {
+                        incorrectPackageNames.add(file.getName());
+                    }
+                    return;
+                }
+            }
+            filesMissingPackageNames.add(file.getName());
+        } catch (IOException e) {
+            throw new GradingException(
+                    String.format("Could not read file %s: %s", file.getName(), e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Strips off the context repo from that path.
+     * @param path Example: "IdeaProjects/autograder/tmp/src/server/.../Server.java
+     * @return src/server/.../Server.java
+     */
+    private String stripOffContextRepo(Path path) {
+        Path strippedChildPath = path.subpath(context.stageRepo().toPath().getNameCount(), path.getNameCount());
+        return strippedChildPath.toString();
+    }
+
+    /**
      * @param filePath Path of the file
      * @return The package given the path. For example,
      * ../server/src/test/java/dataaccess/mysql
@@ -128,35 +176,12 @@ public class TestLocationVerifier implements StudentCodeVerifier {
                 return filePath.subpath(i + 1, filePath.getNameCount() - 1).toString().replace('/', '.');
             }
         }
-        throw new GradingException("Could not find the package of the following file: " + filePath);
+        throw new GradingException("Could not derive the package of the following file: " + filePath);
     }
 
     /**
-     * Verify that the file contains the specified packageName
-     * @param file A file
-     * @param packageName A package name
+     * @return the message displayed to the observer.
      */
-    private void fileContainsCorrectPackage(File file, String packageName) {
-        // Note: could optimize by reading only the first few lines instead of the entire file, but then again
-        // who knows about these students ;P
-        String fileContents = FileUtils.readStringFromFile(file);
-        Pattern pattern = Pattern.compile("^package (.+);");
-        Matcher matcher = pattern.matcher(fileContents);
-        if (matcher.find()) {
-            String filePackageName = matcher.group(1);
-            if (!filePackageName.equals(packageName)) {
-                incorrectPackageNames.add(file.getName());
-            }
-        } else {
-            filesMissingPackageNames.add(file.getName());
-        }
-    }
-
-    private String stripOffContextRepo(Path path) {
-        Path strippedChildPath = path.subpath(context.stageRepo().toPath().getNameCount(), path.getNameCount());
-        return strippedChildPath.toString();
-    }
-
     private String buildMessage() {
         StringBuilder stringBuilder = new StringBuilder();
         if (!missingPackages.isEmpty()) {

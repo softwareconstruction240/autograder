@@ -2,6 +2,13 @@ package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.compile.modifiers.PassoffJarModifier;
+import edu.byu.cs.autograder.compile.modifiers.PomModifier;
+import edu.byu.cs.autograder.compile.modifiers.TestFactoryModifier;
+import edu.byu.cs.autograder.compile.verifers.ModifiedTestFilesVerifier;
+import edu.byu.cs.autograder.compile.verifers.ModuleIndependenceVerifier;
+import edu.byu.cs.autograder.compile.verifers.ProjectStructureVerifier;
+import edu.byu.cs.autograder.compile.verifers.TestLocationVerifier;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.IOException;
