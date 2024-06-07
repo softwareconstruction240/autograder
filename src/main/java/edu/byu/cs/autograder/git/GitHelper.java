@@ -202,9 +202,7 @@ public class GitHelper {
             throws GitAPIException, IOException, DataAccessException {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-        LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
-        return commitVerificationResult;
+        return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
         int requiredCommits = gradingContext.verificationConfig().requiredCommits();
