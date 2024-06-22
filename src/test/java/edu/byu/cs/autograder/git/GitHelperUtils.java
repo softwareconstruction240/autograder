@@ -185,7 +185,7 @@ public class GitHelperUtils {
 
 
     GitEvaluator<CommitVerificationResult> evaluateRepo() {
-        return evaluateRepo(gradingContext, null);
+        return evaluateRepo(gradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(@Nullable CommitThreshold minThreshold) {
         return evaluateRepo(gradingContext, minThreshold);
@@ -194,11 +194,11 @@ public class GitHelperUtils {
         return evaluateRepo(new GitHelper(gradingContext), minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
-        var effectiveMinThreshold = minThreshold != null ? minThreshold : GitHelper.MIN_COMMIT_THRESHOLD;
         return git -> {
-            String phase0HeadHash = GitHelper.getHeadHash(git);
-            CommitThreshold maxThreshold = new CommitThreshold(Instant.now(), phase0HeadHash);
-            return gitHelper.verifyRegularCommits(git, effectiveMinThreshold, maxThreshold);
+            String currentHeadHash = GitHelper.getHeadHash(git);
+            var maxTimeThreshold = Instant.now().plusSeconds(gradingContext.verificationConfig().forgivenessMinutesHead() * 60L);
+            CommitThreshold maxThreshold = new CommitThreshold(maxTimeThreshold, currentHeadHash);
+            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
         };
     }
 
