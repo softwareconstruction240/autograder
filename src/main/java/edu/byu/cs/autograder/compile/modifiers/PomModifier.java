@@ -1,6 +1,7 @@
-package edu.byu.cs.autograder.compile;
+package edu.byu.cs.autograder.compile.modifiers;
 
 import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.compile.StudentCodeModifier;
 import edu.byu.cs.util.FileUtils;
 
 import java.io.File;

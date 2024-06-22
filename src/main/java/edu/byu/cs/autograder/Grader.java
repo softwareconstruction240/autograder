@@ -2,6 +2,7 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
@@ -17,6 +18,7 @@ import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,16 +66,11 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        int requiredCommits = 10;
-        int requiredDaysWithCommits = 3;
-        int commitVerificationPenaltyPct = 10;
-        int minimumChangedLinesPerCommit = 5;
-
+        CommitVerificationConfig cvConfig = PhaseUtils.verificationConfig(phase);
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
-                    requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumChangedLinesPerCommit,
-                    observer, admin);
+                    cvConfig, observer, admin);
 
         // Init helpers
         this.dbHelper = new DatabaseHelper(salt, gradingContext);

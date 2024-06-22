@@ -205,10 +205,10 @@ public class GitHelper {
         return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-        int requiredCommits = gradingContext.requiredCommits();
-        int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
-        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
+        int requiredCommits = gradingContext.verificationConfig().requiredCommits();
+        int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
@@ -331,8 +331,13 @@ public class GitHelper {
      */
     @NonNull
     private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
+        var handInTimestamp = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+        var forgivenessMinutesHead = gradingContext.verificationConfig().forgivenessMinutesHead();
+        if (handInTimestamp != null) {
+            handInTimestamp = handInTimestamp.plusSeconds(forgivenessMinutesHead * 60L);
+        }
         CommitThreshold currentThreshold = new CommitThreshold(
-                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
+                handInTimestamp,
                 getHeadHash(git)
         );
         if (currentThreshold.timestamp() == null) {

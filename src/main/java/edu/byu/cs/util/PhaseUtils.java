@@ -1,6 +1,7 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
@@ -86,6 +87,16 @@ public class PhaseUtils {
             case Phase3 -> Set.of("service");
             case Phase4 -> Set.of("dataaccess");
             case Phase5 -> Set.of("client");
+        };
+    }
+
+    public static Set<String> unitTestPackagePaths(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase6, Quality -> new HashSet<>();
+            case Phase1 -> Set.of("shared/src/test/java/passoff/chess/game");
+            case Phase3 -> Set.of("server/src/test/java/service", "server/src/test/java/passoff/server");
+            case Phase4 -> Set.of("server/src/test/java/dataaccess");
+            case Phase5 -> Set.of("client/src/test/java/client");
         };
     }
 
@@ -194,6 +205,20 @@ public class PhaseUtils {
     public static float extraCreditValue(Phase phase) {
         if(phase == Phase.Phase1) return .04f;
         return 0;
+    }
+
+    public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
+        int minimumLinesChanged = 5;
+        int penaltyPct = 10;
+        int forgivenessMinutesHead = 3;
+        return new CommitVerificationConfig(10, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+        // TODO: Enable this functionality to change the values next semester.
+        // Don't forget to also update the rubrics in the phase specs and the grade-book rubrics.
+//        return switch (phase) {
+//            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+//            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+//            case Quality -> throw new GradingException("No commit verification for this phase");
+//        };
     }
 
     public static String getPassoffPackagePath(Phase phase) {
