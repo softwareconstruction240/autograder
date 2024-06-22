@@ -62,7 +62,7 @@ public class Scorer {
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
         applyLatePenalty(rubric.items(), daysLate);
-        float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
+        float thisScore = getScore(rubric);
 
         // Validate several conditions before submitting to the grade-book
         if (!rubric.passed()) {
@@ -141,13 +141,10 @@ public class Scorer {
          * {@link Scorer#setCommitVerificationPenalty(CanvasRubricAssessment, GradingContext, CommitVerificationResult)}
          * to reduce the score based on the latest data from the grade-book.
          */
-        CommitVerificationResult verification = null;
-        if (penaltyPct > 0) {
-            verification = new CommitVerificationResult(
+        CommitVerificationResult verification = new CommitVerificationResult(
                     true, true, 0, 0, 0,
                     penaltyPct, commitPenaltyMsg,
                     null, null, null, null);
-        }
         attemptSendToCanvas(rubric, verification, forceSendScore);
     }
 
@@ -331,13 +328,6 @@ public class Scorer {
         return points;
     }
 
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException, DataAccessException {
-        float score = getScore(rubric);
-        score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
-        if (score < 0) score = 0;
-        return score;
-    }
-
     /**
      * Gets the score for the phase
      *
@@ -389,7 +379,7 @@ public class Scorer {
         String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
-            notes += numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
+            notes += " " + numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
