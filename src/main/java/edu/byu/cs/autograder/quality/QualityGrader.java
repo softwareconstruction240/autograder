@@ -21,14 +21,14 @@ public class QualityGrader {
      */
     public Rubric.Results runQualityChecks() throws GradingException, DataAccessException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-        if(rubricConfig.quality() == null) return null;
+        RubricConfig.RubricConfigItem qualityItem = rubricConfig.items().get(Rubric.RubricType.QUALITY);
+        if(qualityItem == null) return null;
         gradingContext.observer().update("Running code quality...");
 
         QualityAnalyzer analyzer = new QualityAnalyzer();
 
         QualityAnalyzer.QualityAnalysis quality = analyzer.runQualityChecks(gradingContext.stageRepo());
 
-        return new Rubric.Results(quality.notes(), quality.score(),
-                rubricConfig.quality().points(), null, quality.results());
+        return new Rubric.Results(quality.notes(), quality.score(), qualityItem.points(), null, quality.results());
     }
 }

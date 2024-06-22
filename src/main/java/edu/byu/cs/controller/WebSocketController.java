@@ -1,12 +1,14 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
 import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.*;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,7 @@ public class WebSocketController {
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
-        String netId = null;
+        String netId;
         try {
             netId = JwtUtils.validateToken(message);
         } catch (Exception e) {
@@ -60,7 +62,7 @@ public class WebSocketController {
      * @param message the message
      */
     public static void send(Session session, Map<String, Object> message) {
-        String jsonMessage = new Gson().toJson(message);
+        String jsonMessage = Serializer.serialize(message);
         try {
             session.getRemote().sendString(jsonMessage);
         } catch (Exception e) {

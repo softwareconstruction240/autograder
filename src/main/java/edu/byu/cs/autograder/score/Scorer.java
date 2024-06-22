@@ -274,25 +274,18 @@ public class Scorer {
      * @return the annotated rubric
      */
     private Rubric annotateRubric(Rubric rubric) {
-        return new Rubric(
-                rubric.passoffTests(),
-                rubric.unitTests(),
-                rubric.quality(),
-                null,
-                passed(rubric),
-                rubric.notes()
-        );
+        return new Rubric(rubric.items(), passed(rubric), rubric.notes());
     }
 
     private boolean passed(Rubric rubric) {
-        boolean passed = true;
-
-        boolean isPassoffRequired = PhaseUtils.isPassoffRequired(gradingContext.phase());
-        if (isPassoffRequired && rubric.passoffTests() != null && rubric.passoffTests().results() != null)
-            if (rubric.passoffTests().results().score() < rubric.passoffTests().results().possiblePoints())
-                passed = false;
-
-        return passed;
+        if(!PhaseUtils.isPassoffRequired(gradingContext.phase())) {
+            return true;
+        }
+        Rubric.RubricItem passoffTestItem = rubric.items().get(Rubric.RubricType.PASSOFF_TESTS);
+        if (passoffTestItem == null || passoffTestItem.results() == null) {
+            return true;
+        }
+        return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
     }
 
     /**
@@ -346,13 +339,15 @@ public class Scorer {
      * @return the score as a percentage value from [0-1].
      */
     private float getScore(Rubric rubric) throws GradingException, DataAccessException {
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getTotalPossiblePoints(gradingContext.phase());
+        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
-        if (totalPossiblePoints == 0)
+        if (totalPossiblePoints == 0) {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
+        }
 
         float score = 0;
-        for (var rubricItem : rubric.allRubricItems()) {
+        for (Rubric.RubricType type : Rubric.RubricType.values()) {
+            var rubricItem = rubric.items().get(type);
             if (rubricItem == null) continue;
             score += rubricItem.results().score();
         }

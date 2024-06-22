@@ -7,8 +7,8 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -215,14 +215,13 @@ public class GitHelper {
             throws GitAPIException, IOException, DataAccessException {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-
         return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-        int requiredCommits = gradingContext.requiredCommits();
-        int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
-        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
+        int requiredCommits = gradingContext.verificationConfig().requiredCommits();
+        int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
@@ -345,8 +344,13 @@ public class GitHelper {
      */
     @NonNull
     private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
+        var handInTimestamp = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+        var forgivenessMinutesHead = gradingContext.verificationConfig().forgivenessMinutesHead();
+        if (handInTimestamp != null) {
+            handInTimestamp = handInTimestamp.plusSeconds(forgivenessMinutesHead * 60L);
+        }
         CommitThreshold currentThreshold = new CommitThreshold(
-                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
+                handInTimestamp,
                 getHeadHash(git)
         );
         if (currentThreshold.timestamp() == null) {

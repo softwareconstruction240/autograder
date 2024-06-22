@@ -1,6 +1,7 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 
@@ -90,6 +91,16 @@ public class PhaseUtils {
         };
     }
 
+    public static Set<String> unitTestPackagePaths(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase6, Quality, Commits -> new HashSet<>();
+            case Phase1 -> Set.of("shared/src/test/java/passoff/chess/game");
+            case Phase3 -> Set.of("server/src/test/java/service", "server/src/test/java/passoff/server");
+            case Phase4 -> Set.of("server/src/test/java/dataaccess");
+            case Phase5 -> Set.of("client/src/test/java/client");
+        };
+    }
+
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, Commits -> throw new GradingException("No unit tests for this phase");
@@ -109,47 +120,56 @@ public class PhaseUtils {
     }
 
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
-        return switch (phase) {
-            case Phase0 -> switch (type) {
-                case PASSOFF_TESTS -> "_1958";
-                case GIT_COMMITS -> "90342_649";
-                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase1 -> switch (type) {
-                case PASSOFF_TESTS -> "_1958";
-                case GIT_COMMITS -> "90342_7800";
-                case UNIT_TESTS, QUALITY -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase3 -> switch (type) {
-                case PASSOFF_TESTS -> "_5202";
-                case UNIT_TESTS -> "90344_776";
-                case QUALITY -> "_3003";
-                case GIT_COMMITS -> "90344_2520";
-            };
-            case Phase4 -> switch (type) {
-                case PASSOFF_TESTS -> "_2614";
-                case UNIT_TESTS -> "90346_5755";
-                case QUALITY -> "90346_8398";
-                case GIT_COMMITS -> "90346_6245";
-            };
-            case Phase5 -> switch (type) {
-                case UNIT_TESTS -> "90347_2215";
-                case QUALITY -> "90347_9378";
-                case GIT_COMMITS -> "90347_8497";
-                case PASSOFF_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Phase6 -> switch (type) {
-                case PASSOFF_TESTS -> "90348_899";
-                case QUALITY -> "90348_3792";
-                case GIT_COMMITS -> "90348_9048";
-                case UNIT_TESTS -> throw new GradingException(String.format("No %s item for this phase", type));
-            };
-            case Quality, Commits -> throw new GradingException("Not graded");
-        };
+        String rubricId = null;
+        switch (phase) {
+            case Phase0 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_1958";
+                    case GIT_COMMITS -> rubricId = "90342_649";
+                }
+            }
+            case Phase1 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_1958";
+                    case GIT_COMMITS -> rubricId = "90342_7800";
+                }
+            }
+            case Phase3 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_5202";
+                    case UNIT_TESTS -> rubricId = "90344_776";
+                    case QUALITY -> rubricId = "_3003";
+                    case GIT_COMMITS -> rubricId = "90344_2520";
+                }
+            }
+            case Phase4 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "_2614";
+                    case UNIT_TESTS -> rubricId = "90346_5755";
+                    case QUALITY -> rubricId = "90346_8398";
+                    case GIT_COMMITS -> rubricId = "90346_6245";
+                }
+            }
+            case Phase5 -> {
+                switch (type) {
+                    case UNIT_TESTS -> rubricId = "90347_2215";
+                    case QUALITY -> rubricId = "90347_9378";
+                    case GIT_COMMITS -> rubricId = "90347_8497";
+                }
+            }
+            case Phase6 -> {
+                switch (type) {
+                    case PASSOFF_TESTS -> rubricId = "90348_899";
+                    case QUALITY -> rubricId = "90348_3792";
+                    case GIT_COMMITS -> rubricId = "90348_9048";
+                }
+            }
+        }
+        if(rubricId == null) throw new GradingException(String.format("No %s item for phase %s", type, phase));
+        return rubricId;
     }
 
     public static String getModuleUnderTest(Phase phase) {
-        //FIXME : Not sure what's wrong with this but there was a empty fixme comment when I refactored -Michael
         return switch (phase) {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4, Phase6 -> "server";
@@ -186,6 +206,31 @@ public class PhaseUtils {
     public static float extraCreditValue(Phase phase) {
         if(phase == Phase.Phase1) return .04f;
         return 0;
+    }
+
+    public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
+        int minimumLinesChanged = 5;
+        int penaltyPct = 10;
+        int forgivenessMinutesHead = 3;
+        return new CommitVerificationConfig(10, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+        // TODO: Enable this functionality to change the values next semester.
+        // Don't forget to also update the rubrics in the phase specs and the grade-book rubrics.
+//        return switch (phase) {
+//            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+//            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+//            case Quality -> throw new GradingException("No commit verification for this phase");
+//        };
+    }
+
+    public static String getPassoffPackagePath(Phase phase) {
+        return switch (phase) {
+            case Phase0 -> "phases/phase0.passoff.chess";
+            case Phase1 -> "phases/phase1.passoff.chess";
+            case Phase3 -> "phases/phase3.passoff.server";
+            case Phase4 -> "phases/phase4.passoff.server";
+            case Phase6 -> "phases/phase6.passoff.server";
+            case Phase5, Quality, Commits -> null;
+        };
     }
 
 }

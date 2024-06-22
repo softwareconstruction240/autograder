@@ -1,10 +1,10 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Filter;
@@ -68,7 +68,7 @@ public class AuthController {
 
         res.status(200);
         res.type("application/json");
-        return new Gson().toJson(user);
+        return Serializer.serialize(user);
     };
 
 }

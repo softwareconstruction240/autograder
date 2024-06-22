@@ -1,27 +1,17 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.GradingObserver;
-import edu.byu.cs.autograder.TrafficController;
-import edu.byu.cs.autograder.git.CommitVerificationResult;
+import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.score.Scorer;
-import edu.byu.cs.autograder.test.TestAnalyzer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
-import edu.byu.cs.canvas.CanvasUtils;
-import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
-import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
@@ -162,8 +152,8 @@ public class SubmissionController {
 
         GradeRequest request;
         try {
-            request = new Gson().fromJson(req.body(), GradeRequest.class);
-        } catch (JsonSyntaxException e) {
+            request = Serializer.deserialize(req.body(), GradeRequest.class);
+        } catch (Serializer.SerializationException e) {
             halt(400, "Request must be valid json");
             return null;
         }
@@ -208,9 +198,7 @@ public class SubmissionController {
 
         res.status(200);
 
-        return new Gson().toJson(Map.of(
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("inQueue", inQueue));
     };
 
     public static final Route latestSubmissionForMeGet = (req, res) -> {
@@ -228,9 +216,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submission);
+        return Serializer.serialize(submission);
     };
 
     public static final Route submissionXGet = (req, res) -> {
@@ -263,9 +249,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route latestSubmissionsGet = (req, res) -> {
@@ -282,9 +266,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
@@ -301,10 +283,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "currentlyGrading", currentlyGrading,
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
     };
 
     public static final Route studentSubmissionsGet = (req, res) -> {
@@ -322,15 +301,13 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route approveSubmissionPost = (req, res) -> {
         User adminUser = req.session().attribute("user");
 
-        ApprovalRequest request = new Gson().fromJson(req.body(), ApprovalRequest.class);
+        ApprovalRequest request = Serializer.deserialize(req.body(), ApprovalRequest.class);
 
         int penalty = 0;
         if (request.penalize()) {
@@ -387,7 +364,7 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyError(String message, TestAnalyzer.TestAnalysis analysis) {
+            public void notifyError(String message, TestAnalysis analysis) {
                 notifyError(message, Map.of("analysis", analysis));
             }
 
@@ -406,10 +383,7 @@ public class SubmissionController {
 
             @Override
             public void notifyDone(Submission submission) {
-                Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                        .create();
-                notifySubscribers(Map.of("type", "results", "results", gson.toJson(submission)));
+                notifySubscribers(Map.of("type", "results", "results", Serializer.serialize(submission)));
                 removeFromQueue();
             }
 
@@ -454,9 +428,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "message", "re-running submissions in queue"
-        ));
+        return Serializer.serialize(Map.of("message", "re-running submissions in queue"));
     };
 
 
@@ -629,7 +601,7 @@ public class SubmissionController {
         // The strategy here is to submit an empty rubric to Canvas,
         // let our helper methods populate it with the latest data
         // and automatically reduce the score by the penalty percentage.
-        Rubric emptyRubric = new Rubric(null, null, null, null, withheldSubmission.passed(), "");
+        Rubric emptyRubric = new Rubric(null, withheldSubmission.passed(), "");
         scorer.attemptSendToCanvas(emptyRubric, penaltyPct, commitPenaltyComment, true);
     }
 
@@ -651,7 +623,7 @@ public class SubmissionController {
 
         return new Scorer(new GradingContext(
                 studentNetId, phase, null, null, null, null,
-                0, 0, 0, 0,
+                new CommitVerificationConfig(0, 0, 0, 0, 0),
                 null, submission.admin()
         ));
     }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Submission } from '@/types/types'
-import { scoreToPercentage, roundTwoDecimals, commitVerificationFailed } from '@/utils/utils'
+import {scoreToPercentage, roundTwoDecimals, commitVerificationFailed, sortedItems} from '@/utils/utils'
 import PopUp from '@/components/PopUp.vue'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
@@ -34,10 +34,12 @@ const openDetails = ref<boolean>(false);
     </div>
     <p class="submission-notes" v-html="submission.notes.replace('\n', '<br />')"></p>
     <div class="rubric-item-summaries">
-      <p v-if="submission.rubric.passoffTests">Functionality: {{ roundTwoDecimals(submission.rubric.passoffTests.results.score) }} / {{ submission.rubric.passoffTests.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.quality">Code Quality: {{ roundTwoDecimals(submission.rubric.quality.results.score) }} / {{ submission.rubric.quality.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.unitTests">Unit Tests: {{ roundTwoDecimals(submission.rubric.unitTests.results.score) }} / {{ submission.rubric.unitTests.results.possiblePoints }}</p>
-    </div>
+      <p v-if="submission.rubric.items"
+         v-for="item in sortedItems(submission.rubric.items)">
+        {{item.category}}: {{roundTwoDecimals(item.results.score)}} / {{item.results.possiblePoints}}
+      </p>
+
+      </div>
     <button @click="() => {openDetails = true}" class="secondary">See submission details</button>
   </div>
 

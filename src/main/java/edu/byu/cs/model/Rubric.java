@@ -1,25 +1,34 @@
 package edu.byu.cs.model;
 
-import edu.byu.cs.autograder.test.TestAnalyzer;
+import java.util.EnumMap;
 
 /**
  * Represents the rubric for a Canvas assignment. Some rubrics may have null values for some fields.
  *
- * @param passoffTests
- * @param unitTests
- * @param quality
- * @param gitCommits
+ * @param items
  * @param passed
  * @param notes
  */
 public record Rubric(
-        RubricItem passoffTests,
-        RubricItem unitTests,
-        RubricItem quality,
-        RubricItem gitCommits,
+        EnumMap<RubricType, RubricItem> items,
         boolean passed,
         String notes
 ) {
+
+    /**
+     * Calculates the total number of points in all items
+     *
+     * @return total number of points contained by this rubric
+     */
+    public float getTotalPoints() {
+        float total = 0f;
+        for(RubricItem item : items.values()) {
+            if(item != null) {
+                total += item.results().score();
+            }
+        }
+        return total;
+    }
 
     /**
      * Represents a single rubric item
@@ -47,7 +56,7 @@ public record Rubric(
             String notes,
             Float score,
             Integer possiblePoints,
-            TestAnalyzer.TestAnalysis testResults,
+            TestAnalysis testResults,
             String textResults
     ) { }
 
@@ -55,15 +64,7 @@ public record Rubric(
         PASSOFF_TESTS,
         UNIT_TESTS,
         QUALITY,
-        GIT_COMMITS
-    }
-
-    public RubricItem[] allRubricItems() {
-        return new RubricItem[] {
-                passoffTests,
-                unitTests,
-                quality,
-                gitCommits
-        };
+        GIT_COMMITS,
+        PREVIOUS_TESTS
     }
 }

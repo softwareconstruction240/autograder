@@ -56,7 +56,7 @@ const loadAllSubmissions = async () => {
 }
 
 const loadSubmissionsToTable = (submissionsData : Submission[]) => {
-  var dataToShow: any = []
+  const dataToShow: any = [];
   submissionsData.forEach(submission => {
     dataToShow.push( {
         ...submission,

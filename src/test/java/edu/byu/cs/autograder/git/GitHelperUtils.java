@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitThreshold;
-import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.util.FileUtils;
@@ -147,20 +146,16 @@ public class GitHelperUtils {
                 "ANY_HEAD_HASH", null);
     }
 
-
-    void makeCommit(RepoContext repoContext, String content) {
-        makeCommit(repoContext, content, Instant.now());
-    }
     void makeCommit(RepoContext repoContext, String content, int daysAgo, int minsAgo, int numLines) {
+        makeCommit(repoContext, content, daysAgo, minsAgo, numLines, true);
+    }
+    void makeCommit(RepoContext repoContext, String content, int daysAgo, int minsAgo, int numLines, boolean setCommitter) {
         Instant time = Instant.now()
                 .minus(Duration.ofDays(daysAgo))
                 .minus(Duration.ofMinutes(minsAgo));
-        makeCommit(repoContext, content, time, numLines);
+        makeCommit(repoContext, content, time, numLines, setCommitter);
     }
-    void makeCommit(RepoContext repoContext, String content, Instant dateValue) {
-        makeCommit(repoContext, content, dateValue, 20);
-    }
-    void makeCommit(RepoContext repoContext, String content, Instant commitTimestamp, int numLines) {
+    void makeCommit(RepoContext repoContext, String content, Instant commitTimestamp, int numLines, boolean setCommitter) {
         try {
             // Write the file
             String fileContents = (content + "\n").repeat(numLines);
@@ -176,7 +171,13 @@ public class GitHelperUtils {
                     COMMIT_AUTHOR_EMAIL,
                     commitTimestamp,
                     ZoneId.systemDefault());
-            git.commit().setMessage(content).setAuthor(authorIdent).call();
+            var commitCommand = git.commit();
+            commitCommand.setMessage(content);
+            commitCommand.setAuthor(authorIdent);
+            if (setCommitter) {
+                commitCommand.setCommitter(authorIdent);
+            }
+            commitCommand.call();
         } catch (GitAPIException e) {
             throw new RuntimeException(e);
         }
@@ -218,14 +219,18 @@ public class GitHelperUtils {
 
 
     // ### Assertion Helpers
-
     GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
-                                                  int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
+                                          int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit) {
+        return generateGradingContext(requiredCommits, requiredDaysWithCommits,
+                commitVerificationPenaltyPct, minimumLinesChangedPerCommit, 3);
+    }
+    GradingContext generateGradingContext(int requiredCommits, int requiredDaysWithCommits,
+                                          int commitVerificationPenaltyPct, int minimumLinesChangedPerCommit, int forgivenessMinutes) {
         GradingObserver mockObserver = Mockito.mock(GradingObserver.class);
+        var cvConfig = new CommitVerificationConfig(requiredCommits, requiredDaysWithCommits, minimumLinesChangedPerCommit, commitVerificationPenaltyPct, forgivenessMinutes);
         return new GradingContext(
                 null, null, null, null, null, null,
-                requiredCommits, requiredDaysWithCommits, commitVerificationPenaltyPct, minimumLinesChangedPerCommit,
-                mockObserver, false);
+                cvConfig, mockObserver, false);
     }
 
     void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {

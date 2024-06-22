@@ -8,7 +8,7 @@ import {
   generateClickableLink,
   nameOnSubmission, phaseString,
   readableTimestamp,
-  scoreToPercentage
+  scoreToPercentage, sortedItems
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
@@ -79,18 +79,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
     </div>
   </div>
   <div class="container">
-    <RubricItemView
-      v-if="submission.rubric.passoffTests"
-      :rubric-item="submission.rubric.passoffTests"
-    />
-    <RubricItemView
-      v-if="submission.rubric.quality"
-      :rubric-item="submission.rubric.quality"
-    />
-    <RubricItemView
-      v-if="submission.rubric.unitTests"
-      :rubric-item="submission.rubric.unitTests"
-    />
+    <RubricItemView v-if="submission.rubric.items" v-for="item in sortedItems(submission.rubric.items)" :rubric-item="item"/>
   </div>
 
 </template>

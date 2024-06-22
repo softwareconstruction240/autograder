@@ -22,6 +22,7 @@ export type TestNode = {
 
 export type TestResult = {
     root: TestNode,
+    extraCredit: TestNode,
     error: string
 }
 
@@ -39,10 +40,10 @@ export type RubricItem = {
     results: RubricItemResults,
 }
 
+export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS"
+
 export type Rubric = {
-    passoffTests: RubricItem,
-    unitTests: RubricItem,
-    quality: RubricItem,
+    items: Record<RubricType, RubricItem>,
     passed: boolean,
     notes: string,
 }

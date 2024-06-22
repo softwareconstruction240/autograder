@@ -2,6 +2,10 @@ package edu.byu.cs.autograder.compile;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.compile.modifiers.PassoffJarModifier;
+import edu.byu.cs.autograder.compile.modifiers.PomModifier;
+import edu.byu.cs.autograder.compile.modifiers.TestFactoryModifier;
+import edu.byu.cs.autograder.compile.verifers.*;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.IOException;
@@ -16,7 +20,9 @@ public class CompileHelper {
     }
 
     private final Collection<StudentCodeVerifier> currentVerifiers =
-            List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier());
+            List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier(), new ModifiedTestFilesVerifier(),
+                    new TestLocationVerifier(), new ServerFacadeTestPortVerifier());
+
 
     private final Collection<StudentCodeModifier> currentModifiers =
             List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());

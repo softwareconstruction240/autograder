@@ -1,10 +1,10 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.autograder.test.TestAnalyzer;
+import edu.byu.cs.model.TestAnalysis;
 
 public class GradingException extends Exception{
     private String details;
-    private TestAnalyzer.TestAnalysis analysis;
+    private TestAnalysis analysis;
 
     public GradingException() {
         super();
@@ -32,7 +32,7 @@ public class GradingException extends Exception{
         super(cause);
     }
 
-    public GradingException(String message, TestAnalyzer.TestAnalysis analysis) {
+    public GradingException(String message, TestAnalysis analysis) {
         super(message);
         this.analysis = analysis;
     }
@@ -41,7 +41,7 @@ public class GradingException extends Exception{
         return details;
     }
 
-    public TestAnalyzer.TestAnalysis getAnalysis() {
+    public TestAnalysis getAnalysis() {
         return analysis;
     }
 }

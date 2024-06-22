@@ -188,11 +188,38 @@ class GitHelperTest {
         utils.setGradingContext(utils.generateGradingContext(3, 0, 10, 0));
         utils.evaluateTest("simple-backdating-commits", new VerificationCheckpoint(
                 repoContext -> {
-                    utils.makeCommit(repoContext, "Change 1", 2, 20, 10);
-                    utils.makeCommit(repoContext, "Change 2", 1, 0, 10); // Simply backdated!
-                    utils.makeCommit(repoContext, "Change 3", 0, 10, 10);
+                    utils.makeCommit(repoContext, "Change 1", 2, 20, 10, false);
+                    utils.makeCommit(repoContext, "Change 2", 1, 0, 10, false); // Simply backdated!
+                    utils.makeCommit(repoContext, "Change 3", 0, 10, 10, false);
                 },
                 utils.generalCommitVerificationResult(false, 3, 3)
+        ));
+    }
+
+    /**
+     * <h1>Important Note!</h1>
+     * This test is not actually evaluating the logic in the app that performs this test.
+     * <br>
+     * The logic currently occurs in {@link GitHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
+     * call {@link GitHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
+     * Normal calls to {@link GitHelper#verifyCommitRequirements(File)} will evaluate the rules.
+     * <br>
+     * Note that we cannot easily call the <code>constructCurrentThreshold(Git)</code> method since it relies
+     * on data configured in the QueueTable and other complex dependencies that are tricky to set up.
+     * <br>
+     * Instead, we independently implemented the (simple) logic in {@link GitHelperUtils#evaluateRepo(GitHelper, CommitThreshold)}
+     * method which demonstrates that the technique does work.
+     */
+    @Test
+    void extendForgivenessMinutes() {
+        utils.setGradingContext(utils.generateGradingContext(1, 0, 10, 0, 3));
+        utils.evaluateTest("extend-forgiveness-minutes", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 1", 0, -1, 10), // Minor clock issue
+                        utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 2", 0, -6, 10), // Major clock issue
+                        utils.generalCommitVerificationResult(false, 1, 1))
         ));
     }
 

@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.model.Phase;
 
 import java.io.File;
@@ -11,7 +12,8 @@ import java.io.File;
  * @param stagePath       The path for the student repo to be put in and tested
  * @param repoUrl         The url of the student repo
  * @param stageRepo       The path for the student repo (child of stagePath)
- * @param requiredCommits The required number of commits (since the last phase) to be able to pass off
+ * @param verificationConfig Several variables related to commit verification
+ * @param observer        Used to notify the user of changes as the game is played.
  * @param admin           If the submission is an admin submission
  */
 public record GradingContext(
@@ -23,10 +25,7 @@ public record GradingContext(
         File stageRepo,
 
         // Commit Configuration
-        int requiredCommits,
-        int requiredDaysWithCommits,
-        int commitVerificationPenaltyPct,
-        int minimumChangedLinesPerCommit,
+        CommitVerificationConfig verificationConfig,
 
         // Others
         GradingObserver observer,

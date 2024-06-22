@@ -15,6 +15,7 @@ const areErrorDetailsOpen = ref<boolean>(false)
 
 <template>
   <span id="testResults" v-if="testResults?.root" v-html="generateResultsHtmlStringFromTestNode(testResults.root, '')" />
+  <span id="testResults" v-if="testResults?.extraCredit" v-html="generateResultsHtmlStringFromTestNode(testResults.extraCredit, '')" />
   <span id="textResults" v-else-if="textResults" v-html="sanitizeHtml(textResults)"/>
 
   <div class="itemHeader" id="programErrorWarning" v-if="testResults?.error" >
