@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 
 import static edu.byu.cs.model.Submission.VerifiedStatus;
 
@@ -59,6 +61,7 @@ public class Scorer {
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
+        applyLatePenalty(rubric.items(), daysLate);
         float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
 
         // Validate several conditions before submitting to the grade-book
@@ -83,7 +86,7 @@ public class Scorer {
      */
     private Rubric transformRubric(Rubric rubric) throws GradingException, DataAccessException {
         rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
-        return annotateRubric(rubric);
+        return new Rubric(rubric.items(), passed(rubric), rubric.notes());
     }
 
 
@@ -115,7 +118,7 @@ public class Scorer {
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
-        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, false);
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult, false);
         return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, submittalRemnants.notes);
     }
 
@@ -145,7 +148,7 @@ public class Scorer {
                     penaltyPct, commitPenaltyMsg,
                     null, null, null, null);
         }
-        attemptSendToCanvas(rubric, verification, 0, forceSendScore);
+        attemptSendToCanvas(rubric, verification, forceSendScore);
     }
 
     /**
@@ -159,16 +162,14 @@ public class Scorer {
      * @throws GradingException When pre-conditions are not met.
      */
     private AssessmentSubmittalRemnants attemptSendToCanvas(
-            Rubric rubric, CommitVerificationResult commitVerificationResult,
-            int daysLate, boolean forceSendScore
+            Rubric rubric, CommitVerificationResult commitVerificationResult, boolean forceSendScore
     ) throws DataAccessException, GradingException {
 
         int canvasUserId = getCanvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
 
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
-        CanvasRubricAssessment newAssessment =
-                addExistingPoints(constructCanvasRubricAssessment(rubric, daysLate), existingAssessment);
+        CanvasRubricAssessment newAssessment = addExistingPoints(constructCanvasRubricAssessment(rubric), existingAssessment);
         setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
 
         // prevent score from being saved to canvas if it will lower their score
@@ -260,21 +261,10 @@ public class Scorer {
         return user.canvasUserId();
     }
 
-    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate)
+    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric)
             throws DataAccessException, GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-        return CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
-    }
-
-    /**
-     * Annotates the rubric with notes and passed status
-     *
-     * @param rubric the rubric to annotate
-     * @return the annotated rubric
-     */
-    private Rubric annotateRubric(Rubric rubric) {
-        return new Rubric(rubric.items(), passed(rubric), rubric.notes());
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, gradingContext.phase());
     }
 
     private boolean passed(Rubric rubric) {
@@ -286,6 +276,21 @@ public class Scorer {
             return true;
         }
         return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
+    }
+
+    private void applyLatePenalty(EnumMap<Rubric.RubricType, Rubric.RubricItem> items, int daysLate) {
+        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
+        for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : items.entrySet()) {
+            Rubric.Results results = entry.getValue().results();
+            results = new Rubric.Results(results.notes(),
+                    results.score() * (1 - lateAdjustment),
+                    results.possiblePoints(),
+                    results.testResults(),
+                    results.textResults());
+            Rubric.RubricItem rubricItem = entry.getValue();
+            rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
+            items.put(entry.getKey(), rubricItem);
+        }
     }
 
     /**
