@@ -2,7 +2,7 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
@@ -70,8 +70,7 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config) {
-        return config.unitTests();
+    protected Rubric.RubricType rubricType() {
+        return Rubric.RubricType.UNIT_TESTS;
     }
-
 }

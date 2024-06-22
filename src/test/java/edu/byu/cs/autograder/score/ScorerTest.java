@@ -13,20 +13,20 @@ import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.Submission.VerifiedStatus;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import edu.byu.cs.model.Submission.VerifiedStatus;
-
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,9 +78,8 @@ class ScorerTest {
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
-                new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS),
-                null,
-                null
+                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, 
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS)))
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
         DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
@@ -103,7 +102,7 @@ class ScorerTest {
 
         assertNotNull(submission);
         assertEquals(1, submission.score());
-        assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(PASSOFF_POSSIBLE_POINTS, submission.rubric().items().get(Rubric.RubricType.PASSOFF_TESTS).results().score());
         assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
 
     }
@@ -115,7 +114,7 @@ class ScorerTest {
 
         assertNotNull(submission);
         assertEquals(.5f, submission.score());
-        assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().items().get(Rubric.RubricType.PASSOFF_TESTS).results().score());
         assertEquals(VerifiedStatus.ApprovedAutomatically, submission.verifiedStatus());
     }
 
@@ -125,12 +124,12 @@ class ScorerTest {
 
         assertNotNull(submission);
         assertEquals(1.5f, submission.score());
-        assertEquals(1.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().passoffTests().results().score());
+        assertEquals(1.5f * PASSOFF_POSSIBLE_POINTS, submission.rubric().items().get(Rubric.RubricType.PASSOFF_TESTS).results().score());
     }
 
     @Test
     void score__noPossiblePoints__error() {
-        RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, null, null, null);
+        RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, new EnumMap<>(Rubric.RubricType.class));
         setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
         var scorer = new Scorer(gradingContext);
@@ -189,9 +188,8 @@ class ScorerTest {
     void score__phaseNotGradeable() {
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Quality,
-                null,
-                null,
-                new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)
+                new EnumMap<>(Map.of(Rubric.RubricType.QUALITY,
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)))
         );
         setRubricConfig(Phase.Quality, phase0RubricConfig);
 
@@ -201,7 +199,7 @@ class ScorerTest {
                 standardCVConfig, mockObserver, false);
         addQueueItem(new QueueItem("testNetId", Phase.Phase0, Instant.now(), true));
 
-        Rubric emptyRubric = new Rubric(null, null, null, true, "testNotes");
+        Rubric emptyRubric = new Rubric(new EnumMap<>(Rubric.RubricType.class), true, "testNotes");
         Submission submission = scoreRubric(emptyRubric);
 
         assertNotNull(submission);
@@ -228,13 +226,9 @@ class ScorerTest {
                 "testTextResults"
         );
 
-        return new Rubric(
-                new Rubric.RubricItem("testCategory", results, "testCriteria"),
-                null,
-                null,
-                true,
-                "testNotes"
-        );
+        return new Rubric(new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
+                        new Rubric.RubricItem("testCategory", results, "testCriteria"))),
+                true, "testNotes");
     }
 
     private void setRubricConfig(Phase phase, RubricConfig rubricConfig) {

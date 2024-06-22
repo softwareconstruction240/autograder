@@ -1,5 +1,5 @@
 import {useAdminStore} from "@/stores/admin";
-import type { Phase, RubricItem, Submission, TestNode } from '@/types/types'
+import type {Phase, RubricItem, RubricType, Submission, TestNode} from '@/types/types'
 import { VerifiedStatus } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
@@ -107,4 +107,12 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
 export const phaseString = (phase: Phase | "Quality") => {
   if (phase == 'Quality') { return "Code Quality Check"; }
   else { return "Phase " + phase.toString().charAt(5)}
+}
+
+export const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[] => {
+  return Object.keys(items).sort((a, b) => {
+    const aPoints = items[a as RubricType].results.possiblePoints;
+    const bPoints = items[b as RubricType].results.possiblePoints;
+    return bPoints - aPoints;
+  }).map((item) => items[item as RubricType]);
 }

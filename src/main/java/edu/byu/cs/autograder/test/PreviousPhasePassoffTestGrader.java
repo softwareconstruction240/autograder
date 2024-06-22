@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.util.PhaseUtils;
@@ -47,7 +48,7 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
             Phase previous = gradingContext.phase();
             while ((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
                 RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(previous);
-                if(rubricConfig.passoffTests() != null) {
+                if(rubricConfig.items().get(Rubric.RubricType.PASSOFF_TESTS) != null) {
                     set.addAll(func.apply(previous));
                 }
             }
@@ -81,7 +82,7 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config) {
-        return new RubricConfig.RubricConfigItem(null, null, 0);
+    protected Rubric.RubricType rubricType() {
+        return Rubric.RubricType.PREVIOUS_TESTS;
     }
 }

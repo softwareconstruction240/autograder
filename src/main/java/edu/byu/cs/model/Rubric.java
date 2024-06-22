@@ -1,21 +1,34 @@
 package edu.byu.cs.model;
 
+import java.util.EnumMap;
+
 /**
  * Represents the rubric for a Canvas assignment. Some rubrics may have null values for some fields.
  *
- * @param passoffTests
- * @param unitTests
- * @param quality
+ * @param items
  * @param passed
  * @param notes
  */
 public record Rubric(
-        RubricItem passoffTests,
-        RubricItem unitTests,
-        RubricItem quality,
+        EnumMap<RubricType, RubricItem> items,
         boolean passed,
         String notes
 ) {
+
+    /**
+     * Calculates the total number of points in all items
+     *
+     * @return total number of points contained by this rubric
+     */
+    public float getTotalPoints() {
+        float total = 0f;
+        for(RubricItem item : items.values()) {
+            if(item != null) {
+                total += item.results().score();
+            }
+        }
+        return total;
+    }
 
     /**
      * Represents a single rubric item
@@ -52,6 +65,7 @@ public record Rubric(
         PASSOFF_TESTS,
         UNIT_TESTS,
         QUALITY,
-        GIT_COMMITS
+        GIT_COMMITS,
+        PREVIOUS_TESTS
     }
 }
