@@ -38,6 +38,9 @@
       "reporters": [
         "UnusedMethodReporter",
         "CommentedCode",
+        "NestingDepth",
+        "LineLength",
+        "NeedBraces",
         "NoCodeInFile"
       ]
     },
