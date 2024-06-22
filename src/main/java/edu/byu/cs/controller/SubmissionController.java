@@ -597,12 +597,7 @@ public class SubmissionController {
             throw new IllegalArgumentException("Withheld submission cannot be null");
         }
         Scorer scorer = getScorer(withheldSubmission);
-
-        // The strategy here is to submit an empty rubric to Canvas,
-        // let our helper methods populate it with the latest data
-        // and automatically reduce the score by the penalty percentage.
-        Rubric emptyRubric = new Rubric(null, withheldSubmission.passed(), "");
-        scorer.attemptSendToCanvas(emptyRubric, penaltyPct, commitPenaltyComment, true);
+        scorer.attemptSendToCanvas(withheldSubmission.rubric(), penaltyPct, commitPenaltyComment, true);
     }
 
     /**
