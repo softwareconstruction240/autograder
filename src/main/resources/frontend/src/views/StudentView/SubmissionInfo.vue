@@ -47,20 +47,6 @@ const { submission } = defineProps<{
   </div>
   <div class="container">
     <RubricItemView v-if="submission.rubric.items" v-for="item in sortedItems(submission.rubric.items)" :rubric-item="item"/>
-
-    <!-- TODO: Remove the following three deprecated views after Spring 2024 -->
-    <RubricItemView
-      v-if="submission.rubric.passoffTests"
-      :rubric-item="submission.rubric.passoffTests"
-    />
-    <RubricItemView
-      v-if="submission.rubric.quality"
-      :rubric-item="submission.rubric.quality"
-    />
-    <RubricItemView
-      v-if="submission.rubric.unitTests"
-      :rubric-item="submission.rubric.unitTests"
-    />
   </div>
 
 

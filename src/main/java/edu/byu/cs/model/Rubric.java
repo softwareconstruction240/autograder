@@ -11,16 +11,9 @@ import java.util.EnumMap;
  */
 public record Rubric(
         EnumMap<RubricType, RubricItem> items,
-        RubricItem passoffTests,
-        RubricItem unitTests,
-        RubricItem quality,
         boolean passed,
         String notes
 ) {
-    //TODO: Remove this constructor and three null items after Spring 2024
-    public Rubric(EnumMap<RubricType, RubricItem> items, boolean passed, String notes) {
-        this(items, null, null, null, passed, notes);
-    }
 
     /**
      * Calculates the total number of points in all items

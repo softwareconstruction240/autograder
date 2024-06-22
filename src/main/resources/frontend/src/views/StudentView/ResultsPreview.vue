@@ -39,11 +39,7 @@ const openDetails = ref<boolean>(false);
         {{item.category}}: {{roundTwoDecimals(item.results.score)}} / {{item.results.possiblePoints}}
       </p>
 
-      <!--TODO: Remove the following three deprecated elements after Spring 2024 -->
-      <p v-if="submission.rubric.passoffTests">Functionality: {{ roundTwoDecimals(submission.rubric.passoffTests.results.score) }} / {{ submission.rubric.passoffTests.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.quality">Code Quality: {{ roundTwoDecimals(submission.rubric.quality.results.score) }} / {{ submission.rubric.quality.results.possiblePoints }}</p>
-      <p v-if="submission.rubric.unitTests">Unit Tests: {{ roundTwoDecimals(submission.rubric.unitTests.results.score) }} / {{ submission.rubric.unitTests.results.possiblePoints }}</p>
-    </div>
+      </div>
     <button @click="() => {openDetails = true}" class="secondary">See submission details</button>
   </div>
 

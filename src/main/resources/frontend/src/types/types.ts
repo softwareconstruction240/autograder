@@ -42,12 +42,8 @@ export type RubricItem = {
 
 export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS"
 
-//TODO: Remove deprecated standalone rubric items between semesters when resetting db
 export type Rubric = {
     items: Record<RubricType, RubricItem>,
-    passoffTests: RubricItem,
-    unitTests: RubricItem,
-    quality: RubricItem,
     passed: boolean,
     notes: string,
 }
