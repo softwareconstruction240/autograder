@@ -11,7 +11,6 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -143,25 +142,13 @@ public class GitHelper {
                 CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
                 CommitThreshold upperThreshold = constructCurrentThreshold(git);
 
-                var results = verifyRegularCommits(git, lowerThreshold, upperThreshold);
-                notifyVerificationComplete(results);
-                return results;
+                return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
-        }
-    }
-    private void notifyVerificationComplete(CommitVerificationResult commitVerificationResult) {
-        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
-
-        var observer = gradingContext.observer();
-        if (commitVerificationResult.verified()) {
-            observer.update("Passed commit verification.");
-        } else {
-            observer.update("Failed commit verification. Continuing with grading anyways.");
         }
     }
 
