@@ -7,14 +7,18 @@ import server.Server;
 
 import java.lang.reflect.Method;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DatabaseTests {
 
+    private static final TestUser TEST_USER = new TestUser("ExistingUser", "existingUserPassword", "eu@mail.com");
+
     private static TestServerFacade serverFacade;
+
     private static Server server;
+
+    private static Class<?> databaseManagerClass;
 
 
     @BeforeAll
@@ -37,16 +41,13 @@ public class DatabaseTests {
     }
 
 
-
     @Test
     @DisplayName("Persistence Test")
     @Order(1)
     public void persistenceTest() {
         int initialRowCount = getDatabaseRows();
 
-        TestUser user = new TestUser("ExistingUser", "existingUserPassword", "eu@mail.com");
-
-        TestAuthResult regResult = serverFacade.register(user);
+        TestAuthResult regResult = serverFacade.register(TEST_USER);
         String auth = regResult.getAuthToken();
 
         //create a game
@@ -70,11 +71,11 @@ public class DatabaseTests {
         TestListEntry game1 = listResult.getGames()[0];
         Assertions.assertEquals(game1.getGameID(), createResult.getGameID());
         Assertions.assertEquals(gameName, game1.getGameName(), "Game name changed after restart");
-        Assertions.assertEquals(user.getUsername(), game1.getWhiteUsername(),
+        Assertions.assertEquals(TEST_USER.getUsername(), game1.getWhiteUsername(),
                 "White player username changed after restart");
 
         //test that we can still log in
-        serverFacade.login(user);
+        serverFacade.login(TEST_USER);
         Assertions.assertEquals(200, serverFacade.getStatusCode(), "Unable to login");
     }
 
@@ -82,34 +83,62 @@ public class DatabaseTests {
     @DisplayName("Bcrypt")
     @Order(2)
     public void bcrypt() {
-        String clearTextPassword = "existingUserPassword";
-        TestUser user = new TestUser("ExistingUser", clearTextPassword, "eu@mail.com");
-        serverFacade.register(user);
+        serverFacade.register(TEST_USER);
 
-        try (Connection conn = getConnection();) {
-            try (Statement statement = conn.createStatement()) {
-                for (String table : getTables(conn)) {
-                    String sql = "SELECT * FROM " + table;
-                    try (ResultSet rs = statement.executeQuery(sql)) {
-                        ResultSetMetaData rsmd = rs.getMetaData();
-                        int columnsNumber = rsmd.getColumnCount();
-                        while(rs.next()) {
-                            for(int i = 1; i <= columnsNumber; i++) {
-                                String value = rs.getString(i);
-                                Assertions.assertFalse(value.contains(clearTextPassword),
-                                        "Found clear text password in database");
-                            }
-                        }
+        executeForAllTables(this::checkTableForPassword);
+    }
+
+    private int getDatabaseRows() {
+        AtomicInteger rows = new AtomicInteger();
+        executeForAllTables((tableName, connection) -> {
+            try (var statement = connection.createStatement()) {
+                var sql = "SELECT count(*) FROM " + tableName;
+                try (var resultSet = statement.executeQuery(sql)) {
+                    if (resultSet.next()) {
+                        rows.addAndGet(resultSet.getInt(1));
                     }
                 }
             }
-        } catch (Exception ex) {
-            Assertions.fail("Unable to load database. Are you using dataAccess.DatabaseManager to set your credentials?", ex);
+        });
+
+        return rows.get();
+    }
+
+    private void checkTableForPassword(String table, Connection connection) throws SQLException {
+        String sql = "SELECT * FROM " + table;
+        try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columns = rsmd.getColumnCount();
+            while (rs.next()) {
+                for (int i = 1; i <= columns; i++) {
+                    String value = rs.getString(i);
+                    Assertions.assertFalse(value.contains(TEST_USER.getPassword()),
+                            "Found clear text password in database");
+                }
+            }
+        }
+    }
+
+    private void executeForAllTables(TableAction tableAction) {
+        String sql = """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = DATABASE();
+                """;
+
+        try (Connection conn = getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+            try (var resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    tableAction.execute(resultSet.getString(1), conn);
+                }
+            }
+        } catch (ReflectiveOperationException | SQLException e) {
+            Assertions.fail(e.getMessage(), e);
         }
     }
 
     private Connection getConnection() throws ReflectiveOperationException {
-        Class<?> clazz = Class.forName("dataaccess.DatabaseManager");
+        Class<?> clazz = findDatabaseManager();
         Method getConnectionMethod = clazz.getDeclaredMethod("getConnection");
         getConnectionMethod.setAccessible(true);
 
@@ -117,44 +146,27 @@ public class DatabaseTests {
         return (Connection) getConnectionMethod.invoke(obj);
     }
 
-
-    private int getDatabaseRows() {
-        int rows = 0;
-        try (Connection conn = getConnection();) {
-            try (var statement = conn.createStatement()) {
-                for (String table : getTables(conn)) {
-                    var sql = "SELECT count(*) FROM " + table;
-                    try (var resultSet = statement.executeQuery(sql)) {
-                        if (resultSet.next()) {
-                            rows += resultSet.getInt(1);
-                        }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            Assertions.fail("Unable to load database in order to verify persistence. Are you using dataAccess.DatabaseManager to set your credentials?", ex);
+    private Class<?> findDatabaseManager() throws ClassNotFoundException {
+        if(databaseManagerClass != null) {
+            return databaseManagerClass;
         }
 
-        return rows;
+        for (Package p : getClass().getClassLoader().getDefinedPackages()) {
+            try {
+                Class<?> clazz = Class.forName(p.getName() + ".DatabaseManager");
+                clazz.getDeclaredMethod("getConnection");
+                databaseManagerClass = clazz;
+                return clazz;
+            } catch (ReflectiveOperationException ignored) {}
+        }
+        throw new ClassNotFoundException("Unable to load database in order to verify persistence. " +
+                "Are you using DatabaseManager to set your credentials? " +
+                "Did you edit the signature of the getConnection method?");
     }
 
-    private List<String> getTables(Connection conn) throws SQLException {
-        String sql = """
-                    SELECT table_name
-                    FROM information_schema.tables
-                    WHERE table_schema = DATABASE();
-                """;
-
-        List<String> tableNames = new ArrayList<>();
-        try (var preparedStatement = conn.prepareStatement(sql)) {
-            try (var resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    tableNames.add(resultSet.getString(1));
-                }
-            }
-        }
-
-        return tableNames;
+    @FunctionalInterface
+    private static interface TableAction {
+        void execute(String tableName, Connection connection) throws SQLException;
     }
 
 }
