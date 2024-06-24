@@ -373,7 +373,7 @@ public class GitHelper {
         if (!errorMessages.isEmpty()) {
             errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
                     + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
+            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
         return errorMessages;
     }
