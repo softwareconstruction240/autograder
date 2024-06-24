@@ -11,13 +11,13 @@ import java.util.Set;
 public class PhaseUtils {
 
     // FIXME: dynamically get assignment numbers
-    private static final int PHASE0_ASSIGNMENT_NUMBER = 921303;
-    private static final int PHASE1_ASSIGNMENT_NUMBER = 921304;
-    private static final int PHASE3_ASSIGNMENT_NUMBER = 921306;
-    private static final int PHASE4_ASSIGNMENT_NUMBER = 921307;
+    private static final int PHASE0_ASSIGNMENT_NUMBER = 941084;
+    private static final int PHASE1_ASSIGNMENT_NUMBER = 941085;
+    private static final int PHASE3_ASSIGNMENT_NUMBER = 941087;
+    private static final int PHASE4_ASSIGNMENT_NUMBER = 941088;
 
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 921308;
-    private static final int PHASE6_ASSIGNMENT_NUMBER = 921309;
+    private static final int PHASE5_ASSIGNMENT_NUMBER = 941089;
+    private static final int PHASE6_ASSIGNMENT_NUMBER = 941090;
 
     /**
      * Given a phase, returns the phase before it, or null.

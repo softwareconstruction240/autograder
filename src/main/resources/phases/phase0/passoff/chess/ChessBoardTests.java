@@ -60,7 +60,9 @@ public class ChessBoardTests {
             for(int j = 1; j <= 8; j++) {
                 ChessPosition position = new ChessPosition(i, j);
                 ChessPiece piece = board.getPiece(position);
-                if(piece != null) Assertions.assertDoesNotThrow(() -> piece.pieceMoves(board, position));
+                if(piece != null) {
+                    Assertions.assertDoesNotThrow(() -> piece.pieceMoves(board, position));
+                }
             }
         }
     }
