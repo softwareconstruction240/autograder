@@ -42,6 +42,7 @@ public class CanvasUtils {
             }
         }
 
+
         return new Rubric(rubricItems, rubric.passed(), rubric.notes());
     }
 
@@ -55,27 +56,26 @@ public class CanvasUtils {
         );
     }
 
-    public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config,
-                                                             float lateAdjustment, Phase phase)
+    public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config, Phase phase)
             throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
 
         for(Rubric.RubricType type : Rubric.RubricType.values()) {
-            items.putAll(convertToCanvasFormat(rubric.items().get(type), lateAdjustment, phase,
-                    config.items().get(type), type).items());
+            items.putAll(convertToCanvasFormat(rubric.items().get(type), phase, config.items().get(type), type).items());
         }
 
         return new CanvasRubricAssessment(items);
     }
 
-    private static CanvasRubricAssessment convertToCanvasFormat(Rubric.RubricItem rubricItem,
-                                                                            float lateAdjustment, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
-                                                                            Rubric.RubricType rubricType) throws GradingException {
+    private static CanvasRubricAssessment convertToCanvasFormat(
+            Rubric.RubricItem rubricItem, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
+            Rubric.RubricType rubricType
+    ) throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
-        if (rubricConfigItem != null && rubricConfigItem.points() > 0) {
+        if (rubricConfigItem != null && rubricItem != null) {
             Rubric.Results results = rubricItem.results();
             items.put(PhaseUtils.getCanvasRubricId(rubricType, phase),
-                    new CanvasRubricItem(results.notes(), results.score() * (1 - lateAdjustment)));
+                    new CanvasRubricItem(results.notes(), results.score()));
         }
         return new CanvasRubricAssessment(items);
     }

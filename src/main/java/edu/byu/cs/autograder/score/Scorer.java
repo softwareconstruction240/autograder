@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 
 import static edu.byu.cs.model.Submission.VerifiedStatus;
 
@@ -35,77 +37,157 @@ public class Scorer {
         this.gradingContext = gradingContext;
     }
 
+    /**
+     * Main entry point for the {@link Scorer} class.
+     * This method takes in a rubric and a commit verification result
+     * and scores them together.
+     * <br>
+     * When appropriate, it will save the score the grade-book,
+     * but it always returns a {@link Submission} that can be
+     * @param rubric A freshly generated {@link Rubric} from the grading system.
+     * @param commitVerificationResult The associated {@link CommitVerificationResult} from the verification system.
+     * @return A {@link Submission} ready to save in the database.
+     * @throws GradingException When pre-conditions are not met.
+     * @throws DataAccessException When the database cannot be accessed.
+     */
     public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
         gradingContext.observer().update("Grading...");
 
-        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
-        rubric = annotateRubric(rubric);
+        rubric = transformRubric(rubric);
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            return saveResults(rubric, commitVerificationResult, 0, getScore(rubric), "");
+            return generateSubmissionObject(rubric, commitVerificationResult, 0, getScore(rubric), "");
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        float thisScore = calculateScoreWithLatePenalty(rubric, daysLate);
+        applyLatePenalty(rubric.items(), daysLate);
+        float thisScore = getScore(rubric);
 
         // Validate several conditions before submitting to the grade-book
-        Submission thisSubmission;
         if (!rubric.passed()) {
-            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
         } else if (!commitVerificationResult.verified()) {
-            thisSubmission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
         } else {
-            // The student receives a score!
-            thisSubmission = attemptSendToCanvas(rubric, commitVerificationResult, daysLate, thisScore);
+            // The student (may) receive a score in canvas!
+            return successfullyProcessSubmission(rubric, commitVerificationResult, daysLate, thisScore);
         }
-
-        return thisSubmission;
     }
 
     /**
-     * Saves the generated submission and carefully submits the score to Canvas when it helps the student's grade.
-     * <br>
-     * Calling this method constitutes a successful, verified submission that will be saved and submitted.
+     * Transforms the values in the rubric from percentage grading results to point valued scores.
+     * The resulting {@link Rubric} is ready to save in the database and give to the grade-book system.
      *
-     * @param rubric Required.
-     * @param commitVerificationResult Required.
-     * @param daysLate Required.
-     * @param thisScore Required.
+     * @param rubric A freshly generated Rubric still containing decimal scores from the grading process.
+     * @return A new Rubric with values ready for the grade-book.
+     * @throws GradingException When pre-conditions are not met.
+     * @throws DataAccessException When the database cannot be accessed.
+     */
+    private Rubric transformRubric(Rubric rubric) throws GradingException, DataAccessException {
+        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
+        return new Rubric(rubric.items(), passed(rubric), rubric.notes());
+    }
+
+
+    /**
+     * Carefully submits the score to Canvas when it helps the student's grade.
+     * Returns the submission, now with all missing rubric items populated with their previous values from Canvas.
+     * <br>
+     * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
+     *
+     * @param rubric                   Required.
+     * @param commitVerificationResult Required when originally creating a submission.
+     *                                 Can be null when sending scores to Canvas; this will disable
+     *                                 any automatic point deductions for verification, and also result in
+     *                                 <code>null</code> being returned instead of a {@link Submission}.
+     * @param daysLate                 Required. Used to add a note to the resulting submission object.
+     * @param thisScore                Required. Used to place a value in the {@link Submission} object.
+     *                                 The Canvas grade is based entirely on the provided {@link Rubric}.
      * @return A construction Submission for continued processing
      * @throws DataAccessException When the database can't be reached.
-     * @throws GradingException When other conditions fail.
+     * @throws GradingException    When other conditions fail.
      */
-    private Submission attemptSendToCanvas(
+    private Submission successfullyProcessSubmission(
             Rubric rubric, CommitVerificationResult commitVerificationResult,
             int daysLate, float thisScore
     ) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
-            return saveResults(rubric, commitVerificationResult, daysLate, thisScore,
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore,
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
+
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult, false);
+        return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, submittalRemnants.notes);
+    }
+
+    /**
+     * Uses several values stored in the {@link GradingContext} to send the provided Rubric to Canvas.
+     * <br>
+     * Note that this operation will be performed carefully so that existing RubricItem's in Canvas
+     * will not be overwritten by the operation.
+     *
+     * @param rubric A {@link Rubric} containing values to set in Canvas.
+     *               Any items not set will be populated with their value from Canvas.
+     * @param penaltyPct The approved GIT_COMMITS penalty percentage
+     * @param forceSendScore Forces the grade to be submitted, even if it would lower the student's score.
+     * @throws GradingException When preconditions are not met.
+     * @throws DataAccessException When the database cannot be reached.
+     */
+    public void attemptSendToCanvas(Rubric rubric, int penaltyPct, String commitPenaltyMsg, boolean forceSendScore) throws GradingException, DataAccessException {
+        /**
+         * Set only the fields that will be used by
+         * {@link Scorer#setCommitVerificationPenalty(CanvasRubricAssessment, GradingContext, CommitVerificationResult)}
+         * to reduce the score based on the latest data from the grade-book.
+         */
+        CommitVerificationResult verification = new CommitVerificationResult(
+                    true, true, 0, 0, 0,
+                    penaltyPct, commitPenaltyMsg,
+                    null, null, null, null);
+        attemptSendToCanvas(rubric, verification, forceSendScore);
+    }
+
+    /**
+     * Sends a rubric to Canvas, respecting configuration for lowering a student's score.
+     *
+     * @param rubric The Rubric to submit
+     * @param commitVerificationResult Will be used to apply the Git Commits penalty
+     * @param forceSendScore When true, this will overwrite the score even if the new score is lower than the old score.
+     * @return {@link AssessmentSubmittalRemnants} that contains some information about the results of the operation.
+     * @throws DataAccessException When the database cannot be accessed.
+     * @throws GradingException When pre-conditions are not met.
+     */
+    private AssessmentSubmittalRemnants attemptSendToCanvas(
+            Rubric rubric, CommitVerificationResult commitVerificationResult, boolean forceSendScore
+    ) throws DataAccessException, GradingException {
 
         int canvasUserId = getCanvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
 
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
-        CanvasRubricAssessment newAssessment =
-                addExistingPoints(constructCanvasRubricAssessment(rubric, daysLate), existingAssessment);
+        CanvasRubricAssessment newAssessment = addExistingPoints(constructCanvasRubricAssessment(rubric), existingAssessment);
         setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
 
         // prevent score from being saved to canvas if it will lower their score
-        Submission submission;
-        if (totalPoints(newAssessment) <= totalPoints(existingAssessment)) {
-            String notes = "Submission did not improve current score. Score not saved to Canvas.\n";
-            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, notes);
+        String notes = "";
+        boolean didSend = false;
+        float newPoints = totalPoints(newAssessment);
+        if (!forceSendScore && newPoints <= totalPoints(existingAssessment)) {
+            notes = "Submission did not improve current score. Score not saved to Canvas.\n";
         } else {
-            submission = saveResults(rubric, commitVerificationResult, daysLate, thisScore, "");
+            didSend = true;
             sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
         }
 
-        return submission;
+        return new AssessmentSubmittalRemnants(didSend, newPoints, notes);
     }
+
+    private record AssessmentSubmittalRemnants(
+            boolean didSend,
+            float pointsSent,
+            String notes
+    ) { }
 
     /**
      * Simplifying overload that modifies the {@link CanvasRubricAssessment} by setting the GIT_COMMITS penalty properly.
@@ -114,11 +196,12 @@ public class Scorer {
      *
      * @param assessment The assessment to modify.
      * @param gradingContext Represents the current grading.
-     * @param verification The evaluated CommitVerificationResult.
+     * @param verification The evaluated CommitVerificationResult. If null, then no effects will take place.
      * @throws GradingException When grading errors occur such as the phase not having a GIT_COMMITS rubric item.
      */
-    public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, GradingContext gradingContext,
+    private static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, GradingContext gradingContext,
                                                     CommitVerificationResult verification) throws GradingException {
+        if (verification == null) return;
         setCommitVerificationPenalty(assessment, gradingContext.phase(), verification.penaltyPct(), verification.failureMessage());
     }
 
@@ -142,10 +225,10 @@ public class Scorer {
 
         // Prepare conditions and then calculate penalty
         CanvasRubricItem emptyRubricItem = new CanvasRubricItem("", 0);
-        assessment.addItem(commitRubricId, emptyRubricItem);
+        assessment.insertItem(commitRubricId, emptyRubricItem);
         float commitPenalty = getCommitPenaltyValue(penaltyPct, assessment);
 
-        assessment.addItem(commitRubricId, new CanvasRubricItem(commitComment, commitPenalty));
+        assessment.insertItem(commitRubricId, new CanvasRubricItem(commitComment, commitPenalty));
     }
 
     /**
@@ -175,21 +258,10 @@ public class Scorer {
         return user.canvasUserId();
     }
 
-    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, int daysLate)
+    private CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric)
             throws DataAccessException, GradingException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-        return CanvasUtils.convertToAssessment(rubric, rubricConfig, lateAdjustment, gradingContext.phase());
-    }
-
-    /**
-     * Annotates the rubric with notes and passed status
-     *
-     * @param rubric the rubric to annotate
-     * @return the annotated rubric
-     */
-    private Rubric annotateRubric(Rubric rubric) {
-        return new Rubric(rubric.items(), passed(rubric), rubric.notes());
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, gradingContext.phase());
     }
 
     private boolean passed(Rubric rubric) {
@@ -201,6 +273,21 @@ public class Scorer {
             return true;
         }
         return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
+    }
+
+    private void applyLatePenalty(EnumMap<Rubric.RubricType, Rubric.RubricItem> items, int daysLate) {
+        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
+        for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : items.entrySet()) {
+            Rubric.Results results = entry.getValue().results();
+            results = new Rubric.Results(results.notes(),
+                    results.score() * (1 - lateAdjustment),
+                    results.possiblePoints(),
+                    results.testResults(),
+                    results.textResults());
+            Rubric.RubricItem rubricItem = entry.getValue();
+            rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
+            items.put(entry.getKey(), rubricItem);
+        }
     }
 
     /**
@@ -241,17 +328,10 @@ public class Scorer {
         return points;
     }
 
-    private float calculateScoreWithLatePenalty(Rubric rubric, int numDaysLate) throws GradingException, DataAccessException {
-        float score = getScore(rubric);
-        score *= 1 - (numDaysLate * PER_DAY_LATE_PENALTY);
-        if (score < 0) score = 0;
-        return score;
-    }
-
     /**
      * Gets the score for the phase
      *
-     * @return the score
+     * @return the score as a percentage value from [0-1].
      */
     private float getScore(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
@@ -260,22 +340,46 @@ public class Scorer {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
         }
 
-        return rubric.getTotalPoints() / totalPossiblePoints;
+        float score = 0;
+        for (Rubric.RubricType type : Rubric.RubricType.values()) {
+            var rubricItem = rubric.items().get(type);
+            if (rubricItem == null) continue;
+            score += rubricItem.results().score();
+        }
+
+        return score / totalPossiblePoints;
     }
 
     /**
-     * Saves the results of the grading to the database if the submission passed
+     * Prepares the necessary data pieces to construct a {@link Submission}.
+     * This can be saved in the database, and has information which is
+     * displayed to the user.
+     * <br>
+     * Note that this object is not sent directly to any grade-book.
+     * Other objects are constructed independently for that purpose.
      *
-     * @param rubric the rubric for the phase
+     * @param rubric A fully transformed and populated Rubric.
+     * @param commitVerificationResult Results from the commit verification system.
+     *                                 If this value is null, the function will return null.
+     * @param numDaysLate The number of days late this submission was handed-in.
+     *                    For note generating purposes only; this is not used to
+     *                    calculate any penalties.
+     * @param score The final approved score on the submission represented in points.
+     * @param notes Any notes that are associated with the submission.
+     *              More comments may be added to this string while preparing the Submission.
      */
-    private Submission saveResults(Rubric rubric, CommitVerificationResult commitVerificationResult,
-                                   int numDaysLate, float score, String notes)
+    private Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
+                                                int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
+        if (commitVerificationResult == null) {
+            return null; // This is allowed.
+        }
+
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
         if (numDaysLate > 0)
-            notes += numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
+            notes += " " + numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
@@ -290,8 +394,7 @@ public class Scorer {
             notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission submission = new Submission(
+        return new Submission(
                 netId,
                 gradingContext.repoUrl(),
                 headHash,
@@ -305,17 +408,18 @@ public class Scorer {
                 verifiedStatus,
                 null
         );
-
-        submissionDao.insertSubmission(submission);
-        return submission;
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
             throws GradingException {
+        sendToCanvas(userId, assignmentNum, assessment, notes, gradingContext.netId());
+    }
+
+    private static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes, String netId) throws GradingException {
         try {
             CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
-            LOGGER.error("Error submitting to canvas for user {}", gradingContext.netId(), e);
+            LOGGER.error("Error submitting to canvas for user {}", netId, e);
             throw new GradingException("Error contacting canvas to record scores");
         }
     }

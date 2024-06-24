@@ -27,7 +27,7 @@ public class PhaseUtils {
      */
     public static Phase getPreviousPhase(Phase phase) {
         return switch (phase) {
-            case Phase0, Quality -> null;
+            case Phase0, Quality, Commits -> null;
             case Phase1 -> Phase.Phase0;
             case Phase3 -> Phase.Phase1;
             case Phase4 -> Phase.Phase3;
@@ -51,6 +51,7 @@ public class PhaseUtils {
             case Phase5 -> "5";
             case Phase6 -> "6";
             case Quality -> "Quality";
+            case Commits -> "GitCommits";
         };
     }
 
@@ -68,7 +69,7 @@ public class PhaseUtils {
             case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
             case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
             case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
-            case Quality -> 0;
+            case Quality, Commits -> 0;
         };
     }
 
@@ -77,13 +78,13 @@ public class PhaseUtils {
             case Phase0 -> Set.of("passoff.chess", "passoff.chess.piece");
             case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
             case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
-            case Phase5, Quality -> throw new GradingException("No passoff tests for this phase");
+            case Phase5, Quality, Commits -> throw new GradingException("No passoff tests for this phase");
         };
     }
 
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality, Commits -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> Set.of("service");
             case Phase4 -> Set.of("dataaccess");
             case Phase5 -> Set.of("client");
@@ -92,7 +93,7 @@ public class PhaseUtils {
 
     public static Set<String> unitTestPackagePaths(Phase phase) {
         return switch (phase) {
-            case Phase0, Phase6, Quality -> new HashSet<>();
+            case Phase0, Phase6, Quality, Commits -> new HashSet<>();
             case Phase1 -> Set.of("shared/src/test/java/passoff/chess/game");
             case Phase3 -> Set.of("server/src/test/java/service", "server/src/test/java/passoff/server");
             case Phase4 -> Set.of("server/src/test/java/dataaccess");
@@ -102,7 +103,7 @@ public class PhaseUtils {
 
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality, Commits -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> "service";
             case Phase4 -> "dao";
             case Phase5 -> "server facade";
@@ -111,7 +112,7 @@ public class PhaseUtils {
 
     public static int minUnitTests(Phase phase) throws GradingException {
         return switch (phase) {
-            case Phase0, Phase1, Phase6, Quality -> throw new GradingException("No unit tests for this phase");
+            case Phase0, Phase1, Phase6, Quality, Commits -> throw new GradingException("No unit tests for this phase");
             case Phase3 -> 13;
             case Phase4 -> 18;
             case Phase5 -> 12;
@@ -173,14 +174,14 @@ public class PhaseUtils {
             case Phase0, Phase1 -> "shared";
             case Phase3, Phase4, Phase6 -> "server";
             case Phase5 -> "client";
-            case Quality -> null;
+            case Quality, Commits -> null;
         };
     }
 
     public static boolean isPhaseGraded(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
-            case Quality -> false;
+            case Quality, Commits -> false;
         };
     }
 
@@ -193,7 +194,7 @@ public class PhaseUtils {
     public static boolean isPassoffRequired(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4 -> true;
-            case Phase5, Phase6, Quality -> false;
+            case Phase5, Phase6, Quality, Commits -> false;
         };
     }
 
@@ -228,7 +229,7 @@ public class PhaseUtils {
             case Phase3 -> "phases/phase3.passoff.server";
             case Phase4 -> "phases/phase4.passoff.server";
             case Phase6 -> "phases/phase6.passoff.server";
-            case Phase5, Quality -> null;
+            case Phase5, Quality, Commits -> null;
         };
     }
 

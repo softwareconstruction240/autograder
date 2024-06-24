@@ -1,5 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
-import type {CanvasSection, Submission, User} from "@/types/types";
+import type {CanvasSection, Phase, Submission, User } from '@/types/types'
 import type {Option} from "@/views/AdminView/Analytics.vue";
 
 export const usersGet = async (): Promise<User[]> => {
@@ -15,9 +15,9 @@ export const usersGet = async (): Promise<User[]> => {
     }
 }
 
-export const submissionsForUserGet = async (netID: string): Promise<Submission[]> => {
+export const submissionsForUserGet = async (netId: string): Promise<Submission[]> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/student/' + netID, {
+        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/student/' + netId, {
             method: 'GET',
             credentials: 'include'
         });
@@ -25,6 +25,26 @@ export const submissionsForUserGet = async (netID: string): Promise<Submission[]
         return await response.json();
     } catch (e) {
         return [];
+    }
+}
+
+export const approveSubmissionPost = async (netId: string, phase: Phase, penalize: boolean) => {
+    const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/approve', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            netId,
+            phase,
+            penalize,
+        })
+    });
+
+    if (!response.ok) {
+        console.error(response);
+        throw new Error(await response.text());
     }
 }
 

@@ -94,6 +94,7 @@ public class Grader implements Runnable {
             Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
 
             Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
+            DaoService.getSubmissionDao().insertSubmission(submission);
 
             observer.notifyDone(submission);
         } catch (GradingException ge) {
@@ -115,7 +116,6 @@ public class Grader implements Runnable {
     }
 
     private Rubric evaluateProject(RubricConfig rubricConfig) throws GradingException, DataAccessException {
-        // NOTE: Ideally these would be treated with enum types. That will need to be improved with #300.
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
         if (rubricConfig == null) {
             return new Rubric(new EnumMap<>(Rubric.RubricType.class), false, "No Rubric Config");

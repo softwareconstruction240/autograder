@@ -11,7 +11,6 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -143,25 +142,13 @@ public class GitHelper {
                 CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
                 CommitThreshold upperThreshold = constructCurrentThreshold(git);
 
-                var results = verifyRegularCommits(git, lowerThreshold, upperThreshold);
-                notifyVerificationComplete(results);
-                return results;
+                return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
             observer.notifyError("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
-        }
-    }
-    private void notifyVerificationComplete(CommitVerificationResult commitVerificationResult) {
-        LOGGER.debug("Commit verification result: " + JSON.toString(commitVerificationResult));
-
-        var observer = gradingContext.observer();
-        if (commitVerificationResult.verified()) {
-            observer.update("Passed commit verification.");
-        } else {
-            observer.update("Failed commit verification. Continuing with grading anyways.");
         }
     }
 
@@ -179,17 +166,30 @@ public class GitHelper {
 
         // We have a previous result to defer to:
         int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
-        boolean verified = firstPassingSubmission.verifiedStatus().isApproved();
-        String message = verified ?
-                "You passed the commit verification on your first passing submission! You're good to go!" :
-                "You have previously failed commit verification.\n"+
-                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        boolean verified = firstPassingSubmission.isApproved();
+        String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, originalPenaltyPct, message,
+                0, 0, 0, originalPenaltyPct, failureMessage,
                 null, null,
                 firstPassingSubmission.headHash(), null
         );
+    }
+
+    private static String generateFailureMessage(boolean verified, Submission firstPassingSubmission) {
+        String message;
+        if (!verified) {
+            message = "You have previously failed commit verification.\n"+
+                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        } else {
+            var verification = firstPassingSubmission.verification();
+            if (verification == null || verification.penaltyPct() <= 0) {
+                message = "You passed the commit verification on your first passing submission! You're good to go!";
+            } else {
+                message = "Your commit verification was previously approved with a penalty. That penalty is being applied to this submission as well.";
+            }
+        }
+        return message;
     }
 
     /**
@@ -360,7 +360,7 @@ public class GitHelper {
         if (!errorMessages.isEmpty()) {
             errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
                     + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
+            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
         return errorMessages;
     }

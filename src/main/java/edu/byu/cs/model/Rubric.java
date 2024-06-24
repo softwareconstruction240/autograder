@@ -38,10 +38,10 @@ public record Rubric(
      * @param criteria The criteria of the rubric item
      */
     public record RubricItem(
-            String category, Results results, String criteria
-
-    ) {
-    }
+            String category,
+            Results results,
+            String criteria
+    ) { }
 
     /**
      * Represents the results of a rubric item. textResults or testResults may be null, but not both
@@ -58,8 +58,7 @@ public record Rubric(
             Integer possiblePoints,
             TestAnalysis testResults,
             String textResults
-    ) {
-    }
+    ) { }
 
     public enum RubricType {
         PASSOFF_TESTS,

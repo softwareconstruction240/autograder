@@ -46,7 +46,9 @@ class GitHelperTest {
         if (!repo.exists()) return;
 
         System.out.printf("Evaluating repo at path:\n\t%s%n\n", repoPath);
-        var result = utils.withTestRepo(repo, utils.evaluateRepo());
+        CommitThreshold minThreshold = null;
+//        minThreshold = new CommitThreshold(Instant.MIN, "6ec3b15af512f42cfad177388b6422b60309cc5e");
+        var result = utils.withTestRepo(repo, utils.evaluateRepo(minThreshold));
         System.out.println("Finished results:");
         System.out.println(result);
     }

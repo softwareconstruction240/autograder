@@ -42,6 +42,14 @@ const resetPage = async () => {
   loadSubmissionsToTable(submissionsData);
 }
 
+const refreshSubmissions = async () => {
+  if (allSubmissionsLoaded) {
+    await loadAllSubmissions();
+  } else {
+    loadSubmissionsToTable(await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD))
+  }
+}
+
 const loadAllSubmissions = async () => {
   loadSubmissionsToTable( await submissionsLatestGet() )
   allSubmissionsLoaded = true;
@@ -145,7 +153,9 @@ const adminSubmit = async () => {
   <PopUp
       v-if="selectedSubmission"
       @closePopUp="selectedSubmission = null">
-    <SubmissionInfo :submission="selectedSubmission"/>
+    <SubmissionInfo
+      :submission="selectedSubmission"
+      @approvedSubmission="refreshSubmissions"/>
   </PopUp>
 
   <PopUp

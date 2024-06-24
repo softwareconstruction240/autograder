@@ -8,6 +8,8 @@ import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import edu.byu.cs.util.Serializer;
 
 import java.sql.ResultSet;
@@ -20,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class SubmissionSqlDao implements SubmissionDao {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionSqlDao.class);
     private static final ColumnDefinition[] COLUMN_DEFINITIONS = {
             new ColumnDefinition<Submission>("net_id", Submission::netId),
             new ColumnDefinition<Submission>("repo_url", Submission::repoUrl),
@@ -171,23 +175,19 @@ public class SubmissionSqlDao implements SubmissionDao {
     }
 
     @Override
-    public float getBestScoreForPhase(String netId, Phase phase) throws DataAccessException {
-        return sqlReader.executeQuery(
+    public Submission getBestSubmissionForPhase(String netId, Phase phase) throws DataAccessException {
+        var submissions = sqlReader.executeQuery(
                 """
-                        SELECT max(score) as highestScore
-                        FROM %s
-                        WHERE net_id = ? AND phase = ?
-                        """.formatted(sqlReader.getTableName()),
+                    WHERE net_id = ? AND phase = ? AND passed = 1
+                        ORDER BY score DESC
+                        LIMIT 1
+                    """,
                 ps -> {
                     ps.setString(1, netId);
                     ps.setString(2, phase.toString());
-                },
-                rs -> {
-                    rs.next();
-                    float highestScore = rs.getFloat("highestScore");
-                    return rs.wasNull() ? -1.0f : highestScore;
                 }
         );
+        return sqlReader.expectOneItem(submissions);
     }
 
     @Override
@@ -224,14 +224,15 @@ public class SubmissionSqlDao implements SubmissionDao {
                     ps.setString(3, phase);
                 }
         );
-        if (matchingSubmissions.size() != 1) {
-            throw new ItemNotFoundException(
-                    "Submission could not be identified. Found %s matches. Searched with the following information:\n  "
-                            .formatted(matchingSubmissions.size())
-                    + "  net_id: %s\n  phase: %s\n  head_hash: %s\n  "
-                            .formatted(netId, headHash, phase)
-                    + matchingSubmissions.toString()
+        if (matchingSubmissions.isEmpty()) {
+            throw new ItemNotFoundException("Submission could not be located in database. Cannot edit it." +
+                    getSubmissionIdentDebugInfo(netId, headHash, phase, matchingSubmissions));
+        } else if (matchingSubmissions.size() > 1) {
+            LOGGER.warn("Expected to edit 1 submission, but found %s submissions with the same identifying information.".formatted(matchingSubmissions.size()
+                    + getSubmissionIdentDebugInfo(netId, headHash, phase, null))
             );
+            // CONSIDER: Including the `matchingSubmissions` value while debugging this method.
+            // It is not included in production code to keep the logs clean.
         }
 
         // Then update it
@@ -252,6 +253,18 @@ public class SubmissionSqlDao implements SubmissionDao {
                     ps.setString(6, phase);
                 }
         );
+    }
+
+    private String getSubmissionIdentDebugInfo(String netId, String headHash, String phase,
+                                               Collection<Submission> matchingSubmissions) {
+        String debugInfo = "\n\nSearched with the following information:";
+        debugInfo += "\n  net_id: %s\n  phase: %s\n  head_hash: %s".formatted(netId, phase, headHash);
+        if (matchingSubmissions != null && !matchingSubmissions.isEmpty()) {
+            // CONSIDER: Printing a summary of each submission on its own numbered line
+            debugInfo += "\n  The returned submissions are: " + matchingSubmissions.toString();
+        }
+
+        return debugInfo;
     }
 
 }

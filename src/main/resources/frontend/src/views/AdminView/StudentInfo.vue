@@ -19,13 +19,17 @@ const studentSubmissions = ref<Submission[]>([])
 const selectedSubmission = ref<Submission | null>(null);
 
 onMounted(async () => {
+  await loadStudentSubmissions()
+});
+
+const loadStudentSubmissions = async() => {
   studentSubmissions.value = await submissionsForUserGet(student.netId);
   var dataToShow: any = []
   studentSubmissions.value.forEach(submission => {
     dataToShow.push( submission )
   })
   rowData.value = dataToShow
-});
+}
 
 const cellClickHandler = (event: CellClickedEvent) => {
   selectedSubmission.value = event.data;
@@ -34,7 +38,7 @@ const cellClickHandler = (event: CellClickedEvent) => {
 const columnDefs = reactive([
   { headerName: "Phase", field: 'phase', flex:1, cellRenderer: renderPhaseCell },
   { headerName: "Timestamp", field: "timestamp", sort: 'desc', sortedAt: 0, flex:1, cellRenderer: renderTimestampCell},
-  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell },
+  { headerName: "Score", field: "score", flex:1, cellRenderer: renderScoreCell, onCellClicked: cellClickHandler },
   { headerName: "Notes", field: "notes", flex:5, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({
@@ -58,7 +62,8 @@ const rowData = reactive({
   <PopUp
       v-if="selectedSubmission"
       @closePopUp="selectedSubmission = null">
-    <SubmissionInfo :submission="selectedSubmission"/>
+    <SubmissionInfo :submission="selectedSubmission"
+                    @approvedSubmission="loadStudentSubmissions"/>
   </PopUp>
 </template>
 
