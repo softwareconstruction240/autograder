@@ -1,10 +1,16 @@
 package edu.byu.cs.autograder;
 
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestAnalysis;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 public class GradingException extends Exception{
-    private String details;
-    private TestAnalysis analysis;
+    private static final String CATEGORY = "Grading Issue";
+    private static final String CRITERIA = "An issue arose while grading this submission";
+
+    private Rubric.Results results;
 
     public GradingException() {
         super();
@@ -20,12 +26,12 @@ public class GradingException extends Exception{
 
     public GradingException(String message, String details) {
         super(message);
-        this.details = details;
+        setDetails(message, details);
     }
 
     public GradingException(String message, String details, Throwable cause) {
         super(message, cause);
-        this.details = details;
+        setDetails(message, details);
     }
 
     public GradingException(Throwable cause) {
@@ -34,14 +40,15 @@ public class GradingException extends Exception{
 
     public GradingException(String message, TestAnalysis analysis) {
         super(message);
-        this.analysis = analysis;
+        this.results = new Rubric.Results(message, 0f, 0, analysis, null);
     }
 
-    public String getDetails() {
-        return details;
+    public Rubric asRubric() {
+        return new Rubric(new EnumMap<>(Map.of(Rubric.RubricType.GRADING_ISSUE,
+                new Rubric.RubricItem(CATEGORY, results, CRITERIA))), false, getMessage());
     }
 
-    public TestAnalysis getAnalysis() {
-        return analysis;
+    private void setDetails(String message, String details) {
+        this.results = new Rubric.Results(message, 0f, 0, null, details);
     }
 }

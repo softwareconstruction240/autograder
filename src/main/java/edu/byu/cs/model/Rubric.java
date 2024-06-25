@@ -65,6 +65,6 @@ public record Rubric(
         UNIT_TESTS,
         QUALITY,
         GIT_COMMITS,
-        PREVIOUS_TESTS
+        GRADING_ISSUE
     }
 }

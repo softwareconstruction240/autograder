@@ -83,6 +83,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
 
     @Override
     protected Rubric.RubricType rubricType() {
-        return Rubric.RubricType.PREVIOUS_TESTS;
+        return Rubric.RubricType.GRADING_ISSUE;
     }
 }
