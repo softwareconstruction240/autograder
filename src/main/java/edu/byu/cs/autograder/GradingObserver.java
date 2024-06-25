@@ -10,9 +10,7 @@ public interface GradingObserver {
 
     void notifyError(String message);
 
-    void notifyError(String message, String details);
-
-    void notifyError(String message, TestAnalysis analysis);
+    void notifyError(String message, Submission submission);
 
     void notifyWarning(String message);
 

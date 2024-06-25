@@ -359,13 +359,8 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyError(String message, String details) {
-                notifyError(message, Map.of("details", details));
-            }
-
-            @Override
-            public void notifyError(String message, TestAnalysis analysis) {
-                notifyError(message, Map.of("analysis", analysis));
+            public void notifyError(String message, Submission submission) {
+                notifyError(message, Map.of("results", Serializer.serialize(submission)));
             }
 
             public void notifyError(String message, Map<String, Object> contents) {

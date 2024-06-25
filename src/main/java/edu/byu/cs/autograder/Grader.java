@@ -171,9 +171,9 @@ public class Grader implements Runnable {
         try {
             Submission submission = new Scorer(gradingContext).generateSubmissionObject(ge.asRubric(), cvr, 0, 0f, ge.getMessage());
             DaoService.getSubmissionDao().insertSubmission(submission);
-            observer.notifyDone(submission);
-        } catch (GradingException | DataAccessException ex) {
-            observer.notifyError(ex.getMessage());
+            observer.notifyError(ge.getMessage(), submission);
+        } catch (Exception ex) {
+            observer.notifyError(ex.getMessage() + "\n" + ge.getMessage());
         }
     }
 
