@@ -44,8 +44,9 @@ public class GradingException extends Exception{
     }
 
     public Rubric asRubric() {
-        return new Rubric(new EnumMap<>(Map.of(Rubric.RubricType.GRADING_ISSUE,
-                new Rubric.RubricItem(CATEGORY, results, CRITERIA))), false, getMessage());
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = (results == null) ? null :
+                new EnumMap<>(Map.of(Rubric.RubricType.GRADING_ISSUE, new Rubric.RubricItem(CATEGORY, results, CRITERIA)));
+        return new Rubric(items, false, getMessage());
     }
 
     private void setDetails(String message, String details) {
