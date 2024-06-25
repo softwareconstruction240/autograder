@@ -171,8 +171,7 @@ public class GitHelper {
         return new CommitVerificationResult(
                 verified, true,
                 0, 0, 0, originalPenaltyPct, failureMessage,
-                null, null,
-                firstPassingSubmission.headHash(), null
+                null, null, headHash, null
         );
     }
 
