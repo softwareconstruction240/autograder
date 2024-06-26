@@ -6,6 +6,7 @@ import edu.byu.cs.autograder.compile.modifiers.PassoffJarModifier;
 import edu.byu.cs.autograder.compile.modifiers.PomModifier;
 import edu.byu.cs.autograder.compile.modifiers.TestFactoryModifier;
 import edu.byu.cs.autograder.compile.verifers.*;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.util.ProcessUtils;
 
 import java.io.IOException;
@@ -65,7 +66,8 @@ public class CompileHelper {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                throw new GradingException("Failed to compile", getMavenError(output.stdOut()));
+                Rubric.Results results = Rubric.Results.textError("Your Java source code could not be compiled", getMavenError(output.stdOut()));
+                throw new GradingException("Failed to compile", results);
             }
         } catch (ProcessUtils.ProcessException ex) {
             throw new GradingException("Failed to compile: %s".formatted(ex.getMessage()), ex);

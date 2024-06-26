@@ -58,14 +58,22 @@ public record Rubric(
             Integer possiblePoints,
             TestAnalysis testResults,
             String textResults
-    ) { }
+    ) {
+        public static Results testError(String notes, TestAnalysis testResults) {
+            return new Results(notes, 0f, 0, testResults, null);
+        }
+
+        public static Results textError(String notes, String textResults) {
+            return new Results(notes, 0f, 0, null, textResults);
+        }
+    }
 
     public enum RubricType {
         PASSOFF_TESTS,
         UNIT_TESTS,
         QUALITY,
         GIT_COMMITS,
-        PREVIOUS_TESTS,
-        GITHUB_REPO
+        GITHUB_REPO,
+        GRADING_ISSUE
     }
 }

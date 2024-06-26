@@ -34,6 +34,7 @@ defineProps<{
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 4px;
 }
 #slotInfo {
   display: flex;

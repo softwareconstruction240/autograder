@@ -1,10 +1,8 @@
 <script setup lang="ts">
 
 import {onMounted, ref} from "vue";
-import type {Submission, TestResult} from "@/types/types";
+import type {Submission} from "@/types/types";
 import {subscribeToGradingUpdates} from "@/stores/submissions";
-import PopUp from "@/components/PopUp.vue";
-import RubricItemResultsView from "@/views/StudentView/RubricItemResultsView.vue";
 
 const emit = defineEmits<{
   "show-results": [submission: Submission];
@@ -16,9 +14,6 @@ type GradingStatus = {
 }
 
 const statuses = ref<GradingStatus[]>([]);
-const errorDetails = ref<string>("");
-const errorTestResults = ref<TestResult | undefined>(undefined);
-const displayError = ref<boolean>(false);
 const warnings = ref<boolean>(false);
 const submission = ref<Submission | undefined>(undefined);
 
@@ -48,8 +43,9 @@ onMounted(() => {
         return;
       case 'error':
         statuses.value.push({type: 'error', status: `Error: ${messageData.message}`});
-        errorDetails.value = messageData.details;
-        errorTestResults.value = messageData.analysis;
+        warnings.value = true;
+        const errorResults = JSON.parse(messageData.results);
+        submission.value = errorResults;
         return;
     }
   });
@@ -76,16 +72,6 @@ const getStatusClass = (status: GradingStatus) => {
 <div class="status-container">
   <span v-for="status of statuses" :class=getStatusClass(status)>{{ status.status }}</span>
   <button v-if="warnings && submission" @click="() => {showResults(submission!)}">See Results</button>
-  <div v-if="errorDetails || errorTestResults"
-       class="selectable">
-    <button @click="() => {displayError = true;}">Click here</button>
-  </div>
-  <PopUp
-      v-if="displayError"
-      @closePopUp="() => {displayError = false}">
-    <p v-if="errorDetails" style="white-space: pre">{{errorDetails}}</p>
-    <RubricItemResultsView v-if="errorTestResults" :test-results="errorTestResults" />
-  </PopUp>
 </div>
 </template>
 

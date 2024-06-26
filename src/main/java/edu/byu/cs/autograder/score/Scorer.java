@@ -371,7 +371,7 @@ public class Scorer {
      * @param notes Any notes that are associated with the submission.
      *              More comments may be added to this string while preparing the Submission.
      */
-    private Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
+    public Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
                                                 int numDaysLate, float score, String notes)
             throws GradingException, DataAccessException {
         if (commitVerificationResult == null) {
