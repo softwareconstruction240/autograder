@@ -7,6 +7,7 @@ import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
+import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
@@ -85,7 +86,7 @@ public class Grader implements Runnable {
             Thread.sleep(1000);
             CommitVerificationResult commitVerificationResult = gitHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
-            if (RUN_COMPILATION) {
+            if (RUN_COMPILATION && gradingContext.phase() != Phase.GitHub) {
                 compileHelper.compile();
                 new PreviousPhasePassoffTestGrader(gradingContext).runTests();
             }
@@ -128,6 +129,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
+                    case GITHUB_REPO -> new GitHubAssignmentGrader().runTests();
                     case GIT_COMMITS, PREVIOUS_TESTS -> null;
                 };
                 if (results != null) {
