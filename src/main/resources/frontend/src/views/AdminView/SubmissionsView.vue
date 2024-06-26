@@ -115,6 +115,7 @@ const adminSubmit = async () => {
     <div id="submitDialog">
       <select v-model="selectedAdminPhase">
         <option :value=null selected disabled>Select a phase</option>
+        <option :value=Phase.GitHub>GitHub Repository</option>
         <option :value=Phase.Phase0>Phase 0</option>
         <option :value=Phase.Phase1>Phase 1</option>
         <option :value=Phase.Phase3>Phase 3</option>
@@ -122,7 +123,6 @@ const adminSubmit = async () => {
         <option :value=Phase.Phase5>Phase 5</option>
         <option :value=Phase.Phase6>Phase 6</option>
         <option :value=Phase.Quality>Code Quality Check</option>
-        <option :value=Phase.GitHub>Github Assignment</option>
       </select>
       <button
         :disabled="(selectedAdminPhase === null)
