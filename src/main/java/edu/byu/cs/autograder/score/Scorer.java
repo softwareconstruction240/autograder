@@ -167,7 +167,10 @@ public class Scorer {
 
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
         CanvasRubricAssessment newAssessment = addExistingPoints(constructCanvasRubricAssessment(rubric), existingAssessment);
-        setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
+
+        if (PhaseUtils.phaseHasCommitPenalty(gradingContext.phase())) {
+            setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
+        }
 
         // prevent score from being saved to canvas if it will lower their score
         String notes = "";
