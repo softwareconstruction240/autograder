@@ -350,14 +350,14 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    private static ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
+    private ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
         ArrayList<String> errorMessages = new ArrayList<>();
         for (CV assertedCondition : assertedConditions) {
             if (!assertedCondition.fails) continue;
             errorMessages.add(assertedCondition.errorMsg());
         }
 
-        if (!errorMessages.isEmpty()) {
+        if (!errorMessages.isEmpty() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) {
             errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
                     + "you will need to talk to a TA to receive a score. ");
             errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
