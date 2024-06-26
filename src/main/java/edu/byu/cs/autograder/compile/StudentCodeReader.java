@@ -21,8 +21,10 @@ public class StudentCodeReader {
         Set<File> files = new HashSet<>();
         for(String module: modules) {
             Path moduleRoot = Path.of(stageRepo.getPath(), module);
-            try (Stream<Path> paths = Files.walk(moduleRoot)) {
-                paths.filter(path -> path.toFile().isFile()).forEach((path -> files.add(path.toFile())));
+            if(moduleRoot.toFile().exists()) {
+                try (Stream<Path> paths = Files.walk(moduleRoot)) {
+                    paths.filter(path -> path.toFile().isFile()).forEach((path -> files.add(path.toFile())));
+                }
             }
         }
         return files;

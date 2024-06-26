@@ -97,7 +97,7 @@ public class GitHelper {
         } catch (GitAPIException e) {
             gradingContext.observer().notifyError("Failed to clone repo: " + e.getMessage());
             LOGGER.error("Failed to clone repo", e);
-            throw new GradingException("Failed to clone repo: ",  e.getMessage());
+            throw new GradingException("Failed to clone repo: " + e.getMessage());
         }
     }
 
@@ -171,8 +171,7 @@ public class GitHelper {
         return new CommitVerificationResult(
                 verified, true,
                 0, 0, 0, originalPenaltyPct, failureMessage,
-                null, null,
-                firstPassingSubmission.headHash(), null
+                null, null, headHash, null
         );
     }
 

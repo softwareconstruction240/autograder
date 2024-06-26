@@ -80,10 +80,11 @@ public class Grader implements Runnable {
 
     public void run() {
         observer.notifyStarted();
+        CommitVerificationResult commitVerificationResult = null;
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            CommitVerificationResult commitVerificationResult = gitHelper.setUpAndVerifyHistory();
+            commitVerificationResult = gitHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION) {
                 compileHelper.compile();
@@ -97,16 +98,9 @@ public class Grader implements Runnable {
             DaoService.getSubmissionDao().insertSubmission(submission);
 
             observer.notifyDone(submission);
-        } catch (GradingException ge) {
-            if(ge.getDetails() != null) observer.notifyError(ge.getMessage(), ge.getDetails());
-            else if (ge.getAnalysis() != null) observer.notifyError(ge.getMessage(), ge.getAnalysis());
-            else observer.notifyError(ge.getMessage());
-            String notification =
-                    "Error running grader for user " + gradingContext.netId() + " and repository " + gradingContext.repoUrl();
-            if(ge.getDetails() != null) notification += ". Details:\n" + ge.getDetails();
-            LOGGER.error(notification, ge);
         } catch (Exception e) {
-            observer.notifyError(e.getMessage());
+            GradingException ge = e instanceof GradingException ? (GradingException) e : new GradingException(e);
+            handleException(ge, commitVerificationResult);
             LOGGER.error("Error running grader for user {} and repository {}", gradingContext.netId(),
                     gradingContext.repoUrl(), e);
         } finally {
@@ -128,7 +122,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GIT_COMMITS, PREVIOUS_TESTS -> null;
+                    case GIT_COMMITS, GRADING_ISSUE -> null;
                 };
                 if (results != null) {
                     rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));
@@ -167,4 +161,20 @@ public class Grader implements Runnable {
         }
         throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
     }
+
+
+    private void handleException(GradingException ge, CommitVerificationResult cvr) {
+        if(cvr == null) {
+            observer.notifyError(ge.getMessage());
+            return;
+        }
+        try {
+            Submission submission = new Scorer(gradingContext).generateSubmissionObject(ge.asRubric(), cvr, 0, 0f, ge.getMessage());
+            DaoService.getSubmissionDao().insertSubmission(submission);
+            observer.notifyError(ge.getMessage(), submission);
+        } catch (Exception ex) {
+            observer.notifyError(ex.getMessage() + "\n" + ge.getMessage());
+        }
+    }
+
 }

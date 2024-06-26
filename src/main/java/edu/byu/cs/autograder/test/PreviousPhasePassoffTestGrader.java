@@ -4,10 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.RubricConfig;
-import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -16,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PreviousPhasePassoffTestGrader extends TestGrader{
-    private static final String ERROR_MESSAGE = "Failed previous tests. Cannot pass off until previous tests pass";
+    private static final String ERROR_MESSAGE = "Failed previous phases' tests. Cannot pass off until previous tests pass.";
 
     public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -72,7 +69,19 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     protected float getScore(TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
         testResults = new TestAnalysis(testResults.root(), null, testResults.error());
-        throw new GradingException(ERROR_MESSAGE, testResults);
+        StringBuilder errorBuilder = new StringBuilder(ERROR_MESSAGE).append(" \nFailing tests: \n");
+        failingTests(testResults.root(), errorBuilder);
+        Rubric.Results results = Rubric.Results.testError(errorBuilder.toString(), testResults);
+        throw new GradingException("Failed previous phase tests", results);
+    }
+
+    private void failingTests(TestNode node, StringBuilder builder) {
+        if(node.getPassed() != null && !node.getPassed()) {
+            builder.append(node.getTestName()).append(" \n");
+        }
+        for(TestNode child : node.getChildren().values()) {
+            failingTests(child, builder);
+        }
     }
 
     @Override
@@ -83,6 +92,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
 
     @Override
     protected Rubric.RubricType rubricType() {
-        return Rubric.RubricType.PREVIOUS_TESTS;
+        return Rubric.RubricType.GRADING_ISSUE;
     }
 }

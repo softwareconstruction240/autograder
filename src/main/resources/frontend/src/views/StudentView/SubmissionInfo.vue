@@ -49,7 +49,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
       <span v-else>passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
     </p>
 
-    <div v-if="useAuthStore().user?.role == 'ADMIN' && commitVerificationFailed(submission)">
+    <div v-if="useAuthStore().user?.role == 'ADMIN' && submission.passed && commitVerificationFailed(submission)">
       <InfoPanel id="approveSubmission">
         <h4>Approve Blocked Submission</h4>
         <p>This submission was blocked because it did not meet the git commit requirements.</p>
