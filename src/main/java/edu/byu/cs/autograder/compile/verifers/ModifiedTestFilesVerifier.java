@@ -64,11 +64,11 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
                     """
                     Warning: your test files have changed. This could lead to the autograder giving
                     different results than your local machine.
-                    Modified Files: %s.
-                    Missing Files: %s.
+                    %s
+                    %s
                     """,
-                    modifiedFiles.isEmpty() ? "None" : String.join(", ", modifiedFiles),
-                    missingFiles.isEmpty() ? "None" : String.join(", ", missingFiles)
+                    !modifiedFiles.isEmpty() ? "Modified Files: " + String.join(", ", modifiedFiles) : "",
+                    !missingFiles.isEmpty() ? "Missing Files: " + String.join(", ", missingFiles) : ""
             );
             context.observer().notifyWarning(warningMessage);
             modifiedFiles.clear();
