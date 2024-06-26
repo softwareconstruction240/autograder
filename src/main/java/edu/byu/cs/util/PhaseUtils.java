@@ -212,14 +212,11 @@ public class PhaseUtils {
         int minimumLinesChanged = 5;
         int penaltyPct = 10;
         int forgivenessMinutesHead = 3;
-        return new CommitVerificationConfig(10, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
-        // TODO: Enable this functionality to change the values next semester.
-        // Don't forget to also update the rubrics in the phase specs and the grade-book rubrics.
-//        return switch (phase) {
-//            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
-//            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
-//            case Quality -> throw new GradingException("No commit verification for this phase");
-//        };
+        return switch (phase) {
+            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+            case Quality, Commits -> throw new GradingException("No commit verification for this phase");
+        };
     }
 
     public static String getPassoffPackagePath(Phase phase) {
