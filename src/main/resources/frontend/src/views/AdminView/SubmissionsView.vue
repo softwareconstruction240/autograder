@@ -122,6 +122,7 @@ const adminSubmit = async () => {
         <option :value=Phase.Phase5>Phase 5</option>
         <option :value=Phase.Phase6>Phase 6</option>
         <option :value=Phase.Quality>Code Quality Check</option>
+        <option :value=Phase.GitHub>Github Assignment</option>
       </select>
       <button
         :disabled="(selectedAdminPhase === null)

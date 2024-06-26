@@ -74,6 +74,7 @@ const handleGradingDone = async () => {
           <option :value=Phase.Phase5>Phase 5</option>
           <option :value=Phase.Phase6>Phase 6</option>
           <option :value=Phase.Quality>Code Quality Check</option>
+          <option :value=Phase.GitHub>GitHub Repository</option>
         </select>
         <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
       </div>
