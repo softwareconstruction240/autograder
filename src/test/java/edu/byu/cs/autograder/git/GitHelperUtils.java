@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
 import org.eclipse.jgit.api.Git;
@@ -229,7 +230,7 @@ public class GitHelperUtils {
         GradingObserver mockObserver = Mockito.mock(GradingObserver.class);
         var cvConfig = new CommitVerificationConfig(requiredCommits, requiredDaysWithCommits, minimumLinesChangedPerCommit, commitVerificationPenaltyPct, forgivenessMinutes);
         return new GradingContext(
-                null, null, null, null, null, null,
+                null, Phase.Phase0, null, null, null, null,
                 cvConfig, mockObserver, false);
     }
 
