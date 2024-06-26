@@ -1,4 +1,4 @@
-package edu.byu.cs.autograder.test;
+package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;

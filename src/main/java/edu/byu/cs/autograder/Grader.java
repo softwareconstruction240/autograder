@@ -7,7 +7,7 @@ import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
-import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
+import edu.byu.cs.autograder.git.GitHubAssignmentGrader;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
