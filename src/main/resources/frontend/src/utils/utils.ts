@@ -104,8 +104,9 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
   return result;
 }
 
-export const phaseString = (phase: Phase | "Quality") => {
+export const phaseString = (phase: Phase | "Quality" | "GitHub") => {
   if (phase == 'Quality') { return "Code Quality Check"; }
+  if (phase == "GitHub") { return "Chess GitHub Repository"; }
   else { return "Phase " + phase.toString().charAt(5)}
 }
 
@@ -115,4 +116,12 @@ export const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[]
     const bPoints = items[b as RubricType].results.possiblePoints;
     return bPoints - aPoints;
   }).map((item) => items[item as RubricType]);
+}
+
+export const phaseRequiresTAPassoffForCommits = (phase: Phase | "Quality" | "GitHub"): boolean => {
+  // FIXME: There's some funky type stuff going on here. Whenever I find `typeof phase` is prints out `string`
+  // however, when actually calling this function, it requires `Phase` as a parameter type by the
+  // TS transpiler. Similar case like in the `phaseString` function above.
+  return !(phase === "Quality" || phase === "GitHub");
+
 }
