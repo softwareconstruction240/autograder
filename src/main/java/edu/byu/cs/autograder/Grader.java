@@ -123,7 +123,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GITHUB_REPO -> new GitHubAssignmentGrader().runTests();
+                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade();
                     case GIT_COMMITS, GRADING_ISSUE -> null;
                 };
                 if (results != null) {

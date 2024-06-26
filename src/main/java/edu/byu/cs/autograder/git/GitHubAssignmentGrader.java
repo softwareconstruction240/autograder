@@ -12,7 +12,7 @@ import edu.byu.cs.model.RubricConfig;
  */
 public class GitHubAssignmentGrader {
 
-    public Rubric.Results runTests() throws DataAccessException {
+    public Rubric.Results grade() throws DataAccessException {
         RubricConfig rubricConfig =
                 DaoService.getRubricConfigDao().getRubricConfig(Phase.GitHub);
         RubricConfig.RubricConfigItem configItem =
