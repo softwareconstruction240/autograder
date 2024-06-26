@@ -72,7 +72,8 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     protected float getScore(TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
         testResults = new TestAnalysis(testResults.root(), null, testResults.error());
-        throw new GradingException(ERROR_MESSAGE, testResults);
+        Rubric.Results results = Rubric.Results.testError(ERROR_MESSAGE, testResults);
+        throw new GradingException("Failed previous phase tests", results);
     }
 
     @Override

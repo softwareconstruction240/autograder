@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
@@ -84,7 +85,8 @@ public class TestHelper {
 
                 if (compileOutput.statusCode() != 0) {
                     LOGGER.error("Error compiling tests: {}", compileOutput.stdErr());
-                    throw new GradingException("Error compiling tests:", compileOutput.stdErr());
+                    Rubric.Results results = Rubric.Results.textError("Error compiling tests", compileOutput.stdErr());
+                    throw new GradingException(results.notes(), results);
                 }
             }
         } catch (IOException | ProcessUtils.ProcessException e) {
