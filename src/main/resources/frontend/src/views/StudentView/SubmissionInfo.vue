@@ -6,7 +6,9 @@ import {
   commitVerificationFailed,
   generateClickableCommitLink,
   generateClickableLink,
-  nameOnSubmission, phaseString,
+  nameOnSubmission,
+  phaseRequiresTAPassoffForCommits,
+  phaseString,
   readableTimestamp,
   scoreToPercentage, sortedItems
 } from '@/utils/utils'
@@ -42,11 +44,16 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
     <h3>{{nameOnSubmission(submission)}} ({{submission.netId}})</h3>
     <p>{{readableTimestamp(submission.timestamp)}}</p>
     <p v-html="generateClickableLink(submission.repoUrl)"/>
-    <p>commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
-    <p>status:
+    <p>Commit: <span v-html="generateClickableCommitLink(submission.repoUrl, submission.headHash)"/></p>
+    <p>Status:
       <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
-      <span v-else-if="commitVerificationFailed(submission)"><i class="fa-solid fa-triangle-exclamation" style="color: red"/> <b>needs approval, go see a TA</b> <i class="fa-solid fa-triangle-exclamation" style="color: red"/></span>
-      <span v-else>passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
+      <span v-else-if="commitVerificationFailed(submission)">
+        <i class="fa-solid fa-triangle-exclamation" style="color: red"/>
+        <b> commit verification failed! </b>
+        <b v-if="phaseRequiresTAPassoffForCommits(submission.phase)">Needs TA approval. Go see a TA </b>
+        <i class="fa-solid fa-triangle-exclamation" style="color: red"/>
+      </span>
+      <span v-else>Passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
     </p>
 
     <div v-if="useAuthStore().user?.role == 'ADMIN' && commitVerificationFailed(submission)">
