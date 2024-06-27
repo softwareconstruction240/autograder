@@ -28,7 +28,7 @@ defineProps<{
         <p v-html="sanitizeHtml(rubricItem.results.notes)"/>
       </div>
 
-      <MoreInfo text="details">
+      <MoreInfo v-if="rubricItem.results.testResults || rubricItem.results.textResults" text="details">
         <div>
           <span class="category" v-html="rubricItem.category + ' '"/>
           <span class="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints + '<br/>'"/>

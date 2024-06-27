@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { Submission } from '@/types/types'
-import {scoreToPercentage, roundTwoDecimals, commitVerificationFailed, sortedItems} from '@/utils/utils'
+import {scoreToPercentage,
+  roundTwoDecimals,
+  commitVerificationFailed,
+  sortedItems,
+  phaseRequiresTAPassoffForCommits
+} from '@/utils/utils'
 import PopUp from '@/components/PopUp.vue'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
@@ -22,8 +27,12 @@ const openDetails = ref<boolean>(false);
       </div>
 
       <div v-else-if="commitVerificationFailed(submission)"> <!-- IF SUBMISSION IS BLOCKED -->
-        <h2><i class="fa-solid fa-triangle-exclamation" style="color: red"/> Submission blocked! <i class="fa-solid fa-triangle-exclamation" style="color: red"/></h2>
-        <h3>You can not receive points on this phase until you talk to a TA</h3>
+        <h2>
+          <i class="fa-solid fa-triangle-exclamation" style="color: red"/> Submission blocked! <i class="fa-solid fa-triangle-exclamation" style="color: red"/>
+        </h2>
+        <h3 v-if="phaseRequiresTAPassoffForCommits(submission.phase)">
+          You can not receive points on this phase until you talk to a TA
+        </h3>
       </div>
 
       <div v-else>

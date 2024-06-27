@@ -67,6 +67,7 @@ const handleGradingDone = async () => {
       <div id="submitDialog">
         <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
           <option :value=null selected disabled>Select a phase</option>
+          <option :value=Phase.GitHub>GitHub Repository</option>
           <option :value=Phase.Phase0>Phase 0</option>
           <option :value=Phase.Phase1>Phase 1</option>
           <option :value=Phase.Phase3>Phase 3</option>

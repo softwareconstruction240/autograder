@@ -23,5 +23,6 @@ public enum Phase {
      * Would be named <code>GitCommits</code>, but the SQL table
      * requires the phase to be no more than 9 chars.
      */
-    Commits
+    Commits,
+    GitHub
 }

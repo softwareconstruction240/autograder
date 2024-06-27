@@ -73,6 +73,7 @@ public record Rubric(
         UNIT_TESTS,
         QUALITY,
         GIT_COMMITS,
+        GITHUB_REPO,
         GRADING_ISSUE
     }
 }
