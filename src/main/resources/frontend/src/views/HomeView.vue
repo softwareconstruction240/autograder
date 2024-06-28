@@ -9,6 +9,7 @@ import LiveStatus from '@/views/StudentView/LiveStatus.vue'
 import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
+import {useAppConfigStore} from "@/stores/appConfig";
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -49,6 +50,10 @@ const handleGradingDone = async () => {
   showResults.value = true;
 }
 
+const isPhaseDisabled = () => {
+  return selectedPhase.value != null && !useAppConfigStore().phaseActivationList[Phase[selectedPhase.value] as unknown as Phase]
+}
+
 </script>
 
 <template>
@@ -64,6 +69,11 @@ const handleGradingDone = async () => {
         </a>
       </div>
 
+      <div v-if="isPhaseDisabled()">
+        <br>
+        <span style="color: red; font-weight: bold" >Submissions to this phase are currently disabled</span>
+      </div>
+
       <div id="submitDialog">
         <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
           <option :value=null selected disabled>Select a phase</option>
@@ -76,7 +86,7 @@ const handleGradingDone = async () => {
           <option :value=Phase.Phase6>Phase 6</option>
           <option :value=Phase.Quality>Code Quality Check</option>
         </select>
-        <button :disabled="(selectedPhase === null) || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
+        <button :disabled="(selectedPhase === null) || isPhaseDisabled() || useSubmissionStore().currentlyGrading" class="primary" @click="submitSelectedPhase">Submit</button>
       </div>
     </div>
 

@@ -29,7 +29,10 @@ public class ConfigurationSqlDao implements ConfigurationDao {
     @Override
     public <T> void setConfiguration(Configuration key, T value, Class<T> type) throws DataAccessException {
         try (var connection = SqlDb.getConnection()) {
-            var statement = connection.prepareStatement("INSERT INTO configuration (config_key, value) VALUES (?, ?)");
+            var statement = connection.prepareStatement("""
+            INSERT INTO configuration (config_key, value) VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE value = VALUES(value);
+            """);
             statement.setString(1, key.toString());
             statement.setString(2, value.toString());
             statement.executeUpdate();

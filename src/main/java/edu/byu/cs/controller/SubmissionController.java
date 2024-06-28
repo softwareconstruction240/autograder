@@ -36,12 +36,8 @@ public class SubmissionController {
 
         User user = req.session().attribute("user");
 
-        Boolean submissionsEnabled = getSubmissionsEnabledConfig();
-        if (submissionsEnabled == null) return null;
-
-        if (!submissionsEnabled) {
-            halt(400, "Student submission is disabled");
-            return null;
+        if (!phaseIsEnabled(request.phase())) {
+            halt(400, "Student submission is disabled for " + request.phase());
         }
 
         updateRepoFromCanvas(user, req);
@@ -56,11 +52,27 @@ public class SubmissionController {
         return "";
     };
 
+    private static boolean phaseIsEnabled(Phase phase) {
+        boolean phaseEnabled;
+
+        try {
+            phaseEnabled = DaoService.getConfigurationDao()
+                    .getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
+                    .contains(phase.toString());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting configuration for live phase", e);
+            halt(500);
+            return false;
+        }
+
+        return phaseEnabled;
+    }
+
     private static Boolean getSubmissionsEnabledConfig() {
         boolean submissionsEnabled;
         try {
             submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
-                    ConfigurationDao.Configuration.STUDENT_SUBMISSION_ENABLED,
+                    ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED,
                     Boolean.class);
         } catch (Exception e) {
             LOGGER.error("Error getting configuration", e);

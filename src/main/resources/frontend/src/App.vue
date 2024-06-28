@@ -1,11 +1,12 @@
 <script setup lang="ts">
 
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import {useAuthStore} from "@/stores/auth";
 import { logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
+import { useAppConfigStore } from '@/stores/appConfig'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -22,6 +23,16 @@ const logOut = async () => {
   }
   router.push({name: "login"})
 }
+
+const bannerMessage = computed(() => {
+  if (useAuthStore().isLoggedIn) {
+    return useAppConfigStore().bannerMessage
+  }
+});
+
+onMounted( async () => {
+  await useAppConfigStore().updateConfig();
+})
 </script>
 
 <template>
@@ -30,6 +41,9 @@ const logOut = async () => {
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
     <p>{{ useAuthStore().user?.repoUrl }}</p>
+    <div v-if="bannerMessage" id="bannerMessage">
+      <span v-text="bannerMessage"/>
+    </div>
   </header>
   <main>
     <router-view/>
@@ -37,6 +51,13 @@ const logOut = async () => {
 </template>
 
 <style scoped>
+#bannerMessage {
+  width: 100%;
+  background-color: #4fa0ff;
+  border-radius: 3px;
+  padding: 7px;
+  margin-top: 15px;
+}
 header {
   text-align: center;
 

@@ -66,14 +66,17 @@ const reRunQueue = async () => {
 
 <style scoped>
 .container {
-  padding: 10px;
   display: grid;
   grid-template-columns: 2fr 1fr;
   align-items: first;
 }
 
 .grading-queue {
-cursor: pointer;
+margin: 10px;
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 5px;
+background-color: #f2f2f2;
 }
 
 #queue-refresh-message {
