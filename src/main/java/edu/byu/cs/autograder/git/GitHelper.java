@@ -7,11 +7,10 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -36,6 +35,8 @@ public class GitHelper {
     private final GradingContext gradingContext;
     private String headHash;
 
+    public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
+
     public GitHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
@@ -45,15 +46,19 @@ public class GitHelper {
         setUp();
         return verifyCommitHistory();
     }
+
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
         fetchRepo(gradingContext.stageRepo());
         headHash = getHeadHash(stageRepo);
     }
+
     public CommitVerificationResult verifyCommitHistory() {
         if (headHash == null) {
             throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
         }
+
+        gradingContext.observer().update("Verifying commits...");
 
         try {
             return shouldVerifyCommits() ?
@@ -92,10 +97,8 @@ public class GitHelper {
         } catch (GitAPIException e) {
             gradingContext.observer().notifyError("Failed to clone repo: " + e.getMessage());
             LOGGER.error("Failed to clone repo", e);
-            throw new GradingException("Failed to clone repo: ",  e.getMessage());
+            throw new GradingException("Failed to clone repo: " + e.getMessage());
         }
-
-        gradingContext.observer().update("Successfully fetched repo");
     }
 
     // Early decisions
@@ -117,7 +120,15 @@ public class GitHelper {
     }
 
     // Decision Logic
-    private CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+
+    /**
+     * Decides whether a git repo passes the requirements and returns the evaluation results.
+     *
+     * @param stageRepo A {@link File} pointing to a directory on the local machine with the repo to evaluate.
+     * @return A {@link CommitVerificationResult} with the results.
+     * @throws GradingException When certain assumptions are not met.
+     */
+    CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
         try {
             var potentialResult = preserveOriginalVerification();
             if (potentialResult != null) {
@@ -128,7 +139,10 @@ public class GitHelper {
             Collection<Submission> passingSubmissions = getPassingSubmissions();
 
             try (Git git = Git.open(stageRepo)) {
-                return verifyRegularCommits(git, passingSubmissions);
+                CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
+                CommitThreshold upperThreshold = constructCurrentThreshold(git);
+
+                return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
@@ -152,46 +166,48 @@ public class GitHelper {
 
         // We have a previous result to defer to:
         int originalPenaltyPct = firstPassingSubmission.getPenaltyPct();
-        boolean verified = firstPassingSubmission.verifiedStatus().isApproved();
-        String message = verified ?
-                "You passed the commit verification on your first passing submission! You're good to go!" :
-                "You have previously failed commit verification.\n"+
-                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        boolean verified = firstPassingSubmission.isApproved();
+        String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, originalPenaltyPct, message,
-                null, null,
-                firstPassingSubmission.headHash(), null
+                0, 0, 0, originalPenaltyPct, failureMessage,
+                null, null, headHash, null
         );
     }
 
+    private static String generateFailureMessage(boolean verified, Submission firstPassingSubmission) {
+        String message;
+        if (!verified) {
+            message = "You have previously failed commit verification.\n"+
+                    "You still need to meet with a TA or a professor to gain credit for this phase.";
+        } else {
+            var verification = firstPassingSubmission.verification();
+            if (verification == null || verification.penaltyPct() <= 0) {
+                message = "You passed the commit verification on your first passing submission! You're good to go!";
+            } else {
+                message = "Your commit verification was previously approved with a penalty. That penalty is being applied to this submission as well.";
+            }
+        }
+        return message;
+    }
+
     /**
-     * Counts the commits since the last passoff and halts progress if there are less than the required amount
+     * Analyzes the commits in the given directory within the bounds provided.
      *
-     * @return the number of commits since the last passoff
+     * @return {@link CommitVerificationResult} Representing the verification results
      */
-    private CommitVerificationResult verifyRegularCommits(Git git, Collection<Submission> passingSubmissions)
-            throws GitAPIException, IOException, GradingException, DataAccessException {
-        CommitThreshold lowerThreshold = getMostRecentPassingSubmission(git, passingSubmissions);
-        CommitThreshold upperThreshold = constructCurrentThreshold(git);
+    CommitVerificationResult verifyRegularCommits(
+            Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
+            throws GitAPIException, IOException, DataAccessException {
 
         CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-        CommitVerificationResult commitVerificationResult = commitsPassRequirements(commitHistory);
-        LOGGER.debug("Commit verification result: {}", JSON.toString(commitVerificationResult));
-
-        var observer = gradingContext.observer();
-        if (commitVerificationResult.verified()) {
-            observer.update("Passed commit verification.");
-        } else {
-            observer.update("Failed commit verification. Continuing with grading anyways.");
-        }
-        return commitVerificationResult;
+        return commitsPassRequirements(commitHistory);
     }
     private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-        int requiredCommits = gradingContext.requiredCommits();
-        int requiredDaysWithCommits = gradingContext.requiredDaysWithCommits();
-        int minimumLinesChangedPerCommit = gradingContext.minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.commitVerificationPenaltyPct();
+        int requiredCommits = gradingContext.verificationConfig().requiredCommits();
+        int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
+        int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
@@ -261,7 +277,7 @@ public class GitHelper {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
         if (passingSubmissions.isEmpty()) {
-            return new CommitThreshold(Instant.MIN, null);
+            return MIN_COMMIT_THRESHOLD;
         }
 
         Instant latestTimestamp = null;
@@ -314,8 +330,13 @@ public class GitHelper {
      */
     @NonNull
     private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
+        var handInTimestamp = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+        var forgivenessMinutesHead = gradingContext.verificationConfig().forgivenessMinutesHead();
+        if (handInTimestamp != null) {
+            handInTimestamp = handInTimestamp.plusSeconds(forgivenessMinutesHead * 60L);
+        }
         CommitThreshold currentThreshold = new CommitThreshold(
-                ScorerHelper.getHandInDateInstant(gradingContext.netId()),
+                handInTimestamp,
                 getHeadHash(git)
         );
         if (currentThreshold.timestamp() == null) {
@@ -328,17 +349,17 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    private static ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
+    private ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
         ArrayList<String> errorMessages = new ArrayList<>();
         for (CV assertedCondition : assertedConditions) {
             if (!assertedCondition.fails) continue;
             errorMessages.add(assertedCondition.errorMsg());
         }
 
-        if (!errorMessages.isEmpty()) {
+        if (!errorMessages.isEmpty() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) {
             errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
                     + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It will come with a %d%% penalty.", commitVerificationPenaltyPct));
+            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
         }
         return errorMessages;
     }
@@ -363,7 +384,7 @@ public class GitHelper {
             throw new GradingException("Failed to get head hash: " + e.getMessage());
         }
     }
-    private String getHeadHash(Git git) throws IOException {
+    static String getHeadHash(Git git) throws IOException {
         return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
 

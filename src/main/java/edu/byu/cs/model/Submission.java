@@ -1,13 +1,9 @@
 package edu.byu.cs.model;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -21,13 +17,16 @@ import java.util.Objects;
  * @param phase The phase being graded in this submission.
  * @param passed Signifies that the code passed all the grading tests.
  *               <b>Does NOT signify</b> that the score was approved.
- * @param score <p>The final score assigned to this submission (in points) that will
+ * @param score <p>The final score assigned to this submission (as a percentage [0-1]) that will
  *              be sent to the grade-book, including penalties and extra credit.</p>
  *              <p>This field will be updated if the score changes because of
  *              additional penalties or manual corrections; however, this is
  *              <b>not the canonical source of truth</b>.</p>
- *              <p>This serves as convenient reference while within the AutoGrader
- *              for many reasons, but the real source of truth is the grade-book.</p>
+ *              <p>These system deals with scores as values between 0 and 1.
+ *              These scores are only converted into <b>points</b> as they are sent
+ *              to an external source.</p>
+ *              <p>While the AutoGrader is storing scores and updating them,
+ *              the real source of truth is the grade-book.</p>
  * @param notes Additional notes displayed to the user.
  *              These usually represent the status of their score, or
  *              provide remarks about why a passing score was not given.
@@ -58,18 +57,6 @@ public record Submission(
         @Nullable VerifiedStatus verifiedStatus,
         @Nullable ScoreVerification verification
 ) {
-    public static class InstantAdapter extends TypeAdapter<Instant> {
-
-        @Override
-        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
-            jsonWriter.value(instant.toString());
-        }
-
-        @Override
-        public Instant read(JsonReader jsonReader) throws IOException {
-            return Instant.parse(jsonReader.nextString());
-        }
-    }
 
     /**
      * Represents the manual approval of a score after it was withheld.
@@ -100,6 +87,13 @@ public record Submission(
         public boolean isApproved() {
             return this != VerifiedStatus.Unapproved;
         }
+    }
+
+    public boolean isApproved() {
+        if (verifiedStatus == null) {
+            return true; // Old submissions without this field are assumed to be approved
+        }
+        return verifiedStatus.isApproved();
     }
 
     @Override
@@ -135,9 +129,7 @@ public record Submission(
     }
     public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
         if (scoreVerification == null) return null;
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(scoreVerification);
+        return Serializer.serialize(scoreVerification);
     }
 
     public static String serializeVerifiedStatus(@NonNull Submission submission) {
@@ -145,5 +137,22 @@ public record Submission(
     }
     public static String serializeVerifiedStatus(@Nullable VerifiedStatus verifiedStatus) {
         return verifiedStatus == null ? null : verifiedStatus.name();
+    }
+
+    public Submission replaceRubric(Rubric rubric) {
+        return new Submission(
+                this.netId,
+                this.repoUrl,
+                this.headHash,
+                this.timestamp,
+                this.phase,
+                this.passed,
+                this.score,
+                this.notes,
+                rubric,
+                this.admin,
+                this.verifiedStatus,
+                this.verification
+        );
     }
 }

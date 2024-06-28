@@ -4,8 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
@@ -14,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PreviousPhasePassoffTestGrader extends TestGrader{
-    private static final String ERROR_MESSAGE = "Failed previous tests. Cannot pass off until previous tests pass";
+    private static final String ERROR_MESSAGE = "Failed previous phases' tests. Cannot pass off until previous tests pass.";
 
     public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -46,7 +45,7 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
             Phase previous = gradingContext.phase();
             while ((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
                 RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(previous);
-                if(rubricConfig.passoffTests() != null) {
+                if(rubricConfig.items().get(Rubric.RubricType.PASSOFF_TESTS) != null) {
                     set.addAll(func.apply(previous));
                 }
             }
@@ -67,25 +66,32 @@ public class PreviousPhasePassoffTestGrader extends TestGrader{
     }
 
     @Override
-    protected float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException {
+    protected float getScore(TestAnalysis testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
-        removeExtraCreditTests(testResults.root(), extraCreditTests());
-        throw new GradingException(ERROR_MESSAGE, testResults);
+        testResults = new TestAnalysis(testResults.root(), null, testResults.error());
+        StringBuilder errorBuilder = new StringBuilder(ERROR_MESSAGE).append(" \nFailing tests: \n");
+        failingTests(testResults.root(), errorBuilder);
+        Rubric.Results results = Rubric.Results.testError(errorBuilder.toString(), testResults);
+        throw new GradingException("Failed previous phase tests", results);
     }
 
-    private void removeExtraCreditTests(TestAnalyzer.TestNode node, Set<String> extraCreditTests) {
-        extraCreditTests.forEach((ecTest) -> node.getChildren().remove(ecTest));
-        node.getChildren().forEach((s, child) -> removeExtraCreditTests(child, extraCreditTests));
+    private void failingTests(TestNode node, StringBuilder builder) {
+        if(node.getPassed() != null && !node.getPassed()) {
+            builder.append(node.getTestName()).append(" \n");
+        }
+        for(TestNode child : node.getChildren().values()) {
+            failingTests(child, builder);
+        }
     }
 
     @Override
-    protected String getNotes(TestAnalyzer.TestAnalysis results) {
+    protected String getNotes(TestAnalysis results) {
         if (results.root().getNumTestsFailed() == 0) return "All previous tests passed";
         else return ERROR_MESSAGE;
     }
 
     @Override
-    protected RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config) {
-        return new RubricConfig.RubricConfigItem(null, null, 0);
+    protected Rubric.RubricType rubricType() {
+        return Rubric.RubricType.GRADING_ISSUE;
     }
 }

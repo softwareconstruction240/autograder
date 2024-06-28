@@ -20,6 +20,7 @@ import {adminSubmissionPost} from "@/services/submissionService";
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
 import { useSubmissionStore } from '@/stores/submissions'
+import InfoPanel from "@/components/InfoPanel.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
@@ -41,13 +42,21 @@ const resetPage = async () => {
   loadSubmissionsToTable(submissionsData);
 }
 
+const refreshSubmissions = async () => {
+  if (allSubmissionsLoaded) {
+    await loadAllSubmissions();
+  } else {
+    loadSubmissionsToTable(await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD))
+  }
+}
+
 const loadAllSubmissions = async () => {
   loadSubmissionsToTable( await submissionsLatestGet() )
   allSubmissionsLoaded = true;
 }
 
 const loadSubmissionsToTable = (submissionsData : Submission[]) => {
-  var dataToShow: any = []
+  const dataToShow: any = [];
   submissionsData.forEach(submission => {
     dataToShow.push( {
         ...submission,
@@ -106,6 +115,7 @@ const adminSubmit = async () => {
     <div id="submitDialog">
       <select v-model="selectedAdminPhase">
         <option :value=null selected disabled>Select a phase</option>
+        <option :value=Phase.GitHub>GitHub Repository</option>
         <option :value=Phase.Phase0>Phase 0</option>
         <option :value=Phase.Phase1>Phase 1</option>
         <option :value=Phase.Phase3>Phase 3</option>
@@ -144,7 +154,9 @@ const adminSubmit = async () => {
   <PopUp
       v-if="selectedSubmission"
       @closePopUp="selectedSubmission = null">
-    <SubmissionInfo :submission="selectedSubmission"/>
+    <SubmissionInfo
+      :submission="selectedSubmission"
+      @approvedSubmission="refreshSubmissions"/>
   </PopUp>
 
   <PopUp
@@ -159,7 +171,9 @@ const adminSubmit = async () => {
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
       <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
-      <LiveStatus @show-results="adminDoneGrading"/>
+      <InfoPanel>
+        <LiveStatus @show-results="adminDoneGrading"/>
+      </InfoPanel>
     </div>
     <SubmissionInfo
         v-if="selectedSubmission"

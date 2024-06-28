@@ -1,12 +1,17 @@
 package edu.byu.cs.util;
 
+import edu.byu.cs.autograder.GradingException;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -36,15 +41,11 @@ public class FileUtils {
      * @param file the file to be written to
      */
     public static void writeStringToFile(String data, File file) {
-        try {
-            if (!file.exists()) Files.createFile(file.toPath());
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(data);
-            }
+        try (var os = new FileOutputStream(file)) {
+            os.write(data.getBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to write to file: " + e.getMessage());
         }
-
     }
 
     /**
@@ -179,4 +180,48 @@ public class FileUtils {
             throw new RuntimeException("Failed to copy file: " + e.getMessage());
         }
     }
+
+    /**
+     * @param filePath The path to file/directory to find all the file names and the associated absolute paths
+     * @return A map of the file names and the associated absolute paths given a path
+     * For example:
+     * {
+     *     "ChessBoardTests.java":
+     *     "IdeaProjects/autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
+     * }
+     */
+    public static Map<String, String> getFileNamesToAbsolutePaths(Path filePath) throws GradingException {
+        Map<String, String> fileNamesToAbsolutesPaths = new HashMap<>();
+        try (Stream<Path> paths = Files.walk(filePath)) {
+            for (Path path : paths.toList()) {
+                File file = path.toFile();
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    String absolutePath = file.getAbsolutePath();
+                    fileNamesToAbsolutesPaths.put(fileName, absolutePath);
+                }
+            }
+        } catch (IOException e) {
+            throw new GradingException(
+                    String.format("Could not find file names given %s: %s", filePath, e.getMessage())
+            );
+        }
+        return fileNamesToAbsolutesPaths;
+    }
+    /**
+     * Gets the files and directories within a given directory with given depth. If
+     * the file provided is not a directory, an empty collection will be returned.
+     * @param file The directory to scan
+     * @return A collection of files contained within the directory
+     */
+    public static Collection<File> getChildren(File file, Integer depth) {
+        if (!file.isDirectory()) return new LinkedList<>();
+        Path path = Path.of(file.getAbsolutePath());
+        try (Stream<Path> paths = Files.walk(path, depth)) {
+            return paths.map(Path::toFile).filter(fileObj -> !fileObj.getName().equals(file.getName())).toList();
+        } catch (IOException e) {
+            return new LinkedList<>();
+        }
+    }
+
 }

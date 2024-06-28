@@ -1,19 +1,17 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.TrafficController;
-import edu.byu.cs.autograder.test.TestAnalyzer;
+import edu.byu.cs.autograder.*;
+import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.ProcessUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
@@ -93,7 +91,7 @@ public class SubmissionController {
 
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", user.netId(), request.phase(),
                 request.repoUrl());
-        
+
         DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId(), 3);
 
         startGrader(user.netId(), request.phase(), request.repoUrl(), true);
@@ -166,8 +164,8 @@ public class SubmissionController {
 
         GradeRequest request;
         try {
-            request = new Gson().fromJson(req.body(), GradeRequest.class);
-        } catch (JsonSyntaxException e) {
+            request = Serializer.deserialize(req.body(), GradeRequest.class);
+        } catch (Serializer.SerializationException e) {
             halt(400, "Request must be valid json");
             return null;
         }
@@ -212,9 +210,7 @@ public class SubmissionController {
 
         res.status(200);
 
-        return new Gson().toJson(Map.of(
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("inQueue", inQueue));
     };
 
     public static final Route latestSubmissionForMeGet = (req, res) -> {
@@ -232,9 +228,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submission);
+        return Serializer.serialize(submission);
     };
 
     public static final Route submissionXGet = (req, res) -> {
@@ -267,9 +261,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route latestSubmissionsGet = (req, res) -> {
@@ -286,9 +278,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
@@ -305,10 +295,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "currentlyGrading", currentlyGrading,
-                "inQueue", inQueue
-        ));
+        return Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
     };
 
     public static final Route studentSubmissionsGet = (req, res) -> {
@@ -326,29 +313,21 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new GsonBuilder()
-                .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                .create().toJson(submissions);
+        return Serializer.serialize(submissions);
     };
 
     public static final Route approveSubmissionPost = (req, res) -> {
-        // FIXME: These are only provided as reasonable guesses, and as a starting point.
-        // This may not be the way we want to actually go with this end-point,
-        // the only reflect the data that will need to be transferred.
-        String studentNetId = req.params(":studentNetId");
-        Phase phase = Phase.valueOf(req.params(":phase"));
-        Float approvedScore = Float.valueOf(req.params(":approvedScore"));
-        Integer penaltyPct = Integer.valueOf(req.params(":penaltyPct"));
-        String approvingNetId = req.params(":approvingNetId");
+        User adminUser = req.session().attribute("user");
 
-        // FIXME: Validate that all of the parameters were received as valid, non-empty types.
-        // Note that the `approvedScore` field can be optionally `null`.
+        ApprovalRequest request = Serializer.deserialize(req.body(), ApprovalRequest.class);
 
-        approveSubmission(studentNetId, phase, approvingNetId, penaltyPct);
-//        // TODO: Lookup a submission by phase, netId, and headHash to pass in as `targetSubmission`
-//        approveSubmission(studentNetId, phase, approvingNetId, penaltyPct, approvedScore, null);
+        int penalty = 0;
+        if (request.penalize()) {
+            //TODO: Put somewhere better/more configurable
+            penalty = 10;
+        }
 
-        // FIXME: Consider returning more interesting or hepful data.
+        approveSubmission(request.netId(), request.phase(), adminUser.netId(), penalty);
         return "{}";
     };
 
@@ -362,7 +341,7 @@ public class SubmissionController {
      * @throws IOException if there is an error creating the grader
      */
     private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
-        Grader.Observer observer = new Grader.Observer() {
+        GradingObserver observer = new GradingObserver() {
             @Override
             public void notifyStarted() {
                 try {
@@ -372,9 +351,7 @@ public class SubmissionController {
                     return;
                 }
 
-                TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                        "type", "started"
-                ));
+                notifySubscribers(Map.of("type", "started"));
 
                 try {
                     TrafficController.broadcastQueueStatus();
@@ -385,14 +362,7 @@ public class SubmissionController {
 
             @Override
             public void update(String message) {
-                try {
-                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                            "type", "update",
-                            "message", message
-                    ));
-                } catch (Exception e) {
-                    LOGGER.error("Error updating subscribers", e);
-                }
+                notifySubscribers(Map.of("type", "update", "message", message));
             }
 
             @Override
@@ -401,43 +371,38 @@ public class SubmissionController {
             }
 
             @Override
-            public void notifyError(String message, String details) {
-                notifyError(message, Map.of("details", details));
-            }
-
-            @Override
-            public void notifyError(String message, TestAnalyzer.TestAnalysis analysis) {
-                notifyError(message, Map.of("analysis", analysis));
+            public void notifyError(String message, Submission submission) {
+                notifyError(message, Map.of("results", Serializer.serialize(submission)));
             }
 
             public void notifyError(String message, Map<String, Object> contents) {
                 contents = new HashMap<>(contents);
                 contents.put( "type", "error");
                 contents.put("message", message);
-                TrafficController.getInstance().notifySubscribers(netId, contents);
+                notifySubscribers(contents);
+                removeFromQueue();
+            }
 
-                TrafficController.sessions.remove(netId);
-                try {
-                    DaoService.getQueueDao().remove(netId);
-                } catch (DataAccessException e) {
-                    LOGGER.error("Error removing queue item", e);
-                }
+            @Override
+            public void notifyWarning(String message) {
+                notifySubscribers(Map.of("type", "warning", "message", message));
             }
 
             @Override
             public void notifyDone(Submission submission) {
-                Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(Instant.class, new Submission.InstantAdapter())
-                        .create();
+                notifySubscribers(Map.of("type", "results", "results", Serializer.serialize(submission)));
+                removeFromQueue();
+            }
+
+            private void notifySubscribers(Map<String, Object> contents) {
                 try {
-                    TrafficController.getInstance().notifySubscribers(netId, Map.of(
-                            "type", "results",
-                            "results", gson.toJson(submission)
-                    ));
+                    TrafficController.getInstance().notifySubscribers(netId, contents);
                 } catch (Exception e) {
                     LOGGER.error("Error updating subscribers", e);
                 }
+            }
 
+            private void removeFromQueue() {
                 TrafficController.sessions.remove(netId);
                 try {
                     DaoService.getQueueDao().remove(netId);
@@ -470,9 +435,7 @@ public class SubmissionController {
         res.status(200);
         res.type("application/json");
 
-        return new Gson().toJson(Map.of(
-                "message", "re-running submissions in queue"
-        ));
+        return Serializer.serialize(Map.of("message", "re-running submissions in queue"));
     };
 
 
@@ -512,7 +475,7 @@ public class SubmissionController {
      */
     public static void approveSubmission(
             @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct)
-            throws DataAccessException {
+            throws DataAccessException, GradingException {
         approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
     }
     /**
@@ -525,11 +488,15 @@ public class SubmissionController {
      * @param approverNetId Identifies the TA or professor approving the score
      * @param penaltyPct The penalty applied for the reduction.
      *                   This should already be reflected in the `approvedScore` if present.
-     * @param approvedScore <p>The final score that should go in the grade-book.</p>
-     *                      <p>If `null`, we'll apply the penalty to the highest score for any submission in the phase.</p>
+     *                   <p>This will be used to reduce all other submissions,
+     *                   but has no effect in the grade-book when <code>approvedScore</code> is provided.</p>
+     * @param approvedScore <p>The final score that should go in the grade-book.
+     *                      Submissions in the database will <b>not</b> be affected by this value.</p>
+     *                      <p>If `null`, we'll determine this value by applying the penalty to
+     *                      the highest score for any submission in the phase.</p>
      *                      <p>Provided so that a TA can approve an arbitrary (highest score)
      *                      submission with a penalty instead of any other fixed rule.</p>
-     * @param targetSubmission Required when `approvedScored` is passed in.
+     * @param submissionToUse Required when `approvedScored` is passed in.
      *                         Provides a submission which will be used to overwrite the existing score in the grade-book.
      *                         If a full {@link Submission} object is not available, the {@link Rubric} is only required field in it.
      */
@@ -539,8 +506,12 @@ public class SubmissionController {
             @NonNull String approverNetId,
             @NonNull Integer penaltyPct,
             @Nullable Float approvedScore,
-            @Nullable Submission targetSubmission
-    ) throws DataAccessException {
+            @Nullable Submission submissionToUse
+    ) throws DataAccessException, GradingException {
+        if (approvedScore != null) {
+            throw new IllegalArgumentException("Passing in non-null approvedScore is not yet implemented.");
+        }
+
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
             throw new IllegalArgumentException("All of studentNetId, approverNetId, and penaltyPct must not be null.");
@@ -554,45 +525,109 @@ public class SubmissionController {
 
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
-        Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+        assertSubmissionUnapproved(submissionDao, studentNetId, phase);
+        Submission withheldSubmission = determineSubmissionForConsideration(submissionDao, submissionToUse, studentNetId, phase);
 
-        // Update Submissions
-        Float originalScore = withheldSubmission.score();
-        Instant approvedTimestamp = Instant.now();
-        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
-                originalScore,
-                approverNetId,
-                approvedTimestamp,
-                penaltyPct);
-        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(submissionDao, studentNetId, phase, scoreVerification);
+        // Modify values in our database first
+        int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
 
-        if (submissionsAffected < 1) {
-            LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
-        }
-
-        // Determine approvedScore
+        // Send score to Grade-book
         if (approvedScore == null) {
-            float bestScoreForPhase = submissionDao.getBestScoreForPhase(studentNetId, phase);
-            if (bestScoreForPhase < 0.0f) {
-                throw new RuntimeException("Cannot determine best score for phase without any submissions in the phase.");
-            }
-            approvedScore = SubmissionHelper.prepareModifiedScore(bestScoreForPhase, scoreVerification);
+            approvedScore = SubmissionHelper.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         }
-        if (approvedScore <= 0.0f) {
-            throw new RuntimeException("Cannot set grade without a positive approvedScore!");
-        }
-
-        // Update grade-book
-        CanvasIntegration canvasIntegration = CanvasService.getCanvasIntegration();
-        // FIXME: Store `approvedScore` in the Grade-book
-        // canvasIntegration.submitGrade(studentNetId, approvedScore, );
-        if (true) {
-            throw new RuntimeException("ApproveSubmission not implemented!"); // TODO: Finish implementing method
-        }
+        String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
+        sendScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
                 .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
+    }
+
+    private static void assertSubmissionUnapproved(SubmissionDao submissionDao, String studentNetId, Phase phase) throws DataAccessException {
+        Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
+        if (withheldSubmission.isApproved()) {
+            throw new RuntimeException(studentNetId + " needs no approval for phase " + phase);
+        }
+    }
+
+    private static Submission determineSubmissionForConsideration(
+            SubmissionDao submissionDao, Submission providedValue, String studentNetId, Phase phase)
+            throws DataAccessException, GradingException {
+        if (providedValue != null) return providedValue;
+
+        Submission submission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
+        if (submission == null) {
+            throw new GradingException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
+        }
+        return submission;
+    }
+
+    private static int modifySubmissionEntriesInDatabase(
+            SubmissionDao submissionDao, Submission withheldSubmission, String approvingNetId, int penaltyPct)
+            throws DataAccessException {
+
+        Float originalScore = withheldSubmission.score();
+        Instant approvedTimestamp = Instant.now();
+        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
+                originalScore,
+                approvingNetId,
+                approvedTimestamp,
+                penaltyPct);
+        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(
+                submissionDao,
+                withheldSubmission.netId(),
+                withheldSubmission.phase(),
+                scoreVerification);
+
+        if (submissionsAffected < 1) {
+            LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
+        }
+        return submissionsAffected;
+    }
+
+    /**
+     * Submits the <code>approvedScore</code> to Canvas by modifying the GIT_COMMITS rubric item.
+     * <br>
+     * In this context, the <code>withheldSubmission</code> isn't <i>strictly</i> necessary,
+     * but it is used to transfer several fields and values that would need to be transferred individually
+     * without it. The most important of these is the <score>field</score>, which will be used to calculate the penalty.
+     *
+     * @param withheldSubmission The baseline submission to approve
+     * @param penaltyPct The percentage that should be reduced from the score for GIT_COMMITS.
+     * @param commitPenaltyComment The comment that should be associated with the GIT_COMMITS rubric, if any.
+     * @throws DataAccessException When the database cannot be accessed.
+     * @throws GradingException When pre-conditions are not met.
+     */
+    private static void sendScoreToCanvas(Submission withheldSubmission, int penaltyPct, String commitPenaltyComment) throws DataAccessException, GradingException {
+        // Prepare and assert arguments
+        if (withheldSubmission == null) {
+            throw new IllegalArgumentException("Withheld submission cannot be null");
+        }
+        Scorer scorer = getScorer(withheldSubmission);
+        scorer.attemptSendToCanvas(withheldSubmission.rubric(), penaltyPct, commitPenaltyComment, true);
+    }
+
+    /**
+     * Constructs an instance of {@link Scorer} using the limited data available in a {@link Submission}.
+     *
+     * @param submission A submission containing context to extract.
+     * @return A constructed Scorer instance.
+     */
+    private static Scorer getScorer(Submission submission) {
+        String studentNetId = submission.netId();
+        Phase phase = submission.phase();
+        if (studentNetId == null) {
+            throw new IllegalArgumentException("Student net ID cannot be null");
+        }
+        if (phase == null) {
+            throw new IllegalArgumentException("Phase cannot be null");
+        }
+
+        return new Scorer(new GradingContext(
+                studentNetId, phase, null, null, null, null,
+                new CommitVerificationConfig(0, 0, 0, 0, 0),
+                null, submission.admin()
+        ));
     }
 
 }

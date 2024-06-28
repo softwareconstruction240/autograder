@@ -1,6 +1,5 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
 import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
@@ -10,6 +9,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
+import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
@@ -41,7 +41,7 @@ public class AdminController {
         res.type("application/json");
         res.status(200);
 
-        return new Gson().toJson(users);
+        return Serializer.serialize(users);
 
     };
 
@@ -206,7 +206,7 @@ public class AdminController {
             CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
             res.type("application/json");
             res.status(200);
-            return new Gson().toJson(sections);
+            return Serializer.serialize(sections);
         } catch (CanvasException e) {
             res.status(500);
             return e.getMessage();

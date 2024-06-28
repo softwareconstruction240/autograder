@@ -1,12 +1,15 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.controller.SubmissionController;
+import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -27,10 +30,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
     // FIXME: set this dynamically or pull from config
-    private static final int COURSE_NUMBER = 26141;
+    private static final int COURSE_NUMBER = 26822;
 
-    // FIXME: set this dynamically or pull from config
-    private static final int GIT_REPO_ASSIGNMENT_NUMBER = 921299;
+    private static final int GIT_REPO_ASSIGNMENT_NUMBER = PhaseUtils.getPhaseAssignmentNumber(Phase.GitHub);
 
     private record Enrollment(EnrollmentType type) {
 
@@ -338,7 +340,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             try (InputStream respBody = https.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if (responseClass != null) {
-                    return new CanvasDeserializer<T>().deserialize(reader, responseClass);
+                    return Serializer.deserialize(reader, responseClass);
                 }
             }
         }

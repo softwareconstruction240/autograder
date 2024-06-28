@@ -1,16 +1,9 @@
 package edu.byu.cs.model;
 
-public record RubricConfig(
+import java.util.EnumMap;
 
-        Phase phase,
-        RubricConfigItem passoffTests,
-        RubricConfigItem unitTests,
-        RubricConfigItem quality
-) {
-    public record RubricConfigItem(
-            String category,
-            String criteria,
-            int points
-    ) {
-    }
+public record RubricConfig(Phase phase, EnumMap<Rubric.RubricType, RubricConfigItem> items) {
+
+    public record RubricConfigItem(String category, String criteria, int points) {}
+
 }

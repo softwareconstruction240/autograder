@@ -16,6 +16,8 @@ const getPhaseName = (phase: Phase | null) => {
       return "Phase 6: Gameplay"
     case Phase.Quality:
       return "Code Quality Check"
+    case Phase.GitHub:
+      return "Chess GitHub Repository";
     default:
       return "Chess Project"
   }
@@ -37,6 +39,8 @@ const getSpecLink = (phase: Phase | null) => {
       return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/6-gameplay/gameplay.md"
     case Phase.Quality:
       return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/code-quality-rubric.md"
+    case Phase.GitHub:
+      return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/chess-github-repository/chess-github-repository.md"
     default:
       return "https://github.com/softwareconstruction240/softwareconstruction/blob/main/chess/chess.md#readme"
   }

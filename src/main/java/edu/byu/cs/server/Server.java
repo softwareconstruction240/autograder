@@ -81,13 +81,15 @@ public class Server {
                 post("/submit", adminRepoSubmitPost);
 
                 path("/submissions", () -> {
+                    post("/approve", approveSubmissionPost);
+
                     get("/latest", latestSubmissionsGet);
 
                     get("/latest/:count", latestSubmissionsGet);
 
                     get("/active", submissionsActiveGet);
 
-                    get("/student/:netID", studentSubmissionsGet);
+                    get("/student/:netId", studentSubmissionsGet);
 
                     post("/rerun", submissionsReRunPost);
                 });

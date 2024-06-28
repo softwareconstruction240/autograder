@@ -1,5 +1,5 @@
 import {useAdminStore} from "@/stores/admin";
-import type { Phase, RubricItem, Submission, TestNode } from '@/types/types'
+import type {Phase, RubricItem, RubricType, Submission, TestNode} from '@/types/types'
 import { VerifiedStatus } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
@@ -91,11 +91,7 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
       result += `<br/>${indent}   ↳<span class="failure">${sanitizeHtml(node.errorMessage)}</span>`;
     }
   } else {
-    if (node.ecCategory !== undefined) {
-      result += ` (${node.numExtraCreditPassed} passed, ${node.numExtraCreditFailed} failed)`
-    } else {
-      result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
-    }
+    result += ` (${node.numTestsPassed} passed, ${node.numTestsFailed} failed)`
   }
   result += "<br/>";
 
@@ -108,7 +104,24 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
   return result;
 }
 
-export const phaseString = (phase: Phase | "Quality") => {
+export const phaseString = (phase: Phase | "Quality" | "GitHub") => {
   if (phase == 'Quality') { return "Code Quality Check"; }
+  if (phase == "GitHub") { return "Chess GitHub Repository"; }
   else { return "Phase " + phase.toString().charAt(5)}
+}
+
+export const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[] => {
+  return Object.keys(items).sort((a, b) => {
+    const aPoints = items[a as RubricType].results.possiblePoints;
+    const bPoints = items[b as RubricType].results.possiblePoints;
+    return bPoints - aPoints;
+  }).map((item) => items[item as RubricType]);
+}
+
+export const phaseRequiresTAPassoffForCommits = (phase: Phase | "Quality" | "GitHub"): boolean => {
+  // FIXME: There's some funky type stuff going on here. Whenever I find `typeof phase` is prints out `string`
+  // however, when actually calling this function, it requires `Phase` as a parameter type by the
+  // TS transpiler. Similar case like in the `phaseString` function above.
+  return !(phase === "Quality" || phase === "GitHub");
+
 }

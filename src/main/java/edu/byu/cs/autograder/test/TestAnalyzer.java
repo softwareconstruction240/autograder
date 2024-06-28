@@ -1,282 +1,109 @@
 package edu.byu.cs.autograder.test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
+import edu.byu.cs.util.FileUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
 import java.util.Set;
 
 /**
  * Parses the output of the JUnit Console Runner
- * <b>Important: this class is ONLY compatible with the testfeed details mode on the JUnit standalone client</b><br/>
- * <i>e.g. --details=testfeed</i>
+ * <b>Important: this class is ONLY compatible with the xml output on the JUnit standalone client</b><br/>
  */
 public class TestAnalyzer {
-
-    public record TestAnalysis(TestNode root, String error) {}
-
-    public static class TestNode implements Comparable<TestNode>, Cloneable {
-        private String testName;
-        private Boolean passed;
-        private String ecCategory;
-        private String errorMessage;
-        private Map<String, TestNode> children = new HashMap<>();
-
-        /**
-         * The number of tests that passed under this node (excluding extra credit)
-         */
-        private Integer numTestsPassed;
-
-        /**
-         * The number of tests that failed under this node (excluding extra credit)
-         */
-        private Integer numTestsFailed;
-
-        /**
-         * The number of extra credit tests that passed under this node
-         */
-        private Integer numExtraCreditPassed;
-
-        /**
-         * The number of extra credit tests that failed under this node
-         */
-        private Integer numExtraCreditFailed;
-
-        public String getTestName() {
-            return testName;
-        }
-
-        public Boolean getPassed() {
-            return passed;
-        }
-
-        public String getEcCategory() {
-            return ecCategory;
-        }
-
-        public String getErrorMessage() {
-            return errorMessage;
-        }
-
-        public Map<String, TestNode> getChildren() {
-            return children;
-        }
-
-        public Integer getNumTestsPassed() {
-            return numTestsPassed;
-        }
-
-        public Integer getNumTestsFailed() {
-            return numTestsFailed;
-        }
-
-        public Integer getNumExtraCreditPassed() {
-            return numExtraCreditPassed;
-        }
-
-        public Integer getNumExtraCreditFailed() {
-            return numExtraCreditFailed;
-        }
-
-        public void setTestName(String testName) {
-            this.testName = testName;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder stringBuilder = new StringBuilder();
-            printNode(this, stringBuilder, "");
-            return stringBuilder.toString();
-        }
-
-        private void printNode(TestNode node, StringBuilder sb, String indent) {
-            sb.append(indent).append(node.testName);
-            if (node.ecCategory != null) sb.append(" (Extra Credit)");
-            if (node.passed != null) {
-                sb.append(node.passed ? " : SUCCESSFUL" : " : FAILED");
-                if (node.errorMessage != null && !node.errorMessage.isEmpty()) {
-                    sb.append("\n").append(indent).append("   Error: ").append(node.errorMessage);
-                }
-            } else {
-                sb.append(" (").append(node.numTestsPassed).append(" passed, ").append(node.numTestsFailed).append(" failed").append(")");
-            }
-            sb.append("\n");
-            for (TestNode child : node.children.values()) {
-                printNode(child, sb, indent + "  ");
-            }
-        }
-
-        public static void countTests(TestNode node) {
-            if (node.passed != null) {
-                if (node.passed) {
-                    if (node.ecCategory != null) {
-                        node.numExtraCreditPassed = 1;
-                        node.numTestsPassed = 0;
-                    } else {
-                        node.numExtraCreditPassed = 0;
-                        node.numTestsPassed = 1;
-                    }
-                    node.numTestsFailed = 0;
-                    node.numExtraCreditFailed = 0;
-                } else {
-                    if (node.ecCategory != null) {
-                        node.numTestsFailed = 0;
-                        node.numExtraCreditFailed = 1;
-                    } else {
-                        node.numTestsFailed = 1;
-                        node.numExtraCreditFailed = 0;
-                    }
-                    node.numTestsPassed = 0;
-                    node.numExtraCreditPassed = 0;
-                }
-            } else {
-                node.numTestsPassed = 0;
-                node.numTestsFailed = 0;
-                node.numExtraCreditPassed = 0;
-                node.numExtraCreditFailed = 0;
-            }
-
-            for (TestNode child : node.children.values()) {
-                countTests(child);
-                node.numTestsPassed += child.numTestsPassed;
-                node.numTestsFailed += child.numTestsFailed;
-                node.numExtraCreditPassed += child.numExtraCreditPassed;
-                node.numExtraCreditFailed += child.numExtraCreditFailed;
-            }
-        }
-
-        @Override
-        public int compareTo(TestNode o) {
-            return this.testName.compareTo(o.testName);
-        }
-
-        @Override
-        public TestNode clone() {
-            try {
-                TestNode clone = (TestNode) super.clone();
-                clone.children = new HashMap<>();
-                for (Map.Entry<String, TestNode> entry : children.entrySet()) {
-                    clone.children.put(entry.getKey(), entry.getValue().clone());
-                }
-                return clone;
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    /**
-     * The root of the test tree
-     */
-    private TestNode root;
-
-    /**
-     * The last test that failed. Error messages are added to this test
-     */
-    private TestNode lastFailingTest;
-
-    /**
-     * The names of the test files (excluding .java) worth bonus points
-     */
-    private Set<String> ecCategories;
 
     /**
      * Parses the output of the JUnit Console Runner
      *
-     * @param inputLines       the lines of the output of the JUnit Console Runner
+     * @param junitXmlOutput   file containing test output
      * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestAnalysis parse(String[] inputLines, Set<String> extraCreditTests, String error) throws GradingException {
-        this.ecCategories = extraCreditTests;
+    public TestAnalysis parse(File junitXmlOutput, Set<String> extraCreditTests, String error) throws GradingException {
+        TestNode root = new TestNode();
+        root.setTestName("JUnit Jupiter");
+        TestNode extraCredit = new TestNode();
+        extraCredit.setTestName("JUnit Jupiter Extra Credit");
 
-        for (String line : inputLines) {
-            line = line.replaceAll("\u001B\\[[;\\d]*m", ""); //strip off color codes
-
-            // the test results section has started
-            if (line.startsWith("JUnit Jupiter") && root == null) {
-                root = new TestNode();
-                root.testName = "JUnit Jupiter";
-
-            }
-            // we haven't started the test results section yet
-            else if (root == null) {
-                continue;
-            }
-
-            // the test results section has ended
-            if (line.isEmpty())
-                break;
-
-            // Each tests prints two lines, so we can skip the STARTED lines
-            if (line.endsWith("STARTED")) continue;
-
-            // Test results always start with "JUnit Jupiter > "
-            if (line.startsWith("JUnit Jupiter > "))
-                // this line is a new test
-                handleTestLine(line.substring("JUnit Jupiter > ".length()));
-
-            else // this line is an error message that relates to the last failing test
-                handleErrorMessage(line);
+        if(!junitXmlOutput.exists()) {
+            return compileAnalysis(root, extraCredit, error);
         }
 
-        if (root != null) {
-            TestNode.countTests(root);
+        String xml = FileUtils.readStringFromFile(junitXmlOutput);
+        TestSuite suite;
+        try {
+             suite = new XmlMapper().readValue(xml, TestSuite.class);
+        } catch (JsonProcessingException e) {
+            throw new GradingException("Error parsing test output", e);
         }
 
-        return new TestAnalysis(root, error);
+        for (TestSuite.TestCase testCase : suite.getTestcase()) {
+            TestNode base = root;
+            String ecCategory = null;
+            for(String category : extraCreditTests) {
+                if (testCase.getClassname().endsWith(category)) {
+                    ecCategory = category;
+                    base = extraCredit;
+                    break;
+                }
+            }
+
+            String name = testCase.getName();
+            String[] systemOut = testCase.getSystemOut().getData().split("\n");
+            for(String str : systemOut) {
+                if(str.startsWith("display-name: ")) {
+                    str = str.substring(14);
+                    if(name.contains("()")) name = str;
+                    else name = String.format("%s %s", str, name);
+                }
+            }
+
+            TestNode node = new TestNode();
+            node.setTestName(name);
+            TestNode parent = nodeForClass(base, testCase.getClassname());
+            parent.getChildren().put(name, node);
+
+            node.setPassed(testCase.getFailure() == null);
+            if(testCase.getFailure() != null) {
+                node.setErrorMessage(testCase.getFailure().getData());
+            }
+
+            if(ecCategory != null) {
+                node.setEcCategory(ecCategory);
+                parent.setEcCategory(ecCategory);
+            }
+        }
+
+        return compileAnalysis(root, extraCredit, error);
     }
 
-    /**
-     * Handles a line that is a test result and adds it to the tree
-     * Example valid inputs:
-     * <i>EnPassantTests > White En Passant Left :: SUCCESSFUL</i><br/>
-     * <i>Game Loads :: SUCCESSFUL</i><br/>
-     * <i>MoveTests > Pawn > Pawn can move two spaces forward :: FAILED</i>
-     *
-     * @param line a test result
-     */
-    private void handleTestLine(String line) {
-
-        String[] parts = line
-                .replace(" :: SUCCESSFUL", "")
-                .replace(" :: FAILED", "")
-                .split(" > ");
-        TestNode currentNode = root;
-        String ec = null;
-        for (String part : parts) {
-            if (!currentNode.children.containsKey(part)) {
-                TestNode newNode = new TestNode();
-                newNode.testName = part;
-                currentNode.children.put(part, newNode);
-            }
-
-            if (ecCategories.contains(part)) ec = part;
-            if (ec != null) currentNode.children.get(part).ecCategory = part;
-
-            currentNode = currentNode.children.get(part);
+    private TestNode nodeForClass(TestNode base, String name) {
+        String extra = null;
+        if(name.contains(".")) {
+            int dotIndex = name.indexOf('.');
+            extra = name.substring(dotIndex + 1);
+            name = name.substring(0, dotIndex);
+        }
+        TestNode node = base.getChildren().get(name);
+        if(node == null) {
+            node = new TestNode();
+            node.setTestName(name);
+            base.getChildren().put(name, node);
         }
 
-        currentNode.passed = line.endsWith("SUCCESSFUL");
-
-        if (!currentNode.passed) {
-            lastFailingTest = currentNode;
-        }
+        if(extra == null) return node;
+        else return nodeForClass(node, extra);
     }
 
-    /**
-     * Handles a line that is an error message and adds it to the last failing test
-     *
-     * @param line an error message from a failed test
-     */
-    private void handleErrorMessage(String line) throws GradingException {
-        if (lastFailingTest == null) {
-            throw new GradingException("Error message without a test: " + line);
-        }
-
-        if (lastFailingTest.errorMessage == null)
-            lastFailingTest.errorMessage = "";
-
-        lastFailingTest.errorMessage += (line + "\n");
+    private TestAnalysis compileAnalysis(TestNode root, TestNode extraCredit, String error) {
+        TestNode.collapsePackages(root);
+        TestNode.countTests(root);
+        TestNode.collapsePackages(extraCredit);
+        TestNode.countTests(extraCredit);
+        return new TestAnalysis(root, extraCredit, error);
     }
 }

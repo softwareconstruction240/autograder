@@ -6,6 +6,8 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +49,10 @@ public abstract class TestGrader {
         compileTests();
         gradingContext.observer().update("Running " + name() + " tests...");
 
-        TestAnalyzer.TestAnalysis results;
+        TestAnalysis results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
-            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), null);
-            TestAnalyzer.TestNode.countTests(results.root());
+            results = new TestAnalysis(new TestNode(), null, null);
+            TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
@@ -58,19 +60,27 @@ public abstract class TestGrader {
         }
 
         if (results.root() == null) {
-            results = new TestAnalyzer.TestAnalysis(new TestAnalyzer.TestNode(), results.error());
-            TestAnalyzer.TestNode.countTests(results.root());
+            results = new TestAnalysis(new TestNode(), null, results.error());
+            TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 
         results.root().setTestName(testName());
+        if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
+            results = new TestAnalysis(results.root(), null, results.error());
+        }
+        else {
+            results.extraCredit().setTestName("Extra Credit");
+        }
 
+        String notes = getNotes(results);
         float score = getScore(results);
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(rubricType());
+        int possiblePoints = configItem != null ? configItem.points() : 0;
 
-        return new Rubric.Results(getNotes(results), score, rubricConfigItem(rubricConfig).points(), results,
-                null);
+        return new Rubric.Results(notes, score, possiblePoints, results, null);
     }
 
     private void compileTests() throws GradingException {
@@ -88,10 +98,10 @@ public abstract class TestGrader {
 
     protected abstract String testName();
 
-    protected abstract float getScore(TestAnalyzer.TestAnalysis testResults) throws GradingException;
+    protected abstract float getScore(TestAnalysis testResults) throws GradingException;
 
-    protected abstract String getNotes(TestAnalyzer.TestAnalysis testResults) throws GradingException;
+    protected abstract String getNotes(TestAnalysis testResults) throws GradingException;
 
-    protected abstract RubricConfig.RubricConfigItem rubricConfigItem(RubricConfig config);
+    protected abstract Rubric.RubricType rubricType();
 
 }

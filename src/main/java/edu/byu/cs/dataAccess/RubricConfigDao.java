@@ -13,7 +13,16 @@ public interface RubricConfigDao {
      */
     RubricConfig getRubricConfig(Phase phase) throws DataAccessException;
 
-    int getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException;
+    default int getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
+        RubricConfig rubricConfig = getRubricConfig(phase);
+        int total = 0;
+        for(RubricConfig.RubricConfigItem item : rubricConfig.items().values()) {
+            if(item != null) {
+                total += item.points();
+            }
+        }
+        return total;
+    }
 
     void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;
 }
