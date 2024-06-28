@@ -451,13 +451,18 @@ public class SubmissionController {
 
         for (QueueItem queueItem : inQueue) {
             User currentUser = userDao.getUser(queueItem.netId());
-            queueDao.markNotStarted(queueItem.netId());
+            if(currentUser.repoUrl() != null) {
+                queueDao.markNotStarted(queueItem.netId());
 
-            TrafficController.getInstance().addGrader(
-                    getGrader(queueItem.netId(),
-                            queueItem.phase(),
-                            currentUser.repoUrl(),
-                            currentUser.role() == User.Role.ADMIN));
+                TrafficController.getInstance().addGrader(
+                        getGrader(queueItem.netId(),
+                                queueItem.phase(),
+                                currentUser.repoUrl(),
+                                currentUser.role() == User.Role.ADMIN));
+            }
+            else {
+                queueDao.remove(queueItem.netId());
+            }
         }
     }
 
