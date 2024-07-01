@@ -12,6 +12,7 @@ import edu.byu.cs.util.ProcessUtils;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class CompileHelper {
     private final GradingContext gradingContext;
@@ -66,7 +67,18 @@ public class CompileHelper {
         try {
             ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder, 90000); //90 seconds
             if (output.statusCode() != 0) {
-                Rubric.Results results = Rubric.Results.textError("Your Java source code could not be compiled", getMavenError(output.stdOut()));
+                String mavenError = getMavenError(output.stdOut());
+                String notes = "Your Java source code could not be compiled. See Details.";
+
+                Set<String> extraImports = NoExtraImportsVerifier.findExtraImports(mavenError);
+                if (!extraImports.isEmpty()) {
+                    notes += " It seems that you have imports from packages you cannot use. " +
+                            "Double check the Phase specs for the proper packages to import. " +
+                            "Please remove the following packages/imports from your code: " +
+                            String.join(", ", extraImports) + "." ;
+                }
+
+                Rubric.Results results = Rubric.Results.textError(notes, mavenError);
                 throw new GradingException("Failed to compile", results);
             }
         } catch (ProcessUtils.ProcessException ex) {
