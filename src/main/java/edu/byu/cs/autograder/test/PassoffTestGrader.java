@@ -76,7 +76,11 @@ public class PassoffTestGrader extends TestGrader {
 
         if (testResults == null) return "No tests were run";
 
-        if (testResults.getNumTestsFailed() == 0) notes.append("All required tests passed");
+        //TODO add passoff test specifics here:
+        Integer totalRequiredTests = testResults.getNumTestsPassed() + testResults.getNumTestsFailed();
+        if (testResults.getNumTestsFailed() == 0) {
+            notes.append(testResults.getNumTestsPassed()+"/"+totalRequiredTests+" required tests passed");
+        }
         else notes.append("Some required tests failed");
 
         Map<String, Float> ecScores = getECScores(testOutput.extraCredit());
