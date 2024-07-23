@@ -35,6 +35,20 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         }
     }
 
+    @Override
+    public void updateCanvasRelatedItems(Phase phase, Rubric.RubricType type, Integer points, String rubricId) throws DataAccessException {
+        try (var connection = SqlDb.getConnection();
+             PreparedStatement statement = connection.prepareStatement("UPDATE rubric_config SET points = ?, rubric_id = ? WHERE phase = ? AND type = ?")) {
+            statement.setFloat(1, points);
+            statement.setString(2, rubricId);
+            statement.setString(3, phase.name());
+            statement.setString(4, type.toString());
+            statement.executeUpdate();
+        } catch (Exception e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
     private void addRubricConfigItem(Phase phase, Rubric.RubricType type, String category, String criteria, int points) throws DataAccessException {
         try (var connection = SqlDb.getConnection()) {
             PreparedStatement statement = connection.prepareStatement("INSERT INTO rubric_config (phase, type, category, criteria, points) VALUES (?, ?, ?, ?, ?)");
@@ -57,7 +71,8 @@ public class RubricConfigSqlDao implements RubricConfigDao {
             try(ResultSet results = statement.executeQuery()) {
                 if (results.next()) {
                     return new RubricConfig.RubricConfigItem(results.getString("category"),
-                            results.getString("criteria"), results.getInt("points"));
+                            results.getString("criteria"), results.getInt("points"),
+                            results.getString("rubric_id"));
                 }
             }
         } catch (Exception e) {
