@@ -113,7 +113,7 @@ const adminSubmit = async () => {
   <div class="adminSubmission">
     <input v-model="adminRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
     <div id="submitDialog">
-      <select v-model="selectedAdminPhase">
+      <select id="phaseSelect" v-model="selectedAdminPhase">
         <option :value=null selected disabled>Select a phase</option>
         <option :value=Phase.GitHub>GitHub Repository</option>
         <option :value=Phase.Phase0>Phase 0</option>
