@@ -1,5 +1,5 @@
 import { type Config, useAppConfigStore } from '@/stores/appConfig'
-import { Phase } from '@/types/types'
+import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
 export const getConfig = async ():Promise<Config> => {
@@ -23,39 +23,57 @@ export const getConfig = async ():Promise<Config> => {
 }
 
 export const setBannerMessage = async (message: String): Promise<void> => {
-  const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/config/banner', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      "bannerMessage": message,
-    })
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error(await response.text());
-  }
-  await useAppConfigStore().updateConfig();
+  await doSetConfigItem("POST", '/api/admin/config/banner', {"bannerMessage": message});
 }
 
 export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
-  const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/config/phases', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      "phases": phases,
-    })
-  });
+  await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
+}
 
-  if (!response.ok) {
-    console.error(response);
-    throw new Error(await response.text());
-  }
-  await useAppConfigStore().updateConfig();
+export const setCanvasCourseIds = async (): Promise<void> => {
+    await doSetConfigItem("GET", "/api/admin/config/courseIds", null);
+}
+
+const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
+    let obj: any = {};
+    rubricInfo.forEach((rubricTypeMap, phase) => {
+        obj[phase] = Object.fromEntries(rubricTypeMap.entries());
+    });
+    return obj;
+}
+
+export const setCourseIds = async (
+    courseNumber: number,
+    assignmentIds: Map<Phase, number>,
+    rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>
+): Promise<void> => {
+    const body = {
+        "courseNumber": courseNumber,
+        "assignmentIds": Object.fromEntries(assignmentIds.entries()),
+        "rubricInfo": convertRubricInfoToObj(rubricInfo)
+    };
+    await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
+}
+
+const doSetConfigItem = async (method: string, path: string, body: Object | null): Promise<void> => {
+    const baseOptions: RequestInit = {
+        method: method,
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    const fetchOptions: RequestInit = (method !== "GET")
+        ? {
+            ...baseOptions,
+            body: JSON.stringify(body)
+        } : baseOptions;
+
+    const response = await fetch(useAppConfigStore().backendUrl + path, fetchOptions);
+
+    if (!response.ok) {
+        console.error(response);
+        throw new Error(await response.text());
+    }
+    await useAppConfigStore().updateConfig();
 }
