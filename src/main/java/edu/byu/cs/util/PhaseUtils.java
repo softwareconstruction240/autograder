@@ -2,22 +2,16 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class PhaseUtils {
-
-    // FIXME: dynamically get assignment numbers
-    private static final int PHASE0_ASSIGNMENT_NUMBER = 941084;
-    private static final int PHASE1_ASSIGNMENT_NUMBER = 941085;
-    private static final int PHASE3_ASSIGNMENT_NUMBER = 941087;
-    private static final int PHASE4_ASSIGNMENT_NUMBER = 941088;
-    private static final int PHASE5_ASSIGNMENT_NUMBER = 941089;
-    private static final int PHASE6_ASSIGNMENT_NUMBER = 941090;
-    private static final int GITHUB_ASSIGNMENT_NUMBER = 941080;
 
     /**
      * Given a phase, returns the phase before it, or null.
@@ -62,17 +56,27 @@ public class PhaseUtils {
      * @param phase the phase in question
      * @return its assignment number in Canvas
      */
-    public static int getPhaseAssignmentNumber(Phase phase) {
-        return switch (phase) {
-            case Phase0 -> PHASE0_ASSIGNMENT_NUMBER;
-            case Phase1 -> PHASE1_ASSIGNMENT_NUMBER;
-            case Phase3 -> PHASE3_ASSIGNMENT_NUMBER;
-            case Phase4 -> PHASE4_ASSIGNMENT_NUMBER;
-            case Phase5 -> PHASE5_ASSIGNMENT_NUMBER;
-            case Phase6 -> PHASE6_ASSIGNMENT_NUMBER;
-            case GitHub -> GITHUB_ASSIGNMENT_NUMBER;
-            case Quality, Commits -> 0;
-        };
+    public static int getPhaseAssignmentNumber(Phase phase) throws DataAccessException {
+        if (!PhaseUtils.isPhaseGraded(phase)) {
+            throw new IllegalArgumentException("No phase assignment number for " + phase);
+        }
+        return DaoService.getConfigurationDao().getConfiguration(
+                PhaseUtils.getConfigurationAssignmentNumber(phase),
+                Integer.class);
+    }
+
+    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws DataAccessException {
+        if (!PhaseUtils.isPhaseGraded(phase)) {
+            throw new IllegalArgumentException("No canvas rubric for ungraded phase: " + phase);
+        }
+        RubricConfig.RubricConfigItem configItem = DaoService.getRubricConfigDao()
+                .getRubricConfig(phase)
+                .items()
+                .get(type);
+        if (configItem == null) {
+            throw new IllegalArgumentException(String.format("No '%s' item for phase '%s'", type, phase));
+        }
+        return configItem.rubric_id();
     }
 
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
@@ -119,61 +123,6 @@ public class PhaseUtils {
             case Phase4 -> 18;
             case Phase5 -> 12;
         };
-    }
-
-    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws GradingException {
-        String rubricId = null;
-        switch (phase) {
-            case GitHub -> {
-                if (type == Rubric.RubricType.GITHUB_REPO) {
-                    rubricId = "_6829";
-                }
-            }
-            case Phase0 -> {
-                switch (type) {
-                    case PASSOFF_TESTS -> rubricId = "_1958";
-                    case GIT_COMMITS -> rubricId = "90342_649";
-                }
-            }
-            case Phase1 -> {
-                switch (type) {
-                    case PASSOFF_TESTS -> rubricId = "_1958";
-                    case GIT_COMMITS -> rubricId = "90342_7800";
-                }
-            }
-            case Phase3 -> {
-                switch (type) {
-                    case PASSOFF_TESTS -> rubricId = "_5202";
-                    case UNIT_TESTS -> rubricId = "90344_776";
-                    case QUALITY -> rubricId = "_3003";
-                    case GIT_COMMITS -> rubricId = "90344_2520";
-                }
-            }
-            case Phase4 -> {
-                switch (type) {
-                    case PASSOFF_TESTS -> rubricId = "_2614";
-                    case UNIT_TESTS -> rubricId = "90346_5755";
-                    case QUALITY -> rubricId = "90346_8398";
-                    case GIT_COMMITS -> rubricId = "90346_6245";
-                }
-            }
-            case Phase5 -> {
-                switch (type) {
-                    case UNIT_TESTS -> rubricId = "90347_2215";
-                    case QUALITY -> rubricId = "90347_9378";
-                    case GIT_COMMITS -> rubricId = "90347_8497";
-                }
-            }
-            case Phase6 -> {
-                switch (type) {
-                    case PASSOFF_TESTS -> rubricId = "90348_899";
-                    case QUALITY -> rubricId = "90348_3792";
-                    case GIT_COMMITS -> rubricId = "90348_9048";
-                }
-            }
-        }
-        if(rubricId == null) throw new GradingException(String.format("No %s item for phase %s", type, phase));
-        return rubricId;
     }
 
     public static String getModuleUnderTest(Phase phase) {
@@ -238,6 +187,50 @@ public class PhaseUtils {
         return switch (phase) {
             case GitHub, Quality, Commits -> false;
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
+        };
+    }
+
+    public static Phase getPhaseFromString(String phaseString) throws IllegalArgumentException {
+        phaseString = phaseString.toLowerCase().replaceAll("\\s", "");
+        if (phaseString.contains("phase0")) {
+            return Phase.Phase0;
+        } else if (phaseString.contains("phase1")) {
+            return Phase.Phase1;
+        } else if (phaseString.contains("phase3")) {
+            return Phase.Phase3;
+        } else if (phaseString.contains("phase4")) {
+            return Phase.Phase4;
+        } else if (phaseString.contains("phase5")) {
+            return Phase.Phase5;
+        } else if (phaseString.contains("phase6")) {
+            return Phase.Phase6;
+        } else if (phaseString.contains("github")) {
+            return Phase.GitHub;
+        }
+        throw new IllegalArgumentException("Could not convert string to phase given '" + phaseString + "'");
+    }
+
+    public static Collection<Rubric.RubricType> getRubricTypesFromPhase(Phase phase) {
+        return switch (phase) {
+            case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
+            case Phase0, Phase1 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS);
+            case Phase3, Phase4 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.QUALITY, Rubric.RubricType.UNIT_TESTS);
+            case Phase5 -> Set.of(Rubric.RubricType.QUALITY, Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.UNIT_TESTS);
+            case Phase6 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.QUALITY);
+            default -> Collections.emptySet();
+        };
+    }
+
+    public static ConfigurationDao.Configuration getConfigurationAssignmentNumber(Phase phase) {
+        return switch (phase) {
+            case GitHub -> ConfigurationDao.Configuration.GITHUB_ASSIGNMENT_NUMBER;
+            case Phase0 -> ConfigurationDao.Configuration.PHASE0_ASSIGNMENT_NUMBER;
+            case Phase1 -> ConfigurationDao.Configuration.PHASE1_ASSIGNMENT_NUMBER;
+            case Phase3 -> ConfigurationDao.Configuration.PHASE3_ASSIGNMENT_NUMBER;
+            case Phase4 -> ConfigurationDao.Configuration.PHASE4_ASSIGNMENT_NUMBER;
+            case Phase5 -> ConfigurationDao.Configuration.PHASE5_ASSIGNMENT_NUMBER;
+            case Phase6 -> ConfigurationDao.Configuration.PHASE6_ASSIGNMENT_NUMBER;
+            default -> throw new IllegalArgumentException("No configuration assignment number for " + phase);
         };
     }
 
