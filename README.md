@@ -250,7 +250,6 @@ INSERT INTO configuration (config_key, value) VALUES
 ('PHASE5_ASSIGNMENT_NUMBER', 941089),
 ('PHASE6_ASSIGNMENT_NUMBER', 941090),
 ('COURSE_NUMBER', 26822),
-('STUDENT_SUBMISSION_ENABLED', 1),
 ('STUDENT_SUBMISSIONS_ENABLED', '[Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, Quality, GitHub]');
 ```
 
