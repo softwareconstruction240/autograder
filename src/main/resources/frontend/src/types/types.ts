@@ -11,8 +11,8 @@ export enum Phase {
 
 export const listOfPhases = ():Array<Phase> => {
     let result = []
-    for (var phase in Phase) {
-        var isValueProperty = Number(phase) >= 0
+    for (const phase in Phase) {
+        const isValueProperty = Number(phase) >= 0;
         if (isValueProperty) {
             result.push(Phase[phase] as unknown as Phase);
         }
@@ -52,7 +52,12 @@ export type RubricItem = {
     results: RubricItemResults,
 }
 
-export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS"
+export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS" | "GITHUB_REPO"
+
+export type RubricInfo = {
+    id: string,
+    points: number
+}
 
 export type Rubric = {
     items: Record<RubricType, RubricItem>,
