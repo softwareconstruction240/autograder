@@ -2,6 +2,7 @@ package edu.byu.cs.util;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
@@ -59,6 +60,10 @@ public class Serializer {
 
         @Override
         public ZonedDateTime read(JsonReader jsonReader) throws IOException {
+            if (jsonReader.peek() == JsonToken.NULL) {
+                jsonReader.nextNull();
+                return null;
+            }
             ZonedDateTime utc = ZonedDateTime.parse(jsonReader.nextString());
             return utc.withZoneSameInstant(ZoneId.of("America/Denver"));
         }
