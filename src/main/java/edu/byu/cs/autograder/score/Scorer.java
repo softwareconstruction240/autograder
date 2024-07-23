@@ -224,7 +224,13 @@ public class Scorer {
      */
     public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, Phase phase, int penaltyPct,
                                                     String commitComment) throws GradingException {
-        String commitRubricId = PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, phase);
+        String commitRubricId;
+        try {
+            commitRubricId = PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, phase);
+        } catch (DataAccessException e) {
+            throw new GradingException(e);
+        }
+
 
         // Prepare conditions and then calculate penalty
         CanvasRubricItem emptyRubricItem = new CanvasRubricItem("", 0);
