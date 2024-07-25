@@ -20,23 +20,19 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
 
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
-        try {
-            Set<File> serverFiles = reader.filesMatching(".*server/src/main/java/.*\\.java").collect(Collectors.toSet());
-            Set<String> serverPackages = packageNames(serverFiles, reader);
+        Set<File> serverFiles = reader.filesMatching(".*server/src/main/java/.*\\.java").collect(Collectors.toSet());
+        Set<String> serverPackages = packageNames(serverFiles, reader);
 
-            Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*\\.java").collect(Collectors.toSet());
-            Set<String> clientPackages = packageNames(clientFiles, reader);
+        Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*\\.java").collect(Collectors.toSet());
+        Set<String> clientPackages = packageNames(clientFiles, reader);
 
-            removeCommonItems(serverPackages, clientPackages);
+        removeCommonItems(serverPackages, clientPackages);
 
-            checkImports(context, reader, serverFiles, clientPackages);
-            checkImports(context, reader, clientFiles, serverPackages);
-        } catch (IOException e) {
-            throw new GradingException("Unable to verify module independence", e);
-        }
+        checkImports(context, reader, serverFiles, clientPackages);
+        checkImports(context, reader, clientFiles, serverPackages);
     }
 
-    private Set<String> packageNames(Set<File> files, StudentCodeReader reader) throws IOException {
+    private Set<String> packageNames(Set<File> files, StudentCodeReader reader) {
         Set<String> packages = new HashSet<>();
         for(File file : files) {
             if(!file.getName().endsWith(".java")) continue;
@@ -50,8 +46,7 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
         return packages;
     }
 
-    private void checkImports(GradingContext context, StudentCodeReader reader, Set<File> files, Set<String> packages)
-            throws IOException {
+    private void checkImports(GradingContext context, StudentCodeReader reader, Set<File> files, Set<String> packages) {
         for(File file : files) {
             List<String> contents = reader.getFileContents(file);
             for (int i = 0; i < contents.size(); i++) {

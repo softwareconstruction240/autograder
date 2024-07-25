@@ -34,9 +34,15 @@ public class StudentCodeReader {
         this.files = files;
     }
 
-    public List<String> getFileContents(File file) throws IOException {
+    public List<String> getFileContents(File file) {
         if(!fileContents.containsKey(file)) {
-            fileContents.put(file, Files.readAllLines(file.toPath()));
+            List<String> lines;
+            try {
+                lines = Files.readAllLines(file.toPath());
+            } catch (IOException e) {
+                lines = new ArrayList<>();
+            }
+            fileContents.put(file, lines);
         }
         return fileContents.get(file);
     }
