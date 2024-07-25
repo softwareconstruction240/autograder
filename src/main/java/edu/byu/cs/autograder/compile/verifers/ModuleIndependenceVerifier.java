@@ -21,10 +21,10 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         try {
-            Set<File> serverFiles = reader.filesMatching(".*server/src/main/java/.*").collect(Collectors.toSet());
+            Set<File> serverFiles = reader.filesMatching(".*server/src/main/java/.*\\.java").collect(Collectors.toSet());
             Set<String> serverPackages = packageNames(serverFiles, reader);
 
-            Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*").collect(Collectors.toSet());
+            Set<File> clientFiles = reader.filesMatching(".*client/src/main/java/.*\\.java").collect(Collectors.toSet());
             Set<String> clientPackages = packageNames(clientFiles, reader);
 
             removeCommonItems(serverPackages, clientPackages);
@@ -41,9 +41,9 @@ public class ModuleIndependenceVerifier implements StudentCodeVerifier {
         for(File file : files) {
             if(!file.getName().endsWith(".java")) continue;
             List<String> contents = reader.getFileContents(file);
-            if(contents.isEmpty()) continue;
+            if (contents.isEmpty()) continue;
             String firstLine = contents.getFirst();
-            if(firstLine.startsWith("package")) {
+            if (firstLine.startsWith("package")) {
                 packages.add(firstLine.substring(8, firstLine.indexOf(';')));
             }
         }

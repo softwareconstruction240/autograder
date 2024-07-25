@@ -21,8 +21,8 @@ public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
     );
 
     private static final String[] STUDENT_PASSOFF_FILES_REGEX = {
-            ".*shared/src/test/java/passoff/.*", // shared passoff
-            ".*server/src/test/java/passoff/.*"  // server passoff
+            ".*shared/src/test/java/passoff/.*\\.java", // shared passoff
+            ".*server/src/test/java/passoff/.*\\.java"  // server passoff
     };
 
     private final Set<String> modifiedFiles = new HashSet<>();

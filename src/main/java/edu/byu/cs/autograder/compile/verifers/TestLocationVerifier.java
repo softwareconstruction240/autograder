@@ -106,7 +106,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
             foundFiles.add(stripOffContextRepo(unrecognizedPackagePath));
             File unrecognizedPackageFile = unrecognizedPackagePath.toFile();
             verifyPackageDirectory(unrecognizedPackageFile);
-            String regex = unrecognizedPackage + ".*";
+            String regex = unrecognizedPackage + ".*\\.java";
             for (File childFile : reader.filesMatching(regex).toList()) {
                 foundFiles.add(stripOffContextRepo(childFile.toPath()));
             }
@@ -120,7 +120,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
      * @param packageDirectory File of a package
      */
     private void verifyPackageDirectory(File packageDirectory) throws GradingException {
-        String regex = packageDirectory.getAbsolutePath() + ".+";
+        String regex = packageDirectory.getAbsolutePath() + ".+\\.java";
         for (File file : reader.filesMatching(regex).toList()) {
             if (file.isDirectory()) continue;
             String expectedPackageName = getPackageFromFilePath(file.toPath());

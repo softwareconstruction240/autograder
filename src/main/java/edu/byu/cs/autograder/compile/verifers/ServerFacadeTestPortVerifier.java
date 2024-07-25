@@ -23,7 +23,7 @@ public class ServerFacadeTestPortVerifier implements StudentCodeVerifier {
         if(context.phase() != Phase.Phase5) return;
 
         try {
-            Set<File> testFiles = reader.filesMatching(".*client/src/test/java/.*").collect(Collectors.toSet());
+            Set<File> testFiles = reader.filesMatching(".*client/src/test/java/.*\\.java").collect(Collectors.toSet());
             boolean hardCodedPortFound = false;
             boolean dynamicPortLineMissing = true;
             for(File file : testFiles) {
