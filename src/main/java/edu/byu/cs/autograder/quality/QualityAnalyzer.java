@@ -47,6 +47,10 @@ public class QualityAnalyzer {
             throw new GradingException("Error running code quality: " + e.getMessage(), e);
         }
 
+        if(!checkstyleFinished(output)) {
+            return new QualityAnalysis(0, "", "Could not complete code quality analysis. Please go see a TA.");
+        }
+
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
         output = output.replaceAll(stageRepo.getPath(), "");
 
@@ -161,6 +165,10 @@ public class QualityAnalyzer {
             if (output.errors().containsKey(reporter)) return false;
         }
         return true;
+    }
+
+    private boolean checkstyleFinished(String output) {
+        return output.endsWith("Audit done.\n");
     }
 
     /**
