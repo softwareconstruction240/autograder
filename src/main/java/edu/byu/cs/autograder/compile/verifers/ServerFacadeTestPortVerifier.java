@@ -1,13 +1,11 @@
 package edu.byu.cs.autograder.compile.verifers;
 
 import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.compile.StudentCodeReader;
 import edu.byu.cs.autograder.compile.StudentCodeVerifier;
 import edu.byu.cs.model.Phase;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
