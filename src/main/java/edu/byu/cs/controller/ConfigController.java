@@ -151,7 +151,7 @@ public class ConfigController {
             var rubricTypeMap = rubricInfo.get(phase);
             for (Rubric.RubricType type : rubricTypeMap.keySet()) {
                 CanvasAssignment.CanvasRubric rubric = rubricTypeMap.get(type);
-                DaoService.getRubricConfigDao().updateCanvasRelatedItems(
+                DaoService.getRubricConfigDao().setRubricIdAndPoints(
                         phase,
                         type,
                         rubric.points(),

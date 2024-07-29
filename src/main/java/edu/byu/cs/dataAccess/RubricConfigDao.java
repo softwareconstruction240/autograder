@@ -27,5 +27,5 @@ public interface RubricConfigDao {
 
     void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;
 
-    void updateCanvasRelatedItems(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) throws DataAccessException;
+    void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) throws DataAccessException;
 }

@@ -36,7 +36,7 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     }
 
     @Override
-    public void updateCanvasRelatedItems(Phase phase, Rubric.RubricType type, Integer points, String rubricId) throws DataAccessException {
+    public void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubricId) throws DataAccessException {
         try (var connection = SqlDb.getConnection();
              PreparedStatement statement = connection.prepareStatement("UPDATE rubric_config SET points = ?, rubric_id = ? WHERE phase = ? AND type = ?")) {
             statement.setFloat(1, points);
