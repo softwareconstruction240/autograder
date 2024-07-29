@@ -213,7 +213,7 @@ INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) V
 ('Phase5', 'QUALITY', 'Code Quality', 'Chess Code Quality Rubric (see GitHub)', 30, '90347_9378'),
 ('Phase5', 'UNIT_TESTS', 'Unit Tests', 'All test cases pass\nEach public method on the Server Facade class has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type', 25, '90347_2215'),
 ('Phase6', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90348_9048'),
-('Phase6', 'PASSOFF_TESTS', 'Automated Pass Off Test Cases', 'There are 20 JUnit pass off test cases. Each successful test case is worth 2.5 points.', 50, '90348_899'),
+('Phase6', 'PASSOFF_TESTS', 'Automated Pass Off Test Cases', 'Each provided test case passed is worth a proportional number of points ((passed / total) * 50).', 50, '90348_899'),
 ('Phase6', 'QUALITY', 'Code Quality', 'Chess Code Quality Rubric (see GitHub)', 30, '90348_3792'),
 ('Quality', 'QUALITY', 'Code Quality', 'Chess Code Quality Rubric (see GitHub)', 30, NULL);
 ```
