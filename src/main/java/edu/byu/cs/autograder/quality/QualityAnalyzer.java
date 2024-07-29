@@ -22,7 +22,7 @@ public class QualityAnalyzer {
     static {
         Path libsPath = new File("phases", "libs").toPath();
         try {
-            checkStyleJarPath = new File(libsPath.toFile(), "checkstyle-1.0.6.jar").getCanonicalPath();
+            checkStyleJarPath = new File(libsPath.toFile(), "checkstyle-1.0.7.jar").getCanonicalPath();
             File qualityRubric = new File(libsPath.toFile(), "qualityRubric.json");
             qualityRubricItems = Serializer.deserialize(new FileReader(qualityRubric), QualityRubric.class);
         } catch (IOException e) {
@@ -45,6 +45,10 @@ public class QualityAnalyzer {
             output = ProcessUtils.runProcess(processBuilder).stdOut();
         } catch (ProcessUtils.ProcessException e) {
             throw new GradingException("Error running code quality: " + e.getMessage(), e);
+        }
+
+        if(!checkstyleFinished(output)) {
+            return new QualityAnalysis(0, "", "Could not complete code quality analysis. Please go see a TA.");
         }
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
@@ -161,6 +165,10 @@ public class QualityAnalyzer {
             if (output.errors().containsKey(reporter)) return false;
         }
         return true;
+    }
+
+    private boolean checkstyleFinished(String output) {
+        return output.endsWith("Audit done.\n");
     }
 
     /**
