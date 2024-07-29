@@ -1,6 +1,7 @@
 package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.dataAccess.memory.*;
+import edu.byu.cs.dataAccess.sql.*;
 
 public class DaoService {
 
@@ -57,5 +58,14 @@ public class DaoService {
         DaoService.setQueueDao(new QueueMemoryDao());
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
         DaoService.setConfigurationDao(new ConfigurationMemoryDao());
+    }
+
+    public static void initializeSqlDAOs() throws DataAccessException {
+        SqlDb.setUpDb();
+        DaoService.setConfigurationDao(new ConfigurationSqlDao());
+        DaoService.setQueueDao(new QueueSqlDao());
+        DaoService.setRubricConfigDao(new RubricConfigSqlDao());
+        DaoService.setSubmissionDao(new SubmissionSqlDao());
+        DaoService.setUserDao(new UserSqlDao());
     }
 }

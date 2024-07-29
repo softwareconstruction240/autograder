@@ -1,6 +1,7 @@
 package edu.byu.cs.dataAccess;
 
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 
 public interface RubricConfigDao {
@@ -25,4 +26,6 @@ public interface RubricConfigDao {
     }
 
     void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;
+
+    void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) throws DataAccessException;
 }

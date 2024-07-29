@@ -79,7 +79,7 @@ class ScorerTest {
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
                 new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, 
-                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS)))
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId")))
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
         DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
@@ -189,7 +189,7 @@ class ScorerTest {
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Quality,
                 new EnumMap<>(Map.of(Rubric.RubricType.QUALITY,
-                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30)))
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", 30, "testRubricId")))
         );
         setRubricConfig(Phase.Quality, phase0RubricConfig);
 

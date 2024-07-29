@@ -59,7 +59,7 @@ const triggerDownload = (data: Blob, filename: string) => {
         right place! The honor checker itself is located elsewhere, but below, you can download .zip files of your section(s).
         Each section .zip file contains a .zip file for every student containing their source code.</p>
     <label for="section">Choose a section to download: </label>
-    <select name="section" @change="onSelectionChange">
+    <select id="section" name="section" @change="onSelectionChange">
       <option v-for="section of sections" :key="section.name" :value="section.id">{{ section.name }}</option>
     </select>
     <button :disabled="buttonDisabled" @click="getData">Download</button>

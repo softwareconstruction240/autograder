@@ -74,8 +74,13 @@ public class CanvasUtils {
         Map<String, CanvasRubricItem> items = new HashMap<>();
         if (rubricConfigItem != null && rubricItem != null) {
             Rubric.Results results = rubricItem.results();
-            items.put(PhaseUtils.getCanvasRubricId(rubricType, phase),
-                    new CanvasRubricItem(results.notes(), results.score()));
+            String rubricId;
+            try {
+                rubricId = PhaseUtils.getCanvasRubricId(rubricType, phase);
+            } catch (DataAccessException e) {
+                throw new GradingException(e);
+            }
+            items.put(rubricId, new CanvasRubricItem(results.notes(), results.score()));
         }
         return new CanvasRubricAssessment(items);
     }

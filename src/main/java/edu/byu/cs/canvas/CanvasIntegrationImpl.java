@@ -1,11 +1,13 @@
 package edu.byu.cs.canvas;
 
-import edu.byu.cs.canvas.model.CanvasRubricAssessment;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
-import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.canvas.model.*;
 import edu.byu.cs.controller.SubmissionController;
+import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.RubricConfigDao;
 import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
@@ -22,6 +24,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.List;
 
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
@@ -29,33 +32,24 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     private static final String AUTHORIZATION_HEADER = ApplicationProperties.canvasAPIToken();
 
-    // FIXME: set this dynamically or pull from config
-    private static final int COURSE_NUMBER = 26822;
+    private record Enrollment(EnrollmentType type) {}
 
-    private static final int GIT_REPO_ASSIGNMENT_NUMBER = PhaseUtils.getPhaseAssignmentNumber(Phase.GitHub);
+    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {}
 
-    private record Enrollment(EnrollmentType type) {
+    private record CanvasSubmissionUser(String url, CanvasUser user) {}
 
-    }
-
-    private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {
-
-    }
-
-    private record CanvasSubmissionUser(String url, CanvasUser user) {
-
-    }
-
-    private record CanvasAssignment(ZonedDateTime due_at) {
-
-    }
+    private record CanvasResponse<T>(
+            T body,
+            Map<String, List<String>> headers,
+            int responseCode
+    ) {}
 
     @Override
     public User getUser(String netId) throws CanvasException {
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + netId + "&include[]=enrollments",
-                CanvasUser[].class);
+                "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
+                CanvasUser[].class).body();
 
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
@@ -91,32 +85,20 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     @Override
     public Collection<User> getAllStudents() throws CanvasException {
-        return getMultipleStudents("/courses/" + COURSE_NUMBER + "/assignments/" +
-                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+        return getMultipleStudents("/courses/" + getCourseNumber() + "/assignments/" +
+                getGitHubAssignmentNumber() + "/submissions?include[]=user");
     }
 
     @Override
     public Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
         return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
-                GIT_REPO_ASSIGNMENT_NUMBER + "/submissions?include[]=user");
+                getGitHubAssignmentNumber() + "/submissions?include[]=user");
     }
 
     private static Collection<User> getMultipleStudents(String baseUrl) throws CanvasException {
-        int pageIndex = 1;
-        int batchSize = 100;
-        Set<CanvasSubmissionUser> allSubmissions = new HashSet<>();
+        List<CanvasSubmissionUser> allSubmissions = makePaginatedCanvasRequest(baseUrl, CanvasSubmissionUser.class);
+
         Set<User> allStudents = new HashSet<>();
-
-        while (batchSize == 100) {
-            CanvasSubmissionUser[] batch = makeCanvasRequest(
-                    "GET",
-                    baseUrl + "&per_page=" + batchSize + "&page=" + pageIndex,
-                    CanvasSubmissionUser[].class);
-            batchSize = batch.length;
-            allSubmissions.addAll(Arrays.asList(batch));
-            pageIndex++;
-        }
-
         for (CanvasSubmissionUser sub : allSubmissions) {
             if (sub.url == null) continue;
             CanvasUser user = sub.user;
@@ -143,7 +125,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         if(grade == null && comment == null)
             throw new IllegalArgumentException("grade and comment should not both be null");
         StringBuilder path = new StringBuilder();
-        path.append("/courses/").append(COURSE_NUMBER).append("/assignments/").append(assignmentNum)
+        path.append("/courses/").append(getCourseNumber()).append("/assignments/").append(assignmentNum)
                 .append("/submissions/").append(userId).append("?");
         if(grade != null) path.append("submission[posted_grade]=").append(grade).append("&");
         if(comment != null) {
@@ -175,7 +157,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
         makeCanvasRequest(
                 "PUT",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId +
+                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId +
                         queryString,
                 null);
     }
@@ -213,9 +195,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
         return makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
+                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
                 CanvasSubmission.class
-        );
+        ).body();
     }
 
     /**
@@ -227,7 +209,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      */
     @Override
     public String getGitRepo(int userId) throws CanvasException {
-        CanvasSubmission submission = getSubmission(userId, GIT_REPO_ASSIGNMENT_NUMBER);
+        CanvasSubmission submission = getSubmission(userId, getGitHubAssignmentNumber());
 
         if (submission == null)
             throw new CanvasException("Error while accessing GitHub Repository assignment submission on canvas");
@@ -246,8 +228,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
         CanvasUser[] users = makeCanvasRequest(
                 "GET",
-                "/courses/" + COURSE_NUMBER + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
-                CanvasUser[].class);
+                "/courses/" + getCourseNumber() + "/search_users?search_term=" + testStudentName + "&include[]=test_student",
+                CanvasUser[].class).body();
 
         if (users.length == 0)
             throw new CanvasException("Test Student not found in Canvas");
@@ -271,9 +253,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     public ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException {
         CanvasAssignment assignment = makeCanvasRequest(
                 "GET",
-                "/users/" + userId + "/courses/" + COURSE_NUMBER + "/assignments?assignment_ids[]=" + assignmentId,
+                "/users/" + userId + "/courses/" + getCourseNumber() + "/assignments?assignment_ids[]=" + assignmentId,
                 CanvasAssignment[].class
-        )[0];
+        ).body()[0];
 
         if (assignment == null || assignment.due_at() == null)
             throw new CanvasException("Unable to get due date for assignment");
@@ -284,13 +266,12 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     @Override
     public CanvasSection[] getAllSections() throws CanvasException {
         return makeCanvasRequest("GET",
-                "/courses/" + COURSE_NUMBER + "/sections",
-                CanvasSection[].class);
+                "/courses/" + getCourseNumber() + "/sections",
+                CanvasSection[].class).body();
     }
 
     private enum EnrollmentType {
         StudentEnrollment, TeacherEnrollment, TaEnrollment, DesignerEnrollment, ObserverEnrollment
-
     }
 
     /**
@@ -303,7 +284,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> T makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
+    private static <T> CanvasResponse<T> makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -319,8 +300,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             if (https.getResponseCode() < 200 || https.getResponseCode() >= 300) {
                 throw new CanvasException("Response from canvas wasn't 2xx, was " + https.getResponseCode());
             }
-
-            return readBody(https, responseClass);
+            return new CanvasResponse<>(readBody(https, responseClass), https.getHeaderFields(), https.getResponseCode());
         } catch (Exception ex) {
             throw new CanvasException("Exception while contacting canvas", ex);
         }
@@ -345,6 +325,209 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             }
         }
         return null;
+    }
+
+    /**
+     * Sends a request to canvas and returns the requested response
+     *
+     * @param path          The path to the endpoint to use (e.g. "/courses/12345")
+     * @param responseClass The class of the response to return
+     * @param <T>           The type of the response to return
+     * @return The list containing the responses from canvas
+     * @throws CanvasException If there is an error while contacting canvas
+     */
+    private static <T> List<T> makePaginatedCanvasRequest(String path, Class<T> responseClass) throws CanvasException {
+        List<T> list = new ArrayList<>();
+        while (path != null) {
+            @SuppressWarnings("unchecked")
+            CanvasResponse<T[]> response = makeCanvasRequest("GET", path, (Class<T[]>) responseClass.arrayType());
+            list.addAll(Arrays.asList(response.body()));
+            List<String> links = response.headers().get("link");
+            path = (links != null) ? getNextPath(links.getFirst()) : null;
+        }
+        return list;
+    }
+
+    private static String getNextPath(String wholeLink) {
+        for(String group : wholeLink.split(",")) {
+            if (group.contains("rel=\"next\"")) {
+                return group.substring(group.indexOf("/api/v1") + 7, group.indexOf('>'));
+            }
+        }
+        return null;
+    }
+
+    private static Integer getCourseNumber() throws CanvasException {
+        try {
+            return DaoService.getConfigurationDao().getConfiguration(
+                    ConfigurationDao.Configuration.COURSE_NUMBER,
+                    Integer.class);
+        } catch (DataAccessException e) {
+            throw new CanvasException("Error when trying to retrieve the Course Number from the database:" + e);
+        }
+    }
+
+    private static Integer getGitHubAssignmentNumber() throws CanvasException {
+        try {
+            return PhaseUtils.getPhaseAssignmentNumber(Phase.GitHub);
+        } catch (DataAccessException e) {
+            throw new CanvasException("Error when trying to retrieve the GitHub Assignment Number from the database:"
+                    + e);
+        }
+    }
+
+    public static class CourseInfoRetriever {
+
+        public static final Set<String> CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES = Set.of(
+                "Chess GitHub Repository",
+                "♕ Phase 0: Chess Moves",
+                "♕ Phase 1: Chess Game",
+                "♕ Phase 3: Chess Web API",
+                "♕ Phase 4: Chess Database",
+                "♕ Phase 5: Chess Pregame",
+                "♕ Phase 6: Chess Gameplay (Pass Off)"
+        );
+
+        private static final Map<String, Rubric.RubricType> RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES = Map.of(
+                "test cases", Rubric.RubricType.PASSOFF_TESTS,
+                "web api works", Rubric.RubricType.PASSOFF_TESTS,
+                "pass off tests", Rubric.RubricType.PASSOFF_TESTS,
+                "code quality", Rubric.RubricType.QUALITY,
+                "unit tests", Rubric.RubricType.UNIT_TESTS,
+                "git commits", Rubric.RubricType.GIT_COMMITS,
+                "github repository", Rubric.RubricType.GITHUB_REPO
+        );
+
+        private final Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
+        private final Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo
+                = new EnumMap<>(Phase.class);
+        private List<CanvasAssignment> canvasAssignments;
+        private boolean hasRetrievedFromCanvas = false;
+
+        /**
+         * Gets the auto-graded Canvas assignments if the retriever is being asked for the first time.
+         * Otherwise, it returns the Canvas assignments from the initial retrieval.
+         *
+         * @return A list of Canvas assignments.
+         * @throws CanvasException if an error occurs when contacting Canvas
+         */
+        public Collection<CanvasAssignment> getCanvasAssignments() throws CanvasException {
+            if (!hasRetrievedFromCanvas) {
+                loadCourseRelatedItems();
+            }
+            return canvasAssignments;
+        }
+
+        /**
+         * Gets the assignments Ids associated with the auto-graded phases from Canvas if the retriever is
+         * being asked for the first time. Otherwise, it returns the assignment Ids from the initial retrieval.
+         *
+         * @return A map of a phase and its corresponding assignment id.
+         * @throws CanvasException if an error occurs when contacting Canvas
+         */
+        public Map<Phase, Integer> getAssignmentIds() throws CanvasException {
+            if (!hasRetrievedFromCanvas) {
+                loadCourseRelatedItems();
+            }
+            return assignmentIds;
+        }
+
+        /**
+         * Returns the Rubric Info associated with each phase from Canvas if the retriever is being asked for
+         * the first time. Otherwise, it returns the rubric info from the initial retrieval.
+         *
+         * @return a map of a phase's rubric corresponding to each rubric type.
+         * @throws CanvasException if an error occurs when contacting Canvas
+         */
+        public Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> getRubricInfo() throws CanvasException {
+            if (!hasRetrievedFromCanvas) {
+                loadCourseRelatedItems();
+            }
+            return rubricInfo;
+        }
+
+        /**
+         * Use Canvas for assignment id, rubric id, and rubric points for the values in the database.
+         *
+         * @throws CanvasException if an error occurs when contacting Canvas
+         * @throws DataAccessException if an error occurs when contacting the database
+         */
+        public void useCourseRelatedInfoFromCanvas() throws CanvasException, DataAccessException {
+            if (!hasRetrievedFromCanvas) {
+                loadCourseRelatedItems();
+            }
+            writeCourseValuesToDb();
+        }
+
+        /**
+         * Makes a paginated request from Canvas to read the course's assignments. It filters
+         * out the non-auto-graded assignments and reads the relevant assignments' data.
+         * Can access the updated data through the getters.
+         *
+         * @throws CanvasException when an error occurs when contacting Canvas
+         */
+        public void loadCourseRelatedItems() throws CanvasException {
+            canvasAssignments = makePaginatedCanvasRequest(
+                    "/courses/" + getCourseNumber() + "/assignments",
+                    CanvasAssignment.class
+            );
+            hasRetrievedFromCanvas = true;
+            canvasAssignments.removeIf(canvasAssignment ->
+                    !CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES.contains(canvasAssignment.name())
+            );
+            readCourseRelatedItems();
+        }
+
+        private void readCourseRelatedItems() {
+            assignmentIds.clear();
+            rubricInfo.clear();
+            for (CanvasAssignment assignment : canvasAssignments) {
+                Phase phase = PhaseUtils.getPhaseFromString(assignment.name());
+                assignmentIds.put(phase, assignment.id());
+                rubricInfo.put(phase, new HashMap<>());
+                readAssignmentRubrics(assignment.rubric(), phase);
+            }
+        }
+
+        private void readAssignmentRubrics(List<CanvasAssignment.CanvasRubric> assignmentRubrics, Phase phase) {
+            for (CanvasAssignment.CanvasRubric rubric : assignmentRubrics) {
+                if (rubric.description() == null) {
+                    continue;
+                }
+                for (String desc : RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.keySet()) {
+                    if (rubric.description().toLowerCase().contains(desc)) {
+                        Rubric.RubricType rubricType = RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.get(desc);
+                        rubricInfo.get(phase).put(rubricType, rubric);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Stores the information given the `assignmentIds` and `rubricInfo` maps
+         * into the `configuration` and `rubric_config` table respectively.
+         *
+         * @throws DataAccessException if an error occurs when contacting the database
+         */
+        private void writeCourseValuesToDb() throws DataAccessException {
+            RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
+            ConfigurationDao configurationDao = DaoService.getConfigurationDao();
+            for (Phase phase : rubricInfo.keySet()) {
+                Integer assignmentId = assignmentIds.get(phase);
+                configurationDao.setConfiguration(
+                        PhaseUtils.getConfigurationAssignmentNumber(phase),
+                        assignmentId,
+                        Integer.class
+                );
+                for (Rubric.RubricType rubricType : rubricInfo.get(phase).keySet()) {
+                    String rubricId = rubricInfo.get(phase).get(rubricType).id();
+                    Integer points = rubricInfo.get(phase).get(rubricType).points();
+                    rubricConfigDao.setRubricIdAndPoints(phase, rubricType, points, rubricId);
+                }
+            }
+        }
+
     }
 
 }

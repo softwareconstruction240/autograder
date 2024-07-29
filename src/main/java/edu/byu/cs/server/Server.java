@@ -5,7 +5,6 @@ import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.sql.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
@@ -109,6 +108,9 @@ public class Server {
 
                     post("/phases", updateLivePhases);
                     post("/banner", updateBannerMessage);
+
+                    post("/courseIds", updateCourseIdsPost);
+                    get("/courseIds", updateCourseIdsUsingCanvasGet);
                 });
             });
         });
@@ -118,9 +120,9 @@ public class Server {
             if (req.pathInfo().equals("/ws"))
                 return null;
 
-            String urlParms = req.queryString();
-            urlParms = urlParms == null ? "" : "?" + urlParms;
-            res.redirect("/" + urlParms, 302);
+            String urlParams = req.queryString();
+            urlParams = urlParams == null ? "" : "?" + urlParams;
+            res.redirect("/" + urlParams, 302);
             return null;
         });
         init();
@@ -194,7 +196,7 @@ public class Server {
         setupProperties(args);
 
         try {
-            useSqlDaos();
+            DaoService.initializeSqlDAOs();
         } catch (DataAccessException e) {
             LOGGER.error("Error setting up database", e);
             throw new RuntimeException(e);
@@ -211,12 +213,4 @@ public class Server {
         }
     }
 
-    private static void useSqlDaos() throws DataAccessException {
-        SqlDb.setUpDb();
-        DaoService.setConfigurationDao(new ConfigurationSqlDao());
-        DaoService.setQueueDao(new QueueSqlDao());
-        DaoService.setRubricConfigDao(new RubricConfigSqlDao());
-        DaoService.setSubmissionDao(new SubmissionSqlDao());
-        DaoService.setUserDao(new UserSqlDao());
-    }
 }

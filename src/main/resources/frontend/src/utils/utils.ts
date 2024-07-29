@@ -1,7 +1,6 @@
 import {useAdminStore} from "@/stores/admin";
-import type {Phase, RubricItem, RubricType, Submission, TestNode} from '@/types/types'
-import { VerifiedStatus } from '@/types/types'
-import { useAuthStore } from '@/stores/auth'
+import {Phase, type RubricItem, type RubricType, type Submission, type TestNode, VerifiedStatus} from '@/types/types'
+import {useAuthStore} from '@/stores/auth'
 
 export const commitVerificationFailed = (submission: Submission) => {
   if (submission.admin) return false; // Admin submissions don't have commit requirements
@@ -125,3 +124,32 @@ export const phaseRequiresTAPassoffForCommits = (phase: Phase | "Quality" | "Git
   return !(phase === "Quality" || phase === "GitHub");
 
 }
+
+export const isPhaseGraded = (phase: Phase | "Quality" | "GitHub"): boolean => {
+  return phase !== "Quality";
+}
+
+export const getRubricTypes = (phase: Phase | "Quality" | "GitHub"): RubricType[] => {
+  if (phase === "GitHub" || phase === Phase.GitHub) {
+    return ["GITHUB_REPO"];
+  } else if (phase === Phase.Phase0 || phase === Phase.Phase1) {
+    return ["PASSOFF_TESTS", "GIT_COMMITS"];
+  } else if (phase === Phase.Phase3 || phase === Phase.Phase4) {
+    return ["PASSOFF_TESTS", "GIT_COMMITS", "QUALITY", "UNIT_TESTS"];
+  } else if (phase === Phase.Phase5) {
+    return ["UNIT_TESTS", "QUALITY", "GIT_COMMITS"];
+  } else if (phase === Phase.Phase6) {
+    return ["PASSOFF_TESTS", "QUALITY", "GIT_COMMITS"];
+  }
+  return [];
+}
+
+export const convertPhaseStringToEnum = (phaseAsString: string): Phase => {
+  return Phase[phaseAsString as keyof typeof Phase];
+}
+
+export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string => {
+  const words = rubricType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+  return words.join(' ');
+}
+
