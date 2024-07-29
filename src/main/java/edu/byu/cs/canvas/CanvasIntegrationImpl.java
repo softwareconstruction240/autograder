@@ -523,7 +523,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 for (Rubric.RubricType rubricType : rubricInfo.get(phase).keySet()) {
                     String rubricId = rubricInfo.get(phase).get(rubricType).id();
                     Integer points = rubricInfo.get(phase).get(rubricType).points();
-                    rubricConfigDao.updateCanvasRelatedItems(phase, rubricType, points, rubricId);
+                    rubricConfigDao.setRubricIdAndPoints(phase, rubricType, points, rubricId);
                 }
             }
         }

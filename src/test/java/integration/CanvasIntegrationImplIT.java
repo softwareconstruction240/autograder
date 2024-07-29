@@ -39,7 +39,7 @@ public class CanvasIntegrationImplIT {
                 ConfigurationDao.Configuration.COURSE_NUMBER,
                 26822,
                 Integer.class
-        ); // FIXME: ??? Maybe get dynamically
+        ); // FIXME: ??? Maybe get Course Number dynamically
 
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();

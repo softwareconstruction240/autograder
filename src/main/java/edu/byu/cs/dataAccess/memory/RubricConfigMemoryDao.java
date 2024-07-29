@@ -23,7 +23,7 @@ public class RubricConfigMemoryDao implements RubricConfigDao {
     }
 
     @Override
-    public void updateCanvasRelatedItems(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) {
+    public void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) {
         RubricConfig rubricConfig = rubricConfigs.get(phase);
         if (rubricConfig == null) {
             RubricConfig.RubricConfigItem rubricConfigItem = new RubricConfig.RubricConfigItem("", "", points, rubric_id);
