@@ -13,6 +13,7 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.SubmissionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,7 +258,7 @@ public class Scorer {
 
         // Calculate the penalty
         float rawScore = totalPoints(assessment);
-        float approvedScore = SubmissionHelper.prepareModifiedScore(rawScore, penaltyPct);
+        float approvedScore = SubmissionUtils.prepareModifiedScore(rawScore, penaltyPct);
         return approvedScore - rawScore;
     }
 
@@ -399,7 +400,7 @@ public class Scorer {
             verifiedStatus = VerifiedStatus.Unapproved;
         }
         if (commitVerificationResult.penaltyPct() > 0) {
-            score = SubmissionHelper.prepareModifiedScore(score, commitVerificationResult.penaltyPct());
+            score = SubmissionUtils.prepareModifiedScore(score, commitVerificationResult.penaltyPct());
             notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 

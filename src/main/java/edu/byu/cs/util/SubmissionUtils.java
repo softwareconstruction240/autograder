@@ -1,11 +1,14 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.util;
 
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.ItemNotFoundException;
+import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 
 import java.util.HashSet;
 
-public class SubmissionHelper {
+public class SubmissionUtils {
 
     /**
      * Updates <b>all</b> of the relevant submissions with an appropriate {@link Submission.ScoreVerification}
@@ -36,8 +39,8 @@ public class SubmissionHelper {
             if (!submission.passed()) continue;
 
             try {
-                individualVerification = SubmissionHelper.prepareScoreVerification(scoreVerification, submission);
-                modifiedScore = SubmissionHelper.prepareModifiedScore(scoreVerification);
+                individualVerification = SubmissionUtils.prepareScoreVerification(scoreVerification, submission);
+                modifiedScore = SubmissionUtils.prepareModifiedScore(scoreVerification);
                 submissionDao.manuallyApproveSubmission(
                         submission, modifiedScore, individualVerification);
             } catch (ItemNotFoundException e) {

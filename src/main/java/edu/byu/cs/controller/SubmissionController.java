@@ -12,6 +12,7 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.ProcessUtils;
 import edu.byu.cs.util.Serializer;
+import edu.byu.cs.util.SubmissionUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
@@ -524,7 +525,7 @@ public class SubmissionController {
 
         // Send score to Grade-book
         if (approvedScore == null) {
-            approvedScore = SubmissionHelper.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
+            approvedScore = SubmissionUtils.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         }
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
         sendScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
@@ -564,7 +565,7 @@ public class SubmissionController {
                 approvingNetId,
                 approvedTimestamp,
                 penaltyPct);
-        int submissionsAffected = SubmissionHelper.approveWithheldSubmissions(
+        int submissionsAffected = SubmissionUtils.approveWithheldSubmissions(
                 submissionDao,
                 withheldSubmission.netId(),
                 withheldSubmission.phase(),
