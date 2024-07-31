@@ -9,10 +9,8 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jgit.annotations.NonNull;
-import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,23 +21,7 @@ public class SubmissionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionUtils.class);
 
-    /**
-     * Approves the highest scoring submissions on the phase so far with a provided penalty percentage.
-     * <br>
-     * This is a simple overload triggering default behavior in the actual method.
-     * @see SubmissionUtils#approveSubmission(String, Phase, String, Integer, Float, Submission).
-     *
-     * @param studentNetId The student to approve
-     * @param phase The phase to approve
-     * @param approverNetId Identifies the TA or professor approving the score
-     * @param penaltyPct The penalty applied for the reduction.
-     *                   This should already be reflected in the `approvedScore` if present.
-     */
-    public static void approveSubmission(
-            @NonNull String studentNetId, @NonNull Phase phase, @NonNull String approverNetId, @NonNull Integer penaltyPct)
-            throws DataAccessException, GradingException {
-        approveSubmission(studentNetId, phase, approverNetId, penaltyPct, null, null);
-    }
+
     /**
      * Approves a submission.
      * Modifies all existing submissions in the phase with constructed values,
@@ -48,31 +30,14 @@ public class SubmissionUtils {
      * @param studentNetId The student to approve
      * @param phase The phase to approve
      * @param approverNetId Identifies the TA or professor approving the score
-     * @param penaltyPct The penalty applied for the reduction.
-     *                   This should already be reflected in the `approvedScore` if present.
-     *                   <p>This will be used to reduce all other submissions,
-     *                   but has no effect in the grade-book when <code>approvedScore</code> is provided.</p>
-     * @param approvedScore <p>The final score that should go in the grade-book.
-     *                      Submissions in the database will <b>not</b> be affected by this value.</p>
-     *                      <p>If `null`, we'll determine this value by applying the penalty to
-     *                      the highest score for any submission in the phase.</p>
-     *                      <p>Provided so that a TA can approve an arbitrary (highest score)
-     *                      submission with a penalty instead of any other fixed rule.</p>
-     * @param submissionToUse Required when `approvedScored` is passed in.
-     *                         Provides a submission which will be used to overwrite the existing score in the grade-book.
-     *                         If a full {@link Submission} object is not available, the {@link Rubric} is only required field in it.
+     * @param penaltyPct The penalty applied for the reduction. This will be used to reduce all submissions
      */
     public static void approveSubmission(
             @NonNull String studentNetId,
             @NonNull Phase phase,
             @NonNull String approverNetId,
-            @NonNull Integer penaltyPct,
-            @Nullable Float approvedScore,
-            @Nullable Submission submissionToUse
+            @NonNull Integer penaltyPct
     ) throws DataAccessException, GradingException {
-        if (approvedScore != null) {
-            throw new IllegalArgumentException("Passing in non-null approvedScore is not yet implemented.");
-        }
 
         // Validate params
         if (studentNetId == null || phase == null || approverNetId == null || penaltyPct == null) {
@@ -81,22 +46,20 @@ public class SubmissionUtils {
         if (studentNetId.isBlank() || approverNetId.isBlank()) {
             throw new IllegalArgumentException("Both studentNetId and approverNetId must not be blank");
         }
-        if (penaltyPct < 0 || (approvedScore != null && approvedScore < 0)) {
-            throw new IllegalArgumentException("Both penaltyPct and approvedScore must be greater or equal than 0");
+        if (penaltyPct < 0) {
+            throw new IllegalArgumentException("penaltyPct must be greater or equal than 0");
         }
 
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         assertSubmissionUnapproved(submissionDao, studentNetId, phase);
-        Submission withheldSubmission = determineSubmissionForConsideration(submissionDao, submissionToUse, studentNetId, phase);
+        Submission withheldSubmission = determineSubmissionForConsideration(submissionDao, studentNetId, phase);
 
         // Modify values in our database first
         int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
 
         // Send score to Grade-book
-        if (approvedScore == null) {
-            approvedScore = SubmissionUtils.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
-        }
+        float approvedScore = SubmissionUtils.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
         sendScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
 
@@ -113,10 +76,8 @@ public class SubmissionUtils {
     }
 
     private static Submission determineSubmissionForConsideration(
-            SubmissionDao submissionDao, Submission providedValue, String studentNetId, Phase phase)
+            SubmissionDao submissionDao, String studentNetId, Phase phase)
             throws DataAccessException, GradingException {
-        if (providedValue != null) return providedValue;
-
         Submission submission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
         if (submission == null) {
             throw new GradingException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
