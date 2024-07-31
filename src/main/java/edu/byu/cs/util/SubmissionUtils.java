@@ -1,8 +1,6 @@
 package edu.byu.cs.util;
 
-import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -64,7 +62,8 @@ public class SubmissionUtils {
         // Send score to Grade-book
         float approvedScore = SubmissionUtils.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
-        sendScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
+        Scorer.attemptSendToCanvas(withheldSubmission.rubric(), withheldSubmission.phase(), withheldSubmission.netId(),
+                penaltyPct, gitCommitsComment);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."
@@ -95,50 +94,6 @@ public class SubmissionUtils {
         return submissionsAffected;
     }
 
-    /**
-     * Submits the <code>approvedScore</code> to Canvas by modifying the GIT_COMMITS rubric item.
-     * <br>
-     * In this context, the <code>withheldSubmission</code> isn't <i>strictly</i> necessary,
-     * but it is used to transfer several fields and values that would need to be transferred individually
-     * without it. The most important of these is the <score>field</score>, which will be used to calculate the penalty.
-     *
-     * @param withheldSubmission The baseline submission to approve
-     * @param penaltyPct The percentage that should be reduced from the score for GIT_COMMITS.
-     * @param commitPenaltyComment The comment that should be associated with the GIT_COMMITS rubric, if any.
-     * @throws DataAccessException When the database cannot be accessed.
-     * @throws GradingException When pre-conditions are not met.
-     */
-    private static void sendScoreToCanvas(Submission withheldSubmission, int penaltyPct, String commitPenaltyComment) throws DataAccessException, GradingException {
-        // Prepare and assert arguments
-        if (withheldSubmission == null) {
-            throw new IllegalArgumentException("Withheld submission cannot be null");
-        }
-        Scorer scorer = getScorer(withheldSubmission);
-        scorer.attemptSendToCanvas(withheldSubmission.rubric(), penaltyPct, commitPenaltyComment);
-    }
-
-    /**
-     * Constructs an instance of {@link Scorer} using the limited data available in a {@link Submission}.
-     *
-     * @param submission A submission containing context to extract.
-     * @return A constructed Scorer instance.
-     */
-    private static Scorer getScorer(Submission submission) {
-        String studentNetId = submission.netId();
-        Phase phase = submission.phase();
-        if (studentNetId == null) {
-            throw new IllegalArgumentException("Student net ID cannot be null");
-        }
-        if (phase == null) {
-            throw new IllegalArgumentException("Phase cannot be null");
-        }
-
-        return new Scorer(new GradingContext(
-                studentNetId, phase, null, null, null, null,
-                new CommitVerificationConfig(0, 0, 0, 0, 0),
-                null, submission.admin()
-        ));
-    }
 
     /**
      * Updates <b>all</b> of the relevant submissions with an appropriate {@link Submission.ScoreVerification}
