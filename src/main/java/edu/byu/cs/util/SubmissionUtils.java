@@ -19,6 +19,20 @@ public class SubmissionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionUtils.class);
 
+    public static String getRemoteHeadHash(String repoUrl) {
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
+        try {
+            ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
+            if (output.statusCode() != 0) {
+                LOGGER.error("git ls-remote exited with non-zero exit code\n{}", output.stdErr());
+                throw new RuntimeException("exited with non-zero exit code");
+            }
+            return output.stdOut().split("\\s+")[0];
+        } catch (ProcessUtils.ProcessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Approves a submission.
      * Modifies all existing submissions in the phase with constructed values,

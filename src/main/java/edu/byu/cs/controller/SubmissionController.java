@@ -122,7 +122,7 @@ public class SubmissionController {
     private static boolean verifyHasNewCommits(User user, Phase phase) throws DataAccessException {
         String headHash;
         try {
-            headHash = getRemoteHeadHash(user.repoUrl());
+            headHash = SubmissionUtils.getRemoteHeadHash(user.repoUrl());
         } catch (Exception e) {
             LOGGER.error("Error getting remote head hash", e);
             halt(400, "Invalid repo url");
@@ -396,20 +396,6 @@ public class SubmissionController {
         };
 
         return new Grader(repoUrl, netId, observer, phase, adminSubmission);
-    }
-
-    public static String getRemoteHeadHash(String repoUrl) {
-        ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
-        try {
-            ProcessUtils.ProcessOutput output = ProcessUtils.runProcess(processBuilder);
-            if (output.statusCode() != 0) {
-                LOGGER.error("git ls-remote exited with non-zero exit code\n{}", output.stdErr());
-                throw new RuntimeException("exited with non-zero exit code");
-            }
-            return output.stdOut().split("\\s+")[0];
-        } catch (ProcessUtils.ProcessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static final Route submissionsReRunPost = (req, res) -> {
