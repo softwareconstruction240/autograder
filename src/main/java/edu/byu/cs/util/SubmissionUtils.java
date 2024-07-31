@@ -210,10 +210,8 @@ public class SubmissionUtils {
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
     }
-    public static float prepareModifiedScore(float originalScore, Submission.ScoreVerification scoreVerification) {
-        return prepareModifiedScore(originalScore, scoreVerification.penaltyPct());
-    }
+    
     private static float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
-        return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification);
+        return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification.penaltyPct());
     }
 }
