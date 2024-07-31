@@ -114,7 +114,7 @@ public class SubmissionUtils {
             throw new IllegalArgumentException("Withheld submission cannot be null");
         }
         Scorer scorer = getScorer(withheldSubmission);
-        scorer.attemptSendToCanvas(withheldSubmission.rubric(), penaltyPct, commitPenaltyComment, true);
+        scorer.attemptSendToCanvas(withheldSubmission.rubric(), penaltyPct, commitPenaltyComment);
     }
 
     /**

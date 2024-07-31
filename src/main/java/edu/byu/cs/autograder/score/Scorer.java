@@ -119,7 +119,7 @@ public class Scorer {
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
-        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult, false);
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult);
         return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, submittalRemnants.notes);
     }
 
@@ -132,11 +132,10 @@ public class Scorer {
      * @param rubric A {@link Rubric} containing values to set in Canvas.
      *               Any items not set will be populated with their value from Canvas.
      * @param penaltyPct The approved GIT_COMMITS penalty percentage
-     * @param forceSendScore Forces the grade to be submitted, even if it would lower the student's score.
      * @throws GradingException When preconditions are not met.
      * @throws DataAccessException When the database cannot be reached.
      */
-    public void attemptSendToCanvas(Rubric rubric, int penaltyPct, String commitPenaltyMsg, boolean forceSendScore) throws GradingException, DataAccessException {
+    public void attemptSendToCanvas(Rubric rubric, int penaltyPct, String commitPenaltyMsg) throws GradingException, DataAccessException {
         /**
          * Set only the fields that will be used by
          * {@link Scorer#setCommitVerificationPenalty(CanvasRubricAssessment, GradingContext, CommitVerificationResult)}
@@ -146,7 +145,7 @@ public class Scorer {
                     true, true, 0, 0, 0,
                     penaltyPct, commitPenaltyMsg,
                     null, null, null, null);
-        attemptSendToCanvas(rubric, verification, forceSendScore);
+        forceSendToCanvas(rubric, verification);
     }
 
     /**
@@ -154,14 +153,12 @@ public class Scorer {
      *
      * @param rubric The Rubric to submit
      * @param commitVerificationResult Will be used to apply the Git Commits penalty
-     * @param forceSendScore When true, this will overwrite the score even if the new score is lower than the old score.
      * @return {@link AssessmentSubmittalRemnants} that contains some information about the results of the operation.
      * @throws DataAccessException When the database cannot be accessed.
      * @throws GradingException When pre-conditions are not met.
      */
-    private AssessmentSubmittalRemnants attemptSendToCanvas(
-            Rubric rubric, CommitVerificationResult commitVerificationResult, boolean forceSendScore
-    ) throws DataAccessException, GradingException {
+    private AssessmentSubmittalRemnants attemptSendToCanvas(Rubric rubric, CommitVerificationResult commitVerificationResult)
+            throws DataAccessException, GradingException {
 
         int canvasUserId = getCanvasUserId();
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
@@ -177,7 +174,7 @@ public class Scorer {
         String notes = "";
         boolean didSend = false;
         float newPoints = totalPoints(newAssessment);
-        if (!forceSendScore && newPoints <= totalPoints(existingAssessment)) {
+        if (newPoints <= totalPoints(existingAssessment)) {
             notes = "Submission did not improve current score. Score not saved to Canvas.\n";
         } else {
             didSend = true;
@@ -185,6 +182,20 @@ public class Scorer {
         }
 
         return new AssessmentSubmittalRemnants(didSend, newPoints, notes);
+    }
+
+    private void forceSendToCanvas(Rubric rubric, CommitVerificationResult commitVerificationResult)
+            throws DataAccessException, GradingException {
+        int canvasUserId = getCanvasUserId();
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
+
+        CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric);
+
+        if (PhaseUtils.phaseHasCommitPenalty(gradingContext.phase())) {
+            setCommitVerificationPenalty(newAssessment, gradingContext, commitVerificationResult);
+        }
+
+        sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes());
     }
 
     private record AssessmentSubmittalRemnants(
