@@ -68,20 +68,6 @@ public class SubmissionController {
         return phaseEnabled;
     }
 
-    private static Boolean getSubmissionsEnabledConfig() {
-        boolean submissionsEnabled;
-        try {
-            submissionsEnabled = DaoService.getConfigurationDao().getConfiguration(
-                    ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED,
-                    Boolean.class);
-        } catch (Exception e) {
-            LOGGER.error("Error getting configuration", e);
-            halt(500);
-            return null;
-        }
-        return submissionsEnabled;
-    }
-
     public static final Route adminRepoSubmitPost = (req, res) -> {
 
         GradeRequest request = validateAndUnpackRequest(req);
