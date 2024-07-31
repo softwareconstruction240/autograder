@@ -13,7 +13,6 @@ import edu.byu.cs.dataAccess.*;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
-import edu.byu.cs.util.SubmissionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,7 +257,7 @@ public class Scorer {
 
         // Calculate the penalty
         float rawScore = totalPoints(assessment);
-        float approvedScore = SubmissionUtils.prepareModifiedScore(rawScore, penaltyPct);
+        float approvedScore = prepareModifiedScore(rawScore, penaltyPct);
         return approvedScore - rawScore;
     }
 
@@ -400,7 +399,7 @@ public class Scorer {
             verifiedStatus = VerifiedStatus.Unapproved;
         }
         if (commitVerificationResult.penaltyPct() > 0) {
-            score = SubmissionUtils.prepareModifiedScore(score, commitVerificationResult.penaltyPct());
+            score = prepareModifiedScore(score, commitVerificationResult.penaltyPct());
             notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 
@@ -432,5 +431,9 @@ public class Scorer {
             LOGGER.error("Error submitting to canvas for user {}", netId, e);
             throw new GradingException("Error contacting canvas to record scores");
         }
+    }
+
+    public static float prepareModifiedScore(float originalScore, int penaltyPct) {
+        return originalScore * (100 - penaltyPct) / 100f;
     }
 }

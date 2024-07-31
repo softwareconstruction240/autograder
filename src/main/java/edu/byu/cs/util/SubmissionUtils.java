@@ -19,7 +19,6 @@ public class SubmissionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionUtils.class);
 
-
     /**
      * Approves a submission.
      * Modifies all existing submissions in the phase with constructed values,
@@ -60,7 +59,7 @@ public class SubmissionUtils {
         int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
 
         // Send score to Grade-book
-        float approvedScore = SubmissionUtils.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
+        float approvedScore = Scorer.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
         Scorer.attemptSendToCanvas(withheldSubmission.rubric(), withheldSubmission.phase(), withheldSubmission.netId(),
                 penaltyPct, gitCommitsComment);
@@ -123,7 +122,7 @@ public class SubmissionUtils {
 
             try {
                 Submission.ScoreVerification subVerification = scoreVerification.setOriginalScore(submission.score());
-                float modifiedScore = prepareModifiedScore(submission.score(), scoreVerification.penaltyPct());
+                float modifiedScore = Scorer.prepareModifiedScore(submission.score(), scoreVerification.penaltyPct());
                 submissionDao.manuallyApproveSubmission(submission, modifiedScore, subVerification);
             } catch (ItemNotFoundException e) {
                 throw new RuntimeException(e);
@@ -134,7 +133,5 @@ public class SubmissionUtils {
         return affected;
     }
 
-    public static float prepareModifiedScore(float originalScore, int penaltyPct) {
-        return originalScore * (100 - penaltyPct) / 100f;
-    }
+
 }
