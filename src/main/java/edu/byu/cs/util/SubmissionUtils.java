@@ -170,9 +170,8 @@ public class SubmissionUtils {
 
             try {
                 individualVerification = SubmissionUtils.prepareScoreVerification(scoreVerification, submission);
-                modifiedScore = SubmissionUtils.prepareModifiedScore(scoreVerification);
-                submissionDao.manuallyApproveSubmission(
-                        submission, modifiedScore, individualVerification);
+                modifiedScore = SubmissionUtils.prepareModifiedScore(submission.score(), scoreVerification.penaltyPct());
+                submissionDao.manuallyApproveSubmission(submission, modifiedScore, individualVerification);
             } catch (ItemNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -196,9 +195,5 @@ public class SubmissionUtils {
 
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
-    }
-
-    private static float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
-        return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification.penaltyPct());
     }
 }
