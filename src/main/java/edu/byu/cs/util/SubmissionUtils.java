@@ -163,15 +163,13 @@ public class SubmissionUtils {
         int affected = 0;
 
         var phaseSubmissions = new HashSet<>(submissionDao.getSubmissionsForPhase(studentNetId, phase));
-        float modifiedScore;
-        Submission.ScoreVerification individualVerification;
         for (var submission : phaseSubmissions) {
             if (!submission.passed()) continue;
 
             try {
-                individualVerification = SubmissionUtils.prepareScoreVerification(scoreVerification, submission);
-                modifiedScore = SubmissionUtils.prepareModifiedScore(submission.score(), scoreVerification.penaltyPct());
-                submissionDao.manuallyApproveSubmission(submission, modifiedScore, individualVerification);
+                Submission.ScoreVerification subVerification = scoreVerification.setOriginalScore(submission.score());
+                float modifiedScore = prepareModifiedScore(submission.score(), scoreVerification.penaltyPct());
+                submissionDao.manuallyApproveSubmission(submission, modifiedScore, subVerification);
             } catch (ItemNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -179,18 +177,6 @@ public class SubmissionUtils {
         }
 
         return affected;
-    }
-
-    private static Submission.ScoreVerification prepareScoreVerification(
-            Submission.ScoreVerification ogVerified,
-            Submission submission
-    ) {
-        return new Submission.ScoreVerification(
-                submission.score(),
-                ogVerified.approvingNetId(),
-                ogVerified.approvedTimestamp(),
-                ogVerified.penaltyPct()
-        );
     }
 
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {

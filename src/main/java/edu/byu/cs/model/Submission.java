@@ -76,7 +76,11 @@ public record Submission(
              @NonNull String approvingNetId,
              @NonNull Instant approvedTimestamp,
              @NonNull Integer penaltyPct
-    ) { }
+    ) {
+        public ScoreVerification setOriginalScore(float score) {
+            return new ScoreVerification(score, approvingNetId, approvedTimestamp, penaltyPct);
+        }
+    }
 
     public enum VerifiedStatus {
         Unapproved,
