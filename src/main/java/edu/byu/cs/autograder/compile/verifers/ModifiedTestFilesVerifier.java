@@ -8,8 +8,12 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
+
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
 

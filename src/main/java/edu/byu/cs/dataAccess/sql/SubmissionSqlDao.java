@@ -8,9 +8,9 @@ import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.byu.cs.util.Serializer;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

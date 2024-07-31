@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.List;
 
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
