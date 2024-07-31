@@ -53,7 +53,10 @@ public class SubmissionUtils {
         // Read in data
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
         assertSubmissionUnapproved(submissionDao, studentNetId, phase);
-        Submission withheldSubmission = determineSubmissionForConsideration(submissionDao, studentNetId, phase);
+        Submission withheldSubmission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
+        if (withheldSubmission == null) {
+            throw new GradingException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
+        }
 
         // Modify values in our database first
         int submissionsAffected = modifySubmissionEntriesInDatabase(submissionDao, withheldSubmission, approverNetId, penaltyPct);
@@ -75,32 +78,16 @@ public class SubmissionUtils {
         }
     }
 
-    private static Submission determineSubmissionForConsideration(
-            SubmissionDao submissionDao, String studentNetId, Phase phase)
-            throws DataAccessException, GradingException {
-        Submission submission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
-        if (submission == null) {
-            throw new GradingException("No submission was provided nor found for phase " + phase + " with user " + studentNetId);
-        }
-        return submission;
-    }
-
     private static int modifySubmissionEntriesInDatabase(
             SubmissionDao submissionDao, Submission withheldSubmission, String approvingNetId, int penaltyPct)
             throws DataAccessException {
 
         Float originalScore = withheldSubmission.score();
         Instant approvedTimestamp = Instant.now();
-        Submission.ScoreVerification scoreVerification = new Submission.ScoreVerification(
-                originalScore,
-                approvingNetId,
-                approvedTimestamp,
-                penaltyPct);
-        int submissionsAffected = SubmissionUtils.approveWithheldSubmissions(
-                submissionDao,
-                withheldSubmission.netId(),
-                withheldSubmission.phase(),
-                scoreVerification);
+        Submission.ScoreVerification scoreVerification =
+                new Submission.ScoreVerification(originalScore, approvingNetId, approvedTimestamp, penaltyPct);
+        int submissionsAffected = approveWithheldSubmissions(submissionDao, withheldSubmission.netId(),
+                withheldSubmission.phase(), scoreVerification);
 
         if (submissionsAffected < 1) {
             LOGGER.warn("Approving submissions did not affect any submissions. Something probably went wrong.");
@@ -210,7 +197,7 @@ public class SubmissionUtils {
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
     }
-    
+
     private static float prepareModifiedScore(Submission.ScoreVerification scoreVerification) {
         return prepareModifiedScore(scoreVerification.originalScore(), scoreVerification.penaltyPct());
     }
