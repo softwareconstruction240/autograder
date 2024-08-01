@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.TestAnalysis;
 
 public interface GradingObserver {
     void notifyStarted();

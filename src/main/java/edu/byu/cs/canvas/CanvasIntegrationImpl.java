@@ -1,7 +1,6 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.*;
-import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -12,6 +11,7 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.Serializer;
+import edu.byu.cs.util.SubmissionUtils;
 import org.eclipse.jgit.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.List;
 
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
@@ -70,7 +69,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
                 if (role == User.Role.STUDENT) {
                     try {
-                        SubmissionController.getRemoteHeadHash(repoUrl);
+                        SubmissionUtils.getRemoteHeadHash(repoUrl);
                     } catch (RuntimeException e) {
                         throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
                     }
