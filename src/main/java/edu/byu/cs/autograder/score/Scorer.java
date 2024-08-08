@@ -63,8 +63,8 @@ public class Scorer {
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        applyLatePenalty(rubric.items(), daysLate);
-        float thisScore = getScore(rubric);
+        Rubric lateAppliedRubric = applyLatePenalty(rubric, daysLate);
+        float thisScore = getScore(lateAppliedRubric);
 
         // Validate several conditions before submitting to the grade-book
         if (!rubric.passed()) {
@@ -73,7 +73,7 @@ public class Scorer {
             return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
         } else {
             // The student (may) receive a score in canvas!
-            return successfullyProcessSubmission(rubric, commitVerificationResult, daysLate, thisScore);
+            return successfullyProcessSubmission(rubric, lateAppliedRubric, commitVerificationResult, daysLate, thisScore);
         }
     }
 
@@ -110,17 +110,16 @@ public class Scorer {
      * @throws DataAccessException When the database can't be reached.
      * @throws GradingException    When other conditions fail.
      */
-    private Submission successfullyProcessSubmission(
-            Rubric rubric, CommitVerificationResult commitVerificationResult,
-            int daysLate, float thisScore
-    ) throws DataAccessException, GradingException {
+    private Submission successfullyProcessSubmission(Rubric rubric, Rubric lateAppliedRubric,
+                                                     CommitVerificationResult commitVerificationResult, int daysLate,
+                                                     float thisScore) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
             return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore,
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
-        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult);
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(lateAppliedRubric, commitVerificationResult);
         return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, submittalRemnants.notes);
     }
 
@@ -286,9 +285,10 @@ public class Scorer {
         return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
     }
 
-    private void applyLatePenalty(EnumMap<Rubric.RubricType, Rubric.RubricItem> items, int daysLate) {
+    private Rubric applyLatePenalty(Rubric rubric, int daysLate) {
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-        for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : items.entrySet()) {
+        for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
             Rubric.Results results = entry.getValue().results();
             results = new Rubric.Results(results.notes(),
                     results.score() * (1 - lateAdjustment),
@@ -299,6 +299,7 @@ public class Scorer {
             rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
             items.put(entry.getKey(), rubricItem);
         }
+        return new Rubric(items, rubric.passed(), rubric.notes());
     }
 
     /**
