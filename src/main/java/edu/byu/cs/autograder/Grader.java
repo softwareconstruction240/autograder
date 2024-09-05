@@ -67,7 +67,8 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        CommitVerificationConfig cvConfig = PhaseUtils.isPhaseGraded(phase) ? PhaseUtils.verificationConfig(phase) : null;
+        CommitVerificationConfig cvConfig = PhaseUtils.requiresTAPassoffForCommits(phase) ?
+                PhaseUtils.verificationConfig(phase) : null;
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
@@ -93,7 +94,7 @@ public class Grader implements Runnable {
             }
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationResult);
+            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
 
             Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
             DaoService.getSubmissionDao().insertSubmission(submission);
@@ -110,7 +111,7 @@ public class Grader implements Runnable {
         }
     }
 
-    private Rubric evaluateProject(RubricConfig rubricConfig, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
+    private Rubric evaluateProject(RubricConfig rubricConfig) throws GradingException, DataAccessException {
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
         if (rubricConfig == null) {
             return new Rubric(new EnumMap<>(Rubric.RubricType.class), false, "No Rubric Config");
@@ -123,7 +124,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
+                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade();
                     case GIT_COMMITS, GRADING_ISSUE -> null;
                 };
                 if (results != null) {

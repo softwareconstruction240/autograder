@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import type {Submission} from "@/types/types";
-import 'ag-grid-community/styles/ag-grid.css';
-import "ag-grid-community/styles/ag-theme-quartz.css";
+import type { Submission } from '@/types/types'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-quartz.css'
 import {
   commitVerificationFailed,
   generateClickableCommitLink,
   generateClickableLink,
   nameOnSubmission,
-  phaseRequiresTAPassoffForCommits,
   phaseString,
   readableTimestamp,
-  scoreToPercentage, sortedItems
+  scoreToPercentage,
+  sortedItems
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
@@ -49,14 +49,13 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
       <span v-if="!submission.passed">failed <i class="fa-solid fa-circle-xmark" style="color: red"/></span>
       <span v-else-if="commitVerificationFailed(submission)">
         <i class="fa-solid fa-triangle-exclamation" style="color: red"/>
-        <b> commit verification failed! </b>
-        <b v-if="phaseRequiresTAPassoffForCommits(submission.phase)">Needs TA approval. Go see a TA </b>
+        <b> commit verification failed! Needs TA approval. Go see a TA </b>
         <i class="fa-solid fa-triangle-exclamation" style="color: red"/>
       </span>
       <span v-else>Passed <i class="fa-solid fa-circle-check" style="color: green"/></span>
     </p>
 
-    <div v-if="useAuthStore().user?.role == 'ADMIN' && submission.passed && commitVerificationFailed(submission) && phaseRequiresTAPassoffForCommits(submission.phase)">
+    <div v-if="useAuthStore().user?.role == 'ADMIN' && submission.passed && commitVerificationFailed(submission)">
       <InfoPanel id="approveSubmission">
         <h4>Approve Blocked Submission</h4>
         <p>This submission was blocked because it did not meet the git commit requirements.</p>

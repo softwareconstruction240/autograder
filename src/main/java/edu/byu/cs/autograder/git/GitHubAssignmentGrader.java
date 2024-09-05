@@ -12,20 +12,10 @@ import edu.byu.cs.model.RubricConfig;
  */
 public class GitHubAssignmentGrader {
 
-    public Rubric.Results grade(CommitVerificationResult commitVerificationResult) throws DataAccessException {
-        RubricConfig rubricConfig =
-                DaoService.getRubricConfigDao().getRubricConfig(Phase.GitHub);
-        RubricConfig.RubricConfigItem configItem =
-                rubricConfig.items().get(Rubric.RubricType.GITHUB_REPO);
-
-        if(commitVerificationResult.verified()) {
-            return new Rubric.Results("Successfully fetched your repository and verified commits",
-                    1f, configItem.points(), null, null);
-        }
-        else {
-            return new Rubric.Results("Successfully fetched your repository, but the number of commits is insufficient",
-                    0f, configItem.points(), null, commitVerificationResult.failureMessage());
-        }
+    public Rubric.Results grade() throws DataAccessException {
+        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(Phase.GitHub);
+        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.GITHUB_REPO);
+        return new Rubric.Results("Successfully fetched your repository", 1f, configItem.points(), null, null);
     }
 
 }
