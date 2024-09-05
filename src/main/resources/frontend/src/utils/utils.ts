@@ -121,8 +121,7 @@ export const phaseRequiresTAPassoffForCommits = (phase: Phase | "Quality" | "Git
   // FIXME: There's some funky type stuff going on here. Whenever I find `typeof phase` is prints out `string`
   // however, when actually calling this function, it requires `Phase` as a parameter type by the
   // TS transpiler. Similar case like in the `phaseString` function above.
-  return !(phase === "Quality" || phase === "GitHub");
-
+  return !(phase === "Quality");
 }
 
 export const isPhaseGraded = (phase: Phase | "Quality" | "GitHub"): boolean => {
