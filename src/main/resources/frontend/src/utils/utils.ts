@@ -117,14 +117,6 @@ export const sortedItems = (items: Record<RubricType, RubricItem>): RubricItem[]
   }).map((item) => items[item as RubricType]);
 }
 
-export const phaseRequiresTAPassoffForCommits = (phase: Phase | "Quality" | "GitHub"): boolean => {
-  // FIXME: There's some funky type stuff going on here. Whenever I find `typeof phase` is prints out `string`
-  // however, when actually calling this function, it requires `Phase` as a parameter type by the
-  // TS transpiler. Similar case like in the `phaseString` function above.
-  return !(phase === "Quality" || phase === "GitHub");
-
-}
-
 export const isPhaseGraded = (phase: Phase | "Quality" | "GitHub"): boolean => {
   return phase !== "Quality";
 }
