@@ -79,7 +79,7 @@ public class GitHelper {
      * @return True if the commits should be verified; otherwise, false.
      */
     private boolean shouldVerifyCommits() {
-        return !gradingContext.admin() && PhaseUtils.isPhaseGraded(gradingContext.phase());
+        return !gradingContext.admin() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase());
     }
 
     /**
