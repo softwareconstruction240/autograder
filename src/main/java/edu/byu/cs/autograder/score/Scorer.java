@@ -98,7 +98,8 @@ public class Scorer {
      * <br>
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
      *
-     * @param rubric                   Required.
+     * @param rubric                   The original rubric for saving to the database and display to users
+     * @param lateAppliedRubric        Rubric with late penalties applied for sending to canvas
      * @param commitVerificationResult Required when originally creating a submission.
      *                                 Can be null when sending scores to Canvas; this will disable
      *                                 any automatic point deductions for verification, and also result in
