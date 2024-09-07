@@ -131,14 +131,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             if (batchSize >= 0) {
                 statement.setInt(1, batchSize);
             }
-            try (var results = statement.executeQuery()) {
-                List<Submission> submissions = new ArrayList<>();
-                while (results.next()) {
-                    Submission submission = readSubmission(results);
-                    submissions.add(submission);
-                }
-                return submissions;
-            }
+            return sqlReader.readItems(statement);
         } catch (SQLException e) {
             throw new DataAccessException("Error getting latest submissions", e);
         }
