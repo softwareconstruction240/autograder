@@ -20,6 +20,7 @@ public class DateTimeUtils {
      * @return a string formatted like "yyyy-MM-dd HH:mm:ss"
      */
     public static String getDateString(@NonNull long timestamp, boolean includeTime) {
+        // TODO: Read timezone from dynamic location
         ZonedDateTime zonedDateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneId.of("America/Denver"));
         String pattern = includeTime ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
