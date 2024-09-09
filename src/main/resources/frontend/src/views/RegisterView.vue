@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import {useAppConfigStore} from "@/stores/appConfig";
-import {onBeforeMount, onMounted} from 'vue';
+import { onBeforeMount, onMounted, reactive } from 'vue'
 import {meGet} from "@/services/authService";
 import {useAuthStore} from "@/stores/auth";
 import router from "@/router";
+import { useSubmissionStore } from '@/stores/submissions'
+import { isPlausibleRepoUrl } from '@/utils/utils'
+import { uiConfig } from '@/stores/uiConfig'
+import { Phase } from '@/types/types'
+import { adminSubmissionPost } from '@/services/submissionService'
+import { studentUpdateRepo } from '@/services/userService'
+import { useRouter } from 'vue-router'
 
 onBeforeMount(async () => {
   const loggedInUser = await meGet()
@@ -14,14 +21,44 @@ onBeforeMount(async () => {
   router.push({ name: 'home' });
 })
 
+let studentRepo = reactive( {
+  value: ""
+})
+let waitingForRepoCheck = reactive({ value: false })
+
+const submitAndCheckRepo = async () => {
+  waitingForRepoCheck.value = true
+
+  try {
+    await studentUpdateRepo(studentRepo.value)
+
+  } catch (error) {
+    if (error instanceof Error) { alert("Failed to save your Github Repo: " + error.message) }
+    else { alert("Unknown error updating Github Repo") }
+    waitingForRepoCheck.value = false
+    return
+  }
+
+  window.location.href = '/'
+}
 
 </script>
 
 <template>
   <div id="content">
     <h2>Welcome to the CS 240 Autograder</h2>
-    <p>Please enter your GitHub Repo URL</p>
-    <button @click="">Submit and Verify</button>
+    <p>Your code for this semester will need to be stored in a Public GitHub Repository, in order for the Autograder to work.</p>
+    <a
+      target="_blank"
+      :href="uiConfig.getSpecLink(Phase.GitHub)">
+      <span>Click here for more info</span>
+    </a>
+    <p><em>Please enter your GitHub Repo link here:</em></p>
+    <input v-model="studentRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
+    <button
+      :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
+      class="primary"
+      @click="submitAndCheckRepo">Submit and Verify</button>
   </div>
 </template>
 
@@ -36,5 +73,10 @@ onBeforeMount(async () => {
 
 button {
   margin-top: 1rem;
+}
+#repoUrlInput {
+  width: 80%;
+  padding: 10px;
+  margin-right: 10px;
 }
 </style>

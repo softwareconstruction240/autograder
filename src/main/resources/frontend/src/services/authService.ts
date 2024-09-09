@@ -20,19 +20,6 @@ export const meGet = async () => {
     }
 }
 
-export const registerPost = async (firstName: string, lastName: string, repoUrl: string) => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/auth/register', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({firstName, lastName, repoUrl})
-    });
-
-    return response.ok;
-}
-
 export const logoutPost = async () => {
     const response = await fetch(useAppConfigStore().backendUrl + "/auth/logout", {
         method: 'POST',

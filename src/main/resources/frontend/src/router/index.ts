@@ -29,6 +29,8 @@ const router = createRouter({
             beforeEnter: (to, from) => {
                 if (useAuthStore().isFullyRegistered)
                     return '/'
+                if (!useAuthStore().isLoggedIn)
+                    return 'login'
             }
         },
         {
