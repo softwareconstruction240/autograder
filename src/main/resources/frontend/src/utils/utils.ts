@@ -1,5 +1,13 @@
 import {useAdminStore} from "@/stores/admin";
-import {Phase, type RubricItem, type RubricType, type Submission, type TestNode, VerifiedStatus} from '@/types/types'
+import {
+  Phase,
+  type RubricItem,
+  type RubricType,
+  type Submission,
+  type TestNode,
+  type User,
+  VerifiedStatus
+} from '@/types/types'
 import {useAuthStore} from '@/stores/auth'
 
 export const commitVerificationFailed = (submission: Submission) => {
@@ -151,4 +159,3 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
   const words = rubricType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
   return words.join(' ');
 }
-
