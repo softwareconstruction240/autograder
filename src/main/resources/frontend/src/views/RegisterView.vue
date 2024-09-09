@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import {useAppConfigStore} from "@/stores/appConfig";
-import { onBeforeMount, onMounted, reactive } from 'vue'
+import { onBeforeMount, reactive } from 'vue'
 import {meGet} from "@/services/authService";
 import {useAuthStore} from "@/stores/auth";
 import router from "@/router";
-import { useSubmissionStore } from '@/stores/submissions'
 import { isPlausibleRepoUrl } from '@/utils/utils'
 import { uiConfig } from '@/stores/uiConfig'
 import { Phase } from '@/types/types'
-import { adminSubmissionPost } from '@/services/submissionService'
 import { studentUpdateRepo } from '@/services/userService'
-import { useRouter } from 'vue-router'
 
 onBeforeMount(async () => {
   const loggedInUser = await meGet()
