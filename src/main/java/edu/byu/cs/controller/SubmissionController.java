@@ -42,8 +42,6 @@ public class SubmissionController {
             halt(400, "Student submission is disabled for " + request.phase());
         }
 
-        updateRepoFromCanvas(user, req);
-
         if (! verifyHasNewCommits(user, request.phase()) ) { return null; }
 
         LOGGER.info("User {} submitted phase {} for grading", user.netId(), request.phase());
@@ -111,16 +109,6 @@ public class SubmissionController {
         } catch (Exception e) {
             LOGGER.error("Error starting grader", e);
             halt(500);
-        }
-    }
-
-    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException, DataAccessException {
-        CanvasIntegration canvas = CanvasService.getCanvasIntegration();
-        String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
-        if (!newRepoUrl.equals(user.repoUrl())) {
-            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
-            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user", user);
         }
     }
 
