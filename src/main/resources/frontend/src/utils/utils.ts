@@ -159,3 +159,8 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
   const words = rubricType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
   return words.join(' ');
 }
+
+export const isPlausibleRepoUrl = (url: string): boolean => {
+  return url.startsWith("http") &&
+         url.includes("github.com/")
+}
