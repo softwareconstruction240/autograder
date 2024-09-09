@@ -69,16 +69,6 @@ public interface CanvasIntegration {
      */
     CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException;
 
-    /**
-     * Gets the git repository url for the given user from their GitHub Repository assignment submission on canvas
-     *
-     * @param userId The canvas user id of the user to get the git repository url for
-     * @return The git repository url for the given user
-     * @throws CanvasException If there is an error with Canvas
-     */
-    String getGitRepo(int userId) throws CanvasException;
-
-
     User getTestStudent() throws CanvasException;
 
     ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException;
