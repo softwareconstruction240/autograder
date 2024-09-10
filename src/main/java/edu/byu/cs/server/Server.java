@@ -21,6 +21,7 @@ import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.ConfigController.*;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static edu.byu.cs.controller.UserController.repoPatch;
+import static edu.byu.cs.controller.UserController.repoPatchAdmin;
 import static spark.Spark.*;
 
 public class Server {
@@ -75,6 +76,8 @@ public class Server {
                     if (!req.requestMethod().equals("OPTIONS"))
                         verifyAdminMiddleware.handle(req, res);
                 });
+
+                patch("repo/:netId", repoPatchAdmin);
 
                 get("/users", usersGet);
 
