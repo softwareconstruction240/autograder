@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { onBeforeMount, reactive } from 'vue'
+import { onBeforeMount } from 'vue'
 import {meGet} from "@/services/authService";
 import {useAuthStore} from "@/stores/auth";
 import router from "@/router";
-import { isPlausibleRepoUrl } from '@/utils/utils'
 import { uiConfig } from '@/stores/uiConfig'
 import { Phase } from '@/types/types'
-import { studentUpdateRepo } from '@/services/userService'
+import RepoEditor from '@/components/RepoEditor.vue'
 
 onBeforeMount(async () => {
   const loggedInUser = await meGet()
@@ -16,27 +15,6 @@ onBeforeMount(async () => {
   useAuthStore().user = loggedInUser;
   router.push({ name: 'home' });
 })
-
-let studentRepo = reactive( {
-  value: ""
-})
-let waitingForRepoCheck = reactive({ value: false })
-
-const submitAndCheckRepo = async () => {
-  waitingForRepoCheck.value = true
-
-  try {
-    await studentUpdateRepo(studentRepo.value)
-
-  } catch (error) {
-    if (error instanceof Error) { alert("Failed to save your Github Repo: " + error.message) }
-    else { alert("Unknown error updating Github Repo") }
-    waitingForRepoCheck.value = false
-    return
-  }
-
-  window.location.href = '/'
-}
 
 </script>
 
@@ -49,17 +27,7 @@ const submitAndCheckRepo = async () => {
       :href="uiConfig.getSpecLink(Phase.GitHub)">
       <span>Click here for more info</span>
     </a>
-    <p><em>Please enter your GitHub Repo link here:</em></p>
-    <input v-model="studentRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
-    <button
-      :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
-      class="primary"
-      @click="submitAndCheckRepo">Submit and Register</button>
-    <p v-if="waitingForRepoCheck.value">Verifying repo URL... please wait...</p>
-    <div id="urlTips">
-      <p>Your url should look something like this:</p>
-      <p><em>https://github.com/{username}/{name_of_project}</em></p>
-    </div>
+    <RepoEditor/>
   </div>
 </template>
 
@@ -75,14 +43,5 @@ const submitAndCheckRepo = async () => {
 
 button {
   margin-top: 1rem;
-}
-#repoUrlInput {
-  width: 80%;
-  padding: 10px;
-  margin-right: 10px;
-}
-#urlTips {
-  font-size: smaller;
-  flex-direction: column;
 }
 </style>
