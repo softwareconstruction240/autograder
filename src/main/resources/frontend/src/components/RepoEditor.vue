@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from '@/utils/utils'
-import { reactive } from 'vue'
+import { defineEmits, reactive } from 'vue'
 import { studentUpdateRepo } from '@/services/userService'
 
+defineEmits({
+  repoEditSuccess: null,
+});
 
 let studentRepo = reactive( {
   value: ""
 })
 let waitingForRepoCheck = reactive({ value: false })
 
-const submitAndCheckRepo = async () => {
+const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   waitingForRepoCheck.value = true
 
   try {
@@ -22,8 +25,7 @@ const submitAndCheckRepo = async () => {
     return
   }
 
-  // Get ending action from props
-  window.location.href = '/'
+  sendEmit('repoEditSuccess')
 }
 </script>
 
@@ -34,7 +36,7 @@ const submitAndCheckRepo = async () => {
   <button
     :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
     class="primary"
-    @click="submitAndCheckRepo">Submit and Register</button>
+    @click="submitAndCheckRepo($emit)">Submit and Save</button>
   <p v-if="waitingForRepoCheck.value">Verifying repo URL... please wait...</p>
   <div id="urlTips">
     <p>Your url should look something like this:</p>

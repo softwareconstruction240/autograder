@@ -1,4 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
+import { useAuthStore } from '@/stores/auth'
 
 type MeResponse = {
     netId: string,
@@ -18,6 +19,14 @@ export const meGet = async () => {
     } catch (e) {
         return null;
     }
+}
+
+export const loadUser = async () => {
+    const loggedInUser = await meGet()
+    if (loggedInUser == null)
+        return;
+
+    useAuthStore().user = loggedInUser;
 }
 
 export const logoutPost = async () => {

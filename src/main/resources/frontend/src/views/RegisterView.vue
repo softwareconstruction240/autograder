@@ -16,6 +16,9 @@ onBeforeMount(async () => {
   router.push({ name: 'home' });
 })
 
+const goToApp = () => {
+  window.location.href = '/'
+}
 </script>
 
 <template>
@@ -27,7 +30,8 @@ onBeforeMount(async () => {
       :href="uiConfig.getSpecLink(Phase.GitHub)">
       <span>Click here for more info</span>
     </a>
-    <RepoEditor/>
+    <RepoEditor
+      @repoEditSuccess="goToApp"/>
   </div>
 </template>
 
