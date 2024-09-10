@@ -55,6 +55,7 @@ const submitAndCheckRepo = async () => {
       :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
       class="primary"
       @click="submitAndCheckRepo">Submit and Register</button>
+    <p v-if="waitingForRepoCheck.value">Verifying repo URL... please wait...</p>
     <div id="urlTips">
       <p>Your url should look something like this:</p>
       <p><em>https://github.com/{username}/{name_of_project}</em></p>
