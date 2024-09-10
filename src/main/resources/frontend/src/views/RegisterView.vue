@@ -54,7 +54,11 @@ const submitAndCheckRepo = async () => {
     <button
       :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
       class="primary"
-      @click="submitAndCheckRepo">Submit and Verify</button>
+      @click="submitAndCheckRepo">Submit and Register</button>
+    <div id="urlTips">
+      <p>Your url should look something like this:</p>
+      <p><em>https://github.com/{username}/{name_of_project}</em></p>
+    </div>
   </div>
 </template>
 
@@ -65,6 +69,7 @@ const submitAndCheckRepo = async () => {
   align-items: center;
   justify-content: center;
   height: 100%;
+  text-align: center;
 }
 
 button {
@@ -74,5 +79,9 @@ button {
   width: 80%;
   padding: 10px;
   margin-right: 10px;
+}
+#urlTips {
+  font-size: smaller;
+  flex-direction: column;
 }
 </style>
