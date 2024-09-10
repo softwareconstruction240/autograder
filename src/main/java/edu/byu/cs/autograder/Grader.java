@@ -146,7 +146,7 @@ public class Grader implements Runnable {
      */
     public static String cleanRepoUrl(String repoUrl) throws GradingException {
         String[] regexPatterns = {
-            "https?://github\\.com/([^/?]+)/([^/?]+)", // https
+            "(?:https?://)?(?:www\\.)?github\\.com/([^/?]+)/([^/?]+)", // https
             "git@github.com:([^/]+)/([^/]+).git" // ssh
         };
         Pattern pattern;
