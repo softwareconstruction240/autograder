@@ -24,7 +24,7 @@ public class UserController {
         User user = req.session().attribute("user");
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
+        String repoUrl = cleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
 
         try {
             if (!isValidRepoUrl(repoUrl)) {
@@ -37,7 +37,7 @@ public class UserController {
         }
 
         DaoService.getUserDao().setRepoUrl(user.netId(), repoUrl);
-        LOGGER.info("{} changed their repoUrl to {}", user.netId(), repoUrl);
+        LOGGER.info("user {} changed their repoUrl to {}", user.netId(), repoUrl);
 
         res.status(200);
         return "Successfully updated repoUrl";
@@ -48,12 +48,23 @@ public class UserController {
         CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
 
         try (Git git = cloneCommand.call()) {
-            LOGGER.info("Test cloning git repo to {}", git.getRepository().getDirectory());
+            LOGGER.debug("Cloning repo to {} to check repo exists", git.getRepository().getDirectory());
         } catch (GitAPIException e) {
             FileUtils.removeDirectory(cloningDir);
             return false;
         }
         FileUtils.removeDirectory(cloningDir);
         return true;
+    }
+
+    /**
+     * cleans up and returns the provided GitHub Repo URL for consistent formatting.
+     * currently just removes the .git at the end of the URL if present
+     */
+    private static String cleanRepoUrl(String url) {
+        if (url.endsWith(".git")) {
+            url = url.substring(0, url.length() - 4);
+        }
+        return url;
     }
 }
