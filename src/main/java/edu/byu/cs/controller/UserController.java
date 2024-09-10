@@ -2,9 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -15,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import spark.Route;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.UUID;
 
 import static spark.Spark.halt;
@@ -31,7 +28,8 @@ public class UserController {
 
         try {
             if (!isValidRepoUrl(repoUrl)) {
-                halt(400, "Invalid Github Repo Url. Check if the link is valid");
+                res.status(400);
+                return "Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.";
             }
         } catch (Exception e) {
             LOGGER.error("Error cloning repo during repoPatch: " + e.getMessage());
@@ -45,7 +43,7 @@ public class UserController {
         return "Successfully updated repoUrl";
     };
 
-    private static boolean isValidRepoUrl(String url) throws IOException {
+    private static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./validation_cloning/" + UUID.randomUUID());
         CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
 
