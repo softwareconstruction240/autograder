@@ -1,45 +1,58 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from '@/utils/utils'
 import { defineEmits, reactive } from 'vue'
-import { studentUpdateRepo } from '@/services/userService'
+import { adminUpdateRepo, studentUpdateRepo } from '@/services/userService'
+import type { User } from '@/types/types'
+
+const { user } = defineProps<{
+  user: User | null;
+}>();
 
 defineEmits({
   repoEditSuccess: null,
 });
 
-let studentRepo = reactive( {
+let newRepoUrl = reactive( {
   value: ""
 })
 let waitingForRepoCheck = reactive({ value: false })
+let success = reactive({ value: false })
 
 const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
+  success.value = false
   waitingForRepoCheck.value = true
 
   try {
-    await studentUpdateRepo(studentRepo.value)
+    if (user) {
+      await adminUpdateRepo(newRepoUrl.value, user.netId)
+    } else {
+      await studentUpdateRepo(newRepoUrl.value)
+    }
 
   } catch (error) {
-    if (error instanceof Error) { alert("Failed to save your Github Repo: " + error.message) }
+    if (error instanceof Error) { alert("Failed to save the Github Repo: " + error.message) }
     else { alert("Unknown error updating Github Repo") }
     waitingForRepoCheck.value = false
     return
   }
 
+  waitingForRepoCheck.value = false
+  success.value = true
   sendEmit('repoEditSuccess')
 }
 </script>
 
 <template>
 <div>
-  <p><em>Please enter your GitHub Repo link here:</em></p>
-  <input v-model="studentRepo.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
+  <p><em>Please enter <span>{{user ? user.netId + "'s new" : "your"}}</span> GitHub Repo link here:</em></p>
+  <input v-model="newRepoUrl.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
   <button
-    :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(studentRepo.value)"
+    :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(newRepoUrl.value)"
     class="primary"
     @click="submitAndCheckRepo($emit)">Submit and Save</button>
   <p v-if="waitingForRepoCheck.value">Verifying repo URL... please wait...</p>
   <div id="urlTips">
-    <p>Your url should look something like this:</p>
+    <p>The url should look something like this:</p>
     <p><em>https://github.com/{username}/{name_of_project}</em></p>
   </div>
 </div>

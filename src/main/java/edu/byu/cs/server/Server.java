@@ -77,7 +77,7 @@ public class Server {
                         verifyAdminMiddleware.handle(req, res);
                 });
 
-                patch("repo/:netId", repoPatchAdmin);
+                patch("/repo/:netId", repoPatchAdmin);
 
                 get("/users", usersGet);
 
