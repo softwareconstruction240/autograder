@@ -9,6 +9,10 @@ const { student } = defineProps<{
   student: User;
 }>();
 
+const reloadPage = () => {
+  window.location.reload()
+}
+
 </script>
 
 <template>
@@ -23,7 +27,8 @@ const { student } = defineProps<{
       <h4>Change Their Repo</h4>
       <RepoEditor
         :user="student"
-         @repoEditSuccess=""/>
+         @repoEditSuccess="reloadPage"/>
+      <p><em>If the repo saves successfully, the page will reload.</em></p>
     </div>
     <div>
       <h4>Repo Change History</h4>

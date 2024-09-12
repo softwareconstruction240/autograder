@@ -30,7 +30,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
     }
 
   } catch (error) {
-    if (error instanceof Error) { alert("Failed to save the Github Repo: " + error.message) }
+    if (error instanceof Error) { alert("Failed to save the Github Repo: \n" + error.message) }
     else { alert("Unknown error updating Github Repo") }
     waitingForRepoCheck.value = false
     return
