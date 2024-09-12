@@ -102,6 +102,18 @@ public class SqlDb {
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }
+            try (Statement createConfigurationTableStatement = connection.createStatement()) {
+                createConfigurationTableStatement.executeUpdate("""
+                        CREATE TABLE IF NOT EXISTS `repo_update` (
+                               `timestamp` TIMESTAMP NOT NULL,
+                               `net_id` VARCHAR(255) NOT NULL,
+                               `repo_url` VARCHAR(2048) NOT NULL,
+                               `admin_update` BOOLEAN NOT NULL,
+                               `admin_net_id` VARCHAR(255),
+                               PRIMARY KEY (`timestamp`)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                        """);
+            }
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);

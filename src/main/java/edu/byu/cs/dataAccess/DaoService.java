@@ -10,6 +10,7 @@ public class DaoService {
     private static QueueDao queueDao = new QueueMemoryDao();
     private static RubricConfigDao rubricConfigDao = new RubricConfigMemoryDao();
     private static ConfigurationDao configurationDao = new ConfigurationMemoryDao();
+    private static RepoUpdateDao repoUpdateDao = new RepoUpdateMemoryDao();
 
     public static UserDao getUserDao() {
         return userDao;
@@ -51,6 +52,12 @@ public class DaoService {
         DaoService.configurationDao = configurationDao;
     }
 
+    public static void setRepoUpdateDao(RepoUpdateDao repoUpdateDao) {
+        DaoService.repoUpdateDao = repoUpdateDao;
+    }
+
+    public static RepoUpdateDao getRepoUpdateDao() { return repoUpdateDao; }
+
     /** Create and set a memory DAO for every DAO. Used for testing purposes. */
     public static void initializeMemoryDAOs() {
         DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
@@ -58,6 +65,7 @@ public class DaoService {
         DaoService.setQueueDao(new QueueMemoryDao());
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
         DaoService.setConfigurationDao(new ConfigurationMemoryDao());
+        DaoService.setRepoUpdateDao(new RepoUpdateMemoryDao());
     }
 
     public static void initializeSqlDAOs() throws DataAccessException {
@@ -67,5 +75,6 @@ public class DaoService {
         DaoService.setRubricConfigDao(new RubricConfigSqlDao());
         DaoService.setSubmissionDao(new SubmissionSqlDao());
         DaoService.setUserDao(new UserSqlDao());
+        DaoService.setRepoUpdateDao(new RepoUpdateSqlDao());
     }
 }
