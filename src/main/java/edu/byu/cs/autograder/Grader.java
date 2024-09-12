@@ -145,6 +145,9 @@ public class Grader implements Runnable {
      * @throws GradingException Throws IOException if repoUrl does not follow expected format
      */
     public static String cleanRepoUrl(String repoUrl) throws GradingException {
+        // Strictly match the beginning of the URL to ensure it's a github.com domain (and not fake-github.com)
+        // Username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen.
+        // The repository name can only contain ASCII letters, digits, and the characters ., -, and _. The .git extension will be removed.
         String[] regexPatterns = {
             "(?:https?://)?(?:www\\.)?github\\.com/([^/?]+)/([^/?]+)", // https
             "git@github.com:([^/]+)/([^/]+).git" // ssh
