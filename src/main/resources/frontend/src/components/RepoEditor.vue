@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from '@/utils/utils'
 import { defineEmits, reactive } from 'vue'
-import { adminUpdateRepo, studentUpdateRepo } from '@/services/userService'
+import { adminUpdateRepoPatch, studentUpdateRepoPatch } from '@/services/userService'
 import type { User } from '@/types/types'
 
 const { user } = defineProps<{
@@ -24,9 +24,9 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
 
   try {
     if (user) {
-      await adminUpdateRepo(newRepoUrl.value, user.netId)
+      await adminUpdateRepoPatch(newRepoUrl.value, user.netId)
     } else {
-      await studentUpdateRepo(newRepoUrl.value)
+      await studentUpdateRepoPatch(newRepoUrl.value)
     }
 
   } catch (error) {
@@ -51,6 +51,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
     class="primary"
     @click="submitAndCheckRepo($emit)">Submit and Save</button>
   <p v-if="waitingForRepoCheck.value">Verifying repo URL... please wait...</p>
+  <p v-else-if="success.value">Repo successfully saved!</p>
   <div id="urlTips">
     <p>The url should look something like this:</p>
     <p><em>https://github.com/{username}/{name_of_project}</em></p>

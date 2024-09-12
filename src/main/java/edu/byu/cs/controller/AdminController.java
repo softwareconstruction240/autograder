@@ -45,6 +45,30 @@ public class AdminController {
 
     };
 
+    public static final Route userGet = (req, res) -> {
+        UserDao userDao = DaoService.getUserDao();
+        String netId = req.params(":netId");
+
+        User user;
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting user", e);
+            halt(500);
+            return null;
+        }
+
+        if (user == null) {
+            halt(404, "User " + netId + " not found");
+        }
+
+        res.type("application/json");
+        res.status(200);
+
+        return Serializer.serialize(user);
+
+    };
+
     public static final Route userPatch = (req, res) -> {
         String netId = req.params(":netId");
 
