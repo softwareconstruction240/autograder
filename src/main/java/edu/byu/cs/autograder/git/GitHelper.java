@@ -95,9 +95,7 @@ public class GitHelper {
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to {}", git.getRepository().getDirectory());
         } catch (GitAPIException e) {
-            gradingContext.observer().notifyError("Failed to clone repo: " + e.getMessage());
-            LOGGER.error("Failed to clone repo", e);
-            throw new GradingException("Failed to clone repo: " + e.getMessage());
+            throw new GradingException("Failed to clone repo: " + e.getMessage(), e);
         }
     }
 
