@@ -232,7 +232,10 @@ public class GitHelper {
                         "Suspicious commit history. Some commits have been backdated."),
                 new CV(
                         commitsByDay.commitTimestampsDuplicated(),
-                        "Suspicious commit history. Multiple commits have the exact same timestamp.")
+                        "Suspicious commit history. Multiple commits have the exact same timestamp."),
+                new CV(
+                        commitsByDay.missingTailHash(),
+                        "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
         ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
 
