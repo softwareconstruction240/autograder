@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -15,6 +17,8 @@ import spark.HaltException;
 import spark.Route;
 
 import java.io.File;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.UUID;
 
 import static spark.Spark.halt;
@@ -47,6 +51,34 @@ public class UserController {
         return "Successfully updated repoUrl for user: " + studentNetId;
     };
 
+    public static final Route repoHistoryAdminGet = (req, res) -> {
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        String repoUrl = cleanRepoUrl(gson.fromJson(jsonObject.get("repoUrl"), String.class));
+        String netId = gson.fromJson(jsonObject.get("netId"), String.class);
+
+        Collection<RepoUpdate> updates = null;
+        try {
+            if (repoUrl != null) {
+                updates = DaoService.getRepoUpdateDao().getUpdatesForRepo(repoUrl);
+            } else if (netId != null) {
+                updates = DaoService.getRepoUpdateDao().getUpdatesForUser(netId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error getting repo updates:", e);
+            halt(500, "There was an internal server error getting repo updates");
+        } finally {
+            if (updates == null) {
+                halt(422, "You must provide either a repoUrl or a netId");
+            }
+        }
+
+        res.status(200);
+        res.type("application/json");
+
+        return Serializer.serialize(updates);
+    };
+
     private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId) {
         try {
             if (!isValidRepoUrl(repoUrl)) {
@@ -60,7 +92,9 @@ public class UserController {
         }
 
         try {
+            RepoUpdate update = new RepoUpdate(Instant.now(), studentNetId, repoUrl, adminNetId != null, adminNetId);
             DaoService.getUserDao().setRepoUrl(studentNetId, repoUrl);
+            DaoService.getRepoUpdateDao().insertUpdate(update);
         } catch (DataAccessException e) {
             halt(500, "There was an internal server error in saving the GitHub Repo URL");
         }
@@ -95,6 +129,7 @@ public class UserController {
      * currently just removes the .git at the end of the URL if present
      */
     private static String cleanRepoUrl(String url) {
+        if (url == null) { return null; }
         if (url.endsWith(".git")) {
             url = url.substring(0, url.length() - 4);
         }
