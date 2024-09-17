@@ -19,6 +19,7 @@ import spark.Route;
 import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
 
 import static spark.Spark.halt;
@@ -91,6 +92,21 @@ public class UserController {
             halt(500, "There was an internal server error in verifying the Github Repo");
         }
 
+        RepoUpdate historicalUpdate = null;
+        try {
+            historicalUpdate = verifyRepoIsAvailableForUser(repoUrl, studentNetId);
+        } catch (DataAccessException e) {
+            halt(500, "There was an internal server error in checking the repo update history for this url");
+        }
+        if (historicalUpdate != null) {
+            if (adminNetId != null) {
+                halt(418, "Repo is blocked because of a prior claim: " + historicalUpdate);
+            } else {
+                LOGGER.info("Student " + studentNetId + " was blocked from updating their url because of a prior claim: " + historicalUpdate);
+                halt(418, "Please talk to a TA to submit this url");
+            }
+        }
+
         try {
             RepoUpdate update = new RepoUpdate(Instant.now(), studentNetId, repoUrl, adminNetId != null, adminNetId);
             DaoService.getUserDao().setRepoUrl(studentNetId, repoUrl);
@@ -122,6 +138,26 @@ public class UserController {
         }
         FileUtils.removeDirectory(cloningDir);
         return true;
+    }
+
+    /**
+     * Checks to see if anyone currently or previously (other than the provided user) has claimed the provided repoUrl.
+     * returns if the repo is available. it will throw otherwise, containing a message why
+     * @param url the repoUrl to check if currently or previously claimed
+     * @param netId the user trying to claim the url, so that they can claim urls they previously claimed
+     * @return null if the repo is available for that user. returns the update that prevents the user from claiming the url.
+     */
+    private static RepoUpdate verifyRepoIsAvailableForUser(String url, String netId) throws DataAccessException {
+        Collection<RepoUpdate> updates = DaoService.getRepoUpdateDao().getUpdatesForRepo(url);
+        if (updates.isEmpty()) {
+            return null;
+        }
+        for (RepoUpdate update : updates) {
+            if (!Objects.equals(update.netId(), netId)) {
+                return update;
+            }
+        }
+        return null;
     }
 
     /**

@@ -19,4 +19,15 @@ public record RepoUpdate(
         boolean adminUpdate,
         @Nullable String adminNetId
         ) {
+
+        @Override
+        public String toString() {
+                String adminInfo = adminUpdate ? "adminNetId='" + adminNetId + '\'' : "";
+                return "RepoUpdate{" +
+                        "timestamp=" + timestamp +
+                        ", netId='" + netId + '\'' +
+                        ", repoUrl='" + repoUrl + '\'' +
+                        adminInfo +
+                        '}';
+        }
 }
