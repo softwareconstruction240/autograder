@@ -240,7 +240,7 @@ public class CommitAnalytics {
     private static CommitsBetweenBounds produceCommitIterable(Git git, ObjectId headObjId, ObjectId tailObjId)
             throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
         try {
-            return new CommitsBetweenBounds(git.log().addRange(headObjId, tailObjId).call(), false);
+            return new CommitsBetweenBounds(git.log().addRange(tailObjId, headObjId).call(), false);
         } catch (MissingObjectException missingObjectException) {
             return produceCommitIterable(git, headObjId, true);
         }
