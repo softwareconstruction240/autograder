@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from '@/utils/utils'
-import { defineEmits, reactive } from 'vue'
+import { defineEmits, onMounted, reactive } from 'vue'
 import { adminUpdateRepoPatch, studentUpdateRepoPatch } from '@/services/userService'
 import type { User } from '@/types/types'
 
@@ -40,11 +40,15 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   success.value = true
   sendEmit('repoEditSuccess')
 }
+
+onMounted( () => {
+  console.log(user)
+})
 </script>
 
 <template>
 <div>
-  <p><em>Please enter <span>{{user ? user.netId + "'s new" : "your"}}</span> GitHub Repo link here:</em></p>
+  <p><em>Please enter the GitHub Repo link here:</em></p>
   <input v-model="newRepoUrl.value" type="text" id="repoUrlInput" placeholder="Github Repo URL"/>
   <button
     :disabled="waitingForRepoCheck.value || !isPlausibleRepoUrl(newRepoUrl.value)"

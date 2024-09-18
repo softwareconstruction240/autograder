@@ -1,23 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
-import type { RepoUpdate, Submission, User } from '@/types/types'
-import { Phase } from '@/types/types'
-
-export const userGet = async (netId: String): Promise<User | null> => {
-  const response = await fetch(useAppConfigStore().backendUrl + "/api/admin/user/" + netId, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error(await response.text());
-  }
-
-  return await response.json() as User | null;
-}
+import type { RepoUpdate } from '@/types/types'
 
 export const repoHistoryGet = async (netId: String): Promise<RepoUpdate[]> => {
   let url = useAppConfigStore().backendUrl + '/api/admin/repo/history?netId=' + netId

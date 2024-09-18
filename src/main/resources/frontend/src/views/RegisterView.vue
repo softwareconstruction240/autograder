@@ -31,7 +31,8 @@ const goToApp = () => {
       <span>Click here for more info</span>
     </a>
     <RepoEditor
-      @repoEditSuccess="goToApp"/>
+      @repoEditSuccess="goToApp"
+      :user="useAuthStore().user"/>
   </div>
 </template>
 
