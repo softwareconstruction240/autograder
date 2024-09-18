@@ -162,12 +162,14 @@ public class UserController {
 
     /**
      * cleans up and returns the provided GitHub Repo URL for consistent formatting.
-     * currently just removes the .git at the end of the URL if present
      */
     private static String cleanRepoUrl(String url) {
         if (url == null) { return null; }
         if (url.endsWith(".git")) {
             url = url.substring(0, url.length() - 4);
+        }
+        if (url.startsWith("https://www.")) {
+            url = "https://" + url.substring(12);
         }
         return url;
     }
