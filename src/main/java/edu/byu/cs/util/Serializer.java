@@ -65,6 +65,7 @@ public class Serializer {
                 return null;
             }
             ZonedDateTime utc = ZonedDateTime.parse(jsonReader.nextString());
+            // TODO: Read timezone from dynamic location
             return utc.withZoneSameInstant(ZoneId.of("America/Denver"));
         }
     }
