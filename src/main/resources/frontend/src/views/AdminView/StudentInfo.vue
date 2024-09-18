@@ -51,17 +51,18 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p v-if="student.repoUrl">
+  <p v-if="student.role == 'STUDENT'">
     Github Repo:
-    <span v-html="generateClickableLink(student.repoUrl)"/>
+    <span v-if="student.repoUrl" v-html="generateClickableLink(student.repoUrl)"/>
+    <span v-else>No repo</span>
     <button
+      v-if="student.role == 'STUDENT'"
       class="small"
       id="openRepoView"
       @click="openRepoView.value = true">
       History/Change
     </button>
   </p>
-
 
   <ag-grid-vue
       class="ag-theme-quartz"

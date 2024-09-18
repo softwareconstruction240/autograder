@@ -18,6 +18,7 @@ import spark.Route;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
@@ -54,24 +55,23 @@ public class UserController {
 
     public static final Route repoHistoryAdminGet = (req, res) -> {
         Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
-        String repoUrl = cleanRepoUrl(gson.fromJson(jsonObject.get("repoUrl"), String.class));
-        String netId = gson.fromJson(jsonObject.get("netId"), String.class);
+        String repoUrl = req.queryParams("repoUrl");
+        String netId = req.queryParams("netId");
 
-        Collection<RepoUpdate> updates = null;
+        Collection<RepoUpdate> updates = new ArrayList<>();
         try {
+            if (repoUrl == null && netId == null) {
+                halt(422, "You must provide either a repoUrl or a netId");
+            }
             if (repoUrl != null) {
-                updates = DaoService.getRepoUpdateDao().getUpdatesForRepo(repoUrl);
-            } else if (netId != null) {
-                updates = DaoService.getRepoUpdateDao().getUpdatesForUser(netId);
+                updates.addAll(DaoService.getRepoUpdateDao().getUpdatesForRepo(repoUrl));
+            }
+            if (netId != null) {
+                updates.addAll(DaoService.getRepoUpdateDao().getUpdatesForUser(netId));
             }
         } catch (Exception e) {
             LOGGER.error("Error getting repo updates:", e);
             halt(500, "There was an internal server error getting repo updates");
-        } finally {
-            if (updates == null) {
-                halt(422, "You must provide either a repoUrl or a netId");
-            }
         }
 
         res.status(200);
