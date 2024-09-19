@@ -3,9 +3,10 @@ import { isPlausibleRepoUrl } from '@/utils/utils'
 import { defineEmits, onMounted, reactive } from 'vue'
 import { adminUpdateRepoPatch, studentUpdateRepoPatch } from '@/services/userService'
 import type { User } from '@/types/types'
+import { useAuthStore } from '@/stores/auth'
 
 const { user } = defineProps<{
-  user: User | null;
+  user: User;
 }>();
 
 defineEmits({
@@ -23,7 +24,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   waitingForRepoCheck.value = true
 
   try {
-    if (user) {
+    if (useAuthStore().user?.role == 'ADMIN') {
       await adminUpdateRepoPatch(newRepoUrl.value, user.netId)
     } else {
       await studentUpdateRepoPatch(newRepoUrl.value)

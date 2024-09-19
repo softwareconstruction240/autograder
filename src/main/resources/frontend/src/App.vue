@@ -68,7 +68,7 @@ const repoEditDone = () => {
       v-if="openRepoEditor.value"
       @closePopUp="openRepoEditor.value = false">
       <RepoEditor
-      @repoEditSuccess="repoEditDone" :user="null"/>
+      @repoEditSuccess="repoEditDone" :user="useAuthStore().user"/>
     </PopUp>
 
     <router-view/>
