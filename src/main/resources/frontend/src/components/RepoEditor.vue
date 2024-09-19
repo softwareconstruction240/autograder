@@ -6,7 +6,7 @@ import type { User } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 
 const { user } = defineProps<{
-  user: User;
+  user: User | null;
 }>();
 
 defineEmits({
@@ -24,7 +24,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   waitingForRepoCheck.value = true
 
   try {
-    if (useAuthStore().user?.role == 'ADMIN') {
+    if (useAuthStore().user?.role == 'ADMIN' && user != null) {
       await adminUpdateRepoPatch(newRepoUrl.value, user.netId)
     } else {
       await studentUpdateRepoPatch(newRepoUrl.value)
