@@ -22,11 +22,11 @@ public record RepoUpdate(
 
         @Override
         public String toString() {
-                String adminInfo = adminUpdate ? "adminNetId='" + adminNetId + '\'' : "";
+                String adminInfo = adminUpdate ? "\nadminNetId='" + adminNetId + '\'' : "";
                 return "RepoUpdate{" +
-                        "timestamp=" + timestamp +
-                        ", netId='" + netId + '\'' +
-                        ", repoUrl='" + repoUrl + '\'' +
+                        "Timestamp:" + timestamp +
+                        "\nnetId='" + netId + '\'' +
+                        "\nrepoUrl='" + repoUrl + '\'' +
                         adminInfo +
                         '}';
         }
