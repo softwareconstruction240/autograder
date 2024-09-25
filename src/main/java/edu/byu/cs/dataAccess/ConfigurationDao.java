@@ -7,6 +7,8 @@ public interface ConfigurationDao {
     enum Configuration {
         STUDENT_SUBMISSIONS_ENABLED,
         BANNER_MESSAGE,
+        BANNER_LINK,
+        BANNER_COLOR,
         GITHUB_ASSIGNMENT_NUMBER,
         PHASE0_ASSIGNMENT_NUMBER,
         PHASE1_ASSIGNMENT_NUMBER,

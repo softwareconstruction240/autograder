@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
+import static spark.Spark.halt;
+
 public class ConfigController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
@@ -51,6 +53,8 @@ public class ConfigController {
         JsonObject response = new JsonObject();
 
         response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
+        response.addProperty("bannerLink", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_LINK, String.class));
+        response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
         response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
 
         return response;
@@ -109,13 +113,23 @@ public class ConfigController {
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
         String message = new Gson().fromJson(jsonObject.get("bannerMessage"), String.class);
+        String link = new Gson().fromJson(jsonObject.get("bannerLink"), String.class);
+        String color = new Gson().fromJson(jsonObject.get("bannerColor"), String.class);
+
+        // If they give us a color, and it's not long enough or is missing #
+        if (!color.isEmpty() && ((color.length() != 7) || !color.startsWith("#"))) {
+            halt(400, "Invalid hex color code. Must provide a hex code starting with a # symbol, followed by 6 hex digits");
+        }
+
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, message, String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, link, String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, color, String.class);
 
         User user = req.session().attribute("user");
         if (message.isEmpty()) {
             logConfigChange("cleared the banner message", user.netId());
         } else {
-            logConfigChange("set the banner message to: '%s'".formatted(message), user.netId());
+            logConfigChange("set the banner message to: '%s' with link: {%s}".formatted(message, link), user.netId());
         }
 
         res.status(200);
