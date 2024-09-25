@@ -17,6 +17,7 @@ import InfoPanel from '@/components/InfoPanel.vue'
 import { useAuthStore } from '@/stores/auth'
 import { approveSubmissionPost } from '@/services/adminService'
 import { ref } from 'vue'
+import AboutPage from '@/components/AboutPage.vue'
 
 const { submission } = defineProps<{
   submission: Submission;
@@ -70,6 +71,8 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
         </div>
       </InfoPanel>
     </div>
+
+    <AboutPage/>
 
     <div id="important">
       <InfoPanel class="info-box">
