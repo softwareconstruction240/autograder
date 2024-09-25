@@ -41,6 +41,11 @@ public class LateDayCalculator {
     }
 
     public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+        return calculateLateDays(phase, netId, handInDate);
+    }
+
+    public int calculateLateDays(Phase phase, String netId, ZonedDateTime handInDate) throws GradingException, DataAccessException {
         if (!ApplicationProperties.useCanvas()) return 0;
 
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
@@ -53,7 +58,6 @@ public class LateDayCalculator {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
 
-        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         return Math.min(getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
     }
 
