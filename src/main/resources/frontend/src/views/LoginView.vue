@@ -4,6 +4,7 @@ import {onBeforeMount, onMounted} from 'vue';
 import {meGet} from "@/services/authService";
 import {useAuthStore} from "@/stores/auth";
 import router from "@/router";
+import AboutPage from '@/components/AboutPage.vue'
 
 onBeforeMount(async () => {
   const loggedInUser = await meGet()
@@ -34,6 +35,8 @@ onMounted(() => {
     <p>After selecting Log In, you will be redirected to BYU's authentication page.</p>
     <button @click="login">Log In</button>
   </div>
+
+  <AboutPage/> <!-- putting it here so you can find it without logging in -->
 </template>
 
 <style scoped>
