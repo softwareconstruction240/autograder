@@ -18,7 +18,6 @@ import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -131,20 +130,17 @@ public class Scorer {
      * Note that this operation will be performed carefully so that existing RubricItem's in Canvas
      * will not be overwritten by the operation.
      *
-     * @param submission Submission object of approved submission
+     * @param rubric A {@link Rubric} containing values to set in Canvas.
+     *               Any items not set will be populated with their value from Canvas.
+     * @param phase The phase being graded
+     * @param netId Net ID of student being
      * @param penaltyPct The approved GIT_COMMITS penalty percentage
      * @throws GradingException When preconditions are not met.
      * @throws DataAccessException When the database cannot be reached.
      */
-    public static void attemptSendApprovedScoreToCanvas(Submission submission, int penaltyPct, String commitPenaltyMsg) throws GradingException, DataAccessException {
-        Phase phase = submission.phase();
-        String netId = submission.netId();
+    public static void attemptSendToCanvas(Rubric rubric, Phase phase, String netId, int penaltyPct, String commitPenaltyMsg) throws GradingException, DataAccessException {
         int canvasUserId = getCanvasUserId(netId);
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-
-        //TODO: undo this change when developing more permanent solution
-        int daysLate = new LateDayCalculator().calculateLateDays(phase, netId, submission.timestamp().atZone(ZoneId.of("America/Denver")));
-        Rubric rubric = applyLatePenalty(submission.rubric(), daysLate);
 
         CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric, phase);
 
@@ -290,7 +286,7 @@ public class Scorer {
         return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
     }
 
-    private static Rubric applyLatePenalty(Rubric rubric, int daysLate) {
+    private Rubric applyLatePenalty(Rubric rubric, int daysLate) {
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
         for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
