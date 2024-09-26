@@ -179,7 +179,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 21, 31, 1);
                     utils.makeCommit(repoContext, "Change 10", 20, 30, 900); // Significant
                 },
-                utils.generalCommitVerificationResult(false, 4, 10, 5)
+                utils.generalCommitVerificationResult(false, 4, 10, 5, false)
         ));
     }
 
@@ -230,7 +230,6 @@ class GitHelperTest {
         // Works when a non-graded phase has already been submitted
     }
 
-
     @Test
     void verifyRegularCommits() {
         // Counts commits from merges properly
@@ -238,5 +237,26 @@ class GitHelperTest {
         // Commits authored before the tail timestamp trigger failure
     }
 
+    @Test
+    void passoffMissingTailHash() {
+        utils.setGradingContext(utils.generateGradingContext(1, 1, 10,  1));
+        utils.evaluateTest("missing-tail-commit", List.of(
+                new VerificationCheckpoint(
+                    repoContext -> {
+                        utils.makeCommit(repoContext, "Change 1", 24, 39, 20);
+                    },
+                    utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                    repoContext -> {
+                        utils.makeCommit(repoContext, "Change 2", 23, 38, 10);
 
+                        // NOTE: I tried putting in an *obviously* incorrect head hash for testing, but it JGit rejected
+                        // it with an InvalidObjectIdException. Apparently the ObjectIds cannot be any alphanumeric string.
+                        utils.setPrevVerification("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
+                    },
+                    // Since the tail hash doesn't exist, it will evaluate the entire repository resulting in 2 commits on two days.
+                    // It will be flagged as potentially incorrect and require manual intervention.
+                    utils.generalCommitVerificationResult(false, 2, 2, true))
+        ));
+    }
 }
