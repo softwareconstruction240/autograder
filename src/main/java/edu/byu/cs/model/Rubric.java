@@ -55,6 +55,7 @@ public record Rubric(
     public record Results(
             String notes,
             Float score,
+            Float rawScore,
             Integer possiblePoints,
             TestAnalysis testResults,
             String textResults
