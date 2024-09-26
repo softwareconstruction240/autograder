@@ -78,7 +78,7 @@ class ScorerTest {
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
-                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, 
+                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
                         new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId")))
         );
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
@@ -269,7 +269,7 @@ class ScorerTest {
 
         return new CommitVerificationResult(
                 verified, isCached, 0, 0, 0, false, 0,
-                "", null, null,
+                "", null, null, null,
                 headHash, null);
     }
 

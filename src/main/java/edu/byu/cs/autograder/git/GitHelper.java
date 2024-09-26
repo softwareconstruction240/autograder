@@ -112,7 +112,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
-                0, 0, 0, false, 0, failureMessage,
+                0, 0, 0, false, 0, failureMessage, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -166,7 +166,7 @@ public class GitHelper {
         String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, false, originalPenaltyPct, failureMessage,
+                0, 0, 0, false, originalPenaltyPct, failureMessage, null,
                 null, null, headHash, null
         );
     }
@@ -243,6 +243,13 @@ public class GitHelper {
         Result warningResults = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
         Result errorResults = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
+        // Remove warning commits from results
+        numCommits -= warningResults.commitsAffected(); // Important!
+        significantCommits -= warningResults.commitsAffected(); // Assume that the affected commits were significant
+        // Don't assume we can modify the daysWithCommits value meaningfully.
+        // Ideally, we would reevaluate all these conditions after
+        // removing the warning commits from the set of valid commits.
+
         return new CommitVerificationResult(
                 errorResults.isEmpty(),
                 false,
@@ -252,6 +259,7 @@ public class GitHelper {
                 commitsByDay.missingTailHash(),
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorResults.messages()),
+                warningResults.messages(),
                 commitsByDay.lowerThreshold().timestamp(),
                 commitsByDay.upperThreshold().timestamp(),
                 commitsByDay.upperThreshold().commitHash(),
