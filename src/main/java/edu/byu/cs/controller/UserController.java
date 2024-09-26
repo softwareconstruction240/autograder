@@ -185,7 +185,7 @@ public class UserController {
                 Instant fakeUpdateInstant = mountainTime.toInstant();
 
                 if (updateDao.getUpdatesForUser(user.netId()).isEmpty()) {
-                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), user.repoUrl(), true, "Canvas"));
+                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl(user.repoUrl()), true, "Canvas"));
                 }
             }
         } catch (DataAccessException e) {

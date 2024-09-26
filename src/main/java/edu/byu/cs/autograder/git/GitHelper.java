@@ -66,7 +66,7 @@ public class GitHelper {
                     skipCommitVerification(true, headHash, null);
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
-            String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
+            String errorStr = "Internally failed to evaluate commit history: " + e.getMessage() + " (this could happen because the repo url has been changed since the last phase, or the student did something to their commit history)";
             gradingContext.observer().update(errorStr);
             LOGGER.error("Failed to evaluate commit history", e);
             return skipCommitVerification(false, headHash, errorStr);
@@ -146,7 +146,7 @@ public class GitHelper {
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
             var observer = gradingContext.observer();
-            observer.notifyError("Failed to verify commits: " + e.getMessage());
+            observer.notifyWarning("Failed to verify commits: " + e.getMessage());
             LOGGER.error("Failed to verify commits", e);
             throw new GradingException("Failed to verify commits: " + e.getMessage());
         }
