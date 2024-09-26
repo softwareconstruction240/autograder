@@ -179,7 +179,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 21, 31, 1);
                     utils.makeCommit(repoContext, "Change 10", 20, 30, 900); // Significant
                 },
-                utils.generalCommitVerificationResult(false, 4, 10, 5)
+                utils.generalCommitVerificationResult(false, 4, 10, 5, false)
         ));
     }
 

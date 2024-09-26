@@ -15,6 +15,7 @@ import java.time.Instant;
  * @param totalCommits Total number of relevant commits analyzed. Excludes merges and commits before the tail threshold.
  * @param significantCommits Total number of commits above the minimum line threshold.
  * @param numDays The number of unique days with commits. Insignificant commits contribute to this number.
+ * @param missingTail Error flag indicates when a tail hash was expected but not found during evaluation.
  * @param penaltyPct A reduction to the phase, if any, when a TA approved an unapproved score. [0-100]
  * @param failureMessage A string that will be presented to the use when this the result is not verified.
  * @param minAllowedThreshold Debug purposes. The min timestamp considered.
@@ -28,6 +29,7 @@ public record CommitVerificationResult(
         int totalCommits,
         int significantCommits,
         int numDays,
+        boolean missingTail,
         int penaltyPct,
         @NonNull String failureMessage,
 

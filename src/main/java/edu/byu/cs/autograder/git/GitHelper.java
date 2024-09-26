@@ -111,7 +111,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
-                0, 0, 0, 0, failureMessage,
+                0, 0, 0, false, 0, failureMessage,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -165,7 +165,7 @@ public class GitHelper {
         String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, originalPenaltyPct, failureMessage,
+                0, 0, 0, false, originalPenaltyPct, failureMessage,
                 null, null, headHash, null
         );
     }
@@ -245,6 +245,7 @@ public class GitHelper {
                 numCommits,
                 (int) significantCommits,
                 daysWithCommits,
+                commitsByDay.missingTailHash(),
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),
                 commitsByDay.lowerThreshold().timestamp(),

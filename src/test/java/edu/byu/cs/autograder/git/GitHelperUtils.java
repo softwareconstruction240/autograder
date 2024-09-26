@@ -134,16 +134,19 @@ public class GitHelperUtils {
     }
 
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays) {
-        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays);
+        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, false);
+    }
+    CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays, boolean missingTail) {
+        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, missingTail);
     }
     CommitVerificationResult generalCommitVerificationResult(
-            boolean verified, int significantCommits, int totalCommits, int numDays) {
+            boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail) {
         // Note: Unfortunately, we were not able to configure Mockito to properly accept these `any` object times
         // to also accept null. We've moved a different direction now, but we're preserving the `Mockito.nullable/any()`
         // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
-                verified, false, totalCommits, significantCommits, numDays, 0,
-                null, null, null,
+                verified, false, totalCommits, significantCommits, numDays,
+                missingTail, 0, null, null, null,
                 "ANY_HEAD_HASH", null);
     }
 
@@ -240,6 +243,7 @@ public class GitHelperUtils {
         Assertions.assertEquals(expected.totalCommits(), actual.totalCommits());
         Assertions.assertEquals(expected.significantCommits(), actual.significantCommits());
         Assertions.assertEquals(expected.numDays(), actual.numDays());
+        Assertions.assertEquals(expected.missingTail(), actual.missingTail());
         Assertions.assertEquals(expected.penaltyPct(), actual.penaltyPct());
     }
 }
