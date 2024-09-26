@@ -51,6 +51,7 @@ public record Submission(
         Phase phase,
         Boolean passed,
         Float score,
+        Float rawScore,
         String notes,
         Rubric rubric,
         Boolean admin,
