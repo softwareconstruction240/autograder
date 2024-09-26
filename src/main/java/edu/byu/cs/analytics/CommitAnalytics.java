@@ -1,5 +1,6 @@
 package edu.byu.cs.analytics;
 
+import edu.byu.cs.autograder.git.CommitsBetweenBounds;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
@@ -61,7 +62,7 @@ public class CommitAnalytics {
 
         // Prepare data for repeated calculation
         DiffFormatter diffFormatter = prepareDiffFormatter(git);
-        Iterable<RevCommit> commits = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
+        CommitsBetweenBounds commitsBetweenBounds = getCommitsBetweenBounds(git, upperBound.commitHash(), lowerBound.commitHash());
         long lowerTimeBoundSecs = lowerBound.timestamp().getEpochSecond();
         long upperTimeBoundSecs = upperBound.timestamp().getEpochSecond();
 
@@ -79,10 +80,15 @@ public class CommitAnalytics {
         Map<Long, List<String>> commitsByTimestamp = new HashMap<>();
         boolean commitsWithSameTimestamp = false;
 
+        boolean missingTailHash = commitsBetweenBounds.missingTail();
+        if (missingTailHash) {
+            groupCommitsByKey(erroringCommits, "missingTailHash", lowerBound.commitHash());
+        }
+
         // Iteration helpers
         CommitTimestamps commitTimes;
         String commitHash;
-        for (RevCommit rc : commits) {
+        for (RevCommit rc : commitsBetweenBounds.commits()) {
             commitTimes = getCommitTime(rc);
             commitHash = rc.getName();
             if (commitTimes.seconds <= lowerTimeBoundSecs) {
@@ -137,7 +143,7 @@ public class CommitAnalytics {
         return new CommitsByDay(
                 days, changesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp,
+                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
     }
 
@@ -191,7 +197,26 @@ public class CommitAnalytics {
         return parents;
     }
 
-    private static Iterable<RevCommit> getCommitsBetweenBounds(
+    /**
+     * Responsible for providing an iterable of the commits to analyze for this phase,
+     * along with some status flags indicating how they were retrieved.
+     *
+     * Generally, this will result in only the new commits since the last submission being evaluated.
+     * However, if the previous submission commit is missing, or if this is the first submission,
+     * then the entire history will be provided.
+     *
+     * If a tail commit was expected, but not found, that will be reported as a flag.
+     *
+     * @param git An open Git repo
+     * @param headHash The current head hash to evaluate.
+     * @param tailHash The previous submission head hash, if any.
+     * @return {@link CommitsBetweenBounds} containing the iterable of commits and other flags.
+     * @throws IncorrectObjectTypeException When the GitAPI is used incorrectly.
+     * @throws MissingObjectException When the ead hash cannot be found. If the tailhash cannot be found,
+     * the entire history will be evaluated and the issue flagged.
+     * @throws GitAPIException When the GitAPI has an issue
+     */
+    private static CommitsBetweenBounds getCommitsBetweenBounds(
             Git git, @NonNull String headHash, @Nullable String tailHash)
             throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
         if (git == null || headHash == null) {
@@ -201,10 +226,23 @@ public class CommitAnalytics {
         ObjectId headObjId = ObjectId.fromString(headHash);
 
         if (tailHash == null) {
-            return git.log().add(headObjId).call();
+            return produceCommitIterable(git, headObjId, false);
         } else {
             ObjectId tailObjId = ObjectId.fromString(tailHash);
-            return git.log().addRange(tailObjId, headObjId).call();
+            return produceCommitIterable(git, headObjId, tailObjId);
+        }
+    }
+
+    private static CommitsBetweenBounds produceCommitIterable(Git git, ObjectId headObjId, boolean missingTail)
+            throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
+        return new CommitsBetweenBounds(git.log().add(headObjId).call(), missingTail);
+    }
+    private static CommitsBetweenBounds produceCommitIterable(Git git, ObjectId headObjId, ObjectId tailObjId)
+            throws IncorrectObjectTypeException, MissingObjectException, GitAPIException {
+        try {
+            return new CommitsBetweenBounds(git.log().addRange(tailObjId, headObjId).call(), false);
+        } catch (MissingObjectException missingObjectException) {
+            return produceCommitIterable(git, headObjId, true);
         }
     }
 

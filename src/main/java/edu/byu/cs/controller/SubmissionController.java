@@ -4,9 +4,6 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.TrafficController;
-import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
@@ -351,7 +348,7 @@ public class SubmissionController {
                 notifyError(message, Map.of("results", Serializer.serialize(submission)));
             }
 
-            public void notifyError(String message, Map<String, Object> contents) {
+            private void notifyError(String message, Map<String, Object> contents) {
                 contents = new HashMap<>(contents);
                 contents.put( "type", "error");
                 contents.put("message", message);
