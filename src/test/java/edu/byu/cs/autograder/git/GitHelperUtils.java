@@ -20,7 +20,6 @@ import java.util.List;
 
 public class GitHelperUtils {
 
-    private GradingContext gradingContext;
     static final String TEST_REPO_DIR_ROOT = "src/test/resources/gitTestRepos";
     /**
      * Much more destructive by nature;
@@ -34,12 +33,45 @@ public class GitHelperUtils {
     private static final boolean CLEANUP_TEST_REPOS_AFTER_EACH = true;
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
+    private GradingContext gradingContext;
+    private CommitVerificationResult prevVerification;
+
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
     }
 
     public void setGradingContext(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
+    }
+
+    public CommitVerificationResult getPrevVerification() {
+        return prevVerification;
+    }
+    public void setPrevVerification(String newHeadHash) {
+        if (prevVerification != null) {
+            prevVerification = new CommitVerificationResult(
+                    prevVerification.verified(),
+                    prevVerification.isCachedResponse(),
+                    prevVerification.totalCommits(),
+                    prevVerification.significantCommits(),
+                    prevVerification.numDays(),
+                    prevVerification.missingTail(),
+                    prevVerification.penaltyPct(),
+                    prevVerification.failureMessage(),
+                    prevVerification.minAllowedThreshold(),
+                    prevVerification.maxAllowedThreshold(),
+                    newHeadHash,                                // REPLACE HEAD HASH!
+                    prevVerification.tailHash()
+            );
+        } else {
+            prevVerification = new CommitVerificationResult(
+                    false, true, 0, 0, 0, false,
+                    0, "", null, null,
+                    newHeadHash, "");
+        }
+    }
+    public void setPrevVerification(CommitVerificationResult prevVerification) {
+        this.prevVerification = prevVerification;
     }
 
 
@@ -72,7 +104,7 @@ public class GitHelperUtils {
      * @param checkpoints A list of checkpoints to evaluate in the same directory, sequentially
      */
     void evaluateTest(String testName, List<VerificationCheckpoint> checkpoints) {
-        CommitVerificationResult prevVerification = null;
+        prevVerification = null;
 
         try (RepoContext repoContext = initializeTest(testName, "file.txt")) {
             CommitVerificationResult verificationResult;
