@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type {RubricItem} from '@/types/types'
-import {sanitizeHtml} from '@/utils/utils'
+import { roundTwoDecimals, sanitizeHtml } from '@/utils/utils'
 import MoreInfo from '@/components/MoreInfo.vue'
 import RubricItemResultsView from "@/views/StudentView/RubricItemResultsView.vue";
 
@@ -15,7 +15,9 @@ defineProps<{
 
     <p class="itemHeader">
       <span class="category" v-html="rubricItem.category + ' '"/>
-      <span class="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
+      <span v-if="rubricItem.results.score != rubricItem.results.rawScore">
+        <span class="rawScore" v-html="roundTwoDecimals(rubricItem.results.rawScore) + '/' + rubricItem.results.possiblePoints"/>&nbsp;</span>
+      <span class="score" v-html="roundTwoDecimals(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
     </p>
     <hr/>
     <div id="details">
@@ -49,6 +51,11 @@ defineProps<{
 
 .score {
   font-weight: normal;
+}
+
+.rawScore {
+  font-weight: lighter;
+  text-decoration: line-through;
 }
 
 #details {
