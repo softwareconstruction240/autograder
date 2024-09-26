@@ -128,7 +128,7 @@ public class UserController {
     }
 
     private static boolean isValidRepoUrl(String url) {
-        File cloningDir = new File("./validation_cloning/" + UUID.randomUUID());
+        File cloningDir = new File("./tmp" + UUID.randomUUID());
         CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
 
         try (Git git = cloneCommand.call()) {
