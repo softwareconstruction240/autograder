@@ -60,6 +60,10 @@ public record Rubric(
             TestAnalysis testResults,
             String textResults
     ) {
+        public Results(String notes, Float score, Integer possiblePoints, TestAnalysis testResults, String textResults) {
+            this(notes, score, score, possiblePoints, testResults, textResults);
+        }
+
         public static Results testError(String notes, TestAnalysis testResults) {
             return new Results(notes, 0f, 0, testResults, null);
         }
