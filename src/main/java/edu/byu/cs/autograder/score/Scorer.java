@@ -59,21 +59,21 @@ public class Scorer {
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            return generateSubmissionObject(rubric, commitVerificationResult, 0, getScore(rubric), "");
+            return generateSubmissionObject(rubric, commitVerificationResult, 0, getScores(rubric), "");
         }
 
         int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        Rubric lateAppliedRubric = applyLatePenalty(rubric, daysLate);
-        float thisScore = getScore(lateAppliedRubric);
+        rubric = applyLatePenalty(rubric, daysLate);
+        ScorePair scores = getScores(rubric);
 
         // Validate several conditions before submitting to the grade-book
         if (!rubric.passed()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, "");
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, "");
         } else if (!commitVerificationResult.verified()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, commitVerificationResult.failureMessage());
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, commitVerificationResult.failureMessage());
         } else {
             // The student (may) receive a score in canvas!
-            return successfullyProcessSubmission(rubric, lateAppliedRubric, commitVerificationResult, daysLate, thisScore);
+            return successfullyProcessSubmission(rubric, commitVerificationResult, daysLate, scores);
         }
     }
 
@@ -98,30 +98,28 @@ public class Scorer {
      * <br>
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
      *
-     * @param rubric                   The original rubric for saving to the database and display to users
-     * @param lateAppliedRubric        Rubric with late penalties applied for sending to canvas
+     * @param rubric                   The rubric for the submission
      * @param commitVerificationResult Required when originally creating a submission.
      *                                 Can be null when sending scores to Canvas; this will disable
      *                                 any automatic point deductions for verification, and also result in
      *                                 <code>null</code> being returned instead of a {@link Submission}.
      * @param daysLate                 Required. Used to add a note to the resulting submission object.
-     * @param thisScore                Required. Used to place a value in the {@link Submission} object.
+     * @param scores                Required. Used to place values in the {@link Submission} object.
      *                                 The Canvas grade is based entirely on the provided {@link Rubric}.
      * @return A construction Submission for continued processing
      * @throws DataAccessException When the database can't be reached.
      * @throws GradingException    When other conditions fail.
      */
-    private Submission successfullyProcessSubmission(Rubric rubric, Rubric lateAppliedRubric,
-                                                     CommitVerificationResult commitVerificationResult, int daysLate,
-                                                     float thisScore) throws DataAccessException, GradingException {
+    private Submission successfullyProcessSubmission(Rubric rubric, CommitVerificationResult commitVerificationResult,
+                                                     int daysLate, ScorePair scores) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore,
+            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores,
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
-        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(lateAppliedRubric, commitVerificationResult);
-        return generateSubmissionObject(rubric, commitVerificationResult, daysLate, thisScore, submittalRemnants.notes);
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult);
+        return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, submittalRemnants.notes);
     }
 
     /**
@@ -293,6 +291,7 @@ public class Scorer {
             Rubric.Results results = entry.getValue().results();
             results = new Rubric.Results(results.notes(),
                     results.score() * (1 - lateAdjustment),
+                    results.score(),
                     results.possiblePoints(),
                     results.testResults(),
                     results.textResults());
@@ -342,11 +341,11 @@ public class Scorer {
     }
 
     /**
-     * Gets the score for the phase
+     * Gets the score and rawScore for the rubric and phase
      *
-     * @return the score as a percentage value from [0-1].
+     * @return a ScorePair with both the score and rawScore as a percentage value from [0-1].
      */
-    private float getScore(Rubric rubric) throws GradingException, DataAccessException {
+    private ScorePair getScores(Rubric rubric) throws GradingException, DataAccessException {
         int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0) {
@@ -354,13 +353,15 @@ public class Scorer {
         }
 
         float score = 0;
+        float rawScore = 0;
         for (Rubric.RubricType type : Rubric.RubricType.values()) {
             var rubricItem = rubric.items().get(type);
             if (rubricItem == null) continue;
             score += rubricItem.results().score();
+            rawScore += rubricItem.results().rawScore();
         }
 
-        return score / totalPossiblePoints;
+        return new ScorePair(score / totalPossiblePoints, rawScore / totalPossiblePoints);
     }
 
     /**
@@ -377,12 +378,12 @@ public class Scorer {
      * @param numDaysLate The number of days late this submission was handed-in.
      *                    For note generating purposes only; this is not used to
      *                    calculate any penalties.
-     * @param score The final approved score on the submission represented in points.
+     * @param scores The final approved score and rawScore on the submission represented in points.
      * @param notes Any notes that are associated with the submission.
      *              More comments may be added to this string while preparing the Submission.
      */
     public Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
-                                                int numDaysLate, float score, String notes)
+                                                int numDaysLate, ScorePair scores, String notes)
             throws GradingException, DataAccessException {
         if (commitVerificationResult == null) {
             return null; // This is allowed.
@@ -403,7 +404,7 @@ public class Scorer {
             verifiedStatus = VerifiedStatus.Unapproved;
         }
         if (commitVerificationResult.penaltyPct() > 0) {
-            score = prepareModifiedScore(score, commitVerificationResult.penaltyPct());
+            scores = new ScorePair(prepareModifiedScore(scores.score(), commitVerificationResult.penaltyPct()), scores.rawScore());
             notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
         }
 
@@ -414,7 +415,8 @@ public class Scorer {
                 handInDate.toInstant(),
                 gradingContext.phase(),
                 rubric.passed(),
-                score,
+                scores.score(),
+                scores.rawScore(),
                 notes,
                 rubric,
                 gradingContext.admin(),
@@ -440,4 +442,6 @@ public class Scorer {
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
     }
+
+    public record ScorePair(float score, float rawScore) {}
 }
