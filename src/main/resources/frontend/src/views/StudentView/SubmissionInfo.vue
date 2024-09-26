@@ -75,8 +75,11 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
       <InfoPanel class="info-box">
         <p>Score:</p>
         <h1 v-if="!submission.passed">Failed</h1>
-        <h1 v-else-if="commitVerificationFailed(submission)">Score withheld for commits<br>Raw Score: {{scoreToPercentage(submission.score)}}</h1>
-        <h1 v-else v-html="scoreToPercentage(submission.score)"/>
+        <div v-else>
+          <h3 v-if="commitVerificationFailed(submission)">Score withheld for commits<br>Score Before Penalty:</h3>
+          <h1 v-if="submission.rawScore != submission.score" class="score"><span class="rawScore" v-html="scoreToPercentage(submission.rawScore)"/>&nbsp</h1>
+          <h1 class="score" v-html="scoreToPercentage(submission.score)"/>
+        </div>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
         <p>Notes:</p>
@@ -116,5 +119,14 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
 
 #notesBox {
   width: 100%;
+}
+
+.rawScore {
+  font-weight: lighter;
+  text-decoration: line-through;
+}
+
+.score {
+  display: inline;
 }
 </style>
