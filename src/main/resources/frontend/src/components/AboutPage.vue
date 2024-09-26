@@ -2,6 +2,7 @@
 import PopUp from '@/components/PopUp.vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import sound from "@/assets/saints.mp3"
+import InfoPanel from '@/components/InfoPanel.vue'
 
 const audio = new Audio(sound)
 
@@ -62,17 +63,21 @@ onUnmounted(() => {
   >
     <div id="box">
       <h1>About the CS 240 Autograder</h1>
-      <h4>Your BYU Mighty Coding Cougars</h4>
+      <InfoPanel id="about">
+        <h4>The CS 240 Autograder was created from the ground up entirely by CS 240 TAs</h4>
+        <p>The first commit to the Autograder GitHub Repo was December 2 2023. It was developed and first used during the Winter 2024 semester.</p>
+        <p>See the mess we made <a href="https://github.com/softwareconstruction240/autograder" target="_blank">here</a>.</p>
+      </InfoPanel>
       <div id="leads">
         <div class="person">
-          <p class="name">Paul Hathaway <i class="fa-solid fa-otter"/></p>
+          <p class="name">Paul Hathaway <a href="https://github.com/pawlh" target="_blank"><i class="fa-solid fa-otter"/></a></p>
           <p class="title">Father of the Autograder</p>
           <p class="contributions">Wrote the foundations of the Autograder and its core grading functionality</p>
         </div>
         <div class="person">
-          <p class="name">Michael Davenport <i class="fa-solid fa-hat-wizard"/></p>
+          <p class="name">Michael Davenport <a href="https://github.com/19mdavenport" target="_blank"><i class="fa-solid fa-hat-wizard"/></a></p>
           <p class="title">Guardian of the Autograder</p>
-          <p class="contributions">Developed most of the integrations with Canvas, and lots of behind the scenes refactoring</p>
+          <p class="contributions">Developed most of the integrations with Canvas, student database handling, the code quality checker, lots of behind the scenes refactoring, and basically had a hand in every backend system in the program</p>
         </div>
       </div>
 
@@ -80,26 +85,22 @@ onUnmounted(() => {
 
       <div id="team">
         <div class="person">
-          <p class="name">Dallin Webecke <i class="fa-solid fa-tree"/></p>
+          <p class="name">Dallin Webecke <a href="https://webecke.dev" target="_blank"><i class="fa-solid fa-tree"/></a></p>
           <p class="contributions">Created several admin tools, cleaned up the Student UI and added Font Awesome</p>
         </div>
         <div class="person">
-          <p class="name">James Finlinson <i class="fa-solid fa-pen-nib"/></p>
+          <p class="name">James Finlinson <a href="https://github.com/frozenfrank" target="_blank"><i class="fa-solid fa-pen-nib"/></a></p>
           <p class="contributions">Developed class-requirement enforcement systems, like late-days and git-commits</p>
         </div>
         <div class="person">
-          <p class="name">Noah Pratt <i class="fa-solid fa-ship"/></p>
-          <p class="contributions"></p>
+          <p class="name">Noah Pratt <a href="https://noahpratt.com" target="_blank"><i class="fa-solid fa-ship"/></a></p>
+          <p class="contributions">Developed several important admin analytical tools</p>
         </div>
         <div class="person">
-          <p class="name">Isaih Barron <i class="fa-solid fa-jet-fighter"/></p>
-          <p class="contributions"></p>
+          <p class="name">Isaih Barron <a href="https://github.com/Fiwafoofa" target="_blank"><i class="fa-solid fa-jet-fighter"/></a></p>
+          <p class="contributions">Wrote some systems that did pre-compiling verification of student code</p>
         </div>
       </div>
-
-      <br/>
-      <p>The first commit to the Autograder GitHub Repo was December 2 2023. It was developed and first used during the Winter 2024 semester.</p>
-      <p>See the mess we made <a href="https://github.com/softwareconstruction240/autograder" target="_blank">here</a>.</p>
 
     </div>
     </PopUp>
