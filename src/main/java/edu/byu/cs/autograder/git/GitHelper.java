@@ -5,6 +5,8 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.analytics.CommitsByDay;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitValidation.CV;
+import edu.byu.cs.autograder.git.CommitValidation.Result;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -27,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class GitHelper {
@@ -239,18 +240,18 @@ public class GitHelper {
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
         };
 
-        Collection<String> warningMessages = evaluateConditions(warningConditions, this::warningMessageTerminator);
-        Collection<String> errorMessages = evaluateConditions(assertedConditions, this::errorMessageTerminator);
+        Result warningResults = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
+        Result errorResults = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
         return new CommitVerificationResult(
-                errorMessages.isEmpty(),
+                errorResults.isEmpty(),
                 false,
                 numCommits,
                 (int) significantCommits,
                 daysWithCommits,
                 commitsByDay.missingTailHash(),
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
-                String.join("\n", errorMessages),
+                String.join("\n", errorResults.messages()),
                 commitsByDay.lowerThreshold().timestamp(),
                 commitsByDay.upperThreshold().timestamp(),
                 commitsByDay.upperThreshold().commitHash(),
@@ -365,32 +366,6 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    @FunctionalInterface
-    interface MessageTerminatedVisitor {
-        void finish(Collection<String> producedMessages);
-    }
-
-    /**
-     * Evaluates multiple {@link CV} CommitVerification records, and
-     * adds only the strings corresponding to failed tests to a resulting Collection.
-     *
-     * @param assertedConditions A list of pre-evaluated, pre-populated strings and conditions.
-     * @param visitor Will be given the opportunity to modify the messages collection <b>only</b> if it is non-empty at the end.
-     * @return A {@link Collection<String>} of messages that failed evaluations which can be shown to the user.
-     */
-    private Collection<String> evaluateConditions(CV[] assertedConditions, MessageTerminatedVisitor visitor) {
-        ArrayList<String> messages = new ArrayList<>();
-        for (CV assertedCondition : assertedConditions) {
-            if (!assertedCondition.fails) continue;
-            messages.add(assertedCondition.errorMsg());
-        }
-
-        if (!messages.isEmpty()) {
-            visitor.finish(messages);
-        }
-        return messages;
-    }
-
     // Helpers
 
     private Collection<Submission> getPassingSubmissions() throws DataAccessException {
@@ -414,13 +389,5 @@ public class GitHelper {
     static String getHeadHash(Git git) throws IOException {
         return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
-
-    // Data Structures
-
-    /** CommitValidation. Internal helper */
-    private record CV(
-            boolean fails,
-            String errorMsg
-    ) { }
 
 }
