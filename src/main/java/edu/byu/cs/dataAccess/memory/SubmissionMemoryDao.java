@@ -142,6 +142,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
                     submission.phase(),
                     submission.passed(),
                     newScore,                                       // Changed
+                    submission.rawScore(),
                     submission.notes(),
                     submission.rubric(),
                     submission.admin(),
