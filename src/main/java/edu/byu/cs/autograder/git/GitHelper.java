@@ -202,7 +202,6 @@ public class GitHelper {
         int requiredCommits = gradingContext.verificationConfig().requiredCommits();
         int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
         int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
@@ -231,13 +230,17 @@ public class GitHelper {
                         commitsByDay.commitsBackdated(),
                         "Suspicious commit history. Some commits have been backdated."),
                 new CV(
-                        commitsByDay.commitTimestampsDuplicated(),
-                        "Suspicious commit history. Multiple commits have the exact same timestamp."),
-                new CV(
                         commitsByDay.missingTailHash(),
                         "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
-        ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
+        CV[] warningConditions = {
+                new CV(
+                        commitsByDay.commitTimestampsDuplicated(),
+                        "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
+        };
+
+        Collection<String> warningMessages = evaluateConditions(warningConditions, this::warningMessageTerminator);
+        Collection<String> errorMessages = evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
         return new CommitVerificationResult(
                 errorMessages.isEmpty(),
@@ -253,6 +256,20 @@ public class GitHelper {
                 commitsByDay.upperThreshold().commitHash(),
                 commitsByDay.lowerThreshold().commitHash()
         );
+    }
+
+    void warningMessageTerminator(Collection<String> warningMessages) {
+        warningMessages.add("Grading will continue on this submission despite detecting poor Git etiquette. "
+            + "We recommend asking a TA to understand why these warnings appeared and how to avoid them in the future.");
+    }
+
+    void errorMessageTerminator(Collection<String> errorMessages) {
+        if (!PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) return;
+
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
+        errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
+                + "you will need to talk to a TA to receive a score. ");
+        errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
     }
 
     // Evaluation Helpers
@@ -348,19 +365,30 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    private ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
-        ArrayList<String> errorMessages = new ArrayList<>();
+    @FunctionalInterface
+    interface MessageTerminatedVisitor {
+        void finish(Collection<String> producedMessages);
+    }
+
+    /**
+     * Evaluates multiple {@link CV} CommitVerification records, and
+     * adds only the strings corresponding to failed tests to a resulting Collection.
+     *
+     * @param assertedConditions A list of pre-evaluated, pre-populated strings and conditions.
+     * @param visitor Will be given the opportunity to modify the messages collection <b>only</b> if it is non-empty at the end.
+     * @return A {@link Collection<String>} of messages that failed evaluations which can be shown to the user.
+     */
+    private Collection<String> evaluateConditions(CV[] assertedConditions, MessageTerminatedVisitor visitor) {
+        ArrayList<String> messages = new ArrayList<>();
         for (CV assertedCondition : assertedConditions) {
             if (!assertedCondition.fails) continue;
-            errorMessages.add(assertedCondition.errorMsg());
+            messages.add(assertedCondition.errorMsg());
         }
 
-        if (!errorMessages.isEmpty() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) {
-            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
-                    + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
+        if (!messages.isEmpty()) {
+            visitor.finish(messages);
         }
-        return errorMessages;
+        return messages;
     }
 
     // Helpers
