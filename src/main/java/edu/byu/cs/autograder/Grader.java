@@ -67,7 +67,7 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        CommitVerificationConfig cvConfig = PhaseUtils.requiresTAPassoffForCommits(phase) ?
+        CommitVerificationConfig cvConfig = PhaseUtils.shouldVerifyCommits(phase) ?
                 PhaseUtils.verificationConfig(phase) : null;
         this.observer = observer;
         this.gradingContext = new GradingContext(
