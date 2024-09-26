@@ -37,7 +37,7 @@ onMounted(async () => {
 const columnDefs = reactive([
   { headerName: "Student Name", field: "name", flex: 2, minWidth: 150, onCellClicked: cellClickHandler },
   { headerName: "BYU netID", field: "netId", flex: 1, minWidth: 75, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, cellRenderer: renderRepoLinkCell }
+  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, cellRenderer: renderRepoLinkCell, onCellClicked: cellClickHandler }
 ])
 const rowData = reactive({
   value: []
@@ -52,9 +52,8 @@ const activateTestStudentMode = async () => {
 <template>
   <Panel class="test-student-mode-container">
     <div>
-      <p>Use "Test Student Mode" to use the autograder as the course's test student</p>
-      <p>- you will need to log out and back in again to return to admin mode</p>
-      <p>- the test student must have a Github Repo submitted to the Canvas assignment</p>
+      <p>Use "Test Student Mode" to use the autograder as the course's test student.</p>
+      <p>To return to admin mode, just log out and then log in again.</p>
     </div>
     <div>
       <button @click="activateTestStudentMode">Go to Test Student Mode</button>

@@ -1,21 +1,10 @@
 package edu.byu.cs.autograder.git;
 
 import edu.byu.cs.analytics.CommitThreshold;
-import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-
 import java.io.File;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 class GitHelperTest {
     GitHelperUtils utils;

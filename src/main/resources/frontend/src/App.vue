@@ -1,12 +1,14 @@
 <script setup lang="ts">
 
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import {useAuthStore} from "@/stores/auth";
-import { logoutPost } from '@/services/authService'
+import { loadUser, logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
 import { useAppConfigStore } from '@/stores/appConfig'
+import PopUp from '@/components/PopUp.vue'
+import RepoEditor from '@/components/RepoEditor.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -33,6 +35,13 @@ const bannerMessage = computed(() => {
 onMounted( async () => {
   await useAppConfigStore().updateConfig();
 })
+
+const openRepoEditor = reactive({value: false})
+
+const repoEditDone = () => {
+  openRepoEditor.value = false
+  loadUser()
+}
 </script>
 
 <template>
@@ -40,12 +49,28 @@ onMounted( async () => {
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
-    <p>{{ useAuthStore().user?.repoUrl }}</p>
+    <p
+      v-if="useAuthStore().user?.repoUrl"
+      @click="openRepoEditor.value = true"
+      id="repoLink"
+    >
+      {{ useAuthStore().user?.repoUrl }}
+      <i class="fa-solid fa-pen-to-square"/>
+    </p>
+
     <div v-if="bannerMessage" id="bannerMessage">
       <span v-text="bannerMessage"/>
     </div>
   </header>
   <main>
+    <PopUp
+      id="repoEditorPopUp"
+      v-if="openRepoEditor.value"
+      @closePopUp="openRepoEditor.value = false">
+      <RepoEditor
+      @repoEditSuccess="repoEditDone" :user="useAuthStore().user"/>
+    </PopUp>
+
     <router-view/>
   </main>
 </template>
@@ -75,6 +100,10 @@ h1 {
   font-weight: bold;
 }
 
+#repoLink {
+  cursor: pointer;
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -93,6 +122,10 @@ a {
   color: white;
   text-decoration: underline;
   cursor: pointer;
+}
+
+#repoEditorPopUp {
+  text-align: center;
 }
 
 @media only screen and (max-width: 600px) {

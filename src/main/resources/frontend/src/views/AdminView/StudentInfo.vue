@@ -10,6 +10,7 @@ import PopUp from "@/components/PopUp.vue";
 import {renderPhaseCell, renderScoreCell, renderTimestampCell, standardColSettings} from "@/utils/tableUtils";
 import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
 import {generateClickableLink} from "@/utils/utils";
+import RepoView from '@/views/AdminView/RepoView.vue'
 
 const { student } = defineProps<{
   student: User;
@@ -17,6 +18,7 @@ const { student } = defineProps<{
 
 const studentSubmissions = ref<Submission[]>([])
 const selectedSubmission = ref<Submission | null>(null);
+const openRepoView = reactive({value: false})
 
 onMounted(async () => {
   await loadStudentSubmissions()
@@ -49,7 +51,18 @@ const rowData = reactive({
 <template>
   <h3>{{student.firstName}} {{student.lastName}}</h3>
   <p>netID: {{student.netId}}</p>
-  <p v-if="student.repoUrl">Github Repo: <span v-html="generateClickableLink(student.repoUrl)"/> </p>
+  <p v-if="student.role == 'STUDENT'">
+    Github Repo:
+    <span v-if="student.repoUrl" v-html="generateClickableLink(student.repoUrl)"/>
+    <span v-else>No repo</span>
+    <button
+      v-if="student.role == 'STUDENT'"
+      class="small"
+      id="openRepoView"
+      @click="openRepoView.value = true">
+      History/Change
+    </button>
+  </p>
 
   <ag-grid-vue
       class="ag-theme-quartz"
@@ -65,11 +78,23 @@ const rowData = reactive({
     <SubmissionInfo :submission="selectedSubmission"
                     @approvedSubmission="loadStudentSubmissions"/>
   </PopUp>
+
+  <PopUp
+      v-if="openRepoView.value"
+      @closePopUp="openRepoView.value = false">
+    <RepoView :student="student"/>
+  </PopUp>
 </template>
 
 <style scoped>
 a:visited, a {
   color: darkblue;
   font-style: italic;
+}
+
+#openRepoView  {
+  margin: 5px;
+  font-size: smaller;
+  padding: 2px;
 }
 </style>

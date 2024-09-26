@@ -144,32 +144,6 @@ public class CanvasIntegrationImplIT {
 
     }
 
-    @Test
-    @DisplayName("Test Student repo can be retrieved")
-    @Order(5)
-    public void getTestStudentRepo() {
-        User testStudent = null;
-        try {
-            retriever.useCourseRelatedInfoFromCanvas();
-            testStudent = canvasIntegration.getTestStudent();
-        } catch (CanvasException | DataAccessException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
-        assertNotNull(testStudent, "Test student should not be null");
-
-
-        String testStudentRepo = null;
-        try {
-            testStudentRepo = canvasIntegration.getGitRepo(testStudent.canvasUserId());
-        } catch (CanvasException e) {
-            fail("Unexpected exception thrown: ", e);
-        }
-
-        assertNotNull(testStudentRepo, "Test student repo should not be null. Has it been set in Canvas");
-        assertNotEquals("", testStudentRepo, "Test student repo should not be empty");
-        assertTrue(testStudentRepo.contains("github.com"), "Test student repo is not a github url");
-    }
-
     private static void loadApplicationProperties() {
 
         String canvasToken = System.getenv("CANVAS_API_TOKEN");

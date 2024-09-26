@@ -1,5 +1,13 @@
 import {useAdminStore} from "@/stores/admin";
-import {Phase, type RubricItem, type RubricType, type Submission, type TestNode, VerifiedStatus} from '@/types/types'
+import {
+  Phase,
+  type RubricItem,
+  type RubricType,
+  type Submission,
+  type TestNode,
+  type User,
+  VerifiedStatus
+} from '@/types/types'
 import {useAuthStore} from '@/stores/auth'
 
 export const commitVerificationFailed = (submission: Submission) => {
@@ -145,3 +153,7 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
   return words.join(' ');
 }
 
+export const isPlausibleRepoUrl = (url: string): boolean => {
+  return url.startsWith("http") &&
+         url.includes("github.com/")
+}

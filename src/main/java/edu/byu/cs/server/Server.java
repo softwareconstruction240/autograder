@@ -20,6 +20,7 @@ import static edu.byu.cs.controller.AuthController.*;
 import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.ConfigController.*;
 import static edu.byu.cs.controller.SubmissionController.*;
+import static edu.byu.cs.controller.UserController.*;
 import static spark.Spark.*;
 
 public class Server {
@@ -55,6 +56,8 @@ public class Server {
                     verifyAuthenticatedMiddleware.handle(req, res);
             });
 
+            patch("/repo", repoPatch);
+
             get("/submit", submitGet);
             post("/submit", submitPost);
 
@@ -72,6 +75,10 @@ public class Server {
                     if (!req.requestMethod().equals("OPTIONS"))
                         verifyAdminMiddleware.handle(req, res);
                 });
+
+                patch("/repo/:netId", repoPatchAdmin);
+
+                get("/repo/history", repoHistoryAdminGet);
 
                 get("/users", usersGet);
 

@@ -4,9 +4,6 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.TrafficController;
-import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
@@ -41,8 +38,6 @@ public class SubmissionController {
         if (!phaseIsEnabled(request.phase())) {
             halt(400, "Student submission is disabled for " + request.phase());
         }
-
-        updateRepoFromCanvas(user, req);
 
         if (! verifyHasNewCommits(user, request.phase()) ) { return null; }
 
@@ -111,16 +106,6 @@ public class SubmissionController {
         } catch (Exception e) {
             LOGGER.error("Error starting grader", e);
             halt(500);
-        }
-    }
-
-    private static void updateRepoFromCanvas(User user, Request req) throws CanvasException, DataAccessException {
-        CanvasIntegration canvas = CanvasService.getCanvasIntegration();
-        String newRepoUrl = canvas.getGitRepo(user.canvasUserId());
-        if (!newRepoUrl.equals(user.repoUrl())) {
-            user = new User(user.netId(), user.canvasUserId(), user.firstName(), user.lastName(), newRepoUrl, user.role());
-            DaoService.getUserDao().setRepoUrl(user.netId(), newRepoUrl);
-            req.session().attribute("user", user);
         }
     }
 

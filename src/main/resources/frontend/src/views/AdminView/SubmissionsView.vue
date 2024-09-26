@@ -15,7 +15,7 @@ import {
   renderTimestampCell
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import {generateClickableLink, nameFromNetId} from "@/utils/utils";
+import { generateClickableLink, isPlausibleRepoUrl, nameFromNetId } from '@/utils/utils'
 import {adminSubmissionPost} from "@/services/submissionService";
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
@@ -127,8 +127,7 @@ const adminSubmit = async () => {
       <button
         :disabled="(selectedAdminPhase === null)
           || useSubmissionStore().currentlyGrading
-          || !adminRepo.value.includes('github.com/')
-          || !adminRepo.value.includes('http')"
+          || !isPlausibleRepoUrl(adminRepo.value)"
         class="primary"
         @click="adminSubmit">Submit</button>
     </div>
