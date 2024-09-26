@@ -65,17 +65,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 String firstName = ((names.length >= 2) ? names[1] : "").trim();
                 String lastName = ((names.length >= 1) ? names[0] : "").trim();
 
-                String repoUrl = (role == User.Role.STUDENT) ? getGitRepo(user.id()) : null;
-
-                if (role == User.Role.STUDENT) {
-                    try {
-                        SubmissionUtils.getRemoteHeadHash(repoUrl);
-                    } catch (RuntimeException e) {
-                        throw new CanvasException("Invalid repo url. Please resubmit the GitHub Repository assignment on Canvas");
-                    }
-                }
-
-                return new User(netId, user.id(), firstName, lastName, repoUrl, role);
+                return new User(netId, user.id(), firstName, lastName, null, role);
             }
         }
 
@@ -199,28 +189,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         ).body();
     }
 
-    /**
-     * Gets the git repository url for the given user from their GitHub Repository assignment submission on canvas
-     *
-     * @param userId The canvas user id of the user to get the git repository url for
-     * @return The git repository url for the given user
-     * @throws CanvasException If there is an error with Canvas
-     */
-    @Override
-    public String getGitRepo(int userId) throws CanvasException {
-        CanvasSubmission submission = getSubmission(userId, getGitHubAssignmentNumber());
-
-        if (submission == null)
-            throw new CanvasException("Error while accessing GitHub Repository assignment submission on canvas");
-
-        if (submission.url() == null)
-            throw new CanvasException(
-                    "The Github Repository assignment submission on Canvas must be submitted before accessing the autograder"
-            );
-
-        return submission.url();
-    }
-
     @Override
     public User getTestStudent() throws CanvasException {
         String testStudentName = "Test%20Student";
@@ -233,17 +201,12 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         if (users.length == 0)
             throw new CanvasException("Test Student not found in Canvas");
 
-        String repoUrl = getGitRepo(users[0].id());
-
-        if (repoUrl == null)
-            throw new CanvasException("Test Student has not submitted the GitHub Repository assignment on Canvas");
-
         return new User(
                 "test",
                 users[0].id(),
                 "Test",
                 "Student",
-                repoUrl,
+                null,
                 User.Role.STUDENT
         );
     }

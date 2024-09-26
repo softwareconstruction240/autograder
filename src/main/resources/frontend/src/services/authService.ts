@@ -1,4 +1,5 @@
 import {useAppConfigStore} from "@/stores/appConfig";
+import { useAuthStore } from '@/stores/auth'
 
 type MeResponse = {
     netId: string,
@@ -20,17 +21,12 @@ export const meGet = async () => {
     }
 }
 
-export const registerPost = async (firstName: string, lastName: string, repoUrl: string) => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/auth/register', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({firstName, lastName, repoUrl})
-    });
+export const loadUser = async () => {
+    const loggedInUser = await meGet()
+    if (loggedInUser == null)
+        return;
 
-    return response.ok;
+    useAuthStore().user = loggedInUser;
 }
 
 export const logoutPost = async () => {

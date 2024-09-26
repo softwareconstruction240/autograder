@@ -67,7 +67,7 @@ public class GitHelper {
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
             String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
-            gradingContext.observer().update(errorStr);
+            gradingContext.observer().notifyWarning(errorStr);
             LOGGER.error("Failed to evaluate commit history", e);
             return skipCommitVerification(false, headHash, errorStr);
         }
@@ -95,9 +95,7 @@ public class GitHelper {
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to {}", git.getRepository().getDirectory());
         } catch (GitAPIException e) {
-            gradingContext.observer().notifyError("Failed to clone repo: " + e.getMessage());
-            LOGGER.error("Failed to clone repo", e);
-            throw new GradingException("Failed to clone repo: " + e.getMessage());
+            throw new GradingException("Failed to clone repo: " + e.getMessage(), e);
         }
     }
 
@@ -113,7 +111,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
-                0, 0, 0, 0, failureMessage,
+                0, 0, 0, false, 0, failureMessage,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -145,10 +143,7 @@ public class GitHelper {
                 return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
         } catch (IOException | GitAPIException | DataAccessException e) {
-            var observer = gradingContext.observer();
-            observer.notifyError("Failed to verify commits: " + e.getMessage());
-            LOGGER.error("Failed to verify commits", e);
-            throw new GradingException("Failed to verify commits: " + e.getMessage());
+            throw new GradingException("Failed to verify commits: " + e.getMessage(), e);
         }
     }
 
@@ -170,7 +165,7 @@ public class GitHelper {
         String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, originalPenaltyPct, failureMessage,
+                0, 0, 0, false, originalPenaltyPct, failureMessage,
                 null, null, headHash, null
         );
     }
@@ -237,7 +232,10 @@ public class GitHelper {
                         "Suspicious commit history. Some commits have been backdated."),
                 new CV(
                         commitsByDay.commitTimestampsDuplicated(),
-                        "Suspicious commit history. Multiple commits have the exact same timestamp.")
+                        "Suspicious commit history. Multiple commits have the exact same timestamp."),
+                new CV(
+                        commitsByDay.missingTailHash(),
+                        "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
         ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
 
@@ -247,6 +245,7 @@ public class GitHelper {
                 numCommits,
                 (int) significantCommits,
                 daysWithCommits,
+                commitsByDay.missingTailHash(),
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
                 String.join("\n", errorMessages),
                 commitsByDay.lowerThreshold().timestamp(),

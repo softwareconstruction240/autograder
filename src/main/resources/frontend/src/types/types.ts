@@ -98,3 +98,11 @@ export type CanvasSection = {
     id: number,
     name: string
 }
+
+export type RepoUpdate = {
+    timestamp: string,
+    netId: string,
+    repoUrl: string,
+    adminUpdate: boolean,
+    adminNetId: string | null
+}

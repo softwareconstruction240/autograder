@@ -19,7 +19,7 @@ export const renderTimestampCell = (params: ValueGetterParams):string => {
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "repoUrl"
  */
 export const renderRepoLinkCell = (params: ValueGetterParams):string => {
-    return generateClickableLink(params.data.repoUrl)
+    return params.data.repoUrl ? generateClickableLink(params.data.repoUrl) : ""
 }
 
 /**

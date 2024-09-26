@@ -25,6 +25,7 @@ import java.util.Map;
  * @param commitsInFuture Reports whether any commits were found after the end point chronologically.
  * @param commitsBackdated Reports whether any commit was detected to have been backdated.
  * @param commitTimestampsDuplicated Reports where any two commits were discovered to have the same timestamp.
+ * @param missingTailHash Reports when a tail hash was expected to exist, but the commit could not be found.
  * @param lowerThreshold The {@link CommitThreshold}, exclusive.
  * @param upperThreshold The {@link CommitThreshold}, inclusive.
  */
@@ -39,6 +40,7 @@ public record CommitsByDay(
         boolean commitsInPast,
         boolean commitsBackdated,
         boolean commitTimestampsDuplicated,
+        boolean missingTailHash,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
 ) { }

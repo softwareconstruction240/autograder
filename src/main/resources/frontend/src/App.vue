@@ -1,13 +1,15 @@
 <script setup lang="ts">
 
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import {useAuthStore} from "@/stores/auth";
-import { logoutPost } from '@/services/authService'
+import { loadUser, logoutPost } from '@/services/authService'
 import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
 import { useAppConfigStore } from '@/stores/appConfig'
 import BannerMessage from '@/components/BannerMessage.vue'
+import PopUp from '@/components/PopUp.vue'
+import RepoEditor from '@/components/RepoEditor.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -28,6 +30,13 @@ const logOut = async () => {
 onMounted( async () => {
   await useAppConfigStore().updateConfig();
 })
+
+const openRepoEditor = reactive({value: false})
+
+const repoEditDone = () => {
+  openRepoEditor.value = false
+  loadUser()
+}
 </script>
 
 <template>
@@ -39,6 +48,14 @@ onMounted( async () => {
     <BannerMessage/>
   </header>
   <main>
+    <PopUp
+      id="repoEditorPopUp"
+      v-if="openRepoEditor.value"
+      @closePopUp="openRepoEditor.value = false">
+      <RepoEditor
+      @repoEditSuccess="repoEditDone" :user="useAuthStore().user"/>
+    </PopUp>
+
     <router-view/>
   </main>
 </template>
@@ -61,6 +78,10 @@ h1 {
   font-weight: bold;
 }
 
+#repoLink {
+  cursor: pointer;
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -79,6 +100,10 @@ a {
   color: white;
   text-decoration: underline;
   cursor: pointer;
+}
+
+#repoEditorPopUp {
+  text-align: center;
 }
 
 @media only screen and (max-width: 600px) {

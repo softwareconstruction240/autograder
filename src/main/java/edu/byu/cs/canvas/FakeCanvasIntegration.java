@@ -53,11 +53,6 @@ public class FakeCanvasIntegration implements CanvasIntegration {
     }
 
     @Override
-    public String getGitRepo(int userId) {
-        return null;
-    }
-
-    @Override
     public User getTestStudent() {
         return null;
     }
