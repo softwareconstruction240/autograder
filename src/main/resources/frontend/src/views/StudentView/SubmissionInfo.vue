@@ -77,7 +77,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
         <h1 v-if="!submission.passed">Failed</h1>
         <div v-else>
           <h3 v-if="commitVerificationFailed(submission)">Score withheld for commits<br>Score Before Penalty:</h3>
-          <h1 v-if="submission.rawScore != submission.score" class="score"><span class="rawScore" v-html="scoreToPercentage(submission.rawScore)"/>&nbsp</h1>
+          <h1 v-if="submission.rawScore && submission.rawScore != submission.score" class="score"><span class="rawScore" v-html="scoreToPercentage(submission.rawScore)"/>&nbsp</h1>
           <h1 class="score" v-html="scoreToPercentage(submission.score)"/>
         </div>
       </InfoPanel>

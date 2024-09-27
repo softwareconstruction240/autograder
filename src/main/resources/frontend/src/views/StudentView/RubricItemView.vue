@@ -15,7 +15,7 @@ defineProps<{
 
     <p class="itemHeader">
       <span class="category" v-html="rubricItem.category + ' '"/>
-      <span v-if="rubricItem.results.score != rubricItem.results.rawScore">
+      <span v-if="rubricItem.results.rawScore && rubricItem.results.score != rubricItem.results.rawScore">
         <span class="rawScore" v-html="roundTwoDecimals(rubricItem.results.rawScore) + '/' + rubricItem.results.possiblePoints"/>&nbsp;</span>
       <span class="score" v-html="roundTwoDecimals(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
     </p>
