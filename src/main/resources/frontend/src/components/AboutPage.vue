@@ -97,7 +97,7 @@ onUnmounted(() => {
           <p class="contributions">Developed several important admin analytical tools</p>
         </div>
         <div class="person">
-          <p class="name">Isaih Barron <a href="https://github.com/Fiwafoofa" target="_blank"><i class="fa-solid fa-jet-fighter"/></a></p>
+          <p class="name">Isaih Barron <a href="https://github.com/Fiwafoofa" target="_blank"><i class="fa-solid fa-face-grin-squint-tears"/></a></p>
           <p class="tenure">Jan 2024-Aug 2024</p>
           <p class="contributions">Wrote some systems that did pre-compiling verification of student code</p>
         </div>

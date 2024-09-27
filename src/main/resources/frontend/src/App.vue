@@ -10,6 +10,7 @@ import { useAppConfigStore } from '@/stores/appConfig'
 import BannerMessage from '@/components/BannerMessage.vue'
 import PopUp from '@/components/PopUp.vue'
 import RepoEditor from '@/components/RepoEditor.vue'
+import AboutPage from '@/components/AboutPage.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -57,6 +58,7 @@ const repoEditDone = () => {
     </PopUp>
 
     <router-view/>
+    <AboutPage/>
   </main>
 </template>
 
@@ -76,10 +78,6 @@ header {
 
 h1 {
   font-weight: bold;
-}
-
-#repoLink {
-  cursor: pointer;
 }
 
 main {

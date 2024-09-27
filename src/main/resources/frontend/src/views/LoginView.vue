@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {useAppConfigStore} from "@/stores/appConfig";
 import {onBeforeMount, onMounted} from 'vue';
-import { loadUser, meGet } from '@/services/authService'
-import {useAuthStore} from "@/stores/auth";
+import { loadUser } from '@/services/authService'
 import router from "@/router";
-import AboutPage from '@/components/AboutPage.vue'
 
 onBeforeMount(async () => {
   await loadUser()
@@ -31,8 +29,6 @@ onMounted(() => {
     <p>After selecting Log In, you will be redirected to BYU's authentication page.</p>
     <button @click="login">Log In</button>
   </div>
-
-  <AboutPage/> <!-- putting it here so you can find it without logging in -->
 </template>
 
 <style scoped>
