@@ -22,11 +22,12 @@ export const getConfig = async ():Promise<Config> => {
   }
 }
 
-export const setBanner = async (message: String, link: String, color: String): Promise<void> => {
+export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/banner', {
     "bannerMessage": message,
     "bannerLink": link,
-    "bannerColor": color
+    "bannerColor": color,
+    "bannerExpiration": expirationTimestamp
     }
   );
 }

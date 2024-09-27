@@ -9,6 +9,7 @@ public interface ConfigurationDao {
         BANNER_MESSAGE,
         BANNER_LINK,
         BANNER_COLOR,
+        BANNER_EXPIRATION,
         GITHUB_ASSIGNMENT_NUMBER,
         PHASE0_ASSIGNMENT_NUMBER,
         PHASE1_ASSIGNMENT_NUMBER,

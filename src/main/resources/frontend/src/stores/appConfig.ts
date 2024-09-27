@@ -11,6 +11,7 @@ export type Config = {
   bannerMessage: string
   bannerLink: string
   bannerColor: string
+  bannerExpiration: string
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -43,6 +44,7 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     bannerMessage.value = latestConfig.bannerMessage;
     bannerLink.value = latestConfig.bannerLink;
     bannerColor.value = latestConfig.bannerColor;
+    bannerExpiration.value = latestConfig.bannerExpiration;
     if (bannerColor.value.length == 0) {
       bannerColor.value = "#4fa0ff"
     }
@@ -65,6 +67,7 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const bannerMessage: Ref<string> = ref<string>("");
   const bannerLink: Ref<string> = ref<string>("");
   const bannerColor: Ref<string> = ref<string>("");
+  const bannerExpiration: Ref<string> = ref<string>("");
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
@@ -78,6 +81,7 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     bannerMessage,
     bannerLink,
     bannerColor,
+    bannerExpiration,
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,
