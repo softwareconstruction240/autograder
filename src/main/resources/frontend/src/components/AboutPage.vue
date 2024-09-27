@@ -87,7 +87,7 @@ onUnmounted(() => {
           <p class="contributions">Created several admin tools, cleaned up the Student UI and added Font Awesome</p>
         </div>
         <div class="person">
-          <p class="name">James Finlinson <a href="https://github.com/frozenfrank" target="_blank"><i class="fa-solid fa-pen-nib"/></a></p>
+          <p class="name">James Finlinson <a href="https://github.com/frozenfrank" target="_blank"><i class="fa-solid fa-jedi"/></a></p>
           <p class="tenure">Jan 2024-Dec 2025</p>
           <p class="contributions">Developed class-requirement enforcement systems, like late-days and git-commits</p>
         </div>
