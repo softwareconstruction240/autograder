@@ -34,6 +34,10 @@ public class ConfigController {
         LOGGER.info("[CONFIG] Admin %s has %s".formatted(adminNetId, changeMessage));
     }
 
+    private static void logAutomaticConfigChange(String changeMessage) {
+        LOGGER.info("[CONFIG] Automatic change: %s".formatted(changeMessage));
+    }
+
     public static final Route getConfigAdmin = (req, res) -> {
         try {
             JsonObject response = getPrivateConfig();
@@ -57,7 +61,7 @@ public class ConfigController {
      * Edits in place the passed in response object
      *
      * @param response the Json Object to add banner info to
-     * @throws DataAccessException
+     * @throws DataAccessException if it screws up while getting into the database
      */
     private static void addBannerConfig(JsonObject response) throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
@@ -80,6 +84,8 @@ public class ConfigController {
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, "", String.class);
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, "", String.class);
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
+
+        logAutomaticConfigChange("Banner message has expired");
     }
 
     private static JsonObject getPublicConfig() throws DataAccessException {
@@ -179,7 +185,8 @@ public class ConfigController {
         if (message.isEmpty()) {
             logConfigChange("cleared the banner message", user.netId());
         } else {
-            logConfigChange("set the banner message to: '%s' with link: {%s}".formatted(message, link), user.netId());
+            expirationString = !expirationString.isEmpty() ? expirationString : "never";
+            logConfigChange("set the banner message to: '%s' with link: {%s} to expire at %s".formatted(message, link, expirationString), user.netId());
         }
 
         res.status(200);

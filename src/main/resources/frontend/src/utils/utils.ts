@@ -5,7 +5,6 @@ import {
   type RubricType,
   type Submission,
   type TestNode,
-  type User,
   VerifiedStatus
 } from '@/types/types'
 import {useAuthStore} from '@/stores/auth'
@@ -20,6 +19,10 @@ export const commitVerificationFailed = (submission: Submission) => {
 }
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
+  if (timestampOrString === "+1000000000-12-31T23:59:59.999999999Z") { // The Java Instant.MAX value
+    return "never";
+  }
+
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;
   return timestamp.toLocaleString();
 }
