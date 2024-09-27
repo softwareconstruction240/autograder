@@ -2,6 +2,8 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.byu.cs.autograder.Grader;
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
@@ -197,13 +199,11 @@ public class UserController {
      * cleans up and returns the provided GitHub Repo URL for consistent formatting.
      */
     private static String cleanRepoUrl(String url) {
-        if (url == null) { return null; }
-        if (url.endsWith(".git")) {
-            url = url.substring(0, url.length() - 4);
+        try {
+            return Grader.cleanRepoUrl(url);
+        } catch (GradingException e) {
+            halt(400, "Error parsing GitHub Repo URL");
         }
-        if (url.startsWith("https://www.")) {
-            url = "https://" + url.substring(12);
-        }
-        return url;
+        return null;
     }
 }

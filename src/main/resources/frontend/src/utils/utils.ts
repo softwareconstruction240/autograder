@@ -154,6 +154,5 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
 }
 
 export const isPlausibleRepoUrl = (url: string): boolean => {
-  return url.startsWith("http") &&
-         url.includes("github.com/")
+  return url.includes("github.com")
 }
