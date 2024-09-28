@@ -196,13 +196,13 @@ public class UserController {
     }
 
     /**
-     * cleans up and returns the provided GitHub Repo URL for consistent formatting.
+     * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
      */
     private static String cleanRepoUrl(String url) {
         try {
             return Grader.cleanRepoUrl(url);
         } catch (GradingException e) {
-            halt(400, "Error parsing GitHub Repo URL");
+            halt(400, "Invalid GitHub Repo URL: " + url);
         }
         return null;
     }
