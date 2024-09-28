@@ -21,6 +21,7 @@ public class GraderTest {
                 "https://github.com/USERNAME/REPO_NAME?tab=readme-ov-file",
                 "https://github.com/USERNAME/REPO_NAME/tree/main/0-chess-moves/starter-code/chess",
                 "https://github.com/USERNAME/REPO_NAME/pull/1",
+                "https://github.com/USERNAME/REPO_NAME#/potential/routing/behavior",
         };
         for (String urlVariant : urlVariants) {
             assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
@@ -30,13 +31,19 @@ public class GraderTest {
     @Test
     @Tag("cleanRepoUrl")
     @DisplayName("Should standardize all URLs to a consistent format without a trailing '.git' extension")
-    void should_notStripOffGithubUrl_when_givenRepoUrlWithNoTrailingCharacters() throws GradingException {
-        // Should not alter already working URLs
-        assertEquals("https://github.com/USERNAME/REPO_NAME",
-                Grader.cleanRepoUrl("https://GITHUB.com/USERNAME/REPO_NAME"));
-
-        assertEquals("https://github.com/USERNAME/REPO_NAME",
-                Grader.cleanRepoUrl("https://GITHUB.com/USERNAME/REPO_NAME.git"));
+    void should_standardizeAllUrlsToConsistentFormatWithoutGitExtension() throws GradingException {
+        String expectedUrl = "https://github.com/USERNAME/REPO_NAME";
+        String[] urlVariants = {
+                "https://www.github.com/USERNAME/REPO_NAME",
+                "https://www.github.com/USERNAME/REPO_NAME/",
+                "https://github.com/USERNAME/REPO_NAME.git/",
+                "https://GITHUB.com/USERNAME/REPO_NAME.git",
+                "github.com/USERNAME/REPO_NAME.git",
+                "GITHUB.com/USERNAME/REPO_NAME.git",
+        };
+        for (String urlVariant : urlVariants) {
+            assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+        }
     }
 
     @Test
@@ -45,6 +52,8 @@ public class GraderTest {
     void should_convertToHttpsUrl_when_givenSshUrl() throws GradingException {
         assertEquals("https://github.com/USERNAME/REPO_NAME",
                 Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME.git"));
+        assertEquals("https://github.com/softwareconstruction240/autograder",
+                Grader.cleanRepoUrl("git@github.com:softwareconstruction240/autograder.git"));
     }
 
     @Test
@@ -52,18 +61,6 @@ public class GraderTest {
     @DisplayName("Should not throw exceptions when given properly formed URLs")
     void should_accept_when_givenValidUrl() {
         String[] goodUrls = {
-                "https://www.github.com/USERNAME/REPO_NAME",
-                "https://www.github.com/USERNAME/REPO_NAME/",
-                "https://github.com/USERNAME/REPO_NAME.git/",
-                "github.com/USERNAME/REPO_NAME.git",
-                "GITHUB.com/USERNAME/REPO_NAME.git",
-
-                "https://github.com/USERNAME/REPO_NAME/tree/main",
-                "https://github.com/USERNAME/REPO_NAME?tab=readme-ov-file",
-                "https://github.com/USERNAME/REPO_NAME/tree/main/0-chess-moves/starter-code/chess",
-                "https://github.com/USERNAME/REPO_NAME/pull/1",
-                "https://github.com/USERNAME/REPO_NAME#/potential/routing/behavior",
-
                 "https://github.com/valid-username/valid.repo.name.10.git/",
                 "https://github.com/valid-1-username/valid_repo_name_1234567890.git/",
                 "https://github.com/valid-username-0123456789/valid-repo-name.git/",
@@ -94,9 +91,7 @@ public class GraderTest {
                 "https://wahoooo.com/user/",
         };
         for (String badUrl: badUrls) {
-            assertThrows(GradingException.class, () -> {
-                Grader.cleanRepoUrl(badUrl);
-            });
+            assertThrows(GradingException.class, () -> Grader.cleanRepoUrl(badUrl));
         }
     }
 
