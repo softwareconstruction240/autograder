@@ -40,7 +40,18 @@ public class GraderTest {
                 "https://GITHUB.com/USERNAME/REPO_NAME.git",
                 "github.com/USERNAME/REPO_NAME.git",
                 "GITHUB.com/USERNAME/REPO_NAME.git",
+        };
+        for (String urlVariant : urlVariants) {
+            assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+        }
+    }
 
+    @Test
+    @Tag("cleanRepoUrl")
+    @DisplayName("Should accept all URLs even when provided with superfluous whitespace")
+    void should_accept_whenGivenValidUrlsContainsSuperfluousWhitespace() throws GradingException {
+        String expectedUrl = "https://github.com/USERNAME/REPO_NAME";
+        String[] urlVariants = {
                 "           https://www.github.com/USERNAME/REPO_NAME/              ",
                 "           https://github.com/USERNAME/REPO_NAME.git/              ",
                 "           git@github.com:USERNAME/REPO_NAME.git   "
@@ -79,7 +90,7 @@ public class GraderTest {
 
     @Test
     @Tag("cleanRepoUrl")
-    @DisplayName("Should reject when given NULL")
+    @DisplayName("Should reject with InvalidRepoUrlException when given NULL")
     void should_reject_when_givenNull() {
         assertThrows(Grader.InvalidRepoUrlException.class, () -> Grader.cleanRepoUrl(null));
     }
@@ -89,21 +100,29 @@ public class GraderTest {
     @DisplayName("Should throw exception when given malformed or not related Url")
     void should_throwException_when_givenMalformedOrNotRelatedUrl() {
         String[] badUrls = {
-                "https://www.github.com/<USERNAME>/<REPO_NAME>",
-                "https://fake-github.com/USERNAME/REPO_NAME/pull/1",
-                "fake-github.com/USERNAME/REPO_NAME.git/",
-                "fake-github.com/USERNAME/REPO_NAME.git/",
+                // Invalid characters in <USERNAME> and <REPO_NAME>
+                "https://www.github.com/<USERNAME>/REPO_NAME",
+                "https://www.github.com/USERNAME/<REPO_NAME>",
                 "https://github.com/invalid.username/valid.repo.name.git/",
                 "https://github.com/valid-username/invalid-repo🏴‍☠️/",
                 "https://github.com/valid🏴‍☠️username/valid-repo/",
+
+                // Not on GITHUB.com
+                "https://fake-github.com/USERNAME/REPO_NAME/pull/1",
+                "fake-github.com/USERNAME/REPO_NAME.git/",
+                "fake-github.com/USERNAME/REPO_NAME.git/",
                 "https://byu.instructure.com/courses/25927",
                 "https://wahoooo.com/user/repo",
                 "https://wahoooo.com/user/",
+
+                // Contain ports which would be stripped off (dangerously)
                 "github.com:8080/USERNAME/REPO_NAME.git",
                 "https://github.com:443/softwareconstruction240/autograder",
         };
-        for (String badUrl: badUrls) {
-            assertThrows(Grader.InvalidRepoUrlException.class, () -> Grader.cleanRepoUrl(badUrl));
+        for (String badUrl : badUrls) {
+            assertThrows(Grader.InvalidRepoUrlException.class,
+                    () -> Grader.cleanRepoUrl(badUrl),
+                    "Did not reject input: " + badUrl);
         }
     }
 
