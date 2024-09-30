@@ -58,7 +58,7 @@ public class GraderTest {
                 Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME.git"));
         assertEquals("https://github.com/softwareconstruction240/autograder",
                 Grader.cleanRepoUrl("git@github.com:softwareconstruction240/autograder.git"));
-        assertThrows(GradingException.class,
+        assertThrows(Grader.InvalidRepoUrlException.class,
                 () -> Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME-git"));
     }
 
@@ -81,7 +81,7 @@ public class GraderTest {
     @Tag("cleanRepoUrl")
     @DisplayName("Should reject when given NULL")
     void should_reject_when_givenNull() {
-        assertThrows(GradingException.class, () -> Grader.cleanRepoUrl(null));
+        assertThrows(Grader.InvalidRepoUrlException.class, () -> Grader.cleanRepoUrl(null));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class GraderTest {
                 "https://github.com:443/softwareconstruction240/autograder",
         };
         for (String badUrl: badUrls) {
-            assertThrows(GradingException.class, () -> Grader.cleanRepoUrl(badUrl));
+            assertThrows(Grader.InvalidRepoUrlException.class, () -> Grader.cleanRepoUrl(badUrl));
         }
     }
 

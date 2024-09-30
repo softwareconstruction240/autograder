@@ -138,16 +138,18 @@ public class Grader implements Runnable {
     }
 
     /**
-     * Cleans the student's by removing trailing characters after the repo name,
-     * unless it ends in `.git`.
+     * Cleans and standardizes the student's repo URL.
+     * <br>
+     * The resulting string can be used to <code>git clone</code> the repo.
+     * The standardized URL is also a suitable identifier for repository uniqueness comparisons.
      *
      * @param repoUrl The student's repository URL.
-     * @return Cleaned URL with everything after the repo name stripped off.
-     * @throws GradingException Throws IOException if repoUrl does not follow expected format
+     * @return Cleaned and standardized repository URL.
+     * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
-    public static String cleanRepoUrl(@Nullable  String repoUrl) throws GradingException {
+    public static String cleanRepoUrl(@Nullable  String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
-            throw new GradingException("NULL is not a valid repo URL.");
+            throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }
         String trimmedRepoUrl = repoUrl.trim();
 
@@ -168,7 +170,7 @@ public class Grader implements Runnable {
             }
         }
 
-        throw new GradingException("Could not validate repo url given '" + repoUrl + "'.");
+        throw new InvalidRepoUrlException("Could not validate repo url given '" + repoUrl + "'.");
     }
 
     /**
@@ -209,6 +211,12 @@ public class Grader implements Runnable {
                 "^(?:https?://)?(?:www\\.)?"+domainName+"/"+userName+"/"+repoName+"(?:\\.git|/|\\?|#|$)", // https
                 "^git@"+domainName+":"+userName+"/"+repoName+"\\.git$" // ssh
         };
+    }
+
+    public static class InvalidRepoUrlException extends GradingException {
+        InvalidRepoUrlException(String message) {
+            super();
+        }
     }
 
 

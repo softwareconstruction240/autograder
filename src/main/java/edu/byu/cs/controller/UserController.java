@@ -201,7 +201,7 @@ public class UserController {
     private static String cleanRepoUrl(String url) {
         try {
             return Grader.cleanRepoUrl(url);
-        } catch (GradingException e) {
+        } catch (Grader.InvalidRepoUrlException e) {
             halt(400, "Invalid GitHub Repo URL: " + url);
         }
         return null;
