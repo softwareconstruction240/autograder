@@ -201,7 +201,7 @@ public class Grader implements Runnable {
         String repoName = "([\\w.-]+?)";
         return new String[]{
                 "^(?:https?://)?(?:www\\.)?"+domainName+"/"+userName+"/"+repoName+"(?:\\.git|/|\\?|#|$)", // https
-                "git@"+domainName+":"+userName+"/"+repoName+".git" // ssh
+                "git@"+domainName+":"+userName+"/"+repoName+"\\.git" // ssh
         };
     }
 

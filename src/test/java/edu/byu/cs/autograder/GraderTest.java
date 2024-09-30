@@ -54,6 +54,8 @@ public class GraderTest {
                 Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME.git"));
         assertEquals("https://github.com/softwareconstruction240/autograder",
                 Grader.cleanRepoUrl("git@github.com:softwareconstruction240/autograder.git"));
+        assertThrows(GradingException.class,
+                () -> Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME-git"));
     }
 
     @Test
