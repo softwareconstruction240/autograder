@@ -186,6 +186,10 @@ public class UserController {
                 Instant fakeUpdateInstant = mountainTime.toInstant();
 
                 if (updateDao.getUpdatesForUser(user.netId()).isEmpty()) {
+                    // NOTE: If one URL already updated to Canvas is found "invalid",
+                    // then the `cleanRepoUrl()` will send a **halt()** signal to Spark.
+                    // This could prevent later URLs from being submitted,
+                    // in addition to other unintended bad consequences.
                     updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl(user.repoUrl()), true, "Canvas"));
                 }
             }
