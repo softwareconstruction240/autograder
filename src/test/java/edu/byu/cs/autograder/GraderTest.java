@@ -40,6 +40,10 @@ public class GraderTest {
                 "https://GITHUB.com/USERNAME/REPO_NAME.git",
                 "github.com/USERNAME/REPO_NAME.git",
                 "GITHUB.com/USERNAME/REPO_NAME.git",
+
+                "           https://www.github.com/USERNAME/REPO_NAME/              ",
+                "           https://github.com/USERNAME/REPO_NAME.git/              ",
+                "           git@github.com:USERNAME/REPO_NAME.git   "
         };
         for (String urlVariant : urlVariants) {
             assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));

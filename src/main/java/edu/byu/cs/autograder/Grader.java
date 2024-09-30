@@ -148,12 +148,14 @@ public class Grader implements Runnable {
         Pattern pattern;
         Matcher matcher;
 
+        String trimmedRepoUrl = repoUrl.trim();
+
         String domainName;
         String githubUsername;
         String repositoryName;
         for (String regexPattern : getRepoRegexPatterns()) {
             pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
-            matcher = pattern.matcher(repoUrl);
+            matcher = pattern.matcher(trimmedRepoUrl);
             if (matcher.find()) {
                 domainName = matcher.group(1).toLowerCase();
                 githubUsername = matcher.group(2);
@@ -168,7 +170,7 @@ public class Grader implements Runnable {
     /**
      * Generates an array of Strings representing Regexes for url matching purposes.
      * The array allows for matches from any of multiple formats, and the first match will proceed as a success.
-     * The regexes will be evaluated in case-insensitive mode.
+     * The regexes will be evaluated in case-insensitive mode on a whitespace-trimmed string.
      * <br>
      * The regexes should be formed to extract the minimum amount of information while accepting the largest breadth
      * of possible urls. This allows the URL to be constructed into a consistent format for uniqueness checking
@@ -201,7 +203,7 @@ public class Grader implements Runnable {
         String repoName = "([\\w.-]+?)";
         return new String[]{
                 "^(?:https?://)?(?:www\\.)?"+domainName+"/"+userName+"/"+repoName+"(?:\\.git|/|\\?|#|$)", // https
-                "git@"+domainName+":"+userName+"/"+repoName+"\\.git" // ssh
+                "^git@"+domainName+":"+userName+"/"+repoName+"\\.git$" // ssh
         };
     }
 
