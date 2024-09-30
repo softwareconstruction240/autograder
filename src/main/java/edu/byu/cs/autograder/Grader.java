@@ -200,7 +200,7 @@ public class Grader implements Runnable {
         String userName = "([a-zA-z0-9-]+)";
         String repoName = "([\\w.-]+?)";
         return new String[]{
-                "^(?:https?://)?(?:www\\.)?"+domainName+"(?::\\d+)?/"+userName+"/"+repoName+"(?:\\.git|/|\\?|#|$)", // https
+                "^(?:https?://)?(?:www\\.)?"+domainName+"/"+userName+"/"+repoName+"(?:\\.git|/|\\?|#|$)", // https
                 "git@"+domainName+":"+userName+"/"+repoName+".git" // ssh
         };
     }

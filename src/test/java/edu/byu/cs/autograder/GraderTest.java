@@ -65,9 +65,6 @@ public class GraderTest {
                 "https://github.com/valid-1-username/valid_repo_name_1234567890.git/",
                 "https://github.com/valid-username-0123456789/valid-repo-name.git/",
                 "https://github.com/valid-username-0123456789/1_2_3_4_5_6_7_8_9_0.git/",
-
-                "github.com:8080/USERNAME/REPO_NAME.git",
-                "https://github.com:443/softwareconstruction240/autograder",
         };
         for (String badUrl: goodUrls) {
             assertDoesNotThrow(() -> Grader.cleanRepoUrl(badUrl));
@@ -89,6 +86,8 @@ public class GraderTest {
                 "https://byu.instructure.com/courses/25927",
                 "https://wahoooo.com/user/repo",
                 "https://wahoooo.com/user/",
+                "github.com:8080/USERNAME/REPO_NAME.git",
+                "https://github.com:443/softwareconstruction240/autograder",
         };
         for (String badUrl: badUrls) {
             assertThrows(GradingException.class, () -> Grader.cleanRepoUrl(badUrl));
