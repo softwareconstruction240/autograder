@@ -20,6 +20,7 @@ import edu.byu.cs.model.Submission;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,11 +145,14 @@ public class Grader implements Runnable {
      * @return Cleaned URL with everything after the repo name stripped off.
      * @throws GradingException Throws IOException if repoUrl does not follow expected format
      */
-    public static String cleanRepoUrl(String repoUrl) throws GradingException {
+    public static String cleanRepoUrl(@Nullable  String repoUrl) throws GradingException {
+        if (repoUrl == null) {
+            throw new GradingException("NULL is not a valid repo URL.");
+        }
+        String trimmedRepoUrl = repoUrl.trim();
+
         Pattern pattern;
         Matcher matcher;
-
-        String trimmedRepoUrl = repoUrl.trim();
 
         String domainName;
         String githubUsername;

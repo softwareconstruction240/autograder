@@ -79,6 +79,13 @@ public class GraderTest {
 
     @Test
     @Tag("cleanRepoUrl")
+    @DisplayName("Should reject when given NULL")
+    void should_reject_when_givenNull() {
+        assertThrows(GradingException.class, () -> Grader.cleanRepoUrl(null));
+    }
+
+    @Test
+    @Tag("cleanRepoUrl")
     @DisplayName("Should throw exception when given malformed or not related Url")
     void should_throwException_when_givenMalformedOrNotRelatedUrl() {
         String[] badUrls = {
