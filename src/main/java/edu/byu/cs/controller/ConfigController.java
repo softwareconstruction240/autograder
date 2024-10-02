@@ -14,9 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
+
+import static spark.Spark.halt;
 
 public class ConfigController {
 
@@ -24,6 +32,10 @@ public class ConfigController {
 
     private static void logConfigChange(String changeMessage, String adminNetId) {
         LOGGER.info("[CONFIG] Admin %s has %s".formatted(adminNetId, changeMessage));
+    }
+
+    private static void logAutomaticConfigChange(String changeMessage) {
+        LOGGER.info("[CONFIG] Automatic change: %s".formatted(changeMessage));
     }
 
     public static final Route getConfigAdmin = (req, res) -> {
@@ -45,12 +57,43 @@ public class ConfigController {
         return response;
     };
 
+    /**
+     * Edits in place the passed in response object
+     *
+     * @param response the Json Object to add banner info to
+     * @throws DataAccessException if it screws up while getting into the database
+     */
+    private static void addBannerConfig(JsonObject response) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
+
+        if (bannerExpiration.isBefore(Instant.now())) { //Banner has expired
+            clearBannerConfig();
+        }
+
+        response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
+        response.addProperty("bannerLink", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_LINK, String.class));
+        response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
+        response.addProperty("bannerExpiration", bannerExpiration.toString());
+    }
+
+    private static void clearBannerConfig() throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, "", String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, "", String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, "", String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
+
+        logAutomaticConfigChange("Banner message has expired");
+    }
+
     private static JsonObject getPublicConfig() throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
         JsonObject response = new JsonObject();
 
-        response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
+        addBannerConfig(response);
         response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
 
         return response;
@@ -106,21 +149,59 @@ public class ConfigController {
 
     public static final Route updateBannerMessage = (req, res) -> {
         ConfigurationDao dao = DaoService.getConfigurationDao();
+        Gson gson = new Gson();
 
-        JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String message = new Gson().fromJson(jsonObject.get("bannerMessage"), String.class);
+        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        String expirationString = gson.fromJson(jsonObject.get("bannerExpiration"), String.class);
+
+        Instant expirationTimestamp = Instant.MAX;
+        if (!expirationString.isEmpty()) {
+            try {
+                expirationTimestamp = getInstantFromUnzonedTime(expirationString);
+            } catch (Exception e) {
+                halt(400,"Incomplete timestamp. Send a full timestamp {YYYY-MM-DDTHH:MM:SS} or send none at all");
+            }
+        }
+
+        if (expirationTimestamp.isBefore(Instant.now())) {
+            halt(400, "You tried to set the banner to expire in the past");
+        }
+
+        String message = gson.fromJson(jsonObject.get("bannerMessage"), String.class);
+        String link = gson.fromJson(jsonObject.get("bannerLink"), String.class);
+        String color = gson.fromJson(jsonObject.get("bannerColor"), String.class);
+
+        // If they give us a color, and it's not long enough or is missing #
+        if (!color.isEmpty() && ((color.length() != 7) || !color.startsWith("#"))) {
+            halt(400, "Invalid hex color code. Must provide a hex code starting with a # symbol, followed by 6 hex digits");
+        }
+
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, message, String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, link, String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, color, String.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, expirationTimestamp, Instant.class);
 
         User user = req.session().attribute("user");
         if (message.isEmpty()) {
             logConfigChange("cleared the banner message", user.netId());
         } else {
-            logConfigChange("set the banner message to: '%s'".formatted(message), user.netId());
+            expirationString = !expirationString.isEmpty() ? expirationString : "never";
+            logConfigChange("set the banner message to: '%s' with link: {%s} to expire at %s".formatted(message, link, expirationString), user.netId());
         }
 
         res.status(200);
         return "";
     };
+
+    private static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
+        ZoneId utahZone = ZoneId.of("America/Denver");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime localDateTime = LocalDateTime.parse(timestampString, formatter);
+        ZonedDateTime utahTime = localDateTime.atZone(utahZone);
+
+        return utahTime.toInstant();
+    }
 
     public static final Route updateCourseIdsPost = (req, res) -> {
         SetCourseIdsRequest setCourseIdsRequest = new Gson().fromJson(req.body(), SetCourseIdsRequest.class);
