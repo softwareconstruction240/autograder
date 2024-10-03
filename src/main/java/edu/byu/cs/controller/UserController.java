@@ -177,6 +177,7 @@ public class UserController {
             Collection<User> users = userDao.getUsers();
             int minuteOffset = 0;
             int hourOffset = 0;
+            String cleanRepoUrl;
             for (User user : users) {
                 if (user.role() == User.Role.ADMIN) { continue; }
                 minuteOffset = (minuteOffset == 59) ? 0 : minuteOffset + 1;
@@ -186,11 +187,12 @@ public class UserController {
                 Instant fakeUpdateInstant = mountainTime.toInstant();
 
                 if (updateDao.getUpdatesForUser(user.netId()).isEmpty()) {
-                    // NOTE: If one URL already updated to Canvas is found "invalid",
-                    // then the `cleanRepoUrl()` will send a **halt()** signal to Spark.
-                    // This could prevent later URLs from being submitted,
-                    // in addition to other unintended bad consequences.
-                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), requireCleanRepoUrl(user.repoUrl()), true, "Canvas"));
+                    try {
+                        cleanRepoUrl = RepoUrlValidator.clean(user.repoUrl());
+                        updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl, true, "Canvas"));
+                    } catch (RepoUrlValidator.InvalidRepoUrlException e) {
+                        LOGGER.warn("Skipped RepoUpdate insertion for user '{}' since the URL is invalid. URL: {}", user.netId(), user.repoUrl());
+                    }
                 }
             }
         } catch (DataAccessException e) {
