@@ -35,7 +35,7 @@ public class UserController {
         User user = req.session().attribute("user");
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String repoUrl = cleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
+        String repoUrl = requireCleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
 
         setRepoUrl(user.netId(), repoUrl);
 
@@ -48,7 +48,7 @@ public class UserController {
         String studentNetId = req.params(":netId");
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String repoUrl = cleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
+        String repoUrl = requireCleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
 
         setRepoUrl(studentNetId, repoUrl, admin.netId());
 
@@ -190,7 +190,7 @@ public class UserController {
                     // then the `cleanRepoUrl()` will send a **halt()** signal to Spark.
                     // This could prevent later URLs from being submitted,
                     // in addition to other unintended bad consequences.
-                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl(user.repoUrl()), true, "Canvas"));
+                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), requireCleanRepoUrl(user.repoUrl()), true, "Canvas"));
                 }
             }
         } catch (DataAccessException e) {
@@ -201,7 +201,7 @@ public class UserController {
     /**
      * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
      */
-    private static String cleanRepoUrl(String url) {
+    private static String requireCleanRepoUrl(String url) {
         try {
             return RepoUrlValidator.clean(url);
         } catch (RepoUrlValidator.InvalidRepoUrlException e) {
