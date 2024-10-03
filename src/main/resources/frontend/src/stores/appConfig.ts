@@ -9,6 +9,9 @@ type ImportMeta = {
 
 export type Config = {
   bannerMessage: string
+  bannerLink: string
+  bannerColor: string
+  bannerExpiration: string
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -39,6 +42,13 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const updateConfig = async () => {
     const latestConfig = await getConfig();
     bannerMessage.value = latestConfig.bannerMessage;
+    bannerLink.value = latestConfig.bannerLink;
+    bannerColor.value = latestConfig.bannerColor;
+    bannerExpiration.value = latestConfig.bannerExpiration;
+    if (bannerColor.value.length == 0) {
+      bannerColor.value = "#4fa0ff"
+    }
+
     for (const phase of listOfPhases() as Phase[]) {
       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
     }
@@ -55,6 +65,9 @@ export const useAppConfigStore = defineStore('appConfig', () => {
 
   const backendUrl = ref<string>(env.VITE_APP_BACKEND_URL);
   const bannerMessage: Ref<string> = ref<string>("");
+  const bannerLink: Ref<string> = ref<string>("");
+  const bannerColor: Ref<string> = ref<string>("");
+  const bannerExpiration: Ref<string> = ref<string>("");
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
@@ -66,6 +79,9 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     updateConfig,
     backendUrl,
     bannerMessage,
+    bannerLink,
+    bannerColor,
+    bannerExpiration,
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,

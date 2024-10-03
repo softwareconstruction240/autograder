@@ -7,8 +7,10 @@ import router from '@/router'
 import '@/assets/fontawesome/css/fontawesome.css'
 import '@/assets/fontawesome/css/solid.css'
 import { useAppConfigStore } from '@/stores/appConfig'
+import BannerMessage from '@/components/BannerMessage.vue'
 import PopUp from '@/components/PopUp.vue'
 import RepoEditor from '@/components/RepoEditor.vue'
+import AboutPage from '@/components/AboutPage.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -25,12 +27,6 @@ const logOut = async () => {
   }
   router.push({name: "login"})
 }
-
-const bannerMessage = computed(() => {
-  if (useAuthStore().isLoggedIn) {
-    return useAppConfigStore().bannerMessage
-  }
-});
 
 onMounted( async () => {
   await useAppConfigStore().updateConfig();
@@ -49,18 +45,8 @@ const repoEditDone = () => {
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
-    <p
-      v-if="useAuthStore().user?.repoUrl"
-      @click="openRepoEditor.value = true"
-      id="repoLink"
-    >
-      {{ useAuthStore().user?.repoUrl }}
-      <i class="fa-solid fa-pen-to-square"/>
-    </p>
-
-    <div v-if="bannerMessage" id="bannerMessage">
-      <span v-text="bannerMessage"/>
-    </div>
+    <p>{{ useAuthStore().user?.repoUrl }}</p>
+    <BannerMessage/>
   </header>
   <main>
     <PopUp
@@ -72,17 +58,11 @@ const repoEditDone = () => {
     </PopUp>
 
     <router-view/>
+    <AboutPage/>
   </main>
 </template>
 
 <style scoped>
-#bannerMessage {
-  width: 100%;
-  background-color: #4fa0ff;
-  border-radius: 3px;
-  padding: 7px;
-  margin-top: 15px;
-}
 header {
   text-align: center;
 
@@ -98,10 +78,6 @@ header {
 
 h1 {
   font-weight: bold;
-}
-
-#repoLink {
-  cursor: pointer;
 }
 
 main {

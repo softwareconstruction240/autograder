@@ -5,6 +5,8 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+
 public class ConfigurationSqlDao implements ConfigurationDao {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationSqlDao.class);
@@ -77,6 +79,8 @@ public class ConfigurationSqlDao implements ConfigurationDao {
             return type.cast(Integer.parseInt(value));
         } else if (type == Boolean.class) {
             return type.cast(Boolean.parseBoolean(value));
+        } else if (type == Instant.class) {
+            return type.cast(Instant.parse(value));
         } else {
             throw new IllegalArgumentException("Unsupported configuration type: " + type);
         }

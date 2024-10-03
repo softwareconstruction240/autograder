@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import {useAppConfigStore} from "@/stores/appConfig";
 import {onBeforeMount, onMounted} from 'vue';
-import { loadUser, meGet } from '@/services/authService'
-import {useAuthStore} from "@/stores/auth";
+import { loadUser } from '@/services/authService'
 import router from "@/router";
 
 onBeforeMount(async () => {
