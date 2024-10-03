@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PreviousPhasePassoffTestGrader extends TestGrader{
+public class PreviousPhasePassoffTestGrader extends TestGrader {
     private static final String ERROR_MESSAGE = "Failed previous phases' tests. Cannot pass off until previous tests pass.";
 
     public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
