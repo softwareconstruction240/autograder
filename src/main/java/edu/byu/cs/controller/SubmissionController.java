@@ -3,7 +3,6 @@ package edu.byu.cs.controller;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
-import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
