@@ -1,14 +1,14 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.util;
 
-import org.junit.jupiter.api.Assertions;
+import edu.byu.cs.autograder.GradingException;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
-public class GraderTest {
+public class RepoUrlValidatorTest {
 
     @Test
     @Tag("cleanRepoUrl")
@@ -24,7 +24,7 @@ public class GraderTest {
                 "https://github.com/USERNAME/REPO_NAME#/potential/routing/behavior",
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -42,7 +42,7 @@ public class GraderTest {
                 "GITHUB.com/USERNAME/REPO_NAME.git",
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -57,7 +57,7 @@ public class GraderTest {
                 "           git@github.com:USERNAME/REPO_NAME.git   "
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, Grader.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -66,11 +66,11 @@ public class GraderTest {
     @DisplayName("Should convert to HTTPS URL when given SSH URL")
     void should_convertToHttpsUrl_when_givenSshUrl() throws GradingException {
         assertEquals("https://github.com/USERNAME/REPO_NAME",
-                Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME.git"));
+                RepoUrlValidator.clean("git@github.com:USERNAME/REPO_NAME.git"));
         assertEquals("https://github.com/softwareconstruction240/autograder",
-                Grader.cleanRepoUrl("git@github.com:softwareconstruction240/autograder.git"));
-        assertThrows(Grader.InvalidRepoUrlException.class,
-                () -> Grader.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME-git"));
+                RepoUrlValidator.clean("git@github.com:softwareconstruction240/autograder.git"));
+        assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
+                () -> RepoUrlValidator.clean("git@github.com:USERNAME/REPO_NAME-git"));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class GraderTest {
                 "https://github.com/valid-username-0123456789/1_2_3_4_5_6_7_8_9_0.git/",
         };
         for (String badUrl: goodUrls) {
-            assertDoesNotThrow(() -> Grader.cleanRepoUrl(badUrl));
+            assertDoesNotThrow(() -> RepoUrlValidator.clean(badUrl));
         }
     }
 
@@ -92,7 +92,7 @@ public class GraderTest {
     @Tag("cleanRepoUrl")
     @DisplayName("Should reject with InvalidRepoUrlException when given NULL")
     void should_reject_when_givenNull() {
-        assertThrows(Grader.InvalidRepoUrlException.class, () -> Grader.cleanRepoUrl(null));
+        assertThrows(RepoUrlValidator.InvalidRepoUrlException.class, () -> RepoUrlValidator.clean(null));
     }
 
     @Test
@@ -120,8 +120,8 @@ public class GraderTest {
                 "https://github.com:443/softwareconstruction240/autograder",
         };
         for (String badUrl : badUrls) {
-            assertThrows(Grader.InvalidRepoUrlException.class,
-                    () -> Grader.cleanRepoUrl(badUrl),
+            assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
+                    () -> RepoUrlValidator.clean(badUrl),
                     "Did not reject input: " + badUrl);
         }
     }

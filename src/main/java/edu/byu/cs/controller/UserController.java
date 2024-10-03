@@ -2,8 +2,6 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
@@ -11,6 +9,7 @@ import edu.byu.cs.dataAccess.sql.RepoUpdateDao;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
+import edu.byu.cs.util.RepoUrlValidator;
 import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -200,8 +199,8 @@ public class UserController {
      */
     private static String cleanRepoUrl(String url) {
         try {
-            return Grader.cleanRepoUrl(url);
-        } catch (Grader.InvalidRepoUrlException e) {
+            return RepoUrlValidator.clean(url);
+        } catch (RepoUrlValidator.InvalidRepoUrlException e) {
             halt(400, "Invalid GitHub Repo URL: " + url);
         }
         return null;
