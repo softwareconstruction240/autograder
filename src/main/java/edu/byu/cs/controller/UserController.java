@@ -35,7 +35,7 @@ public class UserController {
         User user = req.session().attribute("user");
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String repoUrl = cleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
+        String repoUrl = requireCleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
 
         setRepoUrl(user.netId(), repoUrl);
 
@@ -48,7 +48,7 @@ public class UserController {
         String studentNetId = req.params(":netId");
 
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
-        String repoUrl = cleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
+        String repoUrl = requireCleanRepoUrl(new Gson().fromJson(jsonObject.get("repoUrl"), String.class));
 
         setRepoUrl(studentNetId, repoUrl, admin.netId());
 
@@ -177,6 +177,7 @@ public class UserController {
             Collection<User> users = userDao.getUsers();
             int minuteOffset = 0;
             int hourOffset = 0;
+            String cleanRepoUrl;
             for (User user : users) {
                 if (user.role() == User.Role.ADMIN) { continue; }
                 minuteOffset = (minuteOffset == 59) ? 0 : minuteOffset + 1;
@@ -186,7 +187,12 @@ public class UserController {
                 Instant fakeUpdateInstant = mountainTime.toInstant();
 
                 if (updateDao.getUpdatesForUser(user.netId()).isEmpty()) {
-                    updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl(user.repoUrl()), true, "Canvas"));
+                    try {
+                        cleanRepoUrl = RepoUrlValidator.clean(user.repoUrl());
+                        updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl, true, "Canvas"));
+                    } catch (RepoUrlValidator.InvalidRepoUrlException e) {
+                        LOGGER.warn("Skipped RepoUpdate insertion for user '{}' since the URL is invalid. URL: {}", user.netId(), user.repoUrl());
+                    }
                 }
             }
         } catch (DataAccessException e) {
@@ -197,7 +203,7 @@ public class UserController {
     /**
      * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
      */
-    private static String cleanRepoUrl(String url) {
+    private static String requireCleanRepoUrl(String url) {
         try {
             return RepoUrlValidator.clean(url);
         } catch (RepoUrlValidator.InvalidRepoUrlException e) {
