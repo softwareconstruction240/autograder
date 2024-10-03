@@ -112,7 +112,7 @@ public class SubmissionController {
         String headHash;
         try {
             headHash = SubmissionUtils.getRemoteHeadHash(user.repoUrl());
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
             LOGGER.error("Error getting remote head hash", e);
             halt(400, "Invalid repo url");
             return false;
