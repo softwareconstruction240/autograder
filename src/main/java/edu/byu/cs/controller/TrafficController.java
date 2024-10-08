@@ -1,6 +1,6 @@
-package edu.byu.cs.autograder;
+package edu.byu.cs.controller;
 
-import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.QueueItem;

@@ -1,6 +1,6 @@
 package edu.byu.cs.canvas;
 
-public class CanvasException extends Exception{
+public class CanvasException extends Exception {
 
     public CanvasException() {
         super();
