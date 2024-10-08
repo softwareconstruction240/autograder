@@ -145,15 +145,16 @@ public class PhaseUtils {
     }
 
     /**
-     * Check if passoff tests are required for a given phase
+     * Returns the required rubric types to submit a phase
      *
      * @param phase phase to check
-     * @return true (passoff results are all or nothing), false (passoffs can be partial)
+     * @return the required rubric types for the provided phase
      */
-    public static boolean isPassoffRequired(Phase phase) {
+    public static Collection<Rubric.RubricType> requiredRubricTypes(Phase phase) {
         return switch (phase) {
-            case Phase0, Phase1, Phase3, Phase4 -> true;
-            case Phase5, Phase6, Quality, GitHub, Commits -> false;
+            case Phase0, Phase1, Phase3, Phase4 -> Set.of(Rubric.RubricType.PASSOFF_TESTS);
+            case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
+            case Phase5, Phase6, Quality, Commits -> Set.of();
         };
     }
 
@@ -174,7 +175,8 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
             case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
-            case Quality, Commits, GitHub -> throw new GradingException("No commit verification for this phase");
+            case GitHub -> new CommitVerificationConfig(2, 0, 0, 0, forgivenessMinutesHead);
+            case Quality, Commits -> throw new GradingException("No commit verification for this phase");
         };
     }
 
@@ -182,6 +184,13 @@ public class PhaseUtils {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
             case Quality, GitHub, Commits -> false;
+        };
+    }
+
+    public static boolean shouldVerifyCommits(Phase phase) {
+        return switch (phase) {
+            case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, GitHub -> true;
+            case Quality, Commits -> false;
         };
     }
 
