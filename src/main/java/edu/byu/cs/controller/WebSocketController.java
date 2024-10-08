@@ -1,6 +1,5 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.autograder.TrafficController;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;

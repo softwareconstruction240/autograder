@@ -5,7 +5,7 @@ import edu.byu.cs.model.Rubric;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class GradingException extends Exception{
+public class GradingException extends Exception {
     private static final String CATEGORY = "Grading Issue";
     private static final String CRITERIA = "An issue arose while grading this submission";
 
