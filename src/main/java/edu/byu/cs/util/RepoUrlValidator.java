@@ -99,7 +99,7 @@ public class RepoUrlValidator {
 
     public static class InvalidRepoUrlException extends GradingException {
         InvalidRepoUrlException(String message) {
-            super();
+            super(message);
         }
     }
 
