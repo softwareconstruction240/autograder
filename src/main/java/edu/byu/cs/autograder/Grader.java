@@ -20,6 +20,8 @@ import edu.byu.cs.model.Submission;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.RepoUrlValidator;
+import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,7 @@ public class Grader implements Runnable {
     public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
-            repoUrl = cleanRepoUrl(repoUrl);
+            repoUrl = RepoUrlValidator.clean(repoUrl);
         }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
@@ -135,36 +137,6 @@ public class Grader implements Runnable {
 
         return new Rubric(rubricItems, false, "");
     }
-
-    /**
-     * Cleans the student's by removing trailing characters after the repo name,
-     * unless it ends in `.git`.
-     *
-     * @param repoUrl The student's repository URL.
-     * @return Cleaned URL with everything after the repo name stripped off.
-     * @throws GradingException Throws IOException if repoUrl does not follow expected format
-     */
-    public static String cleanRepoUrl(String repoUrl) throws GradingException {
-        String[] regexPatterns = {
-            "https?://github\\.com/([^/?]+)/([^/?]+)", // https
-            "git@github.com:([^/]+)/([^/]+).git" // ssh
-        };
-        Pattern pattern;
-        Matcher matcher;
-        String githubUsername;
-        String repositoryName;
-        for (String regexPattern: regexPatterns) {
-            pattern = Pattern.compile(regexPattern);
-            matcher = pattern.matcher(repoUrl);
-            if (matcher.find()) {
-                githubUsername = matcher.group(1);
-                repositoryName = matcher.group(2);
-                return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
-            }
-        }
-        throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
-    }
-
 
     private void handleException(GradingException ge, CommitVerificationResult cvr) {
         if(cvr == null) {
