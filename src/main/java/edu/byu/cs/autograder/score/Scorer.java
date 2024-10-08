@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -280,14 +281,15 @@ public class Scorer {
     }
 
     private boolean passed(Rubric rubric) {
-        if(!PhaseUtils.isPassoffRequired(gradingContext.phase())) {
-            return true;
+        Collection<Rubric.RubricType> requiredTypes = PhaseUtils.requiredRubricTypes(gradingContext.phase());
+        for(Rubric.RubricType type : requiredTypes) {
+            Rubric.RubricItem typedRubricItem = rubric.items().get(type);
+            if(typedRubricItem != null && typedRubricItem.results() != null &&
+                    typedRubricItem.results().score() < typedRubricItem.results().possiblePoints()) {
+                return false;
+            }
         }
-        Rubric.RubricItem passoffTestItem = rubric.items().get(Rubric.RubricType.PASSOFF_TESTS);
-        if (passoffTestItem == null || passoffTestItem.results() == null) {
-            return true;
-        }
-        return passoffTestItem.results().score() >= passoffTestItem.results().possiblePoints();
+        return true;
     }
 
     private static Rubric applyLatePenalty(Rubric rubric, int daysLate) {
