@@ -2,10 +2,12 @@ package edu.byu.cs.autograder.git.CommitValidation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public record Result(
         Collection<String> messages,
-        int commitsAffected
+        Set<String> commitsAffected
 ) {
 
     @FunctionalInterface
@@ -23,11 +25,11 @@ public record Result(
      */
     public static Result evaluateConditions(CV[] assertedConditions, MessageTerminatedVisitor visitor) {
         ArrayList<String> messages = new ArrayList<>();
-        int commitsAffected = 0;
+        Set<String> commitsAffected = new HashSet<>();
         for (CV assertedCondition : assertedConditions) {
             if (!assertedCondition.fails()) continue;
             messages.add(assertedCondition.errorMsg());
-            commitsAffected += assertedCondition.commitsAffected();
+            commitsAffected.addAll(assertedCondition.commitsAffected());
         }
 
         if (!messages.isEmpty()) {

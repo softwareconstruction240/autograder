@@ -244,8 +244,8 @@ public class GitHelper {
         Result errorResults = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
         // Remove warning commits from results
-        numCommits -= warningResults.commitsAffected(); // Important!
-        significantCommits -= warningResults.commitsAffected(); // Assume that the affected commits were significant
+        numCommits -= warningResults.commitsAffected().size(); // Important!
+        significantCommits -= warningResults.commitsAffected().size(); // Assume that the affected commits were significant
         // Don't assume we can modify the daysWithCommits value meaningfully.
         // Ideally, we would reevaluate all these conditions after
         // removing the warning commits from the set of valid commits.
