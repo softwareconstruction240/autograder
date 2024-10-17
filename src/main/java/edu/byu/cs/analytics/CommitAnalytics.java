@@ -137,7 +137,8 @@ public class CommitAnalytics {
         var duplicatedTimestampCommits = analyzeDuplicatedTimestamps(commitsByTimestamp);
         if (!duplicatedTimestampCommits.isEmpty()) {
             commitsWithSameTimestamp = true;
-            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits);
+            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits.allEffectedCommits());
+            erroringCommits.put("commitTimestampsDuplicatedSubsequentOnly", duplicatedTimestampCommits.duplicatedCommitsOnly());
         }
 
         return new CommitsByDay(
@@ -151,14 +152,35 @@ public class CommitAnalytics {
         dataMap.putIfAbsent(groupId, new LinkedList<>());
         dataMap.get(groupId).add(commitHash);
     }
-    private static List<String> analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
-        List<String> out = new LinkedList<>();
+    private static DuplicatedTimestamps analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
+        List<String> allEffectedCommits = new ArrayList<>();
+        List<String> duplicatedCommitsOnly = new ArrayList<>();
         for (var commitsAtTimestamp : dataMap.values()) {
             if (commitsAtTimestamp.size() > 1) {
-                out.addAll(commitsAtTimestamp);
+                allEffectedCommits.addAll(commitsAtTimestamp);
+                duplicatedCommitsOnly.addAll(commitsAtTimestamp.subList(1, commitsAtTimestamp.size()));
             }
         }
-        return out;
+        return new DuplicatedTimestamps(allEffectedCommits, duplicatedCommitsOnly);
+    }
+
+    /**
+     * Contains an analyzed view of the commits which have been discovered to have the exact same timestamp.
+     *
+     * @param allEffectedCommits The commit hashes of all affected commits.
+     *                           This set of results could be displayed to a user for understanding the problem.
+     * @param duplicatedCommitsOnly The commit hashes of only the duplicating commits.
+     *                              The first commit of each bucket of duplicated timestamps is excluded.
+     *                              This set of results could be used to identify commits to skip in a re-evaluation
+     *                              of the repo while still honoring the first of each of the commits.
+     */
+    private record DuplicatedTimestamps(
+            List<String> allEffectedCommits,
+            List<String> duplicatedCommitsOnly
+    ) {
+        public boolean isEmpty() {
+            return allEffectedCommits.isEmpty();
+        }
     }
 
 
@@ -200,11 +222,11 @@ public class CommitAnalytics {
     /**
      * Responsible for providing an iterable of the commits to analyze for this phase,
      * along with some status flags indicating how they were retrieved.
-     *
+     * <br>
      * Generally, this will result in only the new commits since the last submission being evaluated.
      * However, if the previous submission commit is missing, or if this is the first submission,
      * then the entire history will be provided.
-     *
+     * <br>
      * If a tail commit was expected, but not found, that will be reported as a flag.
      *
      * @param git An open Git repo

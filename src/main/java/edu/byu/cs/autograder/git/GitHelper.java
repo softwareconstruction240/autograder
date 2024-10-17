@@ -5,6 +5,8 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.analytics.CommitsByDay;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitValidation.CV;
+import edu.byu.cs.autograder.git.CommitValidation.Result;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -27,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class GitHelper {
@@ -111,7 +112,7 @@ public class GitHelper {
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
-                0, 0, 0, false, 0, failureMessage,
+                0, 0, 0, false, 0, failureMessage, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
         );
@@ -165,7 +166,7 @@ public class GitHelper {
         String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, false, originalPenaltyPct, failureMessage,
+                0, 0, 0, false, originalPenaltyPct, failureMessage, null,
                 null, null, headHash, null
         );
     }
@@ -202,7 +203,6 @@ public class GitHelper {
         int requiredCommits = gradingContext.verificationConfig().requiredCommits();
         int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
         int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
         int numCommits = commitsByDay.totalCommits();
         int daysWithCommits = commitsByDay.dayMap().size();
@@ -225,34 +225,61 @@ public class GitHelper {
                         commitsByDay.commitsInPast(),
                         "Suspicious commit history. Some commits are authored before the previous phase hash."),
                 new CV(
-                        !commitsByDay.commitsInOrder(),
-                        "Suspicious commit history. Not all commits are in order."),
-                new CV(
                         commitsByDay.commitsBackdated(),
                         "Suspicious commit history. Some commits have been backdated."),
-                new CV(
-                        commitsByDay.commitTimestampsDuplicated(),
-                        "Suspicious commit history. Multiple commits have the exact same timestamp."),
                 new CV(
                         commitsByDay.missingTailHash(),
                         "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
-        ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
+        CV[] warningConditions = {
+                new CV(
+                        !commitsByDay.commitsInOrder(),
+                        "Congratulations! You have changed the order of some of your commits. You won a medal for manipulating your git history in advanced ways🏅"),
+                new CV(
+                        commitsByDay.commitTimestampsDuplicated(),
+                        commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly"),
+                        "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
+        };
+
+        Result warningResults = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
+        Result errorResults = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
+
+        // Remove warning commits from results
+        numCommits -= warningResults.commitsAffected().size(); // Important!
+        significantCommits -= warningResults.commitsAffected().size(); // Assume that the affected commits were significant
+        // Don't assume we can modify the daysWithCommits value meaningfully.
+        // Ideally, we would reevaluate all these conditions after
+        // removing the warning commits from the set of valid commits.
 
         return new CommitVerificationResult(
-                errorMessages.isEmpty(),
+                errorResults.isEmpty(),
                 false,
                 numCommits,
                 (int) significantCommits,
                 daysWithCommits,
                 commitsByDay.missingTailHash(),
                 0, // Penalties are applied by TA's upon approval of unapproved submissions
-                String.join("\n", errorMessages),
+                String.join("\n", errorResults.messages()),
+                warningResults.messages(),
                 commitsByDay.lowerThreshold().timestamp(),
                 commitsByDay.upperThreshold().timestamp(),
                 commitsByDay.upperThreshold().commitHash(),
                 commitsByDay.lowerThreshold().commitHash()
         );
+    }
+
+    void warningMessageTerminator(Collection<String> warningMessages) {
+        warningMessages.add("Grading will continue on this submission despite detecting poor Git etiquette. "
+            + "We recommend asking a TA to understand why these warnings appeared and how to avoid them in the future.");
+    }
+
+    void errorMessageTerminator(Collection<String> errorMessages) {
+        if (!PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) return;
+
+        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
+        errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
+                + "you will need to talk to a TA to receive a score. ");
+        errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
     }
 
     // Evaluation Helpers
@@ -348,21 +375,6 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    private ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
-        ArrayList<String> errorMessages = new ArrayList<>();
-        for (CV assertedCondition : assertedConditions) {
-            if (!assertedCondition.fails) continue;
-            errorMessages.add(assertedCondition.errorMsg());
-        }
-
-        if (!errorMessages.isEmpty() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) {
-            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
-                    + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
-        }
-        return errorMessages;
-    }
-
     // Helpers
 
     private Collection<Submission> getPassingSubmissions() throws DataAccessException {
@@ -386,13 +398,5 @@ public class GitHelper {
     static String getHeadHash(Git git) throws IOException {
         return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
-
-    // Data Structures
-
-    /** CommitValidation. Internal helper */
-    private record CV(
-            boolean fails,
-            String errorMsg
-    ) { }
 
 }
