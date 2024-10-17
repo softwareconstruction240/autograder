@@ -222,11 +222,11 @@ public class CommitAnalytics {
     /**
      * Responsible for providing an iterable of the commits to analyze for this phase,
      * along with some status flags indicating how they were retrieved.
-     *
+     * <br>
      * Generally, this will result in only the new commits since the last submission being evaluated.
      * However, if the previous submission commit is missing, or if this is the first submission,
      * then the entire history will be provided.
-     *
+     * <br>
      * If a tail commit was expected, but not found, that will be reported as a flag.
      *
      * @param git An open Git repo
