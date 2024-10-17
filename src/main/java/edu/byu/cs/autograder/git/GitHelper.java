@@ -225,9 +225,6 @@ public class GitHelper {
                         commitsByDay.commitsInPast(),
                         "Suspicious commit history. Some commits are authored before the previous phase hash."),
                 new CV(
-                        !commitsByDay.commitsInOrder(),
-                        "Suspicious commit history. Not all commits are in order."),
-                new CV(
                         commitsByDay.commitsBackdated(),
                         "Suspicious commit history. Some commits have been backdated."),
                 new CV(
@@ -235,6 +232,9 @@ public class GitHelper {
                         "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
         CV[] warningConditions = {
+                new CV(
+                        !commitsByDay.commitsInOrder(),
+                        "Congratulations! You have changed the order of some of your commits. You won a medal for manipulating your git history in advanced ways🏅"),
                 new CV(
                         commitsByDay.commitTimestampsDuplicated(),
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
