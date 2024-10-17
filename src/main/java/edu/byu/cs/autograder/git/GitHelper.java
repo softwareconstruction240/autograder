@@ -237,6 +237,7 @@ public class GitHelper {
                         "Congratulations! You have changed the order of some of your commits. You won a medal for manipulating your git history in advanced ways🏅"),
                 new CV(
                         commitsByDay.commitTimestampsDuplicated(),
+                        commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly"),
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
         };
 
