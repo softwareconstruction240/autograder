@@ -58,6 +58,7 @@ public class GitHelperUtils {
                     prevVerification.missingTail(),
                     prevVerification.penaltyPct(),
                     prevVerification.failureMessage(),
+                    prevVerification.warningMessages(),
                     prevVerification.minAllowedThreshold(),
                     prevVerification.maxAllowedThreshold(),
                     newHeadHash,                                // REPLACE HEAD HASH!
@@ -66,7 +67,7 @@ public class GitHelperUtils {
         } else {
             prevVerification = new CommitVerificationResult(
                     false, true, 0, 0, 0, false,
-                    0, "", null, null,
+                    0, "", null, null, null,
                     newHeadHash, "");
         }
     }
@@ -178,7 +179,7 @@ public class GitHelperUtils {
         // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays,
-                missingTail, 0, null, null, null,
+                missingTail, 0, null, null, null, null,
                 "ANY_HEAD_HASH", null);
     }
 

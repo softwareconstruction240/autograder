@@ -1,7 +1,6 @@
 package edu.byu.cs.analytics;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Contains the results of a commit analytics parse,
@@ -43,4 +42,21 @@ public record CommitsByDay(
         boolean missingTailHash,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
-) { }
+) {
+    /**
+     * Safely retrieves a read-only {@link Collection<String>} of any erroring commits within the <code>groupId</code> group.
+     *
+     * @param groupId String identifying the group to view
+     * @return A non-empty collection of commit hashes corresponding to <code>groupId</code>, or <code>null</code>.
+     */
+    public Collection<String> getErroringCommitsSet(String groupId) {
+        if (groupId == null) {
+            throw new IllegalArgumentException("groupId should not be null");
+        }
+        var initialList = erroringCommits.get(groupId);
+        if (initialList == null || initialList.isEmpty()) {
+            return null;
+        }
+        return List.copyOf(initialList);
+    }
+}
