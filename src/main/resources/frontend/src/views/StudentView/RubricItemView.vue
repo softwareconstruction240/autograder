@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type {RubricItem} from '@/types/types'
-import { roundTwoDecimals, sanitizeHtml } from '@/utils/utils'
+import type { RubricItem } from '@/types/types'
+import { resultsScoreDisplayText, sanitizeHtml } from '@/utils/utils'
 import MoreInfo from '@/components/MoreInfo.vue'
-import RubricItemResultsView from "@/views/StudentView/RubricItemResultsView.vue";
+import RubricItemResultsView from '@/views/StudentView/RubricItemResultsView.vue'
 
 defineProps<{
   rubricItem: RubricItem;
@@ -15,9 +15,7 @@ defineProps<{
 
     <p class="itemHeader">
       <span class="category" v-html="rubricItem.category + ' '"/>
-      <span v-if="rubricItem.results.rawScore && rubricItem.results.score != rubricItem.results.rawScore">
-        <span class="rawScore" v-html="roundTwoDecimals(rubricItem.results.rawScore) + '/' + rubricItem.results.possiblePoints"/>&nbsp;</span>
-      <span class="score" v-html="roundTwoDecimals(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints"/>
+      <span class="score" v-html="resultsScoreDisplayText(rubricItem.results)"/>
     </p>
     <hr/>
     <div id="details">
@@ -33,7 +31,7 @@ defineProps<{
       <MoreInfo v-if="rubricItem.results.testResults || rubricItem.results.textResults" text="details">
         <div>
           <span class="category" v-html="rubricItem.category + ' '"/>
-          <span class="score" v-html="Math.round(rubricItem.results.score) + '/' + rubricItem.results.possiblePoints + '<br/>'"/>
+          <span class="score" v-html="resultsScoreDisplayText(rubricItem.results) + '<br/>'"/>
         </div>
         <hr style="min-width: 250px; width: 100%"> <!-- the min-width is a round about way to make the window wide enough the button -->
         <RubricItemResultsView :test-results="rubricItem.results.testResults" :text-results="rubricItem.results.textResults"/>
@@ -51,11 +49,6 @@ defineProps<{
 
 .score {
   font-weight: normal;
-}
-
-.rawScore {
-  font-weight: lighter;
-  text-decoration: line-through;
 }
 
 #details {

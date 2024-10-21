@@ -9,7 +9,7 @@ import {
   nameOnSubmission,
   phaseString,
   readableTimestamp,
-  scoreToPercentage,
+  submissionScoreDisplayText,
   sortedItems
 } from '@/utils/utils'
 import RubricItemView from '@/views/StudentView/RubricItemView.vue'
@@ -76,9 +76,8 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
         <p>Score:</p>
         <h1 v-if="!submission.passed">Failed</h1>
         <div v-else>
-          <h3 v-if="commitVerificationFailed(submission)">Score withheld for commits<br>Score Before Penalty:</h3>
-          <h1 v-if="submission.rawScore && submission.rawScore != submission.score" class="score"><span class="rawScore" v-html="scoreToPercentage(submission.rawScore)"/>&nbsp</h1>
-          <h1 class="score" v-html="scoreToPercentage(submission.score)"/>
+<!--          <h3 v-if="commitVerificationFailed(submission)">Score withheld for commits<br>Score Before Penalty:</h3>-->
+          <p class="score" v-html="submissionScoreDisplayText(submission, false)"/>
         </div>
       </InfoPanel>
       <InfoPanel id="notesBox" class="info-box">
@@ -121,12 +120,8 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
   width: 100%;
 }
 
-.rawScore {
-  font-weight: lighter;
-  text-decoration: line-through;
-}
-
 .score {
   display: inline;
+  font-size: 1.3em;
 }
 </style>

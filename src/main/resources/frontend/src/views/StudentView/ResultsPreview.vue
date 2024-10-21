@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { Submission } from '@/types/types'
-import { commitVerificationFailed, roundTwoDecimals, scoreToPercentage, sortedItems } from '@/utils/utils'
+import {
+  commitVerificationFailed, resultsScoreDisplayText,
+  roundTwoDecimals,
+  scoreToPercentage,
+  sortedItems,
+  submissionScoreDisplayText
+} from '@/utils/utils'
 import PopUp from '@/components/PopUp.vue'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
@@ -32,17 +38,15 @@ const openDetails = ref<boolean>(false);
 
       <div v-else>
         <h2>Submission passed! <i class="fa-solid fa-circle-check" style="color: green"/></h2>
-        <h3>Score: {{scoreToPercentage(submission.score)}}</h3>
+        <h3>Score: {{submissionScoreDisplayText(submission, true)}}</h3>
       </div>
 
     </div>
     <p class="submission-notes" v-html="submission.notes.replace('\n', '<br />')"></p>
     <div class="rubric-item-summaries">
       <p v-if="submission.rubric.items"
-         v-for="item in sortedItems(submission.rubric.items)">
-        {{item.category}}: {{roundTwoDecimals(item.results.score)}} / {{item.results.possiblePoints}}
-      </p>
-
+         v-for="item in sortedItems(submission.rubric.items)"
+         v-html="item.category + ': ' + resultsScoreDisplayText(item.results)" />
       </div>
     <button @click="() => {openDetails = true}" class="secondary">See submission details</button>
   </div>
@@ -58,7 +62,7 @@ const openDetails = ref<boolean>(false);
 .rubric-item-summaries {
   font-size: 19px;
   margin: 10px 0;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 #submission-score {

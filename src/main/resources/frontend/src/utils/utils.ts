@@ -2,10 +2,10 @@ import {useAdminStore} from "@/stores/admin";
 import {
   Phase,
   type RubricItem,
+  type RubricItemResults,
   type RubricType,
   type Submission,
   type TestNode,
-  type User,
   VerifiedStatus
 } from '@/types/types'
 import {useAuthStore} from '@/stores/auth'
@@ -156,4 +156,42 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
 export const isPlausibleRepoUrl = (url: string): boolean => {
   return url.startsWith("http") &&
          url.includes("github.com/")
+}
+
+export const submissionScoreDisplayText = (submission: Submission, inLine: boolean): string => {
+  const failedCommitVerification = commitVerificationFailed(submission);
+  const penalized = submission.rawScore && submission.rawScore != submission.score;
+  let commitVerificationText = "";
+  let penaltyText = "after penalties";
+
+  if(failedCommitVerification) {
+    commitVerificationText = `Score withheld for commits<br>Score Before Penalt${penalized ? 'ies' : 'y'}: `;
+    penaltyText = "after other penalties";
+  }
+
+  let scoreText = scoreToPercentage(submission.score);
+  if(!inLine && !failedCommitVerification) {
+    scoreText = '<b>' + scoreText + '</b>';
+  }
+
+  if(penalized) {
+    const separator = failedCommitVerification && !inLine ? '<br>' : ' ';
+    let rawScoreText = scoreToPercentage(submission.rawScore);
+    if(!inLine && !failedCommitVerification) {
+      rawScoreText = '<b>' + rawScoreText + '</b>';
+    }
+    scoreText = `${rawScoreText}${separator}(${penaltyText}: ${scoreText})`;
+  }
+
+  return commitVerificationText + scoreText;
+}
+
+export const resultsScoreDisplayText = (results: RubricItemResults): string => {
+  const score = roundTwoDecimals(results.score) + '/' + results.possiblePoints
+  if(results.rawScore && results.score != results.rawScore) {
+    return `${roundTwoDecimals(results.rawScore)}/${results.possiblePoints} (after penalties: ${score})`
+  }
+  else {
+    return score;
+  }
 }
