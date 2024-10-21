@@ -20,6 +20,10 @@ export const commitVerificationFailed = (submission: Submission) => {
 }
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
+  if (timestampOrString === "+1000000000-12-31T23:59:59.999999999Z") { // The Java Instant.MAX value
+    return "never";
+  }
+
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;
   return timestamp.toLocaleString();
 }
@@ -154,8 +158,9 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
 }
 
 export const isPlausibleRepoUrl = (url: string): boolean => {
-  return url.startsWith("http") &&
-         url.includes("github.com/")
+  // NOTE: This restriction on accepting "github.com" urls is arbitrary.
+  // The back-end service can function with any link usable by `git clone <URL>`
+  return !!url && url.toLowerCase().includes("github.com")
 }
 
 export const submissionScoreDisplayText = (submission: Submission, inLine: boolean): string => {

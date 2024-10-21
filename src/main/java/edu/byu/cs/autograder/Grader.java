@@ -20,6 +20,8 @@ import edu.byu.cs.model.Submission;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
+import edu.byu.cs.util.RepoUrlValidator;
+import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,7 @@ public class Grader implements Runnable {
     public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
-            repoUrl = cleanRepoUrl(repoUrl);
+            repoUrl = RepoUrlValidator.clean(repoUrl);
         }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
@@ -67,7 +69,7 @@ public class Grader implements Runnable {
         File stageRepo = new File(stagePath, "repo");
 
         // Init Grading Context
-        CommitVerificationConfig cvConfig = PhaseUtils.requiresTAPassoffForCommits(phase) ?
+        CommitVerificationConfig cvConfig = PhaseUtils.shouldVerifyCommits(phase) ?
                 PhaseUtils.verificationConfig(phase) : null;
         this.observer = observer;
         this.gradingContext = new GradingContext(
@@ -94,7 +96,7 @@ public class Grader implements Runnable {
             }
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null);
+            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationResult);
 
             Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
             DaoService.getSubmissionDao().insertSubmission(submission);
@@ -111,7 +113,7 @@ public class Grader implements Runnable {
         }
     }
 
-    private Rubric evaluateProject(RubricConfig rubricConfig) throws GradingException, DataAccessException {
+    private Rubric evaluateProject(RubricConfig rubricConfig, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
         if (rubricConfig == null) {
             return new Rubric(new EnumMap<>(Rubric.RubricType.class), false, "No Rubric Config");
@@ -124,7 +126,7 @@ public class Grader implements Runnable {
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade();
+                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
                     case GIT_COMMITS, GRADING_ISSUE -> null;
                 };
                 if (results != null) {
@@ -135,36 +137,6 @@ public class Grader implements Runnable {
 
         return new Rubric(rubricItems, false, "");
     }
-
-    /**
-     * Cleans the student's by removing trailing characters after the repo name,
-     * unless it ends in `.git`.
-     *
-     * @param repoUrl The student's repository URL.
-     * @return Cleaned URL with everything after the repo name stripped off.
-     * @throws GradingException Throws IOException if repoUrl does not follow expected format
-     */
-    public static String cleanRepoUrl(String repoUrl) throws GradingException {
-        String[] regexPatterns = {
-            "https?://github\\.com/([^/?]+)/([^/?]+)", // https
-            "git@github.com:([^/]+)/([^/]+).git" // ssh
-        };
-        Pattern pattern;
-        Matcher matcher;
-        String githubUsername;
-        String repositoryName;
-        for (String regexPattern: regexPatterns) {
-            pattern = Pattern.compile(regexPattern);
-            matcher = pattern.matcher(repoUrl);
-            if (matcher.find()) {
-                githubUsername = matcher.group(1);
-                repositoryName = matcher.group(2);
-                return String.format("https://github.com/%s/%s", githubUsername, repositoryName);
-            }
-        }
-        throw new GradingException("Could not find github username and repository name given '" + repoUrl + "'.");
-    }
-
 
     private void handleException(GradingException ge, CommitVerificationResult cvr) {
         if(cvr == null) {

@@ -11,11 +11,20 @@ import edu.byu.cs.model.RubricConfig;
  * then this grader will give them full points.
  */
 public class GitHubAssignmentGrader {
+    private static final String SUCCESS_MESSAGE = "Successfully fetched your repository and verified commits.";
+    private static final String RESUBMIT_PROMPT = " Push another commit to your repository and re-request grading to receive points for this assignment.";
+    private static final String FAILURE_MESSAGE = "Successfully fetched your repository, but the number of commits is insufficient." + RESUBMIT_PROMPT;
 
-    public Rubric.Results grade() throws DataAccessException {
+    public Rubric.Results grade(CommitVerificationResult commitVerificationResult) throws DataAccessException {
         RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(Phase.GitHub);
         RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.GITHUB_REPO);
-        return new Rubric.Results("Successfully fetched your repository", 1f, configItem.points(), null, null);
-    }
 
+        if(commitVerificationResult.verified()) {
+            return new Rubric.Results(SUCCESS_MESSAGE, 1f, configItem.points(), null, null);
+        }
+        else {
+            return new Rubric.Results(FAILURE_MESSAGE, 0f, configItem.points(), null,
+                    commitVerificationResult.failureMessage() + RESUBMIT_PROMPT);
+        }
+    }
 }

@@ -88,7 +88,17 @@ public class GitHelperPerformanceTest {
             var generationStart = Instant.now();
             testDuration = printTimeElapsed("test initialization", testStart, generationStart);
 
-            for (int i = 1; i <= totalCommits; ++i) {
+            // Make the first commit 1 day ago so that the commits always end up being on two days.
+            // This avoids issues where the test would fail when run in the early parts of the morning
+            // when the commits would accidentally spill into the previous day.
+            utils.makeCommit(
+                    repoContext,
+                    "Initial Commit" + "\nEmpty line",
+                    1,
+                    0,
+                    commitLines
+            );
+            for (int i = 2; i <= totalCommits; ++i) {
                 utils.makeCommit(
                         repoContext,
                         "Change " + i + "\nEmpty line",
@@ -106,7 +116,7 @@ public class GitHelperPerformanceTest {
                 var evaluationEnd = Instant.now();
                 evaluationDuration.set(printTimeElapsed("evaluating history", evaluationStart, evaluationEnd));
 
-                CommitVerificationResult expected = utils.generalCommitVerificationResult(false, totalCommits, 1);
+                CommitVerificationResult expected = utils.generalCommitVerificationResult(false, totalCommits, 2);
                 if (assertResults) utils.assertCommitVerification(expected, result);
             });
             utils.cleanUpTest(repoContext);
