@@ -54,6 +54,7 @@ public class SqlDb {
                                 `phase` VARCHAR(9) NOT NULL,
                                 `passed` BOOL NOT NULL,
                                 `score` FLOAT NOT NULL,
+                                `raw_score` FLOAT NOT NULL,
                                 `notes` TEXT,
                                 `rubric` JSON,
                                 `verified_status` VARCHAR(30),

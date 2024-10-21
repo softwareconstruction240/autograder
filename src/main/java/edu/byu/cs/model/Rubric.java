@@ -16,21 +16,6 @@ public record Rubric(
 ) {
 
     /**
-     * Calculates the total number of points in all items
-     *
-     * @return total number of points contained by this rubric
-     */
-    public float getTotalPoints() {
-        float total = 0f;
-        for(RubricItem item : items.values()) {
-            if(item != null) {
-                total += item.results().score();
-            }
-        }
-        return total;
-    }
-
-    /**
      * Represents a single rubric item
      *
      * @param category
@@ -55,10 +40,15 @@ public record Rubric(
     public record Results(
             String notes,
             Float score,
+            Float rawScore,
             Integer possiblePoints,
             TestAnalysis testResults,
             String textResults
     ) {
+        public Results(String notes, Float score, Integer possiblePoints, TestAnalysis testResults, String textResults) {
+            this(notes, score, score, possiblePoints, testResults, textResults);
+        }
+
         public static Results testError(String notes, TestAnalysis testResults) {
             return new Results(notes, 0f, 0, testResults, null);
         }

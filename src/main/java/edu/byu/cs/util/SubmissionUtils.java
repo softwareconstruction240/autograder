@@ -74,7 +74,8 @@ public class SubmissionUtils {
         // Send score to Grade-book
         float approvedScore = Scorer.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
-        Scorer.attemptSendApprovedScoreToCanvas(withheldSubmission, penaltyPct, gitCommitsComment);
+        Scorer.attemptSendToCanvas(withheldSubmission.rubric(), withheldSubmission.phase(), withheldSubmission.netId(),
+                penaltyPct, gitCommitsComment);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."

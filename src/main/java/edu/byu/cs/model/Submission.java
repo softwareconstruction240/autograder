@@ -51,6 +51,7 @@ public record Submission(
         Phase phase,
         Boolean passed,
         Float score,
+        Float rawScore,
         String notes,
         Rubric rubric,
         Boolean admin,
@@ -143,20 +144,4 @@ public record Submission(
         return verifiedStatus == null ? null : verifiedStatus.name();
     }
 
-    public Submission replaceRubric(Rubric rubric) {
-        return new Submission(
-                this.netId,
-                this.repoUrl,
-                this.headHash,
-                this.timestamp,
-                this.phase,
-                this.passed,
-                this.score,
-                this.notes,
-                rubric,
-                this.admin,
-                this.verifiedStatus,
-                this.verification
-        );
-    }
 }

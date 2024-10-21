@@ -31,6 +31,7 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("phase", s -> s.phase().toString()),
             new ColumnDefinition<Submission>("passed", Submission::passed),
             new ColumnDefinition<Submission>("score", Submission::score),
+            new ColumnDefinition<Submission>("raw_score", Submission::rawScore),
             new ColumnDefinition<Submission>("head_hash", Submission::headHash),
             new ColumnDefinition<Submission>("notes", Submission::notes),
             new ColumnDefinition<Submission>("rubric", s -> Serializer.serialize(s.rubric())),
@@ -47,6 +48,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         Phase phase = Phase.valueOf(rs.getString("phase"));
         Boolean passed = rs.getBoolean("passed");
         float score = rs.getFloat("score");
+        float rawScore = rs.getFloat("raw_score");
         String notes = rs.getString("notes");
         Rubric rubric = Serializer.deserialize(rs.getString("rubric"), Rubric.class);
         Boolean admin = rs.getBoolean("admin");
@@ -60,7 +62,7 @@ public class SubmissionSqlDao implements SubmissionDao {
 
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
-                passed, score, notes, rubric,
+                passed, score, rawScore, notes, rubric,
                 admin, verifiedStatus, scoreVerification);
     }
 
@@ -117,7 +119,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             var statement = connection.prepareStatement(
                     """
-                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.head_hash, s.notes, s.rubric, s.admin, s.verification, s.verified_status
+                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.raw_score, s.head_hash, s.notes, s.rubric, s.admin, s.verification, s.verified_status
                             FROM submission s
                             INNER JOIN (
                                 SELECT net_id, phase, MAX(timestamp) AS max_timestamp
