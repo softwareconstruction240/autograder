@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.UserDao;
-import edu.byu.cs.dataAccess.sql.RepoUpdateDao;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
@@ -150,10 +148,6 @@ public class UserController {
      * @return null if the repo is available for that user. returns the update that prevents the user from claiming the url.
      */
     private static RepoUpdate verifyRepoIsAvailableForUser(String url, String netId) throws DataAccessException {
-        if (netId.equals("test")) {
-            loadCurrentReposIntoUpdateTable();
-        }
-
         Collection<RepoUpdate> updates = DaoService.getRepoUpdateDao().getUpdatesForRepo(url);
         if (updates.isEmpty()) {
             return null;
@@ -164,40 +158,6 @@ public class UserController {
             }
         }
         return null;
-    }
-
-    // TODO: Remove this code soon or figure out a better way to do this
-    // This loads all the repo urls in the user table into the update table so they can be compared
-    // This will not be needed in future semesters, since updates will be logged from the start
-    private static void loadCurrentReposIntoUpdateTable() {
-        RepoUpdateDao updateDao = DaoService.getRepoUpdateDao();
-        UserDao userDao = DaoService.getUserDao();
-
-        try {
-            Collection<User> users = userDao.getUsers();
-            int minuteOffset = 0;
-            int hourOffset = 0;
-            String cleanRepoUrl;
-            for (User user : users) {
-                if (user.role() == User.Role.ADMIN) { continue; }
-                minuteOffset = (minuteOffset == 59) ? 0 : minuteOffset + 1;
-                hourOffset = (minuteOffset == 0) ? hourOffset + 1 : hourOffset;
-                LocalDateTime fakeUpdateTime = LocalDateTime.of(2024, 9, 4, hourOffset, minuteOffset);
-                ZonedDateTime mountainTime = fakeUpdateTime.atZone(ZoneId.of("America/Denver"));
-                Instant fakeUpdateInstant = mountainTime.toInstant();
-
-                if (updateDao.getUpdatesForUser(user.netId()).isEmpty()) {
-                    try {
-                        cleanRepoUrl = RepoUrlValidator.clean(user.repoUrl());
-                        updateDao.insertUpdate(new RepoUpdate(fakeUpdateInstant, user.netId(), cleanRepoUrl, true, "Canvas"));
-                    } catch (RepoUrlValidator.InvalidRepoUrlException e) {
-                        LOGGER.warn("Skipped RepoUpdate insertion for user '{}' since the URL is invalid. URL: {}", user.netId(), user.repoUrl());
-                    }
-                }
-            }
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
