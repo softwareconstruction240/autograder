@@ -1,11 +1,11 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.controller.SubmissionController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.service.SubmissionService;
 import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -214,7 +214,7 @@ public class Server {
         LOGGER.info("Server started on port {}", port);
 
         try {
-            SubmissionController.reRunSubmissionsInQueue();
+            SubmissionService.reRunSubmissionsInQueue();
         } catch (IOException | DataAccessException | GradingException e) {
             LOGGER.error("Error rerunning submissions already in queue", e);
         }
