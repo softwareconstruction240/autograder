@@ -17,7 +17,6 @@ import edu.byu.cs.util.Serializer;
 import edu.byu.cs.util.SubmissionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Route;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -64,15 +63,9 @@ public class SubmissionService {
         startGrader(netId, request.phase(), request.repoUrl(), true);
     }
 
-    public static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException {
-        DaoService.getQueueDao().add(
-                new QueueItem(
-                        netId,
-                        phase,
-                        Instant.now(),
-                        false
-                )
-        );
+    public static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
+        QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
+        DaoService.getQueueDao().add(qItem);
 
         TrafficController.sessions.put(netId, new ArrayList<>());
 

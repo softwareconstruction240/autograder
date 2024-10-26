@@ -28,11 +28,11 @@ public class ConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
 
     public static void logConfigChange(String changeMessage, String adminNetId) {
-        LOGGER.info("[CONFIG] Admin %s has %s".formatted(adminNetId, changeMessage));
+        LOGGER.info("[CONFIG] Admin {} has {}}", adminNetId, changeMessage);
     }
 
     public static void logAutomaticConfigChange(String changeMessage) {
-        LOGGER.info("[CONFIG] Automatic change: %s".formatted(changeMessage));
+        LOGGER.info("[CONFIG] Automatic change: {}}", changeMessage);
     }
 
     /**

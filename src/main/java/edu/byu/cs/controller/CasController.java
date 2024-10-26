@@ -82,9 +82,7 @@ public class CasController {
             res.redirect(ApplicationProperties.frontendUrl(), 302);
             return null;
         }
-        res.redirect(
-                CasService.BYU_CAS_URL + "/login"
-                        + "?service=" + ApplicationProperties.casCallbackUrl());
+        res.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
         return null;
     };
 

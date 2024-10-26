@@ -2,30 +2,17 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
-import edu.byu.cs.util.FileUtils;
-import edu.byu.cs.util.RepoUrlValidator;
 import edu.byu.cs.util.Serializer;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.HaltException;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
-import java.io.File;
-import java.time.*;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
-import java.util.UUID;
 
 import static spark.Spark.halt;
 
