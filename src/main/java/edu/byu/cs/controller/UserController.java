@@ -17,8 +17,6 @@ import java.util.Collection;
 import static spark.Spark.halt;
 
 public class UserController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
-
     public static final Route repoPatch = (req, res) -> {
         User user = req.session().attribute("user");
         applyRepoPatch(user.netId(), null, req, res);
@@ -43,7 +41,6 @@ public class UserController {
             halt(422, "You must provide either a repoUrl or a netId");
             return null;
         } catch (InternalServerException e) {
-            LOGGER.error("Error getting repo updates:", e);
             halt(500, "There was an internal server error getting repo updates");
             return null;
         }

@@ -26,7 +26,6 @@ public class AdminController {
         try {
             users = AdminService.getUsers();
         } catch (DataAccessException e) {
-            LOGGER.error("Error getting users", e);
             halt(500);
             return null;
         }
@@ -60,7 +59,6 @@ public class AdminController {
             AdminService.updateUser(userData);
 
         } catch (DataAccessException e) {
-            LOGGER.error("Error getting user", e);
             halt(500);
             return null;
 
