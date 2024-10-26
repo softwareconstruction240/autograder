@@ -1,6 +1,14 @@
 package edu.byu.cs.service;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.controller.BadRequestException;
+import edu.byu.cs.controller.InternalServerException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +21,45 @@ import java.util.Map;
 public class CasService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
+
+    public static User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
+        String netId;
+        try {
+            netId = CasService.validateCasTicket(ticket);
+        } catch (IOException e) {
+            LOGGER.error("Error validating ticket", e);
+            throw new InternalServerException();
+        }
+
+        if (netId == null) {
+            throw new BadRequestException("Ticket validation failed");
+        }
+
+        UserDao userDao = DaoService.getUserDao();
+
+        User user;
+        // Check if student is already in the database
+        try {
+            user = userDao.getUser(netId);
+        } catch (DataAccessException e) {
+            LOGGER.error("Couldn't get user from database", e);
+            throw new InternalServerException();
+        }
+
+        // If there isn't a student in the database with this netId
+        if (user == null) {
+            try {
+                user = CanvasService.getCanvasIntegration().getUser(netId);
+            } catch (CanvasException e) {
+                LOGGER.error("Error getting user from canvas", e);
+                throw e;
+            }
+
+            userDao.insertUser(user);
+            LOGGER.info("Registered {}", user);
+        }
+        return user;
+    }
 
     /**
      * Validates a CAS ticket and returns the netId of the user if valid <br/>

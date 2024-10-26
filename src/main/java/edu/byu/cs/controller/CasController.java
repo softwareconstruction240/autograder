@@ -1,18 +1,12 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.CasService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import spark.Route;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -20,58 +14,27 @@ import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CasController.class);
-
     public static final Route callbackGet = (req, res) -> {
-        // TODO Move logic into CasService?
-
         String ticket = req.queryParams("ticket");
 
-        String netId;
-        try {
-            netId = CasService.validateCasTicket(ticket);
-        } catch (IOException e) {
-            LOGGER.error("Error validating ticket", e);
-            halt(500);
-            return null;
-        }
-
-        if (netId == null) {
-            halt(400, "Ticket validation failed");
-            return null;
-        }
-
-        UserDao userDao = DaoService.getUserDao();
-
         User user;
-        // Check if student is already in the database
         try {
-            user = userDao.getUser(netId);
-        } catch (DataAccessException e) {
-            LOGGER.error("Couldn't get user from database", e);
+            user = CasService.callback(ticket);
+        } catch (InternalServerException | DataAccessException e) {
             halt(500);
             return null;
-        }
-
-        // If there isn't a student in the database with this netId
-        if (user == null) {
-            try {
-                user = CanvasService.getCanvasIntegration().getUser(netId);
-            } catch (CanvasException e) {
-                LOGGER.error("Error getting user from canvas", e);
-
-                String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-                res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
-                halt(500);
-                return null;
-            }
-
-            userDao.insertUser(user);
-            LOGGER.info("Registered {}", user);
+        } catch (BadRequestException e) {
+            halt(400);
+            return null;
+        } catch (CanvasException e) {
+            String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
+            halt(500);
+            return null;
         }
 
         // FIXME: secure cookie with httpOnly
-        res.cookie("/", "token", generateToken(netId), 14400, false, false);
+        res.cookie("/", "token", generateToken(user.netId()), 14400, false, false);
         res.redirect(ApplicationProperties.frontendUrl(), 302);
         return null;
     };

@@ -12,4 +12,8 @@ public class InternalServerException extends Exception {
     public InternalServerException(Throwable cause) {
         super(cause);
     }
+
+    public InternalServerException() {
+        super();
+    }
 }
