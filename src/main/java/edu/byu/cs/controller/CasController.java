@@ -1,6 +1,5 @@
 package edu.byu.cs.controller;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.dataAccess.DaoService;
@@ -8,30 +7,29 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.service.CasService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
 import static spark.Spark.halt;
 
 public class CasController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasController.class);
-    public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
 
     public static final Route callbackGet = (req, res) -> {
+        // TODO Move logic into CasService?
+
         String ticket = req.queryParams("ticket");
 
         String netId;
         try {
-            netId = validateCasTicket(ticket);
+            netId = CasService.validateCasTicket(ticket);
         } catch (IOException e) {
             LOGGER.error("Error validating ticket", e);
             halt(500);
@@ -85,7 +83,7 @@ public class CasController {
             return null;
         }
         res.redirect(
-                BYU_CAS_URL + "/login"
+                CasService.BYU_CAS_URL + "/login"
                         + "?service=" + ApplicationProperties.casCallbackUrl());
         return null;
     };
@@ -102,36 +100,4 @@ public class CasController {
         return null;
     };
 
-    /**
-     * Validates a CAS ticket and returns the netId of the user if valid <br/>
-     * <a href="https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works">Berkeley CAS docs</a>
-     *
-     * @param ticket the ticket to validate
-     * @return the netId of the user if valid, null otherwise
-     * @throws IOException if there is an error with the CAS server response
-     */
-    private static String validateCasTicket(String ticket) throws IOException {
-        String validationUrl = BYU_CAS_URL + "/serviceValidate" +
-                "?ticket=" + ticket +
-                "&service=" + ApplicationProperties.casCallbackUrl();
-
-
-        URI uri = URI.create(validationUrl);
-        HttpsURLConnection connection = (HttpsURLConnection) uri.toURL().openConnection();
-
-        try {
-            String body = new String(connection.getInputStream().readAllBytes());
-
-            Map<?, ?> casServiceResponse = XmlMapper
-                    .builder()
-                    .build().readValue(body, Map.class);
-            return (String) ((Map<?, ?>) casServiceResponse.get("authenticationSuccess")).get("user");
-
-        } catch (Exception e) {
-            LOGGER.error("Error with response from CAS server:", e);
-            throw e;
-        } finally {
-            connection.disconnect();
-        }
-    }
 }
