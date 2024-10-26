@@ -39,7 +39,7 @@ public class SubmissionService {
 
     }
 
-    public static boolean phaseIsEnabled(Phase phase) throws DataAccessException {
+    private static boolean phaseIsEnabled(Phase phase) throws DataAccessException {
         boolean phaseEnabled;
 
         try {
@@ -63,7 +63,7 @@ public class SubmissionService {
         startGrader(netId, request.phase(), request.repoUrl(), true);
     }
 
-    public static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
         QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
         DaoService.getQueueDao().add(qItem);
 
@@ -104,7 +104,7 @@ public class SubmissionService {
      * @param phase the phase of the project to get
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      */
-    public static Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
+    private static Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
         Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 
@@ -200,7 +200,7 @@ public class SubmissionService {
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    public static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
+    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
         // TODO? Make into an actual class...?
         GradingObserver observer = new GradingObserver() {
             @Override

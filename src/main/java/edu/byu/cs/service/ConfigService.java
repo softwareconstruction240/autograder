@@ -27,11 +27,11 @@ public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
 
-    public static void logConfigChange(String changeMessage, String adminNetId) {
+    private static void logConfigChange(String changeMessage, String adminNetId) {
         LOGGER.info("[CONFIG] Admin {} has {}}", adminNetId, changeMessage);
     }
 
-    public static void logAutomaticConfigChange(String changeMessage) {
+    private static void logAutomaticConfigChange(String changeMessage) {
         LOGGER.info("[CONFIG] Automatic change: {}}", changeMessage);
     }
 
@@ -41,7 +41,7 @@ public class ConfigService {
      * @param response the Json Object to add banner info to
      * @throws DataAccessException if it screws up while getting into the database
      */
-    public static void addBannerConfig(JsonObject response) throws DataAccessException {
+    private static void addBannerConfig(JsonObject response) throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
         Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
 
@@ -55,7 +55,7 @@ public class ConfigService {
         response.addProperty("bannerExpiration", bannerExpiration.toString());
     }
 
-    public static void clearBannerConfig() throws DataAccessException {
+    private static void clearBannerConfig() throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, "", String.class);
@@ -153,7 +153,7 @@ public class ConfigService {
 
     }
 
-    public static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
+    private static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
         ZoneId utahZone = ZoneId.of("America/Denver");
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
