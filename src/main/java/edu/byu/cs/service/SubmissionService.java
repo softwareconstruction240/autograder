@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.controller.BadRequestException;
+import edu.byu.cs.controller.InternalServerException;
 import edu.byu.cs.controller.TrafficController;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
@@ -22,13 +23,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
-import static spark.Spark.halt;
-
 public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
-    public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException {
+    public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
         if (!phaseIsEnabled(request.phase())) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
         }
@@ -56,7 +55,7 @@ public class SubmissionService {
         return phaseEnabled;
     }
 
-    public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException {
+    public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", netId, request.phase(),
                 request.repoUrl());
 
@@ -84,10 +83,10 @@ public class SubmissionService {
 
         } catch (IllegalArgumentException e) {
             LOGGER.error("Invalid phase", e);
-            halt(400, "Invalid phase");
+            throw new BadRequestException("Invalid phase", e);
         } catch (Exception e) {
             LOGGER.error("Error starting grader", e);
-            halt(500);
+            throw new InternalServerException("Error starting grader", e);
         }
     }
 

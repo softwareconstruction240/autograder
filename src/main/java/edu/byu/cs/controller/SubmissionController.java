@@ -51,7 +51,15 @@ public class SubmissionController {
             return null;
         }
 
-        SubmissionService.adminRepoSubmit(user.netId(), request);
+        try {
+            SubmissionService.adminRepoSubmit(user.netId(), request);
+        } catch (BadRequestException e) {
+            halt(400, e.getMessage());
+            return null;
+        } catch (DataAccessException e) {
+            halt(500, e.getMessage());
+            return null;
+        }
 
         res.status(200);
         return "";
