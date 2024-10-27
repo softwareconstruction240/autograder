@@ -1,4 +1,4 @@
-package edu.byu.cs.controller;
+package edu.byu.cs.controller.httpexception;
 
 public class BadRequestException extends Exception {
     public BadRequestException(String message, Throwable cause) {
@@ -11,5 +11,9 @@ public class BadRequestException extends Exception {
 
     public BadRequestException(Throwable cause) {
         super(cause);
+    }
+
+    public BadRequestException() {
+        super();
     }
 }

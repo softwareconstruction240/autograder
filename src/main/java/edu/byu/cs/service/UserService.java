@@ -1,8 +1,8 @@
 package edu.byu.cs.service;
 
-import edu.byu.cs.controller.BadRequestException;
-import edu.byu.cs.controller.InternalServerException;
-import edu.byu.cs.controller.PriorRepoClaimBlockageException;
+import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.httpexception.InternalServerException;
+import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
@@ -24,12 +24,14 @@ import java.util.UUID;
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
+    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
         setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
     }
 
-    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId) throws BadRequestException, InternalServerException {
+    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
+            throws BadRequestException, InternalServerException {
         Collection<RepoUpdate> updates = new ArrayList<>();
         if (repoUrl == null && netId == null) {
             throw new BadRequestException("You must provide either a repoUrl or a netId");
@@ -50,7 +52,8 @@ public class UserService {
         return updates;
     }
 
-    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
+    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         try {
             if (!isValidRepoUrl(repoUrl)) {
                 throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
@@ -70,10 +73,10 @@ public class UserService {
         }
         if (historicalUpdate != null) {
             if (adminNetId != null) {
-                throw new PriorRepoClaimBlockageException("Repo is blocked because of a prior claim: " + historicalUpdate);
+                throw new WordOfWisdomViolationException("Repo is blocked because of a prior claim: " + historicalUpdate);
             } else {
                 LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
-                throw new PriorRepoClaimBlockageException("Please talk to a TA to submit this url");
+                throw new WordOfWisdomViolationException("Please talk to a TA to submit this url");
             }
         }
 

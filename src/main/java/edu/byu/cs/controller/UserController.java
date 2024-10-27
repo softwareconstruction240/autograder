@@ -2,6 +2,9 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.httpexception.InternalServerException;
+import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
@@ -59,7 +62,7 @@ public class UserController {
             UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
         } catch (BadRequestException e) {
             halt(400, e.getMessage());
-        } catch (PriorRepoClaimBlockageException e) {
+        } catch (WordOfWisdomViolationException e) {
             halt(418, e.getMessage());
         } catch (InternalServerException e) {
             halt(500, e.getMessage());
