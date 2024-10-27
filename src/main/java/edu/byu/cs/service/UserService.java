@@ -2,6 +2,7 @@ package edu.byu.cs.service;
 
 import edu.byu.cs.controller.httpexception.BadRequestException;
 import edu.byu.cs.controller.httpexception.InternalServerException;
+import edu.byu.cs.controller.httpexception.UnprocessableEntityException;
 import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -31,10 +32,10 @@ public class UserService {
     }
 
     public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
-            throws BadRequestException, InternalServerException {
+            throws InternalServerException, UnprocessableEntityException {
         Collection<RepoUpdate> updates = new ArrayList<>();
         if (repoUrl == null && netId == null) {
-            throw new BadRequestException("You must provide either a repoUrl or a netId");
+            throw new UnprocessableEntityException("You must provide either a repoUrl or a netId");
         }
 
         try {
@@ -46,7 +47,7 @@ public class UserService {
             }
         } catch (Exception e) {
             LOGGER.error("Error getting repo updates:", e);
-            throw new InternalServerException(e);
+            throw new InternalServerException("There was an internal server error getting repo updates", e);
         }
 
         return updates;

@@ -1,9 +1,8 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.ItemNotFoundException;
+import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.httpexception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
 import edu.byu.cs.util.Serializer;
@@ -15,7 +14,6 @@ import java.io.OutputStream;
 import java.util.Collection;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
-import static spark.Spark.halt;
 
 public class AdminController {
 
@@ -23,12 +21,7 @@ public class AdminController {
 
     public static final Route usersGet = (req, res) -> {
         Collection<User> users;
-        try {
-            users = AdminService.getUsers();
-        } catch (DataAccessException e) {
-            halt(500);
-            return null;
-        }
+        users = AdminService.getUsers();
 
         res.type("application/json");
         res.status(200);
@@ -49,24 +42,12 @@ public class AdminController {
             try {
                 role = User.Role.parse(roleString);
             } catch (IllegalArgumentException e) {
-                halt(400, "invalid role. must be one of: STUDENT, ADMIN");
-                return null;
+                throw new BadRequestException("invalid role. must be one of: STUDENT, ADMIN", e);
             }
         }
 
         User userData = new User(netId, -1, firstName, lastName, repoUrl, role);
-        try {
-            AdminService.updateUser(userData);
-
-        } catch (DataAccessException e) {
-            halt(500);
-            return null;
-
-        } catch (ItemNotFoundException e) {
-            halt(404, "user not found");
-            return null;
-
-        }
+        AdminService.updateUser(userData);
 
         res.status(204);
 
@@ -75,13 +56,7 @@ public class AdminController {
 
     public static final Route testModeGet = (req, res) -> {
         User testStudent;
-        try {
-            testStudent = AdminService.updateTestStudent();
-        } catch (CanvasException | DataAccessException e) {
-            halt(500);
-            return null;
-        }
-
+        testStudent = AdminService.updateTestStudent();
         res.cookie("/", "token", generateToken(testStudent.netId()), 14400, false, false);
 
         res.status(200);
@@ -95,11 +70,12 @@ public class AdminController {
 
         try {
             data = AdminService.getCommitAnalytics(option);
+        } catch (IllegalStateException e) {
+            LOGGER.error(e.getMessage());
+            throw new ResourceNotFoundException(e.getMessage(), e);
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
-            if (e instanceof IllegalStateException) res.status(404);
-            else res.status(500);
-            return e.getMessage();
+            throw e;
         }
 
         res.status(200);
@@ -115,8 +91,7 @@ public class AdminController {
 
         } catch (Exception e) {
             LOGGER.error("Error compiling honor checker", e);
-            res.status(500);
-            return e.getMessage();
+            throw e;
         }
 
         res.status(200);
@@ -129,14 +104,9 @@ public class AdminController {
     };
 
     public static Route sectionsGet = (req, res) -> {
-        try {
-            CanvasSection[] sections = AdminService.getAllSections();
-            res.type("application/json");
-            res.status(200);
-            return Serializer.serialize(sections);
-        } catch (CanvasException e) {
-            res.status(500);
-            return e.getMessage();
-        }
+        CanvasSection[] sections = AdminService.getAllSections();
+        res.type("application/json");
+        res.status(200);
+        return Serializer.serialize(sections);
     };
 }

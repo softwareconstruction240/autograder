@@ -1,5 +1,9 @@
 package edu.byu.cs.controller;
 
+import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.httpexception.InternalServerException;
+import edu.byu.cs.controller.httpexception.ResourceForbiddenException;
+import edu.byu.cs.controller.httpexception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
@@ -11,7 +15,6 @@ import spark.Filter;
 import spark.Route;
 
 import static edu.byu.cs.util.JwtUtils.validateToken;
-import static spark.Spark.halt;
 
 public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
@@ -24,16 +27,14 @@ public class AuthController {
         String token = req.cookie("token");
 
         if (token == null) {
-            halt(401);
-            return;
+            throw new UnauthorizedException();
         }
         String netId = validateToken(token);
 
         // token is expired or invalid
         if (netId == null) {
             res.cookie("/", "token", "", 0, false, false);
-            halt(401);
-            return;
+            throw new UnauthorizedException();
         }
 
         UserDao userDao = DaoService.getUserDao();
@@ -42,14 +43,12 @@ public class AuthController {
             user = userDao.getUser(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error getting user from database", e);
-            halt(500);
-            return;
+            throw new InternalServerException("Error getting user from database", e);
         }
 
         if (user == null) {
             LOGGER.error("Received request from unregistered user. This shouldn't be possible: {}", netId);
-            halt(400, "You must register first.");
-            return;
+            throw new BadRequestException("You must register first.");
         }
 
         req.session().attribute("user", user);
@@ -59,7 +58,7 @@ public class AuthController {
         User user = req.session().attribute("user");
 
         if (user.role() != User.Role.ADMIN) {
-            halt(403);
+            throw new ResourceForbiddenException();
         }
     };
 

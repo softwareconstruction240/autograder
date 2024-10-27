@@ -16,8 +16,6 @@ import spark.Route;
 
 import java.util.*;
 
-import static spark.Spark.halt;
-
 public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
@@ -30,15 +28,7 @@ public class SubmissionController {
             return null;
         }
 
-        try {
-            SubmissionService.submit(user, request);
-        } catch (BadRequestException e) {
-            halt(400, e.getMessage());
-            return null;
-        } catch (DataAccessException e) {
-            halt(500, e.getMessage());
-            return null;
-        }
+        SubmissionService.submit(user, request);
 
         res.status(200);
         return "";
@@ -52,45 +42,33 @@ public class SubmissionController {
             return null;
         }
 
-        try {
-            SubmissionService.adminRepoSubmit(user.netId(), request);
-        } catch (BadRequestException e) {
-            halt(400, e.getMessage());
-            return null;
-        } catch (DataAccessException e) {
-            halt(500, e.getMessage());
-            return null;
-        }
+        SubmissionService.adminRepoSubmit(user.netId(), request);
 
         res.status(200);
         return "";
     };
 
-    private static GradeRequest validateAndUnpackRequest(Request req) throws DataAccessException {
+    private static GradeRequest validateAndUnpackRequest(Request req) throws DataAccessException, BadRequestException {
         User user = req.session().attribute("user");
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
-            halt(400, "You are already in the queue");
-            return null;
+            throw new BadRequestException("You are already in the queue");
         }
 
         GradeRequest request;
         try {
             request = Serializer.deserialize(req.body(), GradeRequest.class);
         } catch (Serializer.SerializationException e) {
-            halt(400, "Request must be valid json");
-            return null;
+            throw new BadRequestException("Request must be valid json", e);
         }
 
         if (request == null || request.phase() == null) {
-            halt(400, "Request is invalid");
-            return null;
+            throw new BadRequestException("Request is invalid");
         }
 
         if (user.repoUrl() == null && user.role() == User.Role.STUDENT) {
-            halt(400, "Student has no provided repo url");
-            return null;
+            throw new BadRequestException("Student has not provided repo url");
         }
 
         return request;
@@ -110,13 +88,7 @@ public class SubmissionController {
     public static final Route latestSubmissionForMeGet = (req, res) -> {
         User user = req.session().attribute("user");
 
-        Submission submission;
-        try {
-            submission = SubmissionService.getLastSubmissionForUser(user.netId());
-        } catch (DataAccessException e) {
-            halt(500);
-            return null;
-        }
+        Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
 
         res.status(200);
         res.type("application/json");
@@ -133,18 +105,12 @@ public class SubmissionController {
                 phase = Phase.valueOf(phaseString);
             } catch (IllegalArgumentException e) {
                 LOGGER.error("Invalid phase", e);
-                halt(400, "Invalid phase");
+                throw new BadRequestException("Invalid phase", e);
             }
         }
 
         User user = req.session().attribute("user");
-        Collection<Submission> submissions;
-        try {
-            submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
-        } catch (DataAccessException e) {
-            halt(500);
-            return null;
-        }
+        Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
 
         res.status(200);
         res.type("application/json");
@@ -157,12 +123,7 @@ public class SubmissionController {
         // TODO Move Integer parsing to service...?
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
 
-        Collection<Submission> submissions = null;
-        try {
-            submissions = SubmissionService.getLatestSubmissions(count);
-        } catch (DataAccessException e) {
-            halt(500);
-        }
+        Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
 
         res.status(200);
         res.type("application/json");
@@ -171,14 +132,8 @@ public class SubmissionController {
     };
 
     public static final Route submissionsActiveGet = (req, res) -> {
-        List<String> inQueue = null;
-        List<String> currentlyGrading = null;
-        try {
-            inQueue = SubmissionService.getActiveInQueue();
-            currentlyGrading = SubmissionService.getCurrentlyGrading();
-        } catch (DataAccessException e) {
-            halt(500);
-        }
+        List<String> inQueue = SubmissionService.getActiveInQueue();
+        List<String> currentlyGrading = SubmissionService.getCurrentlyGrading();
 
         res.status(200);
         res.type("application/json");
@@ -189,12 +144,7 @@ public class SubmissionController {
     public static final Route studentSubmissionsGet = (req, res) -> {
         String netId = req.params(":netId");
 
-        Collection<Submission> submissions = null;
-        try {
-            submissions = SubmissionService.getSubmissionsForUser(netId);
-        } catch (DataAccessException e) {
-            halt(500);
-        }
+        Collection<Submission> submissions = SubmissionService.getSubmissionsForUser(netId);
 
         res.status(200);
         res.type("application/json");

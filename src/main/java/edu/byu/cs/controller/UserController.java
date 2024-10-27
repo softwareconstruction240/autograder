@@ -9,15 +9,11 @@ import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
 import edu.byu.cs.util.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 import java.util.Collection;
-
-import static spark.Spark.halt;
 
 public class UserController {
     public static final Route repoPatch = (req, res) -> {
@@ -37,16 +33,7 @@ public class UserController {
         String repoUrl = req.queryParams("repoUrl");
         String netId = req.queryParams("netId");
 
-        Collection<RepoUpdate> updates;
-        try {
-            updates = UserService.adminGetRepoHistory(repoUrl, netId);
-        } catch (BadRequestException e) {
-            halt(422, "You must provide either a repoUrl or a netId");
-            return null;
-        } catch (InternalServerException e) {
-            halt(500, "There was an internal server error getting repo updates");
-            return null;
-        }
+        Collection<RepoUpdate> updates = UserService.adminGetRepoHistory(repoUrl, netId);
 
         res.status(200);
         res.type("application/json");
@@ -54,20 +41,11 @@ public class UserController {
         return Serializer.serialize(updates);
     };
 
-    private static void applyRepoPatch(String studentNetId, String adminNetId, Request req, Response res) {
+    private static void applyRepoPatch(String studentNetId, String adminNetId, Request req, Response res)
+            throws WordOfWisdomViolationException, InternalServerException, BadRequestException {
         JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
-
-        try {
-            UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
-        } catch (BadRequestException e) {
-            halt(400, e.getMessage());
-        } catch (WordOfWisdomViolationException e) {
-            halt(418, e.getMessage());
-        } catch (InternalServerException e) {
-            halt(500, e.getMessage());
-        }
-
+        UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
         res.status(200);
     }
 }
