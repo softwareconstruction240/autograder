@@ -1,6 +1,7 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.controller.httpexception.*;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -10,6 +11,7 @@ import edu.byu.cs.util.ResourceUtils;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.ExceptionHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +43,14 @@ public class Server {
             response.header("Access-Control-Allow-Credentials", "true");
             response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
         });
+
+        exception(BadRequestException.class, haltWithCode(400));
+        exception(UnauthorizedException.class, haltWithCode(401));
+        exception(ResourceForbiddenException.class, haltWithCode(403));
+        exception(ResourceNotFoundException.class, haltWithCode(404));
+        exception(WordOfWisdomViolationException.class, haltWithCode(418));
+        exception(UnprocessableEntityException.class, haltWithCode(422));
+        exception(Exception.class, haltWithCode(500));
 
         path("/auth", () -> {
             get("/callback", callbackGet);
@@ -135,6 +145,10 @@ public class Server {
         init();
 
         return port();
+    }
+
+    private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
+        return (e, req, res) -> halt(statusCode, e.getMessage());
     }
 
     private static void setupProperties(String[] args) {
