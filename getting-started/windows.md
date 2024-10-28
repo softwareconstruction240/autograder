@@ -1,8 +1,9 @@
 # Special "Getting Started" instructions on Windows Machines
 
 The autograder unfortunately won't work directly from Windows, so it must be run inside a Docker container
-(recommended) or inside WSL (possible but can be finicky). When running the autograder inside a Docker container,
-you will need to use a _Dev Container_ if you want to use IntelliJ's or VSCode's debugging tools.
+(recommended) or inside WSL, the Windows Subsystem for Linux (possible but can be finicky). When running the autograder
+inside a Docker container, you will need to use a _Dev Container_ if you want to use IntelliJ's or VSCode's debugging
+tools.
 
 Either way, running your MySQL server locally on your Windows machine should work for the database.
 
@@ -46,10 +47,22 @@ extension, though.
 
 ## Development inside WSL
 
-If Docker doesn't work for some reason, you can use WSL. You'll be able to simply clone and run the autograder, except
-that everything in these instructions should be done via a WSL terminal _and_ inside a WSL directory. If you use a
-Windows directory, like Desktop/chess, you might run into file permissions errors. "Unix-like" shells, such as Git
-Bash, will not work: it needs to be a true WSL terminal.
+Note: this isn't the recommended option, and these instructions might not be maintained.
+
+WSL 2 (Windows Subsystem for Linux 2) is essentially a Linux kernel that's built into Windows, which means you'll be
+able to simply clone and run the autograder as if you were running Linux. Development is fairly simple once set up, but
+getting it set up for the autograder can be a bit finicky.
+
+*WARNING*: Everything in these instructions (including everything in `getting-started.md`)
+should be done via a WSL terminal _and_ inside a WSL directory. "Unix-like" shells, such as Git Bash, will not work:
+it needs to be a true WSL terminal. Similarly, all your autograder files should be cloned into WSL's own dedicated
+file system. Yes, WSL can access your Windows files (via the `/mnt/c/` path), but if you use a Windows directory,
+like Desktop/chess, you might run into file permissions errors.
+
+### Setup
+
+Install and configure WSL if needed. Instructions can be found
+[here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 For the `--db-host` program argument, you can't simply use `localhost` (assuming your database is running on Windows),
 since that will refer to the WSL instance. Running `echo $(hostname)` from a WSL terminal will tell you what your
