@@ -6,7 +6,7 @@ Operating System-specific instructions (read the applicable doc before continuin
 
 - [Windows](windows.md)
 - [Linux](linux.md)
-- [MacOS](macos.md)
+- [macOS](mac-os.md)
 
 ### Node/Yarn
 
@@ -88,13 +88,12 @@ required). That decision is left to you.
 ### Canvas Integration
 
 To link the autograder with Canvas, you will need to generate a Canvas API key and set the autograder to the current 
-Course and Assignment ID numbers on Canvas.
-
-#### Canvas API Key
-
-A Canvas Authorization Key is required to link the project to Canvas. If you don't need Canvas integration, 
+Course and Assignment ID numbers on Canvas. If you don't need Canvas integration, 
 `--canvas-token <canvas api key>` can be replaced with `--use-canvas false`, which mocks Canvas calls. Then you can 
 skip this section.
+
+#### Canvas API Key
+A Canvas Authorization Key is required to link the project to Canvas.
 
 To generate a Canvas API key:
 
@@ -119,8 +118,8 @@ As of 'SUMMER 2024', the course number is `26822`.
 
 To ensure that the assignment IDs and rubric IDs/points are synced with Canvas, go
 to the `config` tab, select the button `Update using Canvas`, and select `Yes`. If there's a slight
-issue, you may need to explore updating the course IDs manually, whether that be directly though the database or by
-clicking the `Update Manually` in the `config` tab.
+issue, you may need to explore updating the course IDs manually, whether that be directly though the database's 
+`configuration` table or by clicking `Update Manually` in the `config` tab.
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
 (although the step above should do it automatically). [Here](db-insert-statements/insert-config-database.md) is the insert statement.

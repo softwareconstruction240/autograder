@@ -1,4 +1,4 @@
-# Windows
+# Special "Getting Started" instructions on Windows Machines
 
 The autograder unfortunately won't work directly from Windows, so it must be run inside a Docker container
 (recommended) or inside WSL (possible but can be finicky). When running the autograder inside a Docker container,
@@ -8,8 +8,11 @@ Either way, running your MySQL server locally on your Windows machine should wor
 
 ## Development inside a Dev Container (recommended)
 
-The easiest way to debug a program running inside a Docker container is via a dev container. This essentially allows
-you to run all of IntelliJ (or VSCode) inside the container, which enables debugging the code on Windows machines.
+The easiest way to debug a program running inside a Docker container is via a "Dev Container," which is essentially
+just a fancy term for a Docker container that's linked to an IDE. It essentially allows you to run your IDE inside the
+container, which enables debugging the autograder code on Windows machines. How it works is IDE-specific; this document
+provides instructions for the autograder using IntelliJ. Further reading can be
+found [here](https://www.jetbrains.com/help/idea/connect-to-devcontainer.html).
 
 This requires having Docker installed and running on your machine. To develop with IntelliJ, it also requires the full
 professional version (or a student license of it). The VSCode equivalent is free.

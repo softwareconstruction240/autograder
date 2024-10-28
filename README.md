@@ -46,13 +46,7 @@ property `db.url` is set to `db:3306`
 
 ## Development
 
-First read the relevant OS-specific instructions:
-
-- [Windows](getting-started/windows.md)
-- [Linux](getting-started/linux.md)
-- [MacOS](getting-started/macos.md)
-
-Then follow the [Getting Started](getting-started/getting-started.md) page to Get Started!
+New to autograder development? Follow the [Getting Started guide](getting-started/getting-started.md)!
 
 ### How to Contribute
 
@@ -60,6 +54,11 @@ Here are a few tips for first projects or tasks to learn the autograder:
 - Review the Sequence/Class Diagrams (_coming soon_) and try creating one
 - Add documentation
 - Find a section of under-tested code and add some unit tests
-- Take a look through the GitHub repo's Issues page and find one you like, especially ones labeled "good first issue"
+- Take a look through the GitHub repo's [Issues](https://github.com/softwareconstruction240/autograder/issues) page 
+and find one you like, especially (but not limited to) ones labeled
+["good first issue"](https://github.com/softwareconstruction240/autograder/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+
+It's also a good idea to read through the repo's 
+`CONTRIBUTING.md` ([COMING SOON](https://github.com/softwareconstruction240/autograder/issues/448)).
 
 Don't be afraid to submit a PR, and most importantly, just get stuck in!
