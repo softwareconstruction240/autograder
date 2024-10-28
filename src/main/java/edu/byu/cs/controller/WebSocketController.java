@@ -3,28 +3,27 @@ package edu.byu.cs.controller;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;
+import io.javalin.websocket.WsConfig;
+import io.javalin.websocket.WsErrorContext;
+import io.javalin.websocket.WsMessageContext;
 import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-@WebSocket
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
 
-    @OnWebSocketError
-    public void onError(Session session, Throwable t) {
-        if (!(t instanceof CloseException))
-            LOGGER.error("WebSocket error: ", t);
+    public static void onError(WsErrorContext ctx) {
+        if (!(ctx.error() instanceof CloseException))
+            LOGGER.error("WebSocket error: ", ctx.error());
     }
 
-    @OnWebSocketMessage
-    public void onMessage(Session session, String message) {
+    public static void onMessage(WsMessageContext ctx) {
+        Session session = ctx.session;
+        String message = ctx.message();
         String netId;
         try {
             netId = JwtUtils.validateToken(message);

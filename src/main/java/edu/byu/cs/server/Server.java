@@ -8,10 +8,13 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.SubmissionService;
 import edu.byu.cs.util.ResourceUtils;
+import io.javalin.Javalin;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.HandlerType;
+import io.javalin.http.HttpStatus;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.ExceptionHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,132 +26,143 @@ import static edu.byu.cs.controller.CasController.*;
 import static edu.byu.cs.controller.ConfigController.*;
 import static edu.byu.cs.controller.SubmissionController.*;
 import static edu.byu.cs.controller.UserController.*;
-import static spark.Spark.*;
+
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Server {
+
+    private static Javalin app;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     public static int setupEndpoints(int port) {
-        port(port);
+        app = Javalin.create(config -> {
+            config.staticFiles.add("/frontend/dist");
 
-        webSocket("/ws", WebSocketController.class);
-        webSocketIdleTimeoutMillis(300000);
+            config.router.apiBuilder(() -> {
+                path("/auth", () -> {
+                    get("/callback", callbackGet);
+                    get("/login", loginGet);
 
-        staticFiles.location("/frontend/dist");
-
-        before((request, response) -> {
-            response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-            response.header("Access-Control-Allow-Credentials", "true");
-            response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
-        });
-
-        exception(BadRequestException.class, haltWithCode(400));
-        exception(UnauthorizedException.class, haltWithCode(401));
-        exception(ResourceForbiddenException.class, haltWithCode(403));
-        exception(ResourceNotFoundException.class, haltWithCode(404));
-        exception(WordOfWisdomViolationException.class, haltWithCode(418));
-        exception(UnprocessableEntityException.class, haltWithCode(422));
-        exception(Exception.class, haltWithCode(500));
-
-        path("/auth", () -> {
-            get("/callback", callbackGet);
-            get("/login", loginGet);
-
-            // all routes after this point require authentication
-            post("/logout", logoutPost);
-        });
-
-        path("/api", () -> {
-            before("/*", (req, res) -> {
-                if (!req.requestMethod().equals("OPTIONS"))
-                    verifyAuthenticatedMiddleware.handle(req, res);
-            });
-
-            patch("/repo", repoPatch);
-
-            get("/submit", submitGet);
-            post("/submit", submitPost);
-
-            get("/latest", latestSubmissionForMeGet);
-
-            get("/submission", submissionXGet);
-            get("/submission/:phase", submissionXGet);
-
-            get("/me", meGet);
-
-            get("/config", getConfigStudent);
-
-            path("/admin", () -> {
-                before("/*", (req, res) -> {
-                    if (!req.requestMethod().equals("OPTIONS"))
-                        verifyAdminMiddleware.handle(req, res);
+                    // TODO does Javalin guarantee this...?
+                    // all routes after this point require authentication
+                    post("/logout", logoutPost);
                 });
 
-                patch("/repo/:netId", repoPatchAdmin);
+                path("/api", () -> {
+                    before("/*", ctx -> {
+                        if (ctx.method() != HandlerType.OPTIONS)
+                            verifyAuthenticatedMiddleware.handle(ctx);
+                    });
 
-                get("/repo/history", repoHistoryAdminGet);
+                    patch("/repo", repoPatch);
 
-                get("/users", usersGet);
+                    get("/submit", submitGet);
+                    post("/submit", submitPost);
 
-                patch("/user/:netId", userPatch);
+                    get("/latest", latestSubmissionForMeGet);
 
-                post("/submit", adminRepoSubmitPost);
+                    get("/submission", submissionXGet);
+                    get("/submission/{phase}", submissionXGet);
 
-                path("/submissions", () -> {
-                    post("/approve", approveSubmissionPost);
+                    get("/me", meGet);
 
-                    get("/latest", latestSubmissionsGet);
+                    get("/config", getConfigStudent);
 
-                    get("/latest/:count", latestSubmissionsGet);
+                    path("/admin", () -> {
+                        before("/*", ctx -> {
+                            if (ctx.method() != HandlerType.OPTIONS)
+                                verifyAdminMiddleware.handle(ctx);
+                        });
 
-                    get("/active", submissionsActiveGet);
+                        patch("/repo/{netId}", repoPatchAdmin);
 
-                    get("/student/:netId", studentSubmissionsGet);
+                        get("/repo/history", repoHistoryAdminGet);
 
-                    post("/rerun", submissionsReRunPost);
+                        get("/users", usersGet);
+
+                        patch("/user/{netId}", userPatch);
+
+                        post("/submit", adminRepoSubmitPost);
+
+                        path("/submissions", () -> {
+                            post("/approve", approveSubmissionPost);
+
+                            get("/latest", latestSubmissionsGet);
+
+                            get("/latest/{count}", latestSubmissionsGet);
+
+                            get("/active", submissionsActiveGet);
+
+                            get("/student/{netId}", studentSubmissionsGet);
+
+                            post("/rerun", submissionsReRunPost);
+                        });
+
+                        get("/test_mode", testModeGet);
+
+                        get("/analytics/commit", commitAnalyticsGet);
+
+                        get("/analytics/commit/{option}", commitAnalyticsGet);
+
+                        get("/honorChecker/zip/{section}", honorCheckerZipGet);
+
+                        get("/sections", sectionsGet);
+
+                        path("/config", () -> {
+                            get("", getConfigAdmin);
+
+                            post("/phases", updateLivePhases);
+                            post("/banner", updateBannerMessage);
+
+                            post("/courseIds", updateCourseIdsPost);
+                            get("/courseIds", updateCourseIdsUsingCanvasGet);
+                        });
+                    });
                 });
 
-                get("/test_mode", testModeGet);
+                get("/*", ctx -> {
+                    if (ctx.path().equals("/ws")) // TODO Does this match?
+                        return;
 
-                get("/analytics/commit", commitAnalyticsGet);
-
-                get("/analytics/commit/:option", commitAnalyticsGet);
-
-                get("/honorChecker/zip/:section", honorCheckerZipGet);
-
-                get("/sections", sectionsGet);
-
-                path("/config", () -> {
-                    get("", getConfigAdmin);
-
-                    post("/phases", updateLivePhases);
-                    post("/banner", updateBannerMessage);
-
-                    post("/courseIds", updateCourseIdsPost);
-                    get("/courseIds", updateCourseIdsUsingCanvasGet);
+                    String urlParams = ctx.queryString();
+                    urlParams = urlParams == null ? "" : "?" + urlParams;
+                    ctx.redirect("/" + urlParams, HttpStatus.FOUND);
                 });
             });
-        });
+        })
 
-        // spark's notFound method does not work
-        get("/*", (req, res) -> {
-            if (req.pathInfo().equals("/ws"))
-                return null;
+                .ws("/ws", (wsConfig) -> {
+                    wsConfig.onError(WebSocketController::onError);
+                    wsConfig.onMessage(WebSocketController::onMessage);
+                    // TODO Spark.webSocketIdleTimeoutMillis(300000);
+                })
 
-            String urlParams = req.queryString();
-            urlParams = urlParams == null ? "" : "?" + urlParams;
-            res.redirect("/" + urlParams, 302);
-            return null;
-        });
-        init();
+                .before(ctx -> {
+                    ctx.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+                    ctx.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+                    ctx.header("Access-Control-Allow-Credentials", "true");
+                    ctx.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
+                })
 
-        return port();
+                .exception(BadRequestException.class, haltWithCode(400))
+                .exception(UnauthorizedException.class, haltWithCode(401))
+                .exception(ResourceForbiddenException.class, haltWithCode(403))
+                .exception(ResourceNotFoundException.class, haltWithCode(404))
+                .exception(WordOfWisdomViolationException.class, haltWithCode(418))
+                .exception(UnprocessableEntityException.class, haltWithCode(422))
+                .exception(Exception.class, haltWithCode(500))
+
+                .start(port);
+
+        return app.port();
     }
 
     private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
-        return (e, req, res) -> halt(statusCode, e.getMessage());
+        return (e, ctx) -> {
+            ctx.status(statusCode);
+            ctx.result(e.getMessage());
+        };
     }
 
     private static void setupProperties(String[] args) {

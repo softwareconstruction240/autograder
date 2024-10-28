@@ -9,10 +9,10 @@ import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.SubmissionService;
 import edu.byu.cs.util.Serializer;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Request;
-import spark.Route;
 
 import java.util.*;
 
@@ -20,36 +20,34 @@ public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
-    public static final Route submitPost = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler submitPost = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
-        GradeRequest request = validateAndUnpackRequest(req);
+        GradeRequest request = validateAndUnpackRequest(ctx);
         if (request == null) {
-            return null;
+            return;
         }
 
         SubmissionService.submit(user, request);
 
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 
-    public static final Route adminRepoSubmitPost = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler adminRepoSubmitPost = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
-        GradeRequest request = validateAndUnpackRequest(req);
+        GradeRequest request = validateAndUnpackRequest(ctx);
         if (request == null) {
-            return null;
+            return;
         }
 
         SubmissionService.adminRepoSubmit(user.netId(), request);
 
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 
-    private static GradeRequest validateAndUnpackRequest(Request req) throws DataAccessException, BadRequestException {
-        User user = req.session().attribute("user");
+    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException {
+        User user = ctx.sessionAttribute("user");
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
@@ -58,7 +56,7 @@ public class SubmissionController {
 
         GradeRequest request;
         try {
-            request = Serializer.deserialize(req.body(), GradeRequest.class);
+            request = Serializer.deserialize(ctx.body(), GradeRequest.class);
         } catch (Serializer.SerializationException e) {
             throw new BadRequestException("Request must be valid json", e);
         }
@@ -74,30 +72,30 @@ public class SubmissionController {
         return request;
     }
 
-    public static final Route submitGet = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler submitGet = ctx -> {
+        User user = ctx.sessionAttribute("user");
         String netId = user.netId();
 
         boolean inQueue = SubmissionService.isAlreadyInQueue(netId);
 
-        res.status(200);
+        ctx.status(200);
 
-        return Serializer.serialize(Map.of("inQueue", inQueue));
+        ctx.result(Serializer.serialize(Map.of("inQueue", inQueue)));
     };
 
-    public static final Route latestSubmissionForMeGet = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler latestSubmissionForMeGet = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
         Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(submission);
+        ctx.result(Serializer.serialize(submission));
     };
 
-    public static final Route submissionXGet = (req, res) -> {
-        String phaseString = req.params(":phase");
+    public static final Handler submissionXGet = ctx -> {
+        String phaseString = ctx.pathParam(":phase"); // TODO pathParam() or formParam()?
         Phase phase = null;
 
         if (phaseString != null) {
@@ -109,63 +107,62 @@ public class SubmissionController {
             }
         }
 
-        User user = req.session().attribute("user");
+        User user = ctx.sessionAttribute("user");
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(submissions);
+        ctx.result(Serializer.serialize(submissions));
     };
 
-    public static final Route latestSubmissionsGet = (req, res) -> {
-        String countString = req.params(":count");
+    public static final Handler latestSubmissionsGet = ctx -> {
+        String countString = ctx.pathParam(":count"); // TODO pathParam() or formParam()?
         // TODO Move Integer parsing to service...?
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
 
         Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(submissions);
+        ctx.result(Serializer.serialize(submissions));
     };
 
-    public static final Route submissionsActiveGet = (req, res) -> {
+    public static final Handler submissionsActiveGet = ctx -> {
         List<String> inQueue = SubmissionService.getActiveInQueue();
         List<String> currentlyGrading = SubmissionService.getCurrentlyGrading();
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
+        ctx.result(Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue)));
     };
 
-    public static final Route studentSubmissionsGet = (req, res) -> {
-        String netId = req.params(":netId");
+    public static final Handler studentSubmissionsGet = ctx -> {
+        String netId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
 
         Collection<Submission> submissions = SubmissionService.getSubmissionsForUser(netId);
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(submissions);
+        ctx.result(Serializer.serialize(submissions));
     };
 
-    public static final Route approveSubmissionPost = (req, res) -> {
-        User adminUser = req.session().attribute("user");
-        ApprovalRequest request = Serializer.deserialize(req.body(), ApprovalRequest.class);
+    public static final Handler approveSubmissionPost = ctx -> {
+        User adminUser = ctx.sessionAttribute("user");
+        ApprovalRequest request = Serializer.deserialize(ctx.body(), ApprovalRequest.class);
         SubmissionService.approveSubmission(adminUser.netId(), request);
-        return "{}";
     };
 
-    public static final Route submissionsReRunPost = (req, res) -> {
+    public static final Handler submissionsReRunPost = ctx -> {
         SubmissionService.reRunSubmissionsInQueue();
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(Map.of("message", "re-running submissions in queue"));
+        ctx.result(Serializer.serialize(Map.of("message", "re-running submissions in queue")));
     };
 
 }

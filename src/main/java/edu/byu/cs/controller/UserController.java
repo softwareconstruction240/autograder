@@ -9,43 +9,42 @@ import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
 import edu.byu.cs.util.Serializer;
-import spark.Request;
-import spark.Response;
-import spark.Route;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 
 import java.util.Collection;
 
 public class UserController {
-    public static final Route repoPatch = (req, res) -> {
-        User user = req.session().attribute("user");
-        applyRepoPatch(user.netId(), null, req, res);
-        return "Successfully updated repoUrl";
+    public static final Handler repoPatch = ctx -> {
+        User user = ctx.sessionAttribute("user");
+        applyRepoPatch(user.netId(), null, ctx);
+        ctx.result("Successfully updated repoUrl");
     };
 
-    public static final Route repoPatchAdmin = (req, res) -> {
-        User admin = req.session().attribute("user");
-        String studentNetId = req.params(":netId");
-        applyRepoPatch(studentNetId, admin.netId(), req, res);
-        return "Successfully updated repoUrl for user: " + studentNetId;
+    public static final Handler repoPatchAdmin = ctx -> {
+        User admin = ctx.sessionAttribute("user");
+        String studentNetId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
+        applyRepoPatch(studentNetId, admin.netId(), ctx);
+        ctx.result("Successfully updated repoUrl for user: " + studentNetId);
     };
 
-    public static final Route repoHistoryAdminGet = (req, res) -> {
-        String repoUrl = req.queryParams("repoUrl");
-        String netId = req.queryParams("netId");
+    public static final Handler repoHistoryAdminGet = ctx -> {
+        String repoUrl = ctx.queryParam("repoUrl");
+        String netId = ctx.queryParam("netId");
 
         Collection<RepoUpdate> updates = UserService.adminGetRepoHistory(repoUrl, netId);
 
-        res.status(200);
-        res.type("application/json");
+        ctx.status(200);
+        ctx.contentType("application/json");
 
-        return Serializer.serialize(updates);
+        ctx.result(Serializer.serialize(updates));
     };
 
-    private static void applyRepoPatch(String studentNetId, String adminNetId, Request req, Response res)
+    private static void applyRepoPatch(String studentNetId, String adminNetId, Context ctx)
             throws WordOfWisdomViolationException, InternalServerException, BadRequestException {
-        JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
+        JsonObject jsonObject = new Gson().fromJson(ctx.body(), JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
         UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
-        res.status(200);
+        ctx.status(200);
     }
 }

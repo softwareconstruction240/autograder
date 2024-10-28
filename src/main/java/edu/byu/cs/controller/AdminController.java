@@ -6,9 +6,9 @@ import edu.byu.cs.controller.httpexception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
 import edu.byu.cs.util.Serializer;
+import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Route;
 
 import java.io.OutputStream;
 import java.util.Collection;
@@ -19,23 +19,22 @@ public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
-    public static final Route usersGet = (req, res) -> {
+    public static final Handler usersGet = ctx -> {
         Collection<User> users;
         users = AdminService.getUsers();
 
-        res.type("application/json");
-        res.status(200);
+        ctx.contentType("application/json");
+        ctx.status(200);
 
-        return Serializer.serialize(users);
-
+        ctx.result(Serializer.serialize(users));
     };
 
-    public static final Route userPatch = (req, res) -> {
-        String netId = req.params(":netId");
-        String firstName = req.queryParams("firstName");
-        String lastName = req.queryParams("lastName");
-        String repoUrl = req.queryParams("repoUrl");
-        String roleString = req.queryParams("role");
+    public static final Handler userPatch = ctx -> {
+        String netId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
+        String firstName = ctx.queryParam("firstName");
+        String lastName = ctx.queryParam("lastName");
+        String repoUrl = ctx.queryParam("repoUrl");
+        String roleString = ctx.queryParam("role");
 
         User.Role role = null;
         if (roleString != null) {
@@ -49,23 +48,20 @@ public class AdminController {
         User userData = new User(netId, -1, firstName, lastName, repoUrl, role);
         AdminService.updateUser(userData);
 
-        res.status(204);
-
-        return "";
+        ctx.status(204);
     };
 
-    public static final Route testModeGet = (req, res) -> {
+    public static final Handler testModeGet = ctx -> {
         User testStudent;
         testStudent = AdminService.updateTestStudent();
-        res.cookie("/", "token", generateToken(testStudent.netId()), 14400, false, false);
+//      res.cookie("/", "token", generateToken(testStudent.netId()), 14400, false, false);
+        ctx.cookie("token", generateToken(testStudent.netId()), 14400);
 
-        res.status(200);
-
-        return null;
+        ctx.status(200);
     };
 
-    public static final Route commitAnalyticsGet = (req, res) -> {
-        String option = req.params(":option");
+    public static final Handler commitAnalyticsGet = ctx -> {
+        String option = ctx.pathParam(":option"); // TODO pathParam() or formParam()?
         String data;
 
         try {
@@ -78,15 +74,15 @@ public class AdminController {
             throw e;
         }
 
-        res.status(200);
+        ctx.status(200);
 
-        return data;
+        ctx.result(data);
     };
 
-    public static final Route honorCheckerZipGet = (req, res) -> {
-        String sectionStr = req.params(":section");
+    public static final Handler honorCheckerZipGet = ctx -> {
+        String sectionStr = ctx.pathParam(":section"); // TODO pathParam() or formParam()?
 
-        try (OutputStream os = res.raw().getOutputStream()) {
+        try (OutputStream os = ctx.res().getOutputStream()) {
             AdminService.streamHonorCheckerZip(sectionStr, os);
 
         } catch (Exception e) {
@@ -94,19 +90,16 @@ public class AdminController {
             throw e;
         }
 
-        res.status(200);
+        ctx.status(200);
 
-        res.header("Content-Type", "application/zip");
-        res.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
-
-        return res.raw();
-
+        ctx.header("Content-Type", "application/zip");
+        ctx.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
     };
 
-    public static Route sectionsGet = (req, res) -> {
+    public static Handler sectionsGet = ctx -> {
         CanvasSection[] sections = AdminService.getAllSections();
-        res.type("application/json");
-        res.status(200);
-        return Serializer.serialize(sections);
+        ctx.contentType("application/json");
+        ctx.status(200);
+        ctx.result(Serializer.serialize(sections));
     };
 }

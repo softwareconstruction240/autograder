@@ -9,10 +9,9 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.Serializer;
+import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Filter;
-import spark.Route;
 
 import static edu.byu.cs.util.JwtUtils.validateToken;
 
@@ -23,8 +22,8 @@ public class AuthController {
      * A filter that verifies that the request has a valid JWT in the Authorization header.
      * If the request is valid, the netId is added to the session for later use.
      */
-    public static final Filter verifyAuthenticatedMiddleware = (req, res) -> {
-        String token = req.cookie("token");
+    public static final Handler verifyAuthenticatedMiddleware = ctx -> {
+        String token = ctx.cookie("token");
 
         if (token == null) {
             throw new UnauthorizedException();
@@ -33,7 +32,7 @@ public class AuthController {
 
         // token is expired or invalid
         if (netId == null) {
-            res.cookie("/", "token", "", 0, false, false);
+            ctx.cookie("token", "", 0);
             throw new UnauthorizedException();
         }
 
@@ -51,23 +50,23 @@ public class AuthController {
             throw new BadRequestException("You must register first.");
         }
 
-        req.session().attribute("user", user);
+        ctx.sessionAttribute("user", user);
     };
 
-    public static final Filter verifyAdminMiddleware = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler verifyAdminMiddleware = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
         if (user.role() != User.Role.ADMIN) {
             throw new ResourceForbiddenException();
         }
     };
 
-    public static final Route meGet = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler meGet = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
-        res.status(200);
-        res.type("application/json");
-        return Serializer.serialize(user);
+        ctx.status(200);
+        ctx.contentType("application/json");
+        ctx.result(Serializer.serialize(user));
     };
 
 }

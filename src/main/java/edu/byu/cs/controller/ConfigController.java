@@ -6,48 +6,50 @@ import edu.byu.cs.controller.httpexception.BadRequestException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.service.ConfigService;
-import spark.Route;
+import io.javalin.http.Handler;
 
 import java.util.ArrayList;
 
 public class ConfigController {
 
-    public static final Route getConfigAdmin = (req, res) -> {
+    public static final Handler getConfigAdmin = ctx -> {
         try {
             JsonObject response = ConfigService.getPrivateConfig();
-            res.status(200);
-            return response;
+            ctx.status(200);
+
+            // TODO unserialize or something...?
+            // Original was simply `return response;`
+            ctx.json(response);
+
         } catch (DataAccessException e) {
-            res.status(500);
-            res.body(e.getMessage());
-            return res;
+            ctx.status(500);
+            ctx.result(e.getMessage());
         }
     };
 
-    public static final Route getConfigStudent = (req, res) -> {
+    public static final Handler getConfigStudent = ctx -> {
         String response = ConfigService.getPublicConfig().toString();
 
-        res.status(200);
-        return response;
+        ctx.status(200);
+        ctx.result(response);
     };
 
-    public static final Route updateLivePhases = (req, res) -> {
+    public static final Handler updateLivePhases = ctx -> {
         Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        JsonObject jsonObject = gson.fromJson(ctx.body(), JsonObject.class);
         ArrayList phasesArray = gson.fromJson(jsonObject.get("phases"), ArrayList.class);
-        User user = req.session().attribute("user");
+        User user = ctx.sessionAttribute("user");
 
         ConfigService.updateLivePhases(phasesArray, user);
 
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 
-    public static final Route updateBannerMessage = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler updateBannerMessage = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
         Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        JsonObject jsonObject = gson.fromJson(ctx.body(), JsonObject.class);
         String expirationString = gson.fromJson(jsonObject.get("bannerExpiration"), String.class);
 
         String message = gson.fromJson(jsonObject.get("bannerMessage"), String.class);
@@ -60,32 +62,29 @@ public class ConfigController {
             throw new BadRequestException(e.getMessage(), e);
         }
 
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 
-    public static final Route updateCourseIdsPost = (req, res) -> {
-        SetCourseIdsRequest setCourseIdsRequest = new Gson().fromJson(req.body(), SetCourseIdsRequest.class);
+    public static final Handler updateCourseIdsPost = ctx -> {
+        SetCourseIdsRequest setCourseIdsRequest = new Gson().fromJson(ctx.body(), SetCourseIdsRequest.class);
 
-        User user = req.session().attribute("user");
+        User user = ctx.sessionAttribute("user");
 
         // Course Number
         try {
             ConfigService.updateCourseIds(user, setCourseIdsRequest);
         } catch (DataAccessException e) {
-            res.status(400);
-            res.body(e.getMessage());
-            return res;
+            ctx.status(400);
+            ctx.result(e.getMessage());
+            return;
         }
 
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 
-    public static final Route updateCourseIdsUsingCanvasGet = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {
+        User user = ctx.sessionAttribute("user");
         ConfigService.updateCourseIdsUsingCanvas(user);
-        res.status(200);
-        return "";
+        ctx.status(200);
     };
 }
