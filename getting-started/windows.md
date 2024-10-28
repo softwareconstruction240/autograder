@@ -6,7 +6,7 @@ you will need to use a _Dev Container_ if you want to use IntelliJ's or VSCode's
 
 Either way, running your MySQL server locally on your Windows machine should work for the database.
 
-### Development inside a Dev Container (recommended)
+## Development inside a Dev Container (recommended)
 
 The easiest way to debug a program running inside a Docker container is via a dev container. This essentially allows
 you to run all of IntelliJ (or VSCode) inside the container, which enables debugging the code on Windows machines.
@@ -14,7 +14,7 @@ you to run all of IntelliJ (or VSCode) inside the container, which enables debug
 This requires having Docker installed and running on your machine. To develop with IntelliJ, it also requires the full
 professional version (or a student license of it). The VSCode equivalent is free.
 
-###### IntelliJ
+### IntelliJ
 
 To do this in IntelliJ, navigate to `.devcontainer/devcontainer.json`. There should be an icon that pops up next to
 the opening curly brace. Click the icon, then select `Create Dev Container and Clone Sources...`. (Not to be confused
@@ -36,12 +36,12 @@ and paste a link to the autograder GitHub repo (or your fork of it). The remaind
 `Build Container and Continue` is the same as above, except that to reopen the container after you've closed it, you'll
 need to open Gateway again and select the dev container from there.
 
-###### VSCode
+### VSCode
 
 Go fish🐟 These instructions are not included in this file. It should be possible to simply use VSCode's Dev Containers
 extension, though.
 
-### Development inside WSL
+## Development inside WSL
 
 If Docker doesn't work for some reason, you can use WSL. You'll be able to simply clone and run the autograder, except
 that everything in these instructions should be done via a WSL terminal _and_ inside a WSL directory. If you use a

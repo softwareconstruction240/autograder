@@ -1,6 +1,6 @@
 # Getting Started
 
-### Pre-requisites
+## Pre-requisites
 
 Operating System-specific instructions (read the applicable doc before continuing):
 
@@ -8,7 +8,7 @@ Operating System-specific instructions (read the applicable doc before continuin
 - [Linux](linux.md)
 - [MacOS](macos.md)
 
-#### Node/Yarn
+### Node/Yarn
 
 The frontend is built using Vue.js. To run the frontend, you will need to have `yarn` (see 
 [installing yarn](https://yarnpkg.com/getting-started/install)).
@@ -18,7 +18,7 @@ After installing `Node` if necessary, run the following to enable `yarn` globall
 corepack enable
 ```
 
-#### Backend Database
+### Backend Database
 
 You can run the database either locally with your own MySQL server or inside a Docker container. To run the database 
 inside its own Docker container, run the following in the root of the project:
@@ -64,7 +64,7 @@ to preserve the learned knowledge for future generations.
    ```
    - Load the configuration related tables by referencing the [section below](#loading-the-configuration-related-tables)
 
-#### Program Arguments
+### Program Arguments
 
 For both deployment and development, the following program arguments are required to be set. Some typical
 values for development are provided; notice that the URLs all reference localhost, but the port numbers have
@@ -85,7 +85,12 @@ While you can use any root user credentials to access the MySQL database, you ma
 a special login for this project with restricted privileges (DELETE and CREATE USER administrator privileges are
 required). That decision is left to you.
 
-##### Canvas Integration
+### Canvas Integration
+
+To link the autograder with Canvas, you will need to generate a Canvas API key and set the autograder to the current 
+Course and Assignment ID numbers on Canvas.
+
+#### Canvas API Key
 
 A Canvas Authorization Key is required to link the project to Canvas. If you don't need Canvas integration, 
 `--canvas-token <canvas api key>` can be replaced with `--use-canvas false`, which mocks Canvas calls. Then you can 
@@ -101,6 +106,8 @@ To generate a Canvas API key:
 5. Provide the requested information in the modal box
 6. Copy the generated access token
 7. Use it as the value of the `--canvas-token` program argument above
+
+#### Canvas Data
 
 To get the correct Canvas course ID, go to Canvas and select the current CS 240 course. The URL should
 change to something like `https://byu.instructure.com/courses/<course_number>` where `<course_number>` is the number
@@ -118,18 +125,18 @@ clicking the `Update Manually` in the `config` tab.
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
 (although the step above should do it automatically). [Here](db-insert-statements/insert-config-database.md) is the insert statement.
 
-#### Environment Variables
+### Environment Variables
 
 If you are running Loki locally (not required), then you must set the `LOKI_URL` environment variable. The value can be 
 either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to 
 develop the app).
 
-#### Loading the Configuration Related Tables
+### Loading the Configuration Related Tables
 
 As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
 able to run the actual grading on the autograder. [Here](db-insert-statements/insert-rubric-database.md) is an insert statement for that.
 
-##### Updating from the Old Rubric Config Table.
+#### Updating from the Old Rubric Config Table
 
 If you have the autograder prior to 'SUMMER 2024', [this SQL statement](db-insert-statements/update-rubric-database.md) should do the job of updating
 the `rubric_config` table.
