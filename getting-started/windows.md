@@ -42,17 +42,21 @@ need to open Gateway again and select the dev container from there.
 
 ## Development inside WSL
 
-Note: this isn't the recommended option, and these instructions might not be maintained.
+> [!CAUTION]
+> WSL isn't the recommended option, and these instructions might not be maintained.
 
 WSL 2 (Windows Subsystem for Linux 2) is essentially a Linux kernel that's built into Windows, which means you'll be
 able to simply clone and run the autograder as if you were running Linux. Development is fairly simple once set up, but
 getting it set up for the autograder can be a bit finicky.
 
-*WARNING*: Everything in these instructions (including everything in `getting-started.md`)
-should be done via a WSL terminal _and_ inside a WSL directory. "Unix-like" shells, such as Git Bash, will not work:
-it needs to be a true WSL terminal. Similarly, all your autograder files should be cloned into WSL's own dedicated
-file system. Yes, WSL can access your Windows files (via the `/mnt/c/` path), but if you use a Windows directory,
-like Desktop/chess, you might run into file permissions errors.
+> [!WARNING]
+> Everything in these instructions (including everything in `getting-started.md`)
+> should be done via a WSL terminal _and_ inside a WSL directory.
+>
+> "Unix-like" shells, such as Git Bash, will not work: it needs to be a true WSL terminal.
+> Similarly, all your autograder files should be cloned into WSL's own dedicated file system.
+> Yes, WSL can access your Windows files (via the `\mnt\c\` path), but with the use of a Windows
+> directory like `C:\Desktop\chess`, you might face to file permissions errors.
 
 ### Setup
 
