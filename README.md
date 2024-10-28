@@ -42,7 +42,7 @@ docker compose up -d
 ```
 
 > [!NOTE]
-> If you are using the docker MySQL database, ensure that in 
+> If you are using the docker MySQL database, ensure that in
 > `src/main/resources/db.properties` the property `db.url` is set to `db:3306`.
 
 ## Development
