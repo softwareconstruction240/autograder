@@ -20,25 +20,49 @@ professional version of IntelliJ (or a student license of it).
 
 ### Setup
 
-Navigate to `.devcontainer/devcontainer.json`. There should be an icon that pops up next to
-the opening curly brace. Click the icon, then select `Create Dev Container and Clone Sources...`. (Not to be confused
-with `Mount Sources`, which doesn't quite work. If the Clone Sources option does not appear, see below.) This should
-pop up a dialog box that allows you to change a few options about the container. Look through them
-and change what you need, then hit the `Build Container and Continue` button. Wait for IntelliJ and Docker to build
-everything. You may need to click a few buttons along the way. Eventually a new IntelliJ window will pop up from the
-dev container. Follow the [Getting Started](getting-started.md) steps with the new window.
-Use `host.docker.internal` as your db-host argument; this tells docker to look for the database on your local Windows
-machine rather than inside the container. To reopen the container after you've closed it, navigate to the
-`.devcontainer/devcontainer.json` file again, click the icon, and select `Show Dev Containers`. Select the container
-and it should reopen the second IntelliJ. If nothing appears, make sure the docker engine is running
-(perhaps by opening Docker Desktop).
+#### Initially Creating the Dev Container
 
-If you don't see an option to `Clone Sources`, you can do the same thing via JetBrains Gateway. Download and install
-it if you haven't already. (Installing via JetBrains Toolbox is probably the easiest way.) Open Gateway, select
-`Dev Containers`, and click `New Dev Container`. Choose `From VCS Project`, select Intellij IDEA from the dropdown,
-and paste a link to the autograder GitHub repo (or your fork of it). The remainder of the setup after clicking
-`Build Container and Continue` is the same as above, except that to reopen the container after you've closed it, you'll
-need to open Gateway again and select the dev container from there.
+To setup your dev container for the first time:
+1. Navigate to `.devcontainer/devcontainer.json`
+2. There should be an icon that pops up next to the opening curly brace
+3. Click the icon, then select `Create Dev Container and Clone Sources...`. (Not to be confused
+with `Mount Sources`, which doesn't quite work.)
+   - This should pop up a dialog box that allows you to change a few options about the container.
+   - If the "Clone Sources" option does not appear, see [No Clone Sources](#no-clone-sources).
+   - Look through them and change what you need, then hit the `Build Container and Continue` button.
+4. Wait for IntelliJ and Docker to build everything
+   - You may need to click a few buttons along the way.
+   - Eventually a new IntelliJ window will pop up from the dev container.
+5. Follow the [Getting Started](getting-started.md) steps with the new window, with the following notes:
+   - Use `host.docker.internal` as your db-host argument; this tells docker to look for the
+     database on your local Windows machine rather than inside the container.
+
+#### Reopening the Dev Container
+
+To reopen the container after you've closed it:
+1. Navigate to the `.devcontainer/devcontainer.json` file again, and click the icon
+2. select `Show Dev Containers`
+3. Select the container
+   - it should reopen the second IntelliJ.
+   - If nothing appears, make sure the docker engine is running (perhaps by opening Docker Desktop).
+
+#### <a name="no-clone-sources"></a> Alternative Path To Create A Dev Container
+
+> [!NOTE]
+> If you follow these instructions to create your Dev Container, you will also need
+> an alternative path to reopen the dev container.\
+> Reopen your Dev Container by starting in the Gateway tool.
+
+If you don't see an option to `Clone Sources`, you can do the same thing via JetBrains Gateway.
+1. Download and install JetBrains Gateway if you haven't already.
+   - Installing via JetBrains Toolbox is probably the easiest way.
+2. Open Gateway,
+3. Select `Dev Containers`
+4. Click `New Dev Container`
+5. Choose `From VCS Project`
+6. Select "Intellij IDEA" from the dropdown
+7. Paste a link to the autograder GitHub repo (or your fork of it)
+8. Return to your previous place to continue setting the Dev Container
 
 ## Development inside WSL
 
