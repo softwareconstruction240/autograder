@@ -2,11 +2,11 @@
 
 ## Pre-requisites
 
-Operating System-specific instructions (read the applicable doc before continuing):
-
-- [Windows](windows.md)
-- [Linux](linux.md)
-- [macOS](mac-os.md)
+> [!IMPORTANT]
+> The autograder unfortunately requires special setup instructions
+> in order to operate on **Windows machines**.
+>
+> Read [Getting Started on Windows](windows.md) before continuing.
 
 ### Node/Yarn
 
