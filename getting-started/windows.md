@@ -2,7 +2,7 @@
 
 The autograder unfortunately won't work directly from Windows, so it must be run inside a Docker container
 (recommended) or inside WSL, the Windows Subsystem for Linux (possible but can be finicky). When running the autograder
-inside a Docker container, you will need to use a _Dev Container_ if you want to use IntelliJ's or VSCode's debugging
+inside a Docker container, you will need to use a _Dev Container_ if you want to use IntelliJ's debugging
 tools.
 
 Either way, running your MySQL server locally on your Windows machine should work for the database.
@@ -15,12 +15,12 @@ container, which enables debugging the autograder code on Windows machines. How 
 provides instructions for the autograder using IntelliJ. Further reading can be
 found [here](https://www.jetbrains.com/help/idea/connect-to-devcontainer.html).
 
-This requires having Docker installed and running on your machine. To develop with IntelliJ, it also requires the full
-professional version (or a student license of it). The VSCode equivalent is free.
+This requires having Docker installed and running on your machine. It also requires the full
+professional version of IntelliJ (or a student license of it).
 
-### IntelliJ
+### Setup
 
-To do this in IntelliJ, navigate to `.devcontainer/devcontainer.json`. There should be an icon that pops up next to
+Navigate to `.devcontainer/devcontainer.json`. There should be an icon that pops up next to
 the opening curly brace. Click the icon, then select `Create Dev Container and Clone Sources...`. (Not to be confused
 with `Mount Sources`, which doesn't quite work. If the Clone Sources option does not appear, see below.) This should
 pop up a dialog box that allows you to change a few options about the container. Look through them
@@ -39,11 +39,6 @@ it if you haven't already. (Installing via JetBrains Toolbox is probably the eas
 and paste a link to the autograder GitHub repo (or your fork of it). The remainder of the setup after clicking
 `Build Container and Continue` is the same as above, except that to reopen the container after you've closed it, you'll
 need to open Gateway again and select the dev container from there.
-
-### VSCode
-
-Go fish🐟 These instructions are not included in this file. It should be possible to simply use VSCode's Dev Containers
-extension, though.
 
 ## Development inside WSL
 
