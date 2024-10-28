@@ -92,6 +92,11 @@ onUnmounted(() => {
           <p class="contributions">Developed class-requirement enforcement systems, like late-days and git-commits</p>
         </div>
         <div class="person">
+          <p class="name">Than Gerlek <a href="https://github.com/ThanGerlek" target="_blank"><i class="fa-solid fa-not-equal"/></a></p>
+          <p class="tenure">Jan 2024-Apr 2026</p>
+          <p class="contributions">He's new to the team, but he's doing a lot</p>
+        </div>
+        <div class="person">
           <p class="name">Noah Pratt <a href="https://noahpratt.com" target="_blank"><i class="fa-solid fa-ship"/></a></p>
           <p class="tenure">Sept 2022-Jun 2024</p>
           <p class="contributions">Developed several important admin analytical tools</p>
