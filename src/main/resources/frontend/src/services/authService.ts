@@ -1,5 +1,6 @@
 import {useAppConfigStore} from "@/stores/appConfig";
 import { useAuthStore } from '@/stores/auth'
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 type MeResponse = {
     netId: string,
@@ -10,12 +11,7 @@ type MeResponse = {
 }
 export const meGet = async () => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/me', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json() as MeResponse | null;
+        return await ServerCommunicator.getRequest<MeResponse>('/api/me')
     } catch (e) {
         return null;
     }
@@ -30,16 +26,5 @@ export const loadUser = async () => {
 }
 
 export const logoutPost = async () => {
-    const response = await fetch(useAppConfigStore().backendUrl + "/auth/logout", {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
+    await ServerCommunicator.postRequest( "/auth/logout", undefined, false)
 }

@@ -1,15 +1,11 @@
 import {useAppConfigStore} from "@/stores/appConfig";
 import type {CanvasSection, Phase, Submission, User } from '@/types/types'
 import type {Option} from "@/views/AdminView/Analytics.vue";
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const usersGet = async (): Promise<User[]> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/users', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json();
+        return await ServerCommunicator.getRequest<User[]>('/api/admin/users')
     } catch (e) {
         return [];
     }
@@ -17,35 +13,19 @@ export const usersGet = async (): Promise<User[]> => {
 
 export const submissionsForUserGet = async (netId: string): Promise<Submission[]> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/student/' + netId, {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json();
+        return await ServerCommunicator.getRequest<Submission[]>('/api/admin/submissions/student/' + netId)
     } catch (e) {
         return [];
     }
 }
 
 export const approveSubmissionPost = async (netId: string, phase: Phase, penalize: boolean) => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/approve', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            netId,
-            phase,
-            penalize,
-        })
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
+    await ServerCommunicator.postRequest('/api/admin/submissions/approve',
+      {
+        netId,
+        phase,
+        penalize,
+    })
 }
 
 interface UserPatch {
@@ -89,12 +69,7 @@ export const userPatch = async (user: UserPatch)=> {
 export const submissionsLatestGet = async (batchSize?: number): Promise<Submission[]> => {
     batchSize = batchSize ? batchSize : -1
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/latest/' + batchSize, {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json();
+        return await ServerCommunicator.getRequest<Submission[]>('/api/admin/submissions/latest/' + batchSize)
     } catch (e) {
         return [];
     }
@@ -102,11 +77,7 @@ export const submissionsLatestGet = async (batchSize?: number): Promise<Submissi
 
 export const testStudentModeGet = async (): Promise<null> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/test_mode', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
+        await ServerCommunicator.getRequest('/api/admin/test_mode')
         return null;
     } catch (e) {
         console.error('Failed to activate test mode: ', e);
@@ -120,12 +91,7 @@ type QueueStatusResponse = {
 }
 export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submissions/active', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json();
+        return await ServerCommunicator.getRequest<QueueStatusResponse>('/api/admin/submissions/active')
     } catch (e) {
         console.error('Failed to get queue status: ', e);
         return {
@@ -161,12 +127,7 @@ export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
 
 export const sectionsGet = async (): Promise<CanvasSection[]> => {
     try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/sections', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json();
+        return await ServerCommunicator.getRequest<CanvasSection[]>('/api/admin/sections')
     } catch (e) {
         console.error('Failed to get data: ', e)
         return [];
