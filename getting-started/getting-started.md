@@ -35,7 +35,8 @@ docker compose up db -d
 > to preserve the learned knowledge for future generations.
 
 1. Clone the repo onto your local machine.
-2. Ensure that you are using the latest version of JVM. The system currently requires version 21+.
+2. Ensure that you are using the latest version of JVM.
+   - The system currently requires version 21+.
 3. Use `yarn` to install all dependencies. This must be done from the _front end_ root folder. (If using WSL, run this
    from an actual WSL terminal. Windows-based shells, even POSIX ones, won't install the correct files.)
     ```bash
@@ -63,7 +64,14 @@ docker compose up db -d
    cd src/main/resources/frontend
    yarn dev
    ```
-   - Load the configuration related tables by referencing the [section below](#loading-the-configuration-related-tables)
+7. (Optional) Setup [Canvas Integration](#canvas-integration)
+   - This is only required if you hope to transfer data to Canvas during your workflow;
+   - otherwise, use the `--use-canvas false` program argument and skip this step.
+8. (Optional) Setup the [Environment Variables](#environment-variables)
+   - This is only required when running `Loki` locally;
+   - otherwise, skip this step.
+9. Load the [configuration related tables](#loading-the-configuration-related-tables)
+   - This is required.
 
 ### Program Arguments
 
@@ -89,10 +97,11 @@ user and `GRANT ALL` privileges to them for that database). The exact requiremen
 
 ### Canvas Integration
 
-To link the autograder with Canvas, you will need to generate a Canvas API key and set the autograder to the current 
-Course and Assignment ID numbers on Canvas. If you don't need Canvas integration, 
-`--canvas-token <canvas api key>` can be replaced with `--use-canvas false`, which mocks Canvas calls. Then you can 
-skip this section.
+To link the autograder with Canvas, you will need to generate a Canvas API key and set the autograder to the current
+Course and Assignment ID numbers on Canvas.
+
+If you don't need Canvas integration, `--canvas-token <canvas api key>` can be replaced with `--use-canvas false`,
+which mocks Canvas calls. Then, you can skip this section.
 
 #### Canvas API Key
 A Canvas Authorization Key is required to link the project to Canvas.
@@ -110,13 +119,14 @@ To generate a Canvas API key:
 
 #### Canvas Data
 
-To get the correct Canvas course ID, go to Canvas and select the current CS 240 course. The URL should
-change to something like `https://byu.instructure.com/courses/<course_number>` where `<course_number>` is the number
-you need to use inside the `configuration` table. You can set this by logging into the autograder and using the
-`Update Manually` button in the `Config` tab. Click that button and modify the `Course Number` input and then
-click `Submit`.
-
-As of 'SUMMER 2024', the course number is `26822`.
+To get the correct Canvas course ID:
+1. Go to Canvas and select the current CS 240 course
+2. The URL should change to something like `https://byu.instructure.com/courses/<course_number>`
+3. Extract `<course_number>` from the url
+   4. This is the number that needs to end up in the configuration table
+5. You can set this by logging into the autograder and using the
+   `Update Manually` button in the `Config` tab. Click that button and modify the `Course Number` input and then
+   click `Submit`.
 
 To ensure that the assignment IDs and rubric IDs/points are synced with Canvas, go
 to the `config` tab, select the button `Update using Canvas`, and select `Yes`. If there's a slight
@@ -136,6 +146,9 @@ develop the app).
 
 As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
 able to run the actual grading on the autograder. See the [insert `rubric_config` SQL statements](db-insert-statements/insert-rubric-database.md).
+
+Insert the commands using a [SQL client](https://github.com/softwareconstruction240/softwareconstruction/blob/main/instruction/mysql/mysql.md#sql-clients)
+of your choice on your machine (MySql Shell, SQLWorkbench, or Intelli-J's built in tools).
 
 #### Updating from the Old Rubric Config Table
 
