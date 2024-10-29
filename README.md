@@ -62,4 +62,4 @@ and find one you like, especially (but not limited to) ones labeled
 It's also a good idea to read through the repo's 
 `CONTRIBUTING.md` ([COMING SOON](https://github.com/softwareconstruction240/autograder/issues/448)).
 
-Don't be afraid to submit a PR, and most importantly, just get stuck in!
+Don't be afraid to submit a PR, and most importantly, just get sucked in!
