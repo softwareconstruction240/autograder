@@ -1,9 +1,9 @@
 # Special "Getting Started" instructions on Windows Machines
 
 The autograder unfortunately won't work directly from Windows, so it must be run inside a Docker container
-(recommended) or inside WSL, the Windows Subsystem for Linux (not recommended). When running the autograder
-inside a Docker container, you will need to use a _Dev Container_ if you want to use IntelliJ's debugging
-tools.
+(recommended) or inside WSL, the Windows Subsystem for Linux (not recommended unless you're already familiar with WSL).
+When running the autograder inside a Docker container, you will need to use a _Dev Container_ if you want to use
+IntelliJ's debugging tools.
 
 Either way, running your MySQL server locally on your Windows machine should work for the database.
 
