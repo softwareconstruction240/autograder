@@ -29,9 +29,10 @@ docker compose up db -d
 
 ## Getting Started
 
-NOTE: These instructions will help you set up this project in IntelliJ.
-If there are any holes or gaps in the instructions, please submit a new pull request
-to preserve the learned knowledge for future generations.
+> [!NOTE]
+> These instructions will help you set up this project in IntelliJ.
+> If there are any holes or gaps in the instructions, please submit a new pull request
+> to preserve the learned knowledge for future generations.
 
 1. Clone the repo onto your local machine.
 2. Ensure that you are using the latest version of JVM. The system currently requires version 21+.

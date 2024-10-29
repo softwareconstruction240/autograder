@@ -41,8 +41,9 @@ docker compose --profile with-db up -d
 docker compose up -d
 ```
 
-Note, if you are using the docker MySQL database, ensure that in `src/main/resources/db.properties` the
-property `db.url` is set to `db:3306`
+> [!NOTE]
+> If you are using the docker MySQL database, ensure that in
+> `src/main/resources/db.properties` the property `db.url` is set to `db:3306`.
 
 ## Development
 
