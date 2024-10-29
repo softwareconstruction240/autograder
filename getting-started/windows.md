@@ -22,7 +22,7 @@ professional version of IntelliJ (or a student license of it).
 
 #### Initially Creating the Dev Container
 
-To setup your dev container for the first time:
+To set up your dev container for the first time:
 1. Navigate to `.devcontainer/devcontainer.json`
 2. There should be an icon that pops up next to the opening curly brace
 3. Click the icon, then select `Create Dev Container and Clone Sources...`. (Not to be confused
@@ -41,9 +41,9 @@ with `Mount Sources`, which doesn't quite work.)
 
 To reopen the container after you've closed it:
 1. Navigate to the `.devcontainer/devcontainer.json` file again, and click the icon
-2. select `Show Dev Containers`
+2. Select `Show Dev Containers`
 3. Select the container
-   - it should reopen the second IntelliJ.
+   - It should reopen the second IntelliJ.
    - If nothing appears, make sure the docker engine is running (perhaps by opening Docker Desktop).
 
 #### <a name="no-clone-sources"></a> Alternative Path To Create A Dev Container
@@ -62,7 +62,7 @@ If you don't see an option to `Clone Sources`, you can do the same thing via Jet
 5. Choose `From VCS Project`
 6. Select "Intellij IDEA" from the dropdown
 7. Paste a link to the autograder GitHub repo (or your fork of it)
-8. Return to your previous place to continue setting the Dev Container
+8. Continue setting up the Dev Container with steps 4 and 5 above
 
 ## Development inside WSL
 
@@ -76,7 +76,7 @@ If you don't see an option to `Clone Sources`, you can do the same thing via Jet
 > "Unix-like" shells, such as Git Bash, will not work: it needs to be a true WSL terminal.
 > Similarly, all your autograder files should be cloned into WSL's own dedicated file system.
 > Yes, WSL can access your Windows files (via the `\mnt\c\` path), but with the use of a Windows
-> directory like `C:\Desktop\chess`, you might face to file permissions errors.
+> directory like `C:\Desktop\chess`, you might face file permissions errors.
 
 WSL 2 (Windows Subsystem for Linux 2) is essentially a Linux kernel that's built into Windows, which means you'll be
 able to simply clone and run the autograder as if you were running Linux. Development is fairly simple once set up, but
