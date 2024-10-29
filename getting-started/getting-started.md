@@ -82,8 +82,9 @@ been filled in with default values. Update these as needed to match your environ
 ```
 
 While you can use any root user credentials to access the MySQL database, you may be interested in creating
-a special login for this project with restricted privileges (DELETE and CREATE USER administrator privileges are
-required). That decision is left to you.
+a special login for this project. That decision is left to you. If you do create a different user, however, it will
+need nearly root-level permissions in any case (enough to be able to create a new database, then create a "student" 
+user and `GRANT ALL` privileges to them for that database). The exact requirements are not listed here.
 
 ### Canvas Integration
 
