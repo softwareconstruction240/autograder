@@ -37,7 +37,7 @@ public class UserController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(updates));
+        ctx.json(updates);
     };
 
     private static void applyRepoPatch(String studentNetId, String adminNetId, Context ctx)

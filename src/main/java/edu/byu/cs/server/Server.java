@@ -8,6 +8,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.SubmissionService;
 import edu.byu.cs.util.ResourceUtils;
+import edu.byu.cs.util.Serializer;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.HandlerType;
@@ -38,6 +39,8 @@ public class Server {
     public static int setupEndpoints(int port) {
         app = Javalin.create(config -> {
             config.staticFiles.add("/frontend/dist");
+
+            config.jsonMapper(Serializer.jsonMapper);
 
             config.router.apiBuilder(() -> {
                 path("/auth", () -> {

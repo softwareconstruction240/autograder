@@ -66,7 +66,7 @@ public class AuthController {
 
         ctx.status(200);
         ctx.contentType("application/json");
-        ctx.result(Serializer.serialize(user));
+        ctx.json(user);
     };
 
 }

@@ -80,7 +80,7 @@ public class SubmissionController {
 
         ctx.status(200);
 
-        ctx.result(Serializer.serialize(Map.of("inQueue", inQueue)));
+        ctx.json(Map.of("inQueue", inQueue));
     };
 
     public static final Handler latestSubmissionForMeGet = ctx -> {
@@ -91,7 +91,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(submission));
+        ctx.json(submission);
     };
 
     public static final Handler submissionXGet = ctx -> {
@@ -113,7 +113,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(submissions));
+        ctx.json(submissions);
     };
 
     public static final Handler latestSubmissionsGet = ctx -> {
@@ -126,7 +126,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(submissions));
+        ctx.json(submissions);
     };
 
     public static final Handler submissionsActiveGet = ctx -> {
@@ -136,7 +136,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue)));
+        ctx.json(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
     };
 
     public static final Handler studentSubmissionsGet = ctx -> {
@@ -147,7 +147,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(submissions));
+        ctx.json(submissions);
     };
 
     public static final Handler approveSubmissionPost = ctx -> {
@@ -162,7 +162,7 @@ public class SubmissionController {
         ctx.status(200);
         ctx.contentType("application/json");
 
-        ctx.result(Serializer.serialize(Map.of("message", "re-running submissions in queue")));
+        ctx.json(Map.of("message", "re-running submissions in queue"));
     };
 
 }

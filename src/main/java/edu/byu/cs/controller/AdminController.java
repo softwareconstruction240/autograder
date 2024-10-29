@@ -23,10 +23,9 @@ public class AdminController {
         Collection<User> users;
         users = AdminService.getUsers();
 
-        ctx.contentType("application/json");
         ctx.status(200);
 
-        ctx.result(Serializer.serialize(users));
+        ctx.json(users);
     };
 
     public static final Handler userPatch = ctx -> {
@@ -100,6 +99,6 @@ public class AdminController {
         CanvasSection[] sections = AdminService.getAllSections();
         ctx.contentType("application/json");
         ctx.status(200);
-        ctx.result(Serializer.serialize(sections));
+        ctx.json(sections);
     };
 }
