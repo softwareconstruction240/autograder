@@ -119,22 +119,27 @@ To generate a Canvas API key:
 
 #### Canvas Data
 
-To get the correct Canvas course ID:
+To update Canvas course ID:
 1. Go to Canvas and select the current CS 240 course
 2. The URL should change to something like `https://byu.instructure.com/courses/<course_number>`
 3. Extract `<course_number>` from the url
-   4. This is the number that needs to end up in the configuration table
-5. You can set this by logging into the autograder and using the
-   `Update Manually` button in the `Config` tab. Click that button and modify the `Course Number` input and then
-   click `Submit`.
+   - This is the number that needs to end up in the configuration table
+4. You can set this by logging into the autograder and using the `Update Manually` button in the `Config` tab.
+   1. Click that button and modify the `Course Number` input
+   2. Click `Submit`
 
-To ensure that the assignment IDs and rubric IDs/points are synced with Canvas, go
-to the `config` tab, select the button `Update using Canvas`, and select `Yes`. If there's a slight
-issue, you may need to explore updating the course IDs manually, whether that be directly though the database's
-`configuration` table or by clicking `Update Manually` in the `config` tab.
+To ensure that the assignment IDs and rubric IDs/points are synced with Canvas:
+1. Go to the `config` tab of the AutoGrader
+2. Select the button `Update using Canvas`
+3. Select `Yes`
+
+> [!NOTE]
+> If there's an issue with the process, you may need to explore updating the course IDs manually.
+> This can be done directly though the database's `configuration` table or 
+> by clicking `Update Manually` in the `config` tab.
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
-(although the step above should do it automatically). See the [insert `config` SQL statements](db-insert-statements/insert-config-database.md).
+(although the step above should do it automatically). See [Insert `config` SQL Statements](db-insert-statements/insert-config-database.md).
 
 ### Environment Variables
 
@@ -144,12 +149,12 @@ develop the app).
 
 ### Loading the Configuration Related Tables
 
+> [!IMPORTANT]
+> If you had the autograder prior to 'SUMMER 2024', there is a separate "update" set of SQL commands to use.\
+> See [Update `rubric_config` SQL Statements](db-insert-statements/update-rubric-database.md).
+
 As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
-able to run the actual grading on the autograder. See the [insert `rubric_config` SQL statements](db-insert-statements/insert-rubric-database.md).
+able to run the actual grading on the autograder. See [Insert `rubric_config` SQL Statements](db-insert-statements/insert-rubric-database.md).
 
 Insert the commands using a [SQL client](https://github.com/softwareconstruction240/softwareconstruction/blob/main/instruction/mysql/mysql.md#sql-clients)
 of your choice on your machine (MySql Shell, SQLWorkbench, or Intelli-J's built in tools).
-
-#### Updating from the Old Rubric Config Table
-
-If you had the autograder prior to 'SUMMER 2024', see the [update `rubric_config` SQL statements](db-insert-statements/update-rubric-database.md).
