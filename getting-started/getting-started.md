@@ -124,7 +124,7 @@ issue, you may need to explore updating the course IDs manually, whether that be
 `configuration` table or by clicking `Update Manually` in the `config` tab.
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
-(although the step above should do it automatically). [Here](db-insert-statements/insert-config-database.md) is the insert statement.
+(although the step above should do it automatically). See the [insert `config` SQL statements](db-insert-statements/insert-config-database.md).
 
 ### Environment Variables
 
@@ -135,9 +135,8 @@ develop the app).
 ### Loading the Configuration Related Tables
 
 As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
-able to run the actual grading on the autograder. [Here](db-insert-statements/insert-rubric-database.md) is an insert statement for that.
+able to run the actual grading on the autograder. See the [insert `rubric_config` SQL statements](db-insert-statements/insert-rubric-database.md).
 
 #### Updating from the Old Rubric Config Table
 
-If you have the autograder prior to 'SUMMER 2024', [this SQL statement](db-insert-statements/update-rubric-database.md) should do the job of updating
-the `rubric_config` table.
+If you had the autograder prior to 'SUMMER 2024', see the [update `rubric_config` SQL statements](db-insert-statements/update-rubric-database.md).
