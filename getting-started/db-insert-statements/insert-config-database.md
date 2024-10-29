@@ -3,6 +3,10 @@
 This guide is primarily responsible for initializing the `configuration` table,
 assuming that the table begins in an empty state.
 
+> [!TIP]
+> The configuration table can _more easily_ be configured with programmatic tools built in to the AutoGrader.
+> Find these tools in AutoGrader > Config > Update using Canvas.
+
 ## Updating Guide
 
 The primary things that needs to be updated on an ongoing basis are:
