@@ -1,4 +1,16 @@
-UPDATED AS OF 'SUMMER 2024'. Note that the primary thing that needs to be updated here is the `rubric_id` column.
+# Insert `rubric` SQL Statements
+
+This guide is primarily responsible for initializing the `rubric_config` table,
+assuming that the table begins in an empty state.
+
+## Updating Guide
+
+The primary things that needs to be updated on an ongoing basis are:
+1. Values in the `rubric_id` column
+
+## Statements
+> [!NOTE]
+> Updated as of **SUMMER 2024**
 
 ```mysql
 INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) VALUES

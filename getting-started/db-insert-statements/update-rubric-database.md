@@ -1,7 +1,20 @@
-If you have the autograder prior to 'SUMMER 2024', the following SQL should do the job of updating
-the `rubric_config` table:
+# Updating `rubric` SQL Statements
 
-UPDATED AS OF 'SUMMER 2024'
+This guide is primarily responsible for updating the `rubric_config` table
+when it has already been initialized from [Inserting Rubric SQL Statements](./insert-rubric-database.md).
+
+These statements only apply to you if you had set up the AutoGrader prior to the
+"last updated" date of this guide.
+
+## Updating Guide
+
+The primary things that needs to be updated on an ongoing basis are:
+1. _Depends on any changes to the `rubric_config` schema_
+
+## Statements
+> [!NOTE]
+> Updated as of **SUMMER 2024**
+
 ```mysql
 ALTER TABLE rubric_config ADD rubric_id VARCHAR(15);
 -- could be ten as no rubric ids so far are longer than 10, but just in case

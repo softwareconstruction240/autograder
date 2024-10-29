@@ -1,5 +1,18 @@
-UPDATED AS OF 'SUMMER 2024'. Note that the primary thing that needs to be updated is the value of the `COURSE_NUMBER`
-and each of the assignment numbers.
+# Insert `config` SQL Statements
+
+This guide is primarily responsible for initializing the `configuration` table,
+assuming that the table begins in an empty state.
+
+## Updating Guide
+
+The primary things that needs to be updated on an ongoing basis are:
+1. The value of the `COURSE_NUMBER`
+2. Each of the assignment numbers
+
+
+## Statements
+> [!NOTE]
+> Updated as of **SUMMER 2024**
 
 ```mysql
 INSERT INTO configuration (config_key, value) VALUES
