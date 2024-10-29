@@ -10,7 +10,7 @@
 
 ### Node/Yarn
 
-The frontend is built using Vue.js. To run the frontend, you will need to have `yarn` (see 
+The frontend is built using Vue.js. To run the frontend, you will need to have `yarn` (see
 [installing yarn](https://yarnpkg.com/getting-started/install)).
 After installing `Node` if necessary, run the following to enable `yarn` globally (sudo may be required):
 
@@ -20,7 +20,7 @@ corepack enable
 
 ### Backend Database
 
-You can run the database either locally with your own MySQL server or inside a Docker container. To run the database 
+You can run the database either locally with your own MySQL server or inside a Docker container. To run the database
 inside its own Docker container, run the following in the root of the project:
 
 ```bash
@@ -84,7 +84,7 @@ been filled in with default values. Update these as needed to match your environ
 
 While you can use any root user credentials to access the MySQL database, you may be interested in creating
 a special login for this project. That decision is left to you. If you do create a different user, however, it will
-need nearly root-level permissions in any case (enough to be able to create a new database, then create a "student" 
+need nearly root-level permissions in any case (enough to be able to create a new database, then create a "student"
 user and `GRANT ALL` privileges to them for that database). The exact requirements are not listed here.
 
 ### Canvas Integration
@@ -120,7 +120,7 @@ As of 'SUMMER 2024', the course number is `26822`.
 
 To ensure that the assignment IDs and rubric IDs/points are synced with Canvas, go
 to the `config` tab, select the button `Update using Canvas`, and select `Yes`. If there's a slight
-issue, you may need to explore updating the course IDs manually, whether that be directly though the database's 
+issue, you may need to explore updating the course IDs manually, whether that be directly though the database's
 `configuration` table or by clicking `Update Manually` in the `config` tab.
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
@@ -128,8 +128,8 @@ Additionally, if you want (not required), you can insert values into the `config
 
 ### Environment Variables
 
-If you are running Loki locally (not required), then you must set the `LOKI_URL` environment variable. The value can be 
-either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to 
+If you are running Loki locally (not required), then you must set the `LOKI_URL` environment variable. The value can be
+either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to
 develop the app).
 
 ### Loading the Configuration Related Tables
