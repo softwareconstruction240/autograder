@@ -21,7 +21,6 @@ import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.RepoUrlValidator;
-import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.EnumMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A template for fetching, compiling, and running student code
