@@ -11,7 +11,7 @@ import BannerMessage from '@/components/BannerMessage.vue'
 import PopUp from '@/components/PopUp.vue'
 import RepoEditor from '@/components/RepoEditor.vue'
 import AboutPage from '@/components/AboutPage.vue'
-import { ServerError } from '@/network/ServerErrors'
+import { ServerError } from '@/network/ServerError'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {

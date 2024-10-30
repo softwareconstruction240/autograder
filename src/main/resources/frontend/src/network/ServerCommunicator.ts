@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/stores/auth'
-import { ServerError } from '@/network/ServerErrors'
+import { ServerError } from '@/network/ServerError'
 import { useAppConfigStore } from '@/stores/appConfig'
 
 export const ServerCommunicator = {
@@ -7,6 +7,18 @@ export const ServerCommunicator = {
   postRequest: postRequest,
   patchRequest: patchRequest,
   doUnprocessedRequest: doUnprocessedRequest
+}
+
+async function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("GET", endpoint, null,expectResponse ?? true)
+}
+
+async function postRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("POST", endpoint, bodyObject,expectResponse ?? true)
+}
+
+async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true)
 }
 
 async function doRequest<T>(method: string,
@@ -55,16 +67,4 @@ async function doUnprocessedRequest(method: string,
     throw new ServerError(endpoint, await response.text(), response.status, response.statusText)
   }
   return response
-}
-
-async function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("GET", endpoint, null,expectResponse ?? true)
-}
-
-async function postRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("POST", endpoint, bodyObject,expectResponse ?? true)
-}
-
-async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true)
 }
