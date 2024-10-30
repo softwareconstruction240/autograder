@@ -13,8 +13,7 @@ export const ServerCommunicator = {
 async function doRequest<T>(method: string,
                             endpoint: string,
                             bodyObject?: Object | null,
-                            expectResponse?: boolean,
-                            emptyResponse?: T): Promise<T> {
+                            expectResponse?: boolean): Promise<T> {
   console.log(`Making ${method} request to ${endpoint}`)
 
   const authToken: string = useAuthStore().token != null ? useAuthStore().token : ""
@@ -39,6 +38,7 @@ async function doRequest<T>(method: string,
     return null as T
   }
 
+  // this makes sure there is actually something in the body before trying to parse
   const text = await response.text()
   if (text) {
     return JSON.parse(text) as T
@@ -46,29 +46,25 @@ async function doRequest<T>(method: string,
 
   // code only reaches here if the caller was expecting a response (T isn't void)
   // and the response from the server is empty
-  if (!emptyResponse) {
-    if (bodyObject) {
-      console.error("Body request:", bodyObject)
-    }
-    console.error("Response: ", response)
-    throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
+  if (bodyObject) {
+    console.error("Body request:", bodyObject)
   }
-
-  return emptyResponse
+  console.error("Response: ", response)
+  throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
 }
 
-async function getRequest<T>(endpoint: string, expectResponse?: boolean, emptyResponse?: T): Promise<T> {
-  return await doRequest<T>("GET", endpoint, null,expectResponse ?? true, emptyResponse)
+async function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("GET", endpoint, null,expectResponse ?? true)
 }
 
-async function postRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean,  emptyResponse?: T): Promise<T> {
-  return await doRequest<T>("POST", endpoint, bodyObject,expectResponse ?? true, emptyResponse)
+async function postRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("POST", endpoint, bodyObject,expectResponse ?? true)
 }
 
-async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean,  emptyResponse?: T): Promise<T> {
-  return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true, emptyResponse)
+async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true)
 }
 
-async function deleteRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean, emptyResponse?: T): Promise<T> {
-  return await doRequest<T>("DELETE", endpoint, bodyObject,expectResponse ?? true, emptyResponse)
+async function deleteRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
+  return await doRequest<T>("DELETE", endpoint, bodyObject,expectResponse ?? true)
 }
