@@ -7,32 +7,14 @@ export const ServerCommunicator = {
   postRequest: postRequest,
   patchRequest: patchRequest,
   deleteRequest: deleteRequest,
-  doRequest: doRequest
+  doUnprocessedRequest: doUnprocessedRequest
 }
 
 async function doRequest<T>(method: string,
                             endpoint: string,
                             bodyObject?: Object | null,
                             expectResponse?: boolean): Promise<T> {
-  console.log(`Making ${method} request to ${endpoint}`)
-
-  const authToken: string = useAuthStore().token != null ? useAuthStore().token : ""
-
-  const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
-    method: method,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': authToken
-    },
-    body: bodyObject ? JSON.stringify(bodyObject) : null
-  });
-
-  if (!response.ok) {
-    console.error(`A ${response.status} error occurred while making a ${method} request to ${endpoint}`)
-    console.error(response)
-    throw new ServerError(endpoint, await response.text(), response.status, response.statusText)
-  }
+  const response = await doUnprocessedRequest(method, endpoint, bodyObject)
 
   if (!expectResponse) {
     return null as T
@@ -51,6 +33,29 @@ async function doRequest<T>(method: string,
   }
   console.error("Response: ", response)
   throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
+}
+
+async function doUnprocessedRequest(method: string,
+                                    endpoint: string,
+                                    bodyObject?: Object | null): Promise<Response> {
+  const authToken: string = useAuthStore().token != null ? useAuthStore().token : ""
+
+  const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
+    method: method,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authToken
+    },
+    body: bodyObject ? JSON.stringify(bodyObject) : null
+  });
+
+  if (!response.ok) {
+    console.error(`A ${response.status} error occurred while making a ${method} request to ${endpoint}`)
+    console.error(response)
+    throw new ServerError(endpoint, await response.text(), response.status, response.statusText)
+  }
+  return response
 }
 
 async function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T> {

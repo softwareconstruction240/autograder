@@ -1,4 +1,3 @@
-import {useAppConfigStore} from "@/stores/appConfig";
 import type {CanvasSection, Phase, Submission, User } from '@/types/types'
 import type {Option} from "@/views/AdminView/Analytics.vue";
 import { ServerCommunicator } from '@/network/ServerCommunicator'
@@ -65,24 +64,16 @@ export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
 
 export const commitAnalyticsGet = async (option: Option): Promise<string> => {
     try {
-        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/analytics/commit/' + option, {
-            method: 'GET',
-            credentials: 'include'
-        })).text()
+        return (await ServerCommunicator.doUnprocessedRequest("GET", '/api/admin/analytics/commit/' + option)).text()
     } catch (e) {
-        console.error('Failed to get data: ', e)
         return ''
     }
 }
 
 export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
     try {
-        return (await fetch(useAppConfigStore().backendUrl + '/api/admin/honorChecker/zip/' + section, {
-            method: 'GET',
-            credentials: 'include'
-        })).blob()
+        return (await ServerCommunicator.doUnprocessedRequest("GET", '/api/admin/honorChecker/zip/' + section)).blob()
     } catch (e) {
-        console.error('Failed to get data: ', e)
         return new Blob()
     }
 }

@@ -28,7 +28,7 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
 }
 
 export const setCanvasCourseIds = async (): Promise<void> => {
-  await doSetConfigItem("GET", "/api/admin/config/courseIds", null);
+  await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 }
 
 const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
@@ -52,7 +52,11 @@ export const setCourseIds = async (
     await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
 }
 
-const doSetConfigItem = async (method: string, path: string, body: Object | null): Promise<void> => {
-  await ServerCommunicator.doRequest(method, path, body, false)
+const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
+  if (method == "GET") {
+    await ServerCommunicator.getRequest(path, false)
+  } else {
+    await ServerCommunicator.postRequest(path, body, false)
+  }
   await useAppConfigStore().updateConfig();
 }
