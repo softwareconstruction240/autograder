@@ -6,7 +6,6 @@ export const ServerCommunicator = {
   getRequest: getRequest,
   postRequest: postRequest,
   patchRequest: patchRequest,
-  deleteRequest: deleteRequest,
   doUnprocessedRequest: doUnprocessedRequest
 }
 
@@ -68,8 +67,4 @@ async function postRequest<T>(endpoint: string, bodyObject?: Object, expectRespo
 
 async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
   return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true)
-}
-
-async function deleteRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("DELETE", endpoint, bodyObject,expectResponse ?? true)
 }
