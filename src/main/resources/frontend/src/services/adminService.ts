@@ -28,15 +28,6 @@ export const approveSubmissionPost = async (netId: string, phase: Phase, penaliz
     })
 }
 
-interface UserPatch {
-    netId: string,
-    firstName?: string,
-    lastName?: string,
-    repoUrl?: string,
-    role?: string
-
-}
-
 export const submissionsLatestGet = async (batchSize?: number): Promise<Submission[]> => {
     batchSize = batchSize ? batchSize : -1
     try {
