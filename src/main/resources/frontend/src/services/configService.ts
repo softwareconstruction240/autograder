@@ -1,6 +1,7 @@
 import { type Config, useAppConfigStore } from '@/stores/appConfig'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const getConfig = async ():Promise<Config> => {
   let path = "/api"
@@ -62,24 +63,25 @@ export const setCourseIds = async (
 }
 
 const doSetConfigItem = async (method: string, path: string, body: Object | null): Promise<void> => {
-    const baseOptions: RequestInit = {
-        method: method,
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    const fetchOptions: RequestInit = (method !== "GET")
-        ? {
-            ...baseOptions,
-            body: JSON.stringify(body)
-        } : baseOptions;
-
-    const response = await fetch(useAppConfigStore().backendUrl + path, fetchOptions);
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
-    await useAppConfigStore().updateConfig();
+  await ServerCommunicator.doRequest(method, path, body, false)
+    // const baseOptions: RequestInit = {
+    //     method: method,
+    //     credentials: 'include',
+    //     headers: {
+    //         'Content-Type': 'application/json'
+    //     }
+    // };
+    // const fetchOptions: RequestInit = (method !== "GET")
+    //     ? {
+    //         ...baseOptions,
+    //         body: JSON.stringify(body)
+    //     } : baseOptions;
+    //
+    // const response = await fetch(useAppConfigStore().backendUrl + path, fetchOptions);
+    //
+    // if (!response.ok) {
+    //     console.error(response);
+    //     throw new Error(await response.text());
+    // }
+  await useAppConfigStore().updateConfig();
 }

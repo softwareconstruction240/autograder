@@ -1,13 +1,10 @@
 import type {Submission} from "@/types/types";
 import { Phase } from "@/types/types";
-import {useAppConfigStore} from "@/stores/appConfig";
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
-    let url = useAppConfigStore().backendUrl + '/api/submission' + (phase === null ? "" : "/" + Phase[phase])
-
     try{
-        return await ServerCommunicator.getRequest<Submission[]>(url)
+        return await ServerCommunicator.getRequest<Submission[]>('/api/submission' + (phase === null ? "" : "/" + Phase[phase]))
     } catch(e) {
         return [];
     }
@@ -22,7 +19,7 @@ export const lastSubmissionGet = async (): Promise<Submission | null> => {
 };
 
 export const submissionPost = async (phase: Phase): Promise<void> => {
-    await ServerCommunicator.postRequest("/api/submit", { "phase": Phase[phase] })
+    await ServerCommunicator.postRequest("/api/submit", { "phase": Phase[phase] }, false)
 }
 
 export const adminSubmissionPost = async (phase: Phase, repoUrl: String): Promise<void> => {

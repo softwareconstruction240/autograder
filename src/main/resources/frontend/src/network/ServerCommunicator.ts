@@ -6,7 +6,8 @@ export const ServerCommunicator = {
   getRequest: getRequest,
   postRequest: postRequest,
   patchRequest: patchRequest,
-  deleteRequest: deleteRequest
+  deleteRequest: deleteRequest,
+  doRequest: doRequest
 }
 
 async function doRequest<T>(method: string,
@@ -14,6 +15,8 @@ async function doRequest<T>(method: string,
                             bodyObject?: Object | null,
                             expectResponse?: boolean,
                             emptyResponse?: T): Promise<T> {
+  console.log(`Making ${method} request to ${endpoint}`)
+
   const authToken: string = useAuthStore().token != null ? useAuthStore().token : ""
 
   const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
@@ -33,7 +36,6 @@ async function doRequest<T>(method: string,
   }
 
   if (!expectResponse) {
-    console.log(endpoint)
     return null as T
   }
 
