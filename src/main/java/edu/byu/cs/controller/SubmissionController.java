@@ -153,7 +153,6 @@ public class SubmissionController {
 
     public static final Route latestSubmissionsGet = (req, res) -> {
         String countString = req.params(":count");
-        // TODO Move Integer parsing to service...?
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
 
         Collection<Submission> submissions = null;
