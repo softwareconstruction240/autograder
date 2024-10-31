@@ -42,9 +42,6 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   sendEmit('repoEditSuccess')
 }
 
-onMounted( () => {
-  console.log(user)
-})
 </script>
 
 <template>
