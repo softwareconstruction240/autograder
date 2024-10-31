@@ -14,7 +14,7 @@ The frontend is built using Vue.js. To run the frontend, you will need to have `
 [installing yarn](https://yarnpkg.com/getting-started/install)).
 After installing `Node` if necessary, run the following to enable `yarn` globally (sudo may be required):
 
-```bash
+```shell
 corepack enable
 ```
 
@@ -23,7 +23,7 @@ corepack enable
 You can run the database either locally with your own MySQL server or inside a Docker container. To run the database
 inside its own Docker container, run the following in the root of the project:
 
-```bash
+```shell
 docker compose up db -d
 ```
 
@@ -61,10 +61,10 @@ Go fish🐟 Specific instructions to update are not included here.
 > Windows-based shells, even POSIX ones, won't install the correct files.
 
 Use `yarn` to install all dependencies. This must be done from the _front end_ root folder.
- ```bash
- cd src/main/resources/frontend
- yarn
- ```
+```shell
+cd src/main/resources/frontend
+yarn
+```
 
 ### 4. Setup "Server" _Run Configuration_
 
@@ -118,7 +118,7 @@ Do the following steps:
 > **Windows** In the case you are running on the Autograder inside a dev container,\
 > you may need to add the `--host` option at the end of the `yarn dev` command (`yarn dev --host`).
   
-```bash
+```shell
 cd src/main/resources/frontend
 yarn dev
 ```
