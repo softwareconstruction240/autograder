@@ -9,36 +9,78 @@ export const ServerCommunicator = {
   doUnprocessedRequest: doUnprocessedRequest
 }
 
-async function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("GET", endpoint, null,expectResponse ?? true)
+// GET request overloads
+function getRequest<T>(endpoint: string, expectResponse: false): Promise<null>;
+function getRequest<T>(endpoint: string, expectResponse?: true): Promise<T>;
+async function getRequest<T>(
+  endpoint: string,
+  expectResponse: boolean = true
+): Promise<T | null> {
+  if (expectResponse) {
+    return await doRequest<T>("GET", endpoint, null, true);
+  }
+  return await doRequest<T>("GET", endpoint, null, false);
 }
 
-async function postRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("POST", endpoint, bodyObject,expectResponse ?? true)
+// POST request overloads
+function postRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
+async function postRequest<T>(
+  endpoint: string,
+  bodyObject: Object | null = null,
+  expectResponse: boolean = true
+): Promise<T | null> {
+  if (expectResponse) {
+    return await doRequest<T>("POST", endpoint, bodyObject, true);
+  }
+  return await doRequest<T>("POST", endpoint, bodyObject, false);
+
 }
 
-async function patchRequest<T>(endpoint: string, bodyObject?: Object, expectResponse?: boolean): Promise<T> {
-  return await doRequest<T>("PATCH", endpoint, bodyObject,expectResponse ?? true)
+// PATCH request overloads
+function patchRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
+async function patchRequest<T>(
+  endpoint: string,
+  bodyObject: Object | null = null,
+  expectResponse: boolean = true
+): Promise<T | null> {
+  if (expectResponse) {
+    return doRequest<T>("PATCH", endpoint, bodyObject, true);
+  }
+  return doRequest<T>("PATCH", endpoint, bodyObject, false);
 }
 
-async function doRequest<T>(method: string,
-                            endpoint: string,
-                            bodyObject?: Object | null,
-                            expectResponse?: boolean): Promise<T> {
-  const response = await doUnprocessedRequest(method, endpoint, bodyObject)
+// doRequest overloads
+function doRequest<T>(
+  method: string,
+  endpoint: string,
+  bodyObject: Object | null,
+  expectResponse: false
+): Promise<null>;
+function doRequest<T>(
+  method: string,
+  endpoint: string,
+  bodyObject?: Object | null,
+  expectResponse?: true
+): Promise<T>;
+async function doRequest<T>(
+  method: string,
+  endpoint: string,
+  bodyObject: Object | null = null,
+  expectResponse: boolean = true
+): Promise<T | null> {
+  const response = await doUnprocessedRequest(method, endpoint, bodyObject);
 
   if (!expectResponse) {
-    return null as T
+    return null;
   }
 
-  // this makes sure there is actually something in the body before trying to parse
   const text = await response.text()
   if (text) {
     return JSON.parse(text) as T
   }
 
-  // code only reaches here if the caller was expecting a response (T isn't void)
-  // and the response from the server is empty
   if (bodyObject) {
     console.error("Body request:", bodyObject)
   }
@@ -46,10 +88,12 @@ async function doRequest<T>(method: string,
   throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
 }
 
-async function doUnprocessedRequest(method: string,
-                                    endpoint: string,
-                                    bodyObject?: Object | null): Promise<Response> {
-  const authToken: string = useAuthStore().token != null ? useAuthStore().token : ""
+async function doUnprocessedRequest(
+  method: string,
+  endpoint: string,
+  bodyObject: Object | null = null
+): Promise<Response> {
+  const authToken = useAuthStore().token ?? ""
 
   const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
     method: method,
