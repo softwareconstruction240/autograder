@@ -1,7 +1,8 @@
-package edu.byu.cs.autograder.quality;
+package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.quality.QualityAnalyzer;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
