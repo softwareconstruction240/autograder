@@ -120,11 +120,14 @@ public class Grader implements Runnable {
             RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(type);
             if(configItem != null) {
                 Rubric.Results results = switch (type) {
+                    // TODO: How can we fully remove this switch statement and rely on passed-in definitions instead
+                    // This code is violating the open-closed principle.
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
                     case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
                     case GIT_COMMITS, GRADING_ISSUE -> null;
+                    // TODO: (end) This is the end of what we want to remove.
                 };
                 if (results != null) {
                     rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));
