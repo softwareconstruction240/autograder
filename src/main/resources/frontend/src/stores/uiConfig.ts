@@ -54,4 +54,3 @@ export const uiConfig = {
     canvas: "https://byu.instructure.com",
   }
 }
-
