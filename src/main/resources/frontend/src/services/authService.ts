@@ -26,5 +26,5 @@ export const loadUser = async () => {
 }
 
 export const logoutPost = async () => {
-    await ServerCommunicator.postRequest( "/auth/logout", undefined, false)
+    await ServerCommunicator.postRequest( "/auth/logout", null, false)
 }
