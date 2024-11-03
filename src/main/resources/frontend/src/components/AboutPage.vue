@@ -3,6 +3,7 @@ import PopUp from '@/components/PopUp.vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import sound from "@/assets/saints.mp3"
 import InfoPanel from '@/components/InfoPanel.vue'
+import AboutPagePerson from '@/components/AboutPagePerson.vue'
 
 const audio = new Audio(sound)
 
@@ -63,49 +64,56 @@ onUnmounted(() => {
   >
     <div id="box">
       <h1>About the CS 240 Autograder</h1>
-      <div id="leads">
-        <div class="person">
-          <p class="name">Paul Hathaway <a href="https://github.com/pawlh" target="_blank"><i class="fa-solid fa-otter"/></a></p>
-          <p class="title">Father of the Autograder</p>
-          <p class="tenure">Sept 2022-Apr 2024</p>
-          <p class="contributions">Wrote the foundations of the Autograder and its core grading functionality</p>
-        </div>
-        <div class="person">
-          <p class="name">Michael Davenport <a href="https://github.com/19mdavenport" target="_blank"><i class="fa-solid fa-hat-wizard"/></a></p>
-          <p class="title">Guardian of the Autograder</p>
-          <p class="tenure">Jan 2023-Apr 2025</p>
-          <p class="contributions">Developed most of the integrations with Canvas, student database handling, the code quality checker, lots of behind the scenes refactoring, and basically had a hand in every backend system in the program</p>
-        </div>
-      </div>
+      <AboutPagePerson
+        name="Paul Hathaway"
+        :lead=true
+        title="Father of the Autograder"
+        url="https://github.com/pawlh"
+        tenure="Sept 2022-Apr 2024"
+        contributions="Wrote the foundations of the Autograder and its core grading functionality"
+        fa-icon="fa-solid fa-otter"/>
+      <AboutPagePerson
+        name="Michael Davenport"
+        :lead=true
+        title="Guardian of the Autograder"
+        url="https://github.com/19mdavenport"
+        tenure="Jan 2023-Apr 2025"
+        contributions="Developed most of the integrations with Canvas, student database handling, the code quality checker, lots of behind the scenes refactoring, and basically had a hand in every backend system in the program"
+        fa-icon="fa-solid fa-hat-wizard"/>
 
       <br/>
 
       <div id="team">
-        <div class="person">
-          <p class="name">Dallin Webecke <a href="https://webecke.dev" target="_blank"><i class="fa-solid fa-tree"/></a></p>
-          <p class="tenure">Jan 2024-Apr 2025</p>
-          <p class="contributions">Created several admin tools, cleaned up the Student UI and added Font Awesome</p>
-        </div>
-        <div class="person">
-          <p class="name">James Finlinson <a href="https://github.com/frozenfrank" target="_blank"><i class="fa-solid fa-jedi"/></a></p>
-          <p class="tenure">Jan 2024-Dec 2025</p>
-          <p class="contributions">Developed class-requirement enforcement systems, like late-days and git-commits</p>
-        </div>
-        <div class="person">
-          <p class="name">Than Gerlek <a href="https://github.com/ThanGerlek" target="_blank"><i class="fa-solid fa-not-equal"/></a></p>
-          <p class="tenure">Jan 2024-Apr 2026</p>
-          <p class="contributions">He's new to the team, but he's doing a lot</p>
-        </div>
-        <div class="person">
-          <p class="name">Noah Pratt <a href="https://noahpratt.com" target="_blank"><i class="fa-solid fa-ship"/></a></p>
-          <p class="tenure">Sept 2022-Jun 2024</p>
-          <p class="contributions">Developed several important admin analytical tools</p>
-        </div>
-        <div class="person">
-          <p class="name">Isaih Barron <a href="https://github.com/Fiwafoofa" target="_blank"><i class="fa-solid fa-face-grin-squint-tears"/></a></p>
-          <p class="tenure">Jan 2024-Aug 2024</p>
-          <p class="contributions">Wrote some systems that did pre-compiling verification of student code</p>
-        </div>
+        <AboutPagePerson
+          name="Dallin Webecke"
+          url="https://github.com/webecke"
+          tenure="Jan 2024-Apr 2025"
+          contributions="Created several admin tools, cleaned up the Student UI and added Font Awesome"
+          fa-icon="fa-solid fa-tree"/>
+        <AboutPagePerson
+          name="James Finlinson"
+          url="https://github.com/frozenfrank"
+          tenure="Jan 2024-Dec 2025"
+          contributions="Developed class-requirement enforcement systems, like late-days and git-commits"
+          fa-icon="fa-solid fa-jedi"/>
+        <AboutPagePerson
+          name="Than Gerlek"
+          url="https://github.com/ThanGerlek"
+          tenure="Jan 2024-Apr 2026"
+          contributions="He's new to the team, but he's doing a lot"
+          fa-icon="fa-solid fa-not-equal"/>
+        <AboutPagePerson
+          name="Noah Pratt"
+          url="https://github.com/prattnj"
+          tenure="Sept 2022-Jun 2024"
+          contributions="Developed several important admin analytical tools"
+          fa-icon="fa-solid fa-ship"/>
+        <AboutPagePerson
+          name="Isaih Barron"
+          url="https://github.com/Fiwafoofa"
+          tenure="Jan 2024-Aug 2024"
+          contributions="Wrote some systems that did pre-compiling verification of student code"
+          fa-icon="fa-solid fa-face-grin-squint-tears"/>
       </div>
 
       <InfoPanel id="about">
@@ -129,44 +137,11 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
 }
 
-.name {
-  font-weight: 1000;
-  margin-top: 10px;
-}
-
-#leads .name {
-  font-size: 22px;
-}
-
-#team .name {
-  font-size: 18px;
-}
-
-#leads .title {
-  margin-top: 0;
-  padding-top: 0;
-  font-style: italic;
-  font-size: 14px;
-}
-
-.tenure {
-  font-size: 12px;
-  font-style: italic;
-}
-
-.contributions {
-  font-size: 14px;
-}
-
 #box {
   max-width: 60vw;
 }
 
 PopUp {
   min-height: 100vh !important;
-}
-
-i {
-  color: #0047BA;
 }
 </style>
