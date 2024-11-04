@@ -1,4 +1,3 @@
-import {useAppConfigStore} from "@/stores/appConfig";
 import { useAuthStore } from '@/stores/auth'
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 
