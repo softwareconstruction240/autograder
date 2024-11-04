@@ -2,6 +2,17 @@ import { useAuthStore } from '@/stores/auth'
 import { ServerError } from '@/network/ServerError'
 import { useAppConfigStore } from '@/stores/appConfig'
 
+/**
+ * Utility for making authenticated HTTP requests to the server with automatic error handling
+ * and response parsing.
+ *
+ * @example
+ * // GET request expecting a User response
+ * const user = await ServerCommunicator.getRequest<User>('/api/user');
+ *
+ * // POST request with body, not expecting response
+ * await ServerCommunicator.postRequest<void>('/api/logs', { event: 'action' }, false);
+ */
 export const ServerCommunicator = {
   getRequest: getRequest,
   postRequest: postRequest,
@@ -9,8 +20,29 @@ export const ServerCommunicator = {
   doUnprocessedRequest: doUnprocessedRequest
 }
 
-// GET request overloads
+/**
+ * Makes a GET request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ */
 function getRequest<T>(endpoint: string, expectResponse: false): Promise<null>;
+/**
+ * Makes a GET request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ */
 function getRequest<T>(endpoint: string, expectResponse?: true): Promise<T>;
 async function getRequest<T>(
   endpoint: string,
@@ -22,8 +54,45 @@ async function getRequest<T>(
   return await doRequest<T>("GET", endpoint, null, false);
 }
 
-// POST request overloads
+/**
+ * Makes a POST request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ *
+ * @example
+ * // With response
+ * const user = await postRequest<User>('/api/users', { name: 'John' });
+ *
+ * // Without response
+ * await postRequest<void>('/api/logs', { event: 'action' }, false);
+ */
 function postRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+/**
+ * Makes a POST request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ *
+ * @example
+ * // With response
+ * const user = await postRequest<User>('/api/users', { name: 'John' });
+ *
+ * // Without response
+ * await postRequest<void>('/api/logs', { event: 'action' }, false);
+ */
 function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
 async function postRequest<T>(
   endpoint: string,
@@ -37,8 +106,45 @@ async function postRequest<T>(
 
 }
 
-// PATCH request overloads
+/**
+ * Makes a PATCH request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ *
+ * @example
+ * // With response
+ * const user = await patchRequest<User>('/api/users/123', { name: 'John' });
+ *
+ * // Without response
+ * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
+ */
 function patchRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+/**
+ * Makes a PATCH request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ *
+ * @example
+ * // With response
+ * const user = await patchRequest<User>('/api/users/123', { name: 'John' });
+ *
+ * // Without response
+ * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
+ */
 function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
 async function patchRequest<T>(
   endpoint: string,
@@ -51,19 +157,60 @@ async function patchRequest<T>(
   return doRequest<T>("PATCH", endpoint, bodyObject, false);
 }
 
-// doRequest overloads
+/**
+ * Internal method to make an HTTP request.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} method - The HTTP method to use
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} When expectResponse is true but no response is received
+ * @internal
+ */
 function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject: Object | null,
   expectResponse: false
 ): Promise<null>;
+/**
+ * Internal method to make an HTTP request.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} method - The HTTP method to use
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} When expectResponse is true but no response is received
+ * @internal
+ */
 function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject?: Object | null,
   expectResponse?: true
 ): Promise<T>;
+/**
+ * Internal method to make an HTTP request.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} method - The HTTP method to use
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} When expectResponse is true but no response is received
+ * @internal
+ */
 async function doRequest<T>(
   method: string,
   endpoint: string,
@@ -88,6 +235,14 @@ async function doRequest<T>(
   throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
 }
 
+/**
+ * Makes a raw HTTP request to the server with authentication.
+ * @param {string} method - The HTTP method to use
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @returns {Promise<Response>} A promise that resolves to the raw fetch response object
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ */
 async function doUnprocessedRequest(
   method: string,
   endpoint: string,
