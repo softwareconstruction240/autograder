@@ -5,7 +5,7 @@ Autograder for [BYU CS 240 Chess project](https://github.com/softwareconstructio
 ## Development and Contributing
 
 This project relies on TAs like you to maintain and adapt the program! Come join the team!
-Check out the [Contribution Guide](docs/CONTRIBUTING.md) to learn how to effectively contribute as a part of the Autograder Development Team!
+Check out the [Contribution Guide](https://github.com/orgs/softwareconstruction240/projects/1/views/1?pane=issue&itemId=84732654&issue=softwareconstruction240%7Cautograder%7C448) to learn how to effectively contribute as a part of the Autograder Development Team!
 
 Read the [Getting Started Guide](docs/getting-started/getting-started.md) to get the project set up on your machine for development.
 
