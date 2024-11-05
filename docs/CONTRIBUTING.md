@@ -13,7 +13,7 @@ New to the Autograder Development team and not sure how to get
 started? Try this:
 
 1. Finish reading this document
-2. Get set you dev environment up by following the [Getting Started Guide](docs/getting-started/getting-started.md)
+2. Get set you dev environment up by following the [Getting Started Guide](getting-started/getting-started.md)
 3. Review the Sequence/Class Diagrams (_Coming soon_)
 4. Look through some of the code, and try writing documentation 
    for undocumented code
@@ -32,7 +32,7 @@ All changes to the Autograder start as an issue. Issues help us track what
 needs to be done and who's working on what. You can pick an already 
 existing issue to work on, or you can write your own. 
 
-Ideally, you should first work on issues in the `On Deck` column of the 
+> Ideally, you should first work on issues in the `On Deck` column of the 
 [TA Projects Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
 but you are welcome to pick any unassigned issue
 
@@ -78,4 +78,40 @@ Create the branch directly from the issue so your work is linked.
 - Keep names concise but clear
 - One branch per issue (don't mix different features/fixes)
 
-### 3. Commits
+### 3. Making Changes
+Now that you have a branch, you can start to code! Hurray! 🎉
+Here are important guidelines to follow:
+
+- Review and follow the Style Guide (_Coming Soon_)
+- Write tests for your code. All new features and functionality must have tests demonstrating correctness
+  - Update existing tests if you change functionality
+  - _New contributors: A great way to better understand the codebase is to try writing tests for existing code_
+- Keep commits focused and meaningful
+  - Each commit should represent one logical change
+  - Write clear commit messages that describe that change ([See guidelines](#writing-good-commit-messages))
+- Update documentation as you go
+  - Add JSDoc/JavaDoc comments to new code
+    - _New contributors: Another great way to learn the codebase is to document existing code_
+  - Update repo Markdown docs if needed
+  - Code should for the most part be self-documenting. If not, make sure to add inline comments
+
+#### Writing Good Commit Messages
+- Start with a present-tense verb that describes what the commit does:
+    - `add late submission validation`
+    - `fix grade calculation bug`
+    - `update setup instructions`
+    - `remove unused imports`
+    - `refactor test runner`
+    - `document API endpoints`
+- Use lowercase letters
+- Keep it concise but clear (aim for under 50 characters)
+- Bad examples:
+    - `changes` (too vague)
+    - `Added new feature` (past tense)
+    - `WIP` (uninformative)
+    - `Fix stuff` (too vague)
+
+For bigger changes, you can add more details after the first line.
+
+> Remember: A good commit message lets other developers know what changed
+without having to look at the code!
