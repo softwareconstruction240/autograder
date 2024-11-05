@@ -49,7 +49,7 @@ async function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Prom
  * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
  * @throws {Error} when expectResponse is true but no response is received
  */
-function getRequest<T>(endpoint: string, expectResponse: false): Promise<null>;
+function getRequest(endpoint: string, expectResponse: false): Promise<null>;
 /**
  * Makes a GET request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -91,7 +91,7 @@ async function getRequest<T>(
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function postRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
 /**
  * Makes a POST request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -143,7 +143,7 @@ async function postRequest<T>(
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest<T>(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function patchRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
 /**
  * Makes a PATCH request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
