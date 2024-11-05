@@ -1,5 +1,6 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.autograder.test;
 
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
