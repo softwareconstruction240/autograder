@@ -47,7 +47,7 @@ docker compose up -d
 
 ## Development
 
-New to autograder development? Follow the [Getting Started guide](getting-started/getting-started.md)!
+New to autograder development? Follow the [Getting Started guide](docs/getting-started/getting-started.md)!
 
 ### How to Contribute
 
