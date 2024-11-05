@@ -3,19 +3,12 @@ import { Phase } from "@/types/types";
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
-    try{
-        return await ServerCommunicator.getRequest<Submission[]>('/api/submission' + (phase === null ? "" : "/" + Phase[phase]))
-    } catch(e) {
-        return [];
-    }
+    const endpoint: string = '/api/submission' + (phase === null ? "" : "/" + Phase[phase])
+    return await ServerCommunicator.getRequestGuaranteed<Submission[]>(endpoint, [])
 };
 
 export const lastSubmissionGet = async (): Promise<Submission | null> => {
-    try {
-        return await ServerCommunicator.getRequest<Submission>("/api/latest")
-    } catch(e) {
-        return null
-    }
+    return await ServerCommunicator.getRequestGuaranteed<Submission | null>("/api/latest", null)
 };
 
 export const submissionPost = async (phase: Phase): Promise<void> => {

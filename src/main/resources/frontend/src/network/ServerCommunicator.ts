@@ -15,11 +15,29 @@ import { useAppConfigStore } from '@/stores/appConfig'
  */
 export const ServerCommunicator = {
   getRequest: getRequest,
+  getRequestGuaranteed: getRequestGuaranteed,
   postRequest: postRequest,
   patchRequest: patchRequest,
   doUnprocessedRequest: doUnprocessedRequest
 }
 
+/**
+ * Makes a GET request to the specified endpoint with a guaranteed response.
+ * This will not throw an error if the server returns an error, but will print it
+ * to the console.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {T} errorResponse - The object the method call should return if the server
+ * returns nothing or responds with a non-2XX code
+ * @returns {Promise<T>} Promise that resolves to the response data of type T
+ */
+async function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
+  try {
+    return await getRequest<T>(endpoint, true)
+  } catch (e) {
+    return errorResponse
+  }
+}
 /**
  * Makes a GET request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)

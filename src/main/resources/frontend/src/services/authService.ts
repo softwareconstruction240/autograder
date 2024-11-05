@@ -9,11 +9,7 @@ type MeResponse = {
     role: 'STUDENT' | 'ADMIN'
 }
 export const meGet = async () => {
-    try {
-        return await ServerCommunicator.getRequest<MeResponse>('/api/me')
-    } catch (e) {
-        return null;
-    }
+    return await ServerCommunicator.getRequestGuaranteed<MeResponse | null>('/api/me', null)
 }
 
 export const loadUser = async () => {

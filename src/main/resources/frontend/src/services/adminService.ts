@@ -3,19 +3,11 @@ import type {Option} from "@/views/AdminView/Analytics.vue";
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const usersGet = async (): Promise<User[]> => {
-    try {
-        return await ServerCommunicator.getRequest<User[]>('/api/admin/users')
-    } catch (e) {
-        return [];
-    }
+    return await ServerCommunicator.getRequestGuaranteed<User[]>('/api/admin/users', [])
 }
 
 export const submissionsForUserGet = async (netId: string): Promise<Submission[]> => {
-    try {
-        return await ServerCommunicator.getRequest<Submission[]>('/api/admin/submissions/student/' + netId)
-    } catch (e) {
-        return [];
-    }
+    return await ServerCommunicator.getRequestGuaranteed<Submission[]>('/api/admin/submissions/student/' + netId, [])
 }
 
 export const approveSubmissionPost = async (netId: string, phase: Phase, penalize: boolean) => {
@@ -29,21 +21,11 @@ export const approveSubmissionPost = async (netId: string, phase: Phase, penaliz
 
 export const submissionsLatestGet = async (batchSize?: number): Promise<Submission[]> => {
     batchSize = batchSize ? batchSize : -1
-    try {
-        return await ServerCommunicator.getRequest<Submission[]>('/api/admin/submissions/latest/' + batchSize)
-    } catch (e) {
-        return [];
-    }
+    return await ServerCommunicator.getRequestGuaranteed<Submission[]>('/api/admin/submissions/latest/' + batchSize, [])
 }
 
 export const testStudentModeGet = async (): Promise<null> => {
-    try {
-        await ServerCommunicator.getRequest('/api/admin/test_mode')
-        return null;
-    } catch (e) {
-        console.error('Failed to activate test mode: ', e);
-        return null;
-    }
+    return await ServerCommunicator.getRequestGuaranteed<null>('/api/admin/test_mode', null)
 }
 
 type QueueStatusResponse = {
@@ -51,15 +33,11 @@ type QueueStatusResponse = {
     inQueue: string[]
 }
 export const getQueueStatus = async (): Promise<QueueStatusResponse> => {
-    try {
-        return await ServerCommunicator.getRequest<QueueStatusResponse>('/api/admin/submissions/active')
-    } catch (e) {
-        console.error('Failed to get queue status: ', e);
-        return {
-            currentlyGrading: [],
-            inQueue: []
-        };
-    }
+    return await ServerCommunicator.getRequestGuaranteed<QueueStatusResponse>(
+      '/api/admin/submissions/active', {
+                currentlyGrading: [],
+                inQueue: []
+            })
 }
 
 export const commitAnalyticsGet = async (option: Option): Promise<string> => {
@@ -79,10 +57,5 @@ export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
 }
 
 export const sectionsGet = async (): Promise<CanvasSection[]> => {
-    try {
-        return await ServerCommunicator.getRequest<CanvasSection[]>('/api/admin/sections')
-    } catch (e) {
-        console.error('Failed to get data: ', e)
-        return [];
-    }
+    return await ServerCommunicator.getRequestGuaranteed<CanvasSection[]>('/api/admin/sections', [])
 }
