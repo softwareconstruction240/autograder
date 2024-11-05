@@ -8,6 +8,18 @@ for our professors and students.
 This document will give you all the info you need to know to successfully 
 contribute to the best Autograder on campus!
 
+## Table of Contents
+- Welcome (You already read that)
+- [New Contributors [Start here if you're new]](#new-contributors)
+- [Development Pipeline](#development-pipeline)
+  - [1: Issues](#1-issues)
+    - [Creating an Issue](#creating-an-issue)
+    - [Working on an Issue](#working-on-an-issue)
+  - [2: Branches](#2-branches)
+    - [Creating a Branch](#creating-a-branch)
+  - [3: Making Changes](#3-making-changes)
+    - [Writing Good Commit Messages](#writing-good-commit-messages)
+
 ## New Contributors
 New to the Autograder Development team and not sure how to get 
 started? Try this:
@@ -32,6 +44,7 @@ All changes to the Autograder start as an issue. Issues help us track what
 needs to be done and who's working on what. You can pick an already 
 existing issue to work on, or you can write your own. 
 
+> [!TIP]
 > Ideally, you should first work on issues in the `On Deck` column of the 
 [TA Projects Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
 but you are welcome to pick any unassigned issue
@@ -94,6 +107,8 @@ Here are important guidelines to follow:
     - _New contributors: Another great way to learn the codebase is to document existing code_
   - Update repo Markdown docs if needed
   - Code should for the most part be self-documenting. If not, make sure to add inline comments
+- Push your code to GitHub at the end of each coding session. This lets other
+  team members see how you're doing
 
 #### Writing Good Commit Messages
 - Start with a present-tense verb that describes what the commit does:
@@ -113,5 +128,14 @@ Here are important guidelines to follow:
 
 For bigger changes, you can add more details after the first line.
 
+> [!TIP]
 > Remember: A good commit message lets other developers know what changed
 without having to look at the code!
+
+### 4. Pull Requests
+Pull requests are how you get your changes merged into the codebase. 
+You create a pull request once you feel your changes are ready.
+
+#### Creating a Pull Request
+- Make sure you have pushed all changes to GitHub first
+- The title of your pull request should be simple, concise, and descriptive 
