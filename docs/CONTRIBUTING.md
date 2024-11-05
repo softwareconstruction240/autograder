@@ -61,3 +61,21 @@ but you are welcome to pick any unassigned issue
 - Leave a comment from time to time with updates on your progress
 
 ### 2. Branches
+Branches in git allow us to all work on separate things in the same codebase.
+You will do all your work in a branch.
+
+#### Creating a branch
+Create the branch directly from the issue so your work is linked.
+
+- Always branch from `main` 
+  - (exceptions exist if you know what you're doing)
+- Use descriptive names that reflect what you're working on:
+    - `add-late-submission`
+    - `admin-display-verification-status`
+    - `server-communicator`
+    - `extract-service-logic-from-controllers`
+- Use kebab-case (lowercase with hyphens)
+- Keep names concise but clear
+- One branch per issue (don't mix different features/fixes)
+
+### 3. Commits
