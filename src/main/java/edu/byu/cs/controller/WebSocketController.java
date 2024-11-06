@@ -3,22 +3,22 @@ package edu.byu.cs.controller;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;
-import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsErrorContext;
 import io.javalin.websocket.WsMessageContext;
-import org.eclipse.jetty.websocket.api.CloseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
 
     public static void onError(WsErrorContext ctx) {
-        if (!(ctx.error() instanceof CloseException))
+        if (!(ctx.error() instanceof IOException)) {
             LOGGER.error("WebSocket error: ", ctx.error());
+        }
     }
 
     public static void onMessage(WsMessageContext ctx) {
@@ -41,8 +41,7 @@ public class WebSocketController {
             return;
         }
 
-        if (TrafficController.sessions.get(netId).contains(session))
-            return;
+        if (TrafficController.sessions.get(netId).contains(session)) return;
 
         TrafficController.sessions.get(netId).add(session);
         try {
@@ -75,12 +74,7 @@ public class WebSocketController {
      * @param message the error message
      */
     public static void sendError(Session session, String message) {
-        send(
-                session,
-                Map.of(
-                        "type", "error",
-                        "message", message
-                ));
+        send(session, Map.of("type", "error", "message", message));
     }
 
 
