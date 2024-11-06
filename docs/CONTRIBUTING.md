@@ -19,6 +19,12 @@ contribute to the best Autograder on campus!
     - [Creating a Branch](#creating-a-branch)
   - [3: Making Changes](#3-making-changes)
     - [Writing Good Commit Messages](#writing-good-commit-messages)
+  - [4: Pull Requests](#4-pull-requests)
+    - [Creating a Pull Request](#creating-a-pull-request)
+    - [Scope of a Pull Request](#scope-of-a-pull-request)
+    - [Reviewing a Pull Request](#reviewing-a-pull-request)
+    - [After Merging](#after-merging)
+- [About Page](#about-page)
 
 ## New Contributors
 New to the Autograder Development team and not sure how to get 
