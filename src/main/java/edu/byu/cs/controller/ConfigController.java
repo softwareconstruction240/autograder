@@ -15,7 +15,6 @@ public class ConfigController {
     public static final Handler getConfigAdmin = ctx -> {
         try {
             JsonObject response = ConfigService.getPrivateConfig();
-            ctx.status(200);
 
             // TODO unserialize or something...?
             // Original was simply `return response;`
@@ -27,12 +26,7 @@ public class ConfigController {
         }
     };
 
-    public static final Handler getConfigStudent = ctx -> {
-        String response = ConfigService.getPublicConfig().toString();
-
-        ctx.status(200);
-        ctx.result(response);
-    };
+    public static final Handler getConfigStudent = ctx -> ctx.result(ConfigService.getPublicConfig().toString());
 
     public static final Handler updateLivePhases = ctx -> {
         Gson gson = new Gson();
@@ -41,8 +35,6 @@ public class ConfigController {
         User user = ctx.sessionAttribute("user");
 
         ConfigService.updateLivePhases(phasesArray, user);
-
-        ctx.status(200);
     };
 
     public static final Handler updateBannerMessage = ctx -> {
@@ -61,12 +53,10 @@ public class ConfigController {
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e.getMessage(), e);
         }
-
-        ctx.status(200);
     };
 
     public static final Handler updateCourseIdsPost = ctx -> {
-        SetCourseIdsRequest setCourseIdsRequest = new Gson().fromJson(ctx.body(), SetCourseIdsRequest.class);
+        SetCourseIdsRequest setCourseIdsRequest = ctx.bodyAsClass(SetCourseIdsRequest.class);
 
         User user = ctx.sessionAttribute("user");
 
@@ -76,15 +66,11 @@ public class ConfigController {
         } catch (DataAccessException e) {
             ctx.status(400);
             ctx.result(e.getMessage());
-            return;
         }
-
-        ctx.status(200);
     };
 
     public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {
         User user = ctx.sessionAttribute("user");
         ConfigService.updateCourseIdsUsingCanvas(user);
-        ctx.status(200);
     };
 }

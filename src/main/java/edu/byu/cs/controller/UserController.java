@@ -8,7 +8,6 @@ import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
-import edu.byu.cs.util.Serializer;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 

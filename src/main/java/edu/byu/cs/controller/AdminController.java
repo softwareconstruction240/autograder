@@ -19,17 +19,10 @@ public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
-    public static final Handler usersGet = ctx -> {
-        Collection<User> users;
-        users = AdminService.getUsers();
-
-        ctx.status(200);
-
-        ctx.json(users);
-    };
+    public static final Handler usersGet = ctx -> ctx.json(AdminService.getUsers());
 
     public static final Handler userPatch = ctx -> {
-        String netId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
+        String netId = ctx.pathParam(":netId");
         String firstName = ctx.queryParam("firstName");
         String lastName = ctx.queryParam("lastName");
         String repoUrl = ctx.queryParam("repoUrl");
@@ -51,16 +44,12 @@ public class AdminController {
     };
 
     public static final Handler testModeGet = ctx -> {
-        User testStudent;
-        testStudent = AdminService.updateTestStudent();
-//      res.cookie("/", "token", generateToken(testStudent.netId()), 14400, false, false);
+        User testStudent = AdminService.updateTestStudent();
         ctx.cookie("token", generateToken(testStudent.netId()), 14400);
-
-        ctx.status(200);
     };
 
     public static final Handler commitAnalyticsGet = ctx -> {
-        String option = ctx.pathParam(":option"); // TODO pathParam() or formParam()?
+        String option = ctx.pathParam(":option");
         String data;
 
         try {
@@ -73,13 +62,11 @@ public class AdminController {
             throw e;
         }
 
-        ctx.status(200);
-
         ctx.result(data);
     };
 
     public static final Handler honorCheckerZipGet = ctx -> {
-        String sectionStr = ctx.pathParam(":section"); // TODO pathParam() or formParam()?
+        String sectionStr = ctx.pathParam(":section");
 
         try (OutputStream os = ctx.res().getOutputStream()) {
             AdminService.streamHonorCheckerZip(sectionStr, os);
@@ -89,16 +76,9 @@ public class AdminController {
             throw e;
         }
 
-        ctx.status(200);
-
         ctx.header("Content-Type", "application/zip");
         ctx.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
     };
 
-    public static Handler sectionsGet = ctx -> {
-        CanvasSection[] sections = AdminService.getAllSections();
-        ctx.contentType("application/json");
-        ctx.status(200);
-        ctx.json(sections);
-    };
+    public static Handler sectionsGet = ctx -> ctx.json(AdminService.getAllSections());
 }

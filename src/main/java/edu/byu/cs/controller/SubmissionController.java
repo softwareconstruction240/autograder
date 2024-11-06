@@ -24,13 +24,9 @@ public class SubmissionController {
         User user = ctx.sessionAttribute("user");
 
         GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request == null) {
-            return;
+        if (request != null) {
+            SubmissionService.submit(user, request);
         }
-
-        SubmissionService.submit(user, request);
-
-        ctx.status(200);
     };
 
     public static final Handler adminRepoSubmitPost = ctx -> {
@@ -42,8 +38,6 @@ public class SubmissionController {
         }
 
         SubmissionService.adminRepoSubmit(user.netId(), request);
-
-        ctx.status(200);
     };
 
     private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException {
@@ -56,7 +50,7 @@ public class SubmissionController {
 
         GradeRequest request;
         try {
-            request = Serializer.deserialize(ctx.body(), GradeRequest.class);
+            request = ctx.bodyAsClass(GradeRequest.class);
         } catch (Serializer.SerializationException e) {
             throw new BadRequestException("Request must be valid json", e);
         }
@@ -78,19 +72,12 @@ public class SubmissionController {
 
         boolean inQueue = SubmissionService.isAlreadyInQueue(netId);
 
-        ctx.status(200);
-
         ctx.json(Map.of("inQueue", inQueue));
     };
 
     public static final Handler latestSubmissionForMeGet = ctx -> {
         User user = ctx.sessionAttribute("user");
-
         Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
-
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(submission);
     };
 
@@ -110,9 +97,6 @@ public class SubmissionController {
         User user = ctx.sessionAttribute("user");
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
 
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(submissions);
     };
 
@@ -123,30 +107,18 @@ public class SubmissionController {
 
         Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
 
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(submissions);
     };
 
     public static final Handler submissionsActiveGet = ctx -> {
         List<String> inQueue = SubmissionService.getActiveInQueue();
         List<String> currentlyGrading = SubmissionService.getCurrentlyGrading();
-
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
     };
 
     public static final Handler studentSubmissionsGet = ctx -> {
         String netId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
-
         Collection<Submission> submissions = SubmissionService.getSubmissionsForUser(netId);
-
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(submissions);
     };
 
@@ -158,10 +130,6 @@ public class SubmissionController {
 
     public static final Handler submissionsReRunPost = ctx -> {
         SubmissionService.reRunSubmissionsInQueue();
-
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(Map.of("message", "re-running submissions in queue"));
     };
 
