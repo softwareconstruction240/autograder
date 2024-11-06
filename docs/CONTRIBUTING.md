@@ -38,6 +38,10 @@ Don't be afraid to submit a PR, and most importantly, just get sucked in!
 
 ## Development Pipeline
 
+As a broad overview, all changes to the Autograder start as an issue. Each 
+issue eventually gets a branch made to solve the issue. And each branch
+gets made in
+
 ### 1. Issues
 
 All changes to the Autograder start as an issue. Issues help us track what 
@@ -46,7 +50,7 @@ existing issue to work on, or you can write your own.
 
 > [!TIP]
 > Ideally, you should first work on issues in the `On Deck` column of the 
-[TA Projects Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
+[TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
 but you are welcome to pick any unassigned issue
 
 #### Creating an Issue
@@ -138,4 +142,99 @@ You create a pull request once you feel your changes are ready.
 
 #### Creating a Pull Request
 - Make sure you have pushed all changes to GitHub first
-- The title of your pull request should be simple, concise, and descriptive 
+- The title of your pull request should be simple, concise, and descriptive
+  - It should have a prefix just like an issue
+  - It can be basically the name of the branch
+    - Issue: `Frontend: refactor all server calls to one place`
+    - Branch: `server-communicator`
+    - Pull Request: `Frontend: ServerCommunicator`
+- Fill out the Pull Request template with enough detail for others to understand what 
+  changed without having to read all the new code.
+- Make sure all GitHub actions pass:
+  - Your pull request will be blocked from merging if all tests don't pass
+- Move the connected issue into the `PR Submittted` column on the 
+  [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
+- Request a review from other Autograder developers
+  - If you're changing an existing system, request a review from the developer that 
+    wrote it initially, or is most familiar with that system
+  - You can request multiple reviewers, but you're only required to get approval from one
+
+#### Scope of a Pull Request
+- Pull Requests should represent a complete, reviewable unit of work
+- In most cases, a pull request from one issue
+  - Multiple issues in one PR are fine and encouraged when they depend on each other, or form a cohesive change
+- While there's no strict size limit, consider breaking up very large changes if:
+  - They touch multiple unrelated areas
+  - They're becoming difficult to review
+  - They could logically be shipped separately
+
+> [!TIP]
+> Remember: A good PR represents a complete feature or fix, but shouldn't try to solve everything at once!
+
+#### Reviewing a Pull Request
+A crucial part of this process is the code review. The repo has been set up so that _**no changes may be merged 
+into main without the review of at least one other developer.**_ If someone has requested a review from you, please
+take some time to help out and ensure the Autograder has quality code.
+
+**As a Reviewer**
+- Look for:
+  - Code quality and style guide compliance
+  - Test coverage
+  - Potential bugs or edge cases
+  - Documentation completeness
+- Checkout the branch on your local machine and do some manual testing
+  - Manually check systems that changed
+- Be constructive and kind in your feedback. We're all learning here
+- If changes are needed:
+  - Be specific about what needs to change
+  - Explain why the change is needed
+  - Suggest how to make the change if possible
+- Approve the PR when you're satisfied with all changes
+
+**As a Pull Request Author**
+- Respond to reviewer comments promptly
+- Be open to feedback and suggestions
+- Explain your decisions when asked
+- Make requested changes or explain why they shouldn't be made
+- Mark conversations as resolved once you have addressed the concern
+- Thank reviewers for their time
+
+> [!IMPORTANT]
+> Once the pull request is approved and ready to merge, it is the responsibility and privilege of the author
+> (not the reviewer) to merge the request.
+
+> [!NOTE]
+> Once a pull request is merged to main, it does not immediately deploy to the live Autograder. Changes will
+> not be reflected in the live system until the head Autograder developer releases a new version of the system.
+
+#### After Merging
+Congrats! You just added code to the Autograder!
+
+Make sure you move your issue on the [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
+to the `Done` column
+
+Celebrate!
+
+### About Page
+A lot of time and effort goes into developing and maintaining the Autograder. Thank you!
+
+If you're new to the team, add yourself to the Autograder's [About Page](../src/main/resources/frontend/src/components/AboutPage.vue). (You can see the live one by doing the Konami Code
+anywhere on the Autograder front end)
+
+Fill this component out and add it to the bottom of the current list of developers:
+```vue
+<AboutPagePerson
+  name=""
+  url=""
+  tenure=""
+  contributions=""
+  fa-icon=""/>
+```
+Most TAs just link to their GitHub profile on their URL.
+
+Tenure should indicate when you worked as a CS 240 TA, not just as an Autograder Developer.
+
+Write a short sentence describing your work on the Autograder. You can update this in the future as you make more contributions.
+
+FA-icon is a font-awesome icon. Search through [Font Awesome's free icon collection](https://fontawesome.com/search?o=r&m=free) 
+and choose one to represent you.
