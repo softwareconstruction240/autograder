@@ -24,7 +24,7 @@ public class AdminController {
     };
 
     public static final Handler userPatch = ctx -> {
-        String netId = ctx.pathParam(":netId");
+        String netId = ctx.pathParam("netId");
         String firstName = ctx.queryParam("firstName");
         String lastName = ctx.queryParam("lastName");
         String repoUrl = ctx.queryParam("repoUrl");
@@ -51,7 +51,7 @@ public class AdminController {
     };
 
     public static final Handler commitAnalyticsGet = ctx -> {
-        String option = ctx.pathParam(":option");
+        String option = ctx.pathParam("option");
         try {
             String data = AdminService.getCommitAnalytics(option);
             ctx.result(data);
@@ -65,7 +65,7 @@ public class AdminController {
     };
 
     public static final Handler honorCheckerZipGet = ctx -> {
-        String sectionStr = ctx.pathParam(":section");
+        String sectionStr = ctx.pathParam("section");
 
         try (OutputStream os = ctx.res().getOutputStream()) {
             AdminService.streamHonorCheckerZip(sectionStr, os);

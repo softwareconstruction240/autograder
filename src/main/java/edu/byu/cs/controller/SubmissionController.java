@@ -79,16 +79,14 @@ public class SubmissionController {
     };
 
     public static final Handler submissionXGet = ctx -> {
-        String phaseString = ctx.pathParam(":phase"); // TODO pathParam() or formParam()?
-        Phase phase = null;
+        String phaseString = ctx.pathParam("phase");
+        Phase phase;
 
-        if (phaseString != null) {
-            try {
-                phase = Phase.valueOf(phaseString);
-            } catch (IllegalArgumentException e) {
-                LOGGER.error("Invalid phase", e);
-                throw new BadRequestException("Invalid phase", e);
-            }
+        try {
+            phase = Phase.valueOf(phaseString);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Invalid phase", e);
+            throw new BadRequestException("Invalid phase", e);
         }
 
         User user = ctx.sessionAttribute("user");
@@ -97,9 +95,10 @@ public class SubmissionController {
     };
 
     public static final Handler latestSubmissionsGet = ctx -> {
-        String countString = ctx.pathParam(":count"); // TODO pathParam() or formParam()?
-        // TODO Move Integer parsing to service...?
-        int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
+        // TODO add capability to not give a count--in which case, set it to -1, which gets all latest submissions
+        //  Probably its own endpoint (same, but with no count parameter)
+        String countString = ctx.pathParam("count");
+        int count = Integer.parseInt(countString);
 
         Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
         ctx.json(submissions);
@@ -112,7 +111,7 @@ public class SubmissionController {
     };
 
     public static final Handler studentSubmissionsGet = ctx -> {
-        String netId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
+        String netId = ctx.pathParam("netId");
         Collection<Submission> submissions = SubmissionService.getSubmissionsForUser(netId);
         ctx.json(submissions);
     };

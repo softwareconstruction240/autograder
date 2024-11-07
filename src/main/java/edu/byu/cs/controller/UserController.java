@@ -22,7 +22,7 @@ public class UserController {
 
     public static final Handler repoPatchAdmin = ctx -> {
         User admin = ctx.sessionAttribute("user");
-        String studentNetId = ctx.pathParam(":netId"); // TODO pathParam() or formParam()?
+        String studentNetId = ctx.pathParam("netId");
         applyRepoPatch(studentNetId, admin.netId(), ctx);
         ctx.result("Successfully updated repoUrl for user: " + studentNetId);
     };
