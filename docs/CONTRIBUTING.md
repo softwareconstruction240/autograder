@@ -13,6 +13,7 @@ contribute to the best Autograder on campus!
 - [New Contributors [Start here if you're new]](#new-contributors)
 - [Development Pipeline](#development-pipeline)
   - [1: Issues](#1-issues)
+    - [When to Create Issue](#when-to-create-an-issue)
     - [Creating an Issue](#creating-an-issue)
     - [Working on an Issue](#working-on-an-issue)
   - [2: Branches](#2-branches)
@@ -25,13 +26,14 @@ contribute to the best Autograder on campus!
     - [Reviewing a Pull Request](#reviewing-a-pull-request)
     - [After Merging](#after-merging)
 - [About Page](#about-page)
+- [Reminder About Ownership](#reminder-about-ownership)
 
 ## New Contributors
 New to the Autograder Development team and not sure how to get 
 started? Try this:
 
 1. Finish reading this document
-2. Get set you dev environment up by following the [Getting Started Guide](getting-started/getting-started.md)
+2. Get your dev environment set up by following the [Getting Started Guide](getting-started/getting-started.md)
 3. Review the Sequence/Class Diagrams (_Coming soon_)
 4. Look through some of the code, and try writing documentation 
    for undocumented code
@@ -46,12 +48,11 @@ Don't be afraid to submit a PR, and most importantly, just get sucked in!
 
 As a broad overview, all changes to the Autograder start as an issue. Each 
 issue eventually gets a branch made to solve the issue. And each branch
-gets made in
+gets made into a pull request before becoming part of the main branch of code.
 
 ### 1. Issues
 
-All changes to the Autograder start as an issue. Issues help us track what 
-needs to be done and who's working on what. You can pick an already 
+Issues help us track what needs to be done and who's working on what. You can pick an already 
 existing issue to work on, or you can write your own. 
 
 > [!TIP]
@@ -59,12 +60,15 @@ existing issue to work on, or you can write your own.
 [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
 but you are welcome to pick any unassigned issue
 
+#### When to Create an Issue
+TODO
+
 #### Creating an Issue
 - Create the issue from the TA Projects Board (linked above)
   - Click "add item" at the bottom of the `Todo` list
   - Type `#autograder` to connect the issue to the Autograder
   - Type a title and hit enter
-- Use a clear, descriptive title that uses one of these prefixes:
+- Use a clear, descriptive title that uses one of these prefixes (including the colon):
   - `Backend:` server side changes
   - `Frontend:` client (web) side changes
   - `Fullstack:` for issues that require front and backend changes
@@ -106,7 +110,7 @@ Now that you have a branch, you can start to code! Hurray! 🎉
 Here are important guidelines to follow:
 
 - Review and follow the Style Guide (_Coming Soon_)
-- Write tests for your code. All new features and functionality must have tests demonstrating correctness
+- Write tests for your code. All new features and functionality should have tests demonstrating correctness
   - Update existing tests if you change functionality
   - _New contributors: A great way to better understand the codebase is to try writing tests for existing code_
 - Keep commits focused and meaningful
@@ -121,7 +125,7 @@ Here are important guidelines to follow:
   team members see how you're doing
 
 #### Writing Good Commit Messages
-- Start with a present-tense verb that describes what the commit does:
+- Start with an imperative statement that describes what the commit does:
     - `add late submission validation`
     - `fix grade calculation bug`
     - `update setup instructions`
@@ -136,15 +140,17 @@ Here are important guidelines to follow:
     - `WIP` (uninformative)
     - `Fix stuff` (too vague)
 
-For bigger changes, you can add more details after the first line.
+For bigger changes, you can add more details after the first line (leave a blank line between the first
+line and the extra details).
 
 > [!TIP]
 > Remember: A good commit message lets other developers know what changed
-without having to look at the code!
+> without having to look at the code!
 
 ### 4. Pull Requests
-Pull requests are how you get your changes merged into the codebase. 
-You create a pull request once you feel your changes are ready.
+Pull requests are how you get your changes merged into the codebase.
+You create a pull request once you feel your changes are ready. You can also create a draft pull request 
+if you would like some feedback on your code before then.
 
 #### Creating a Pull Request
 - Make sure you have pushed all changes to GitHub first
@@ -189,7 +195,9 @@ take some time to help out and ensure the Autograder has quality code.
   - Potential bugs or edge cases
   - Documentation completeness
 - Checkout the branch on your local machine and do some manual testing
-  - Manually check systems that changed
+  - Specifically verify new/changed systems work. Try breaking it.
+  - Generally check other systems still work and haven't been broken
+    - (Student submissions on test student is most important)
 - Be constructive and kind in your feedback. We're all learning here
 - If changes are needed:
   - Be specific about what needs to change
@@ -203,6 +211,7 @@ take some time to help out and ensure the Autograder has quality code.
 - Explain your decisions when asked
 - Make requested changes or explain why they shouldn't be made
 - Mark conversations as resolved once you have addressed the concern
+- Re-request their review
 - Thank reviewers for their time
 
 > [!IMPORTANT]
@@ -221,7 +230,7 @@ to the `Done` column
 
 Celebrate!
 
-### About Page
+## About Page
 A lot of time and effort goes into developing and maintaining the Autograder. Thank you!
 
 If you're new to the team, add yourself to the Autograder's [About Page](../src/main/resources/frontend/src/components/AboutPage.vue). (You can see the live one by doing the Konami Code
@@ -244,3 +253,13 @@ Write a short sentence describing your work on the Autograder. You can update th
 
 FA-icon is a font-awesome icon. Search through [Font Awesome's free icon collection](https://fontawesome.com/search?o=r&m=free) 
 and choose one to represent you.
+
+## Reminder About Ownership
+As BYU employees writing code for our job as TAs, all code you contribute becomes the
+intellectual property of Brigham Young University.
+
+> Pursuant to law and university policy, any work (whether a Technical Work or a Creative Work) prepared by University 
+> Personnel within the scope of their employment, without an express agreement specifying otherwise, is work for hire 
+> owned by the university.
+> 
+> — [BYU Intellectual Property Policy](https://policy.byu.edu/view/intellectual-property-policy) (emphasis added)
