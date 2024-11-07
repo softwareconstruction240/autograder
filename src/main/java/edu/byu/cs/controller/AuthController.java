@@ -62,9 +62,6 @@ public class AuthController {
 
     public static final Handler meGet = ctx -> {
         User user = ctx.sessionAttribute("user");
-
-        ctx.status(200);
-        ctx.contentType("application/json");
         ctx.json(user);
     };
 

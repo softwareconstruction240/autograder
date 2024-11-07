@@ -68,10 +68,7 @@ public class SubmissionController {
 
     public static final Handler submitGet = ctx -> {
         User user = ctx.sessionAttribute("user");
-        String netId = user.netId();
-
-        boolean inQueue = SubmissionService.isAlreadyInQueue(netId);
-
+        boolean inQueue = SubmissionService.isAlreadyInQueue(user.netId());
         ctx.json(Map.of("inQueue", inQueue));
     };
 
@@ -96,7 +93,6 @@ public class SubmissionController {
 
         User user = ctx.sessionAttribute("user");
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
-
         ctx.json(submissions);
     };
 
@@ -106,7 +102,6 @@ public class SubmissionController {
         int count = countString == null ? -1 : Integer.parseInt(countString); // if they don't give a count, set it to -1, which gets all latest submissions
 
         Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
-
         ctx.json(submissions);
     };
 
@@ -124,7 +119,7 @@ public class SubmissionController {
 
     public static final Handler approveSubmissionPost = ctx -> {
         User adminUser = ctx.sessionAttribute("user");
-        ApprovalRequest request = Serializer.deserialize(ctx.body(), ApprovalRequest.class);
+        ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
         SubmissionService.approveSubmission(adminUser.netId(), request);
     };
 

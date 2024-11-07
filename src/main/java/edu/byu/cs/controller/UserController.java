@@ -32,10 +32,6 @@ public class UserController {
         String netId = ctx.queryParam("netId");
 
         Collection<RepoUpdate> updates = UserService.adminGetRepoHistory(repoUrl, netId);
-
-        ctx.status(200);
-        ctx.contentType("application/json");
-
         ctx.json(updates);
     };
 
@@ -44,6 +40,5 @@ public class UserController {
         JsonObject jsonObject = new Gson().fromJson(ctx.body(), JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
         UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
-        ctx.status(200);
     }
 }

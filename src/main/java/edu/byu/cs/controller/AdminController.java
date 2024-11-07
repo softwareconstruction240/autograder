@@ -18,7 +18,10 @@ public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
-    public static final Handler usersGet = ctx -> ctx.json(AdminService.getUsers());
+    public static final Handler usersGet = ctx -> {
+        Collection<User> users = AdminService.getUsers();
+        ctx.json(users);
+    };
 
     public static final Handler userPatch = ctx -> {
         String netId = ctx.pathParam(":netId");
@@ -49,10 +52,9 @@ public class AdminController {
 
     public static final Handler commitAnalyticsGet = ctx -> {
         String option = ctx.pathParam(":option");
-        String data;
-
         try {
-            data = AdminService.getCommitAnalytics(option);
+            String data = AdminService.getCommitAnalytics(option);
+            ctx.result(data);
         } catch (IllegalStateException e) {
             LOGGER.error(e.getMessage());
             throw new ResourceNotFoundException(e.getMessage(), e);
@@ -60,8 +62,6 @@ public class AdminController {
             LOGGER.error(e.getMessage());
             throw e;
         }
-
-        ctx.result(data);
     };
 
     public static final Handler honorCheckerZipGet = ctx -> {
@@ -79,5 +79,8 @@ public class AdminController {
         ctx.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
     };
 
-    public static Handler sectionsGet = ctx -> ctx.json(AdminService.getAllSections());
+    public static Handler sectionsGet = ctx -> {
+        CanvasSection[] sections = AdminService.getAllSections();
+        ctx.json(sections);
+    };
 }
