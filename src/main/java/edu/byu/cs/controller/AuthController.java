@@ -18,7 +18,7 @@ public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     /**
-     * A filter that verifies that the request has a valid JWT in the Authorization header.
+     * A handler that verifies that the request has a valid JWT in the Authorization header.
      * If the request is valid, the netId is added to the session for later use.
      */
     public static final Handler verifyAuthenticatedMiddleware = ctx -> {
