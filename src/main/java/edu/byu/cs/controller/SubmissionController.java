@@ -20,25 +20,20 @@ public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
-    public static final Handler submitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public static final Handler submitPost = getSubmitPostHandler(false);
+    public static final Handler adminRepoSubmitPost = getSubmitPostHandler(true);
 
-        GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request != null) {
-            SubmissionService.submit(user, request);
-        }
-    };
-
-    public static final Handler adminRepoSubmitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
-
-        GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request == null) {
-            return;
-        }
-
-        SubmissionService.adminRepoSubmit(user.netId(), request);
-    };
+    private static Handler getSubmitPostHandler(boolean isAdmin) {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
+            GradeRequest request = validateAndUnpackRequest(ctx);
+            if (isAdmin) {
+                SubmissionService.adminRepoSubmit(user.netId(), request);
+            } else {
+                SubmissionService.submit(user, request);
+            }
+        };
+    }
 
     private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException {
         User user = ctx.sessionAttribute("user");
