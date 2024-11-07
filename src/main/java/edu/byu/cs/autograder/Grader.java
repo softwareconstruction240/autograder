@@ -5,8 +5,8 @@ import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
-import edu.byu.cs.autograder.git.GitHubAssignmentGrader;
-import edu.byu.cs.autograder.quality.QualityGrader;
+import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
+import edu.byu.cs.autograder.test.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
@@ -21,7 +21,6 @@ import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.RepoUrlValidator;
-import org.eclipse.jgit.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.EnumMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A template for fetching, compiling, and running student code
@@ -123,11 +120,14 @@ public class Grader implements Runnable {
             RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(type);
             if(configItem != null) {
                 Rubric.Results results = switch (type) {
+                    // TODO: How can we fully remove this switch statement and rely on passed-in definitions instead
+                    // This code is violating the open-closed principle.
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
                     case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
                     case GIT_COMMITS, GRADING_ISSUE -> null;
+                    // TODO: (end) This is the end of what we want to remove.
                 };
                 if (results != null) {
                     rubricItems.put(type, new Rubric.RubricItem(configItem.category(), results, configItem.criteria()));
