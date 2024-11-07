@@ -1,243 +1,72 @@
 <script setup lang="ts">
-import {computed, ref, type WritableComputedRef} from 'vue'
+import { onMounted, ref } from 'vue'
 import PopUp from '@/components/PopUp.vue'
-import {listOfPhases, Phase, type RubricInfo, type RubricType} from '@/types/types'
-import {setBanner, setLivePhases, setCanvasCourseIds, setCourseIds} from '@/services/configService'
+import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
-import {
-  convertPhaseStringToEnum,
-  convertRubricTypeToHumanReadable,
-  getRubricTypes,
-  isPhaseGraded, readableTimestamp
-} from '@/utils/utils'
+import { generateClickableLink, readableTimestamp } from '@/utils/utils'
+import ConfigSection from '@/components/config/ConfigSection.vue'
+import BannerConfigEditor from '@/components/config/BannerConfigEditor.vue'
+import LivePhaseConfigEditor from '@/components/config/LivePhaseConfigEditor.vue'
+import CourseIdConfigEditor from '@/components/config/CourseIdConfigEditor.vue'
 
 const appConfigStore = useAppConfigStore();
 
 // PopUp Control
 const openLivePhases = ref<boolean>(false);
-const openBannerMessage = ref<boolean>(false);
 const openCanvasCourseIds = ref<boolean>(false);
 const openManuelCourseIds = ref<boolean>(false);
 
 // =========================
-
-// Banner Message Setting
-const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage)
-const bannerColorToSubmit = ref<string>("")
-const bannerLinkToSubmit = ref<string>("")
-const bannerWillExpire = ref<boolean>(false)
-const bannerExpirationDate = ref<string>("")
-const bannerExpirationTime = ref<string>("")
-const clearBannerMessage = () => {
-  bannerMessageToSubmit.value = ""
-  bannerLinkToSubmit.value = ""
-  bannerColorToSubmit.value = ""
-  bannerColorToSubmit.value = ""
-  bannerWillExpire.value = false
-}
-const submitBanner = async () => {
-  let combinedDateTime;
-  if (bannerWillExpire.value) {
-    combinedDateTime = `${bannerExpirationDate.value}T${bannerExpirationTime.value ? bannerExpirationTime.value : "23:59"}:59`;
-  } else {
-    combinedDateTime = ""
-  }
-  try {
-    await setBanner(bannerMessageToSubmit.value, bannerLinkToSubmit.value, bannerColorToSubmit.value, combinedDateTime)
-  } catch (e) {
-    alert("There was a problem in saving the updated banner message:\n" + e)
-  }
-  openBannerMessage.value = false
-}
-// =========================
-
-// Live Phase Setting
-const setAllPhases = (setting: boolean) => {
-  for (const phase of listOfPhases() as Phase[]) {
-    appConfigStore.phaseActivationList[phase] = setting
-  }
-}
-const submitLivePhases = async () => {
-  let livePhases: Phase[] = []
-  for (const phase of listOfPhases() as Phase[]) {
-    if (useAppConfigStore().phaseActivationList[phase]) {
-      livePhases.push(phase);
-    }
-  }
-
-  try {
-    await setLivePhases(livePhases)
-  } catch (e) {
-    alert("There was a problem in saving live phases")
-  }
-  openLivePhases.value = false
-}
-// =========================
-
-// Course ID Setting
-
-const getUpdatedConfig = async () => {
-  await appConfigStore.updateConfig();
-  openManuelCourseIds.value = true;
-}
-
-const assignmentIdProxy = (phase: Phase): WritableComputedRef<number> => computed({
-  get: (): number => appConfigStore.assignmentIds.get(phase) || -1,
-  set: (value: number) => appConfigStore.assignmentIds.set(phase, value)
+onMounted( async () => {
+  await useAppConfigStore().updateConfig();
 })
-
-const rubricIdInfoProxy = (phase: Phase, rubricType: RubricType): WritableComputedRef<string> => {
-  return getProxy(
-      phase,
-      rubricType,
-      (rubricInfo) => rubricInfo.id,
-      (rubricInfo, value) => rubricInfo.id = value,
-      "No Rubric ID found"
-  );
-}
-
-const rubricPointsInfoProxy = (phase: Phase, rubricType: RubricType): WritableComputedRef<number> => {
-  return getProxy(
-      phase,
-      rubricType,
-      (rubricInfo) => rubricInfo.points,
-      (rubricInfo, value) => rubricInfo.points = value,
-      -1
-  );
-}
-
-const getProxy = <T>(
-    phase: Phase,
-    rubricType: RubricType,
-    getFunc: (rubricInfo: RubricInfo) => T,
-    setFunc: (rubricInfo: RubricInfo, value: T) => void,
-    defaultValue: T,
-): WritableComputedRef<T> => computed({
-  get: (): T => {
-    const rubricIdMap = appConfigStore.rubricInfo.get(phase);
-    if (!rubricIdMap) return defaultValue;
-    const rubricInfo = rubricIdMap.get(rubricType);
-    if (!rubricInfo) return defaultValue;
-    return getFunc(rubricInfo);
-  },
-  set: (value: T) => {
-    const rubricTypeMap = appConfigStore.rubricInfo.get(phase);
-    if (!rubricTypeMap) return;
-    const rubricInfo = rubricTypeMap.get(rubricType);
-    if (!rubricInfo) return;
-    setFunc(rubricInfo, value);
-  }
-});
-
-const submitManuelCourseIds = async () => {
-  const userConfirmed = window.confirm("Are you sure you want to manually override?");
-  if (userConfirmed) {
-    try {
-      await setCourseIds(appConfigStore.courseNumber, appConfigStore.assignmentIds, appConfigStore.rubricInfo);
-      openManuelCourseIds.value = false;
-    } catch (e) {
-      alert("There was problem manually setting the course-related IDs: " + (e as Error).message);
-    }
-  }
-}
-
-const submitCanvasCourseIds = async () => {
-  try {
-    await setCanvasCourseIds();
-    openCanvasCourseIds.value = false;
-  } catch (e) {
-    alert("There was problem getting and setting the course-related IDs using Canvas: " + (e as Error).message);
-  }
-}
-
-// =========================
 
 </script>
 
 <template>
   <div id="configContainer">
-    <div class="configCategory">
-      <h3>Live Phases</h3>
-      <p>These are the phases are live and open for students to submit to</p>
-      <div v-for="phase in listOfPhases()">
-        <p>
-          <i v-if="appConfigStore.phaseActivationList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
-          <i v-else class="fa-solid fa-x" style="color: red"/>
-          {{phase}}</p>
-      </div>
-      <button @click="openLivePhases = true">Update</button>
-    </div>
-
-    <div class="configCategory">
-      <h3>Banner message</h3>
+    <ConfigSection title="Banner Message" description="A dynamic message displayed across the top of the Autograder">
+      <template v-slot:editor>
+        <BannerConfigEditor/>
+      </template>
+      <template v-slot:current>
       <span v-if="appConfigStore.bannerMessage">
         <p><span class="infoDescription">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
-        <p><span class="infoDescription">Current Link: </span><span v-text="appConfigStore.bannerLink"/></p>
+        <p><span class="infoDescription">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
         <p><span class="infoDescription">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
       </span>
-      <p v-else>There is currently no banner message</p>
-      <button @click="openBannerMessage = true">Set</button>
-    </div>
+        <p v-else>There is currently no banner message</p>
+      </template>
+    </ConfigSection>
 
-    <div class="configCategory">
-      <h3>Course Related IDs</h3>
-      <button @click="openCanvasCourseIds = true">Update using Canvas</button>
-      <button @click="getUpdatedConfig">Update Manually</button>
-    </div>
+    <ConfigSection title="Live Phases" description="These are the phases are live and open for students to submit to">
+      <template v-slot:editor>
+        <LivePhaseConfigEditor/>
+      </template>
+      <template v-slot:current>
+        <div v-for="phase in listOfPhases()">
+          <p>
+            <i v-if="appConfigStore.phaseActivationList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
+            <i v-else class="fa-solid fa-x" style="color: red"/>
+            {{phase}}</p>
+        </div>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, rubric points, ">
+      <template v-slot:editor>
+        <CourseIdConfigEditor/>
+      </template>
+      <template v-slot:current>
+        <p><b>Course ID:</b> {{appConfigStore.courseNumber}}</p>
+      </template>
+    </ConfigSection>
   </div>
 
   <PopUp
     v-if="openLivePhases"
     @closePopUp="openLivePhases = false; appConfigStore.updateConfig()">
-    <h3>Live Phases</h3>
-    <p>Enable student submissions for the following phases:</p>
 
-    <div class="checkboxes">
-      <label v-for="(phase, index) in listOfPhases()" :key="index">
-        <span><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]"> {{ phase }}</span>
-      </label>
-    </div>
-
-    <div class="submitChanges">
-      <p><em>This will not effect admin submissions</em></p>
-      <div>
-        <button @click="setAllPhases(true)" class="small">Enable all</button>
-        <button @click="setAllPhases(false)" class="small">Disable all</button>
-      </div>
-      <button @click="submitLivePhases">Submit Changes</button>
-    </div>
-  </PopUp>
-
-  <PopUp
-    v-if="openBannerMessage"
-    @closePopUp="openBannerMessage = false">
-    <h3>Banner Message</h3>
-    <p>Set a message for students to see from the Autograder</p>
-    <input v-model="bannerMessageToSubmit" type="text" placeholder="No Banner Message"/>
-    <p>Set a url that the user will be taken to if they click on the banner</p>
-    <input v-model="bannerLinkToSubmit" type="text" placeholder="No Destination URL"/>
-    <p>Choose a background color</p>
-    <select id="bannerColorSelect" v-model="bannerColorToSubmit">
-      <option selected value="">Default</option>
-      <option value="#d62b18">Red</option>
-      <option value="#eb700c">Orange</option>
-      <option value="#ded77a">Yellow</option>
-      <option value="#0cab11">Green</option>
-      <option value="#002E5D">BYU Blue</option>
-      <option value="#5e12b5">Purple</option>
-      <option value="#424142">Gray</option>
-      <option value="#000000">Black</option>
-    </select>
-    <p>Message Expires: <input type="checkbox" v-model="bannerWillExpire"/></p>
-    <div v-if="bannerWillExpire">
-      <input type="date" v-model="bannerExpirationDate"/><input type="time" v-model="bannerExpirationTime"/>
-      <p><em>If no time is selected, it will expire at the end of the day (Utah Time)</em></p>
-    </div>
-
-    <div>
-      <button class="small" @click="submitBanner" :disabled="bannerWillExpire && (bannerExpirationDate.length == 0)">Save</button>
-      <button class="small" @click="clearBannerMessage">Clear</button>
-    </div>
   </PopUp>
 
   <PopUp
@@ -260,59 +89,6 @@ const submitCanvasCourseIds = async () => {
     v-if="openManuelCourseIds"
     @closePopUp="openManuelCourseIds = false">
     <h3>Course Related IDs</h3>
-    <p>
-      <i class="fa-solid fa-triangle-exclamation" style="color: orangered"/>
-      Note: All the default input values are the values that are currently being used.
-    </p>
-
-    <br>
-    <h4>Course Number</h4>
-    <label for="courseIdInput">Course Number: </label>
-    <input id="courseIdInput" type="number" v-model.number="appConfigStore.courseNumber" placeholder="Course Number">
-    <br><br>
-    <h4>Assignment and Rubric IDs/Points</h4>
-    <div v-for="(phase, phaseIndex) in listOfPhases()" :key="phaseIndex">
-      <div v-if="isPhaseGraded(phase)">
-        <h4>{{ phase }}:</h4>
-        <label :for="'assignmentIdInput' + phaseIndex">Assignment ID: </label>
-        <input
-            :id="'assignmentIdInput' + phaseIndex"
-            type="number"
-            v-model.number="assignmentIdProxy(phase).value"
-            placeholder="Assignment ID"
-        >
-        <br>
-
-        <ol>
-          <li v-for="(rubricType, rubricIndex) in getRubricTypes(convertPhaseStringToEnum(phase as unknown as string))" :key="rubricIndex">
-            <u>{{ convertRubricTypeToHumanReadable(rubricType) }}</u>:
-            <div class="inline-container">
-              <label :for="'rubricIdInput' + phaseIndex + rubricIndex">Rubric&nbsp;ID: </label>
-              <input
-                  :id="'rubricIdInput' + phaseIndex + rubricIndex"
-                  type="text"
-                  v-model="rubricIdInfoProxy(phase, rubricType).value"
-                  placeholder="Rubric ID"
-              >
-            </div>
-            <div class="inline-container">
-              <label :for="'rubricPointsInput' + phaseIndex + rubricIndex">Rubric Points: </label>
-              <input
-                  :id="'rubricPointsInput' + phaseIndex + rubricIndex"
-                  type="number"
-                  v-model.number="rubricPointsInfoProxy(phase, rubricType).value"
-                  placeholder="Points"
-              >
-            </div>
-          </li>
-        </ol>
-      </div>
-    </div>
-
-    <br>
-    <button @click="submitManuelCourseIds">Submit</button>
-    <button @click="getUpdatedConfig">Reset Values</button>
-    <button @click="openManuelCourseIds = false">Close</button>
   </PopUp>
 
 </template>
@@ -345,11 +121,6 @@ button {
 input[type="text"]{
   padding: 5px;
   width: 100%;
-}
-
-.checkboxes {
-  display: flex;
-  flex-direction: column;
 }
 
 .center-buttons {
