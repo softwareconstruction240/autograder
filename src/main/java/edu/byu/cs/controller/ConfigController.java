@@ -3,6 +3,7 @@ package edu.byu.cs.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.httpexception.InternalServerException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.service.ConfigService;
@@ -21,8 +22,7 @@ public class ConfigController {
             ctx.json(response);
 
         } catch (DataAccessException e) {
-            ctx.status(500);
-            ctx.result(e.getMessage());
+            throw new InternalServerException(e.getMessage(), e);
         }
     };
 
@@ -60,8 +60,7 @@ public class ConfigController {
         try {
             ConfigService.updateCourseIds(user, setCourseIdsRequest);
         } catch (DataAccessException e) {
-            ctx.status(400);
-            ctx.result(e.getMessage());
+            throw new BadRequestException(e.getMessage(), e);
         }
     };
 
