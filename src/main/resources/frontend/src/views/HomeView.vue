@@ -10,6 +10,7 @@ import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
 import {useAppConfigStore} from "@/stores/appConfig";
+import ShutdownWarning from '@/components/ShutdownWarning.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -58,6 +59,7 @@ const isPhaseDisabled = () => {
 
 <template>
   <div id="studentContainer">
+    <ShutdownWarning/>
     <div id="submittingZone">
       <div id="phaseDetails">
         <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
