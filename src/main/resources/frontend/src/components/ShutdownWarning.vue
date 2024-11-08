@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { readableTimestamp } from '@/utils/utils'
 
-const showWarning = ref<boolean>(false)
-
-onMounted(() => {
-  const shutdownDate: Date = new Date(useAppConfigStore().shutdownSchedule)
+const showWarning = computed(() => {
+  const shutdownDate = new Date(useAppConfigStore().shutdownSchedule)
   const now = new Date()
   const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-  showWarning.value = shutdownDate > now && shutdownDate <= twentyFourHoursFromNow
+  return shutdownDate > now && shutdownDate <= twentyFourHoursFromNow
 })
 </script>
 
