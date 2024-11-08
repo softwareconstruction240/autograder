@@ -28,6 +28,16 @@ contribute to the best Autograder on campus!
 - [About Page](#about-page)
 - [Reminder About Ownership](#reminder-about-ownership)
 
+## Guiding Principles
+
+- We are building production quality software that accurately generates academic scores for hundreds of students.
+- We are learning/practicing being participants on a small dev team.
+- We thrive with contributions from many diverse perspectives.
+- We serve fellow humans with divine purpose in this order:
+  1. The Lord
+  2. Class professors
+  3. Class students
+
 ## New Contributors
 New to the Autograder Development team and not sure how to get 
 started? Try this:
