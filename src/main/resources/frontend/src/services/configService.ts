@@ -2,6 +2,7 @@ import { type Config, useAppConfigStore } from '@/stores/appConfig'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 import { ServerCommunicator } from '@/network/ServerCommunicator'
+import { ServerError } from '@/network/ServerError'
 
 export const getConfig = async ():Promise<Config> => {
   let endpoint = "/api"
@@ -57,10 +58,17 @@ export const setCourseIds = async (
 }
 
 const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
-  if (method == "GET") {
-    await ServerCommunicator.getRequest(path, false)
-  } else {
-    await ServerCommunicator.postRequest(path, body, false)
+  try {
+    if (method == "GET") {
+      await ServerCommunicator.getRequest(path, false)
+    } else {
+      await ServerCommunicator.postRequest(path, body, false)
+    }
+  } catch (e) {
+    if (e instanceof ServerError) {
+      alert(e.message)
+    }
   }
+
   await useAppConfigStore().updateConfig();
 }

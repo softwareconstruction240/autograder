@@ -16,10 +16,10 @@ const submitShutdown = async () => {
   closeEditor()
 }
 
-const cancelShutdown = () => {
+const cancelShutdown = async () => {
   const confirm = window.confirm("Are you sure you want to cancel the already scheduled shutdown?")
   if (confirm) {
-    alert("NOT IMPLEMENTED")
+    await setGraderShutdown("")
     closeEditor()
   }
 }
@@ -32,7 +32,7 @@ const cancelShutdown = () => {
     <input type="date" v-model="shutdownDate"/><input type="time" v-model="shutdownTime"/>
     <p><em>If no time is selected, it will expire at the end of the day (Utah Time)</em></p>
 
-    <button @click="submitShutdown">Submit</button> <button @click="cancelShutdown">Cancel Shutdown</button>
+    <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button> <button @click="cancelShutdown">Cancel Shutdown</button>
 
     <Panel>
       <p>Admin submissions will not be affected.</p>

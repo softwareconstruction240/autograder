@@ -28,11 +28,11 @@ public class ConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
 
     private static void logConfigChange(String changeMessage, String adminNetId) {
-        LOGGER.info("[CONFIG] Admin {} has {}}", adminNetId, changeMessage);
+        LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
     }
 
     private static void logAutomaticConfigChange(String changeMessage) {
-        LOGGER.info("[CONFIG] Automatic change: {}}", changeMessage);
+        LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
     }
 
     /**
@@ -131,6 +131,10 @@ public class ConfigService {
             throw new IllegalArgumentException("Incomplete timestamp. Send a full timestamp {YYYY-MM-DDTHH:MM:SS} or send none at all", e);
         }
 
+        if (shutdownTimestamp.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("You tried to schedule the shutdown in the past");
+        }
+
         ConfigurationDao dao = DaoService.getConfigurationDao();
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, shutdownTimestamp, Instant.class);
         logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
@@ -143,11 +147,11 @@ public class ConfigService {
     public static void clearShutdownSchedule(User user) throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
-        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, null, Instant.class);
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
         if (user == null) {
             logAutomaticConfigChange("Grader Shutdown Schedule was cleared");
         } else {
-            logConfigChange(user.netId(), "cleared the Grader Shutdown Schedule");
+            logConfigChange("cleared the Grader Shutdown Schedule", user.netId() );
         }
     }
 
