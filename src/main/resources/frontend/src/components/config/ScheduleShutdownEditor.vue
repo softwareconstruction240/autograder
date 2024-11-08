@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Panel from '@/components/Panel.vue'
-import { combineDateAndTime } from '@/utils/utils'
+import { combineDateAndTime, isNeverTimestamp } from '@/utils/utils'
 import { setGraderShutdown } from '@/services/configService'
+import { useAppConfigStore } from '@/stores/appConfig'
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
@@ -12,7 +13,11 @@ const shutdownDate = ref<string>("")
 const shutdownTime = ref<string>("")
 
 const submitShutdown = async () => {
-  await setGraderShutdown(combineDateAndTime(shutdownDate.value, shutdownTime.value))
+  try {
+    await setGraderShutdown(combineDateAndTime(shutdownDate.value, shutdownTime.value))
+  } catch (e) {
+    alert("There was a problem scheduling the shutdown\n" + e)
+  }
   closeEditor()
 }
 
@@ -32,7 +37,8 @@ const cancelShutdown = async () => {
     <input type="date" v-model="shutdownDate"/><input type="time" v-model="shutdownTime"/>
     <p><em>If no time is selected, it will expire at the end of the day (Utah Time)</em></p>
 
-    <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button> <button @click="cancelShutdown">Cancel Shutdown</button>
+    <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button>
+    <button v-if="!isNeverTimestamp(useAppConfigStore().shutdownSchedule)" @click="cancelShutdown">Cancel Shutdown</button>
 
     <Panel>
       <p>Admin submissions will not be affected.</p>

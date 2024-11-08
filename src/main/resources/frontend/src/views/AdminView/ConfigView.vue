@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted } from 'vue'
 import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
@@ -54,7 +54,7 @@ onMounted( async () => {
         <ScheduleShutdownEditor :close-editor="closeEditor"/>
       </template>
       <template #current>
-        Currently no shutdown scheduled
+        <p><span class="infoLabel">Scheduled to shutdown: </span> {{readableTimestamp(appConfigStore.shutdownSchedule)}}</p>
       </template>
     </ConfigSection>
 

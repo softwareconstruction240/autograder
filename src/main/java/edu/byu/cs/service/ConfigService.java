@@ -74,6 +74,14 @@ public class ConfigService {
         addBannerConfig(response);
         response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
 
+        Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
+        if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
+            clearShutdownSchedule();
+            response.addProperty("shutdownSchedule", Instant.MAX.toString());
+        } else {
+            response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
+        }
+
         return response;
     }
 
