@@ -44,6 +44,27 @@ public class ConfigController {
         return "";
     };
 
+    public static final Route scheduleShutdown = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        String shutdownTimestampString = gson.fromJson(jsonObject.get("shutdownTimestamp"), String.class);
+
+        try {
+            ConfigService.scheduleShutdown(user, shutdownTimestampString);
+        } catch (DataAccessException e) {
+            halt(500, e.getMessage());
+            return null;
+        } catch (IllegalArgumentException e) {
+            halt(400, e.getMessage());
+            return null;
+        }
+
+        res.status(200);
+        return "";
+    };
+
     public static final Route updateBannerMessage = (req, res) -> {
         User user = req.session().attribute("user");
 

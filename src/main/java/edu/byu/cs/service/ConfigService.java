@@ -118,6 +118,39 @@ public class ConfigService {
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
 
+    public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
+        if (shutdownTimestampString.isEmpty()) {
+            clearShutdownSchedule(user);
+            return;
+        }
+
+        Instant shutdownTimestamp;
+        try {
+            shutdownTimestamp = getInstantFromUnzonedTime(shutdownTimestampString);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Incomplete timestamp. Send a full timestamp {YYYY-MM-DDTHH:MM:SS} or send none at all", e);
+        }
+
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, shutdownTimestamp, Instant.class);
+        logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
+    }
+
+    public static void clearShutdownSchedule() throws DataAccessException {
+        clearShutdownSchedule(null);
+    }
+
+    public static void clearShutdownSchedule(User user) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, null, Instant.class);
+        if (user == null) {
+            logAutomaticConfigChange("Grader Shutdown Schedule was cleared");
+        } else {
+            logConfigChange(user.netId(), "cleared the Grader Shutdown Schedule");
+        }
+    }
+
     public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 

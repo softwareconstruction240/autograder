@@ -6,6 +6,7 @@ public interface ConfigurationDao {
 
     enum Configuration {
         STUDENT_SUBMISSIONS_ENABLED,
+        GRADER_SHUTDOWN_DATE,
         BANNER_MESSAGE,
         BANNER_LINK,
         BANNER_COLOR,

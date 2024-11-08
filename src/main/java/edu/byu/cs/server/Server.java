@@ -114,6 +114,7 @@ public class Server {
                     get("", getConfigAdmin);
 
                     post("/phases", updateLivePhases);
+                    post("/phases/shutdown", scheduleShutdown);
                     post("/banner", updateBannerMessage);
 
                     post("/courseIds", updateCourseIdsPost);
