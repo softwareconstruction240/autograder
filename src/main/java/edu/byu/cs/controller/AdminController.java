@@ -37,42 +37,6 @@ public class AdminController {
 
     };
 
-    public static final Route userPatch = (req, res) -> {
-        String netId = req.params(":netId");
-        String firstName = req.queryParams("firstName");
-        String lastName = req.queryParams("lastName");
-        String repoUrl = req.queryParams("repoUrl");
-        String roleString = req.queryParams("role");
-
-        User.Role role = null;
-        if (roleString != null) {
-            try {
-                role = User.Role.parse(roleString);
-            } catch (IllegalArgumentException e) {
-                halt(400, "invalid role. must be one of: STUDENT, ADMIN");
-                return null;
-            }
-        }
-
-        User userData = new User(netId, -1, firstName, lastName, repoUrl, role);
-        try {
-            AdminService.updateUser(userData);
-
-        } catch (DataAccessException e) {
-            halt(500);
-            return null;
-
-        } catch (ItemNotFoundException e) {
-            halt(404, "user not found");
-            return null;
-
-        }
-
-        res.status(204);
-
-        return "";
-    };
-
     public static final Route testModeGet = (req, res) -> {
         User testStudent;
         try {
