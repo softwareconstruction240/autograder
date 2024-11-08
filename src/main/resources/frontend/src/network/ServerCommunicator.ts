@@ -61,7 +61,7 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
  * @throws {Error} when expectResponse is true but no response is received
  */
-function getRequest<T>(endpoint: string, expectResponse?: true): Promise<T>;
+function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
 async function getRequest<T>(
   endpoint: string,
   expectResponse: boolean = true
@@ -111,7 +111,7 @@ function postRequest(endpoint: string, bodyObject: Object | null, expectResponse
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
+function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
 async function postRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
@@ -163,7 +163,7 @@ function patchRequest(endpoint: string, bodyObject: Object | null, expectRespons
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
+function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
 async function patchRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
@@ -189,7 +189,7 @@ async function patchRequest<T>(
  * @throws {Error} When expectResponse is true but no response is received
  * @internal
  */
-function doRequest<T>(
+function doRequest(
   method: string,
   endpoint: string,
   bodyObject: Object | null,
@@ -213,7 +213,7 @@ function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject?: Object | null,
-  expectResponse?: true
+  expectResponse?: boolean
 ): Promise<T>;
 /**
  * Internal method to make an HTTP request.
