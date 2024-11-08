@@ -31,13 +31,14 @@ export const ServerCommunicator = {
  * returns nothing or responds with a non-2XX code
  * @returns {Promise<T>} Promise that resolves to the response data of type T
  */
-async function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
+function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
   try {
-    return await getRequest<T>(endpoint, true)
+    return getRequest<T>(endpoint, true)
   } catch (e) {
-    return errorResponse
+    return Promise.resolve(errorResponse)
   }
 }
+
 /**
  * Makes a GET request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -62,14 +63,11 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  * @throws {Error} when expectResponse is true but no response is received
  */
 function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
-async function getRequest<T>(
+function getRequest<T>(
   endpoint: string,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  if (expectResponse) {
-    return await doRequest<T>("GET", endpoint, null, true);
-  }
-  return await doRequest<T>("GET", endpoint, null, false);
+  return doRequest("GET", endpoint, null, expectResponse);
 }
 
 /**
@@ -112,16 +110,12 @@ function postRequest(endpoint: string, bodyObject: Object | null, expectResponse
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
 function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
-async function postRequest<T>(
+function postRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  if (expectResponse) {
-    return await doRequest<T>("POST", endpoint, bodyObject, true);
-  }
-  return await doRequest<T>("POST", endpoint, bodyObject, false);
-
+  return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
 }
 
 /**
