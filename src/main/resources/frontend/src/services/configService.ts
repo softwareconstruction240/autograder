@@ -1,25 +1,16 @@
 import { type Config, useAppConfigStore } from '@/stores/appConfig'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const getConfig = async ():Promise<Config> => {
-  let path = "/api"
+  let endpoint = "/api"
   if (useAuthStore().user?.role == 'ADMIN') {
-    path += "/admin"
+    endpoint += "/admin"
   }
-  path += "/config"
+  endpoint += "/config"
 
-  try {
-    const response = await fetch(useAppConfigStore().backendUrl + path, {
-      method: 'GET',
-      credentials: 'include'
-    });
-
-    return await response.json();
-  } catch (e) {
-    console.error('Failed to get configuration: ', e);
-    throw "Failed to get configuration"
-  }
+  return await ServerCommunicator.getRequest<Config>(endpoint)
 }
 
 export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
@@ -37,7 +28,7 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
 }
 
 export const setCanvasCourseIds = async (): Promise<void> => {
-    await doSetConfigItem("GET", "/api/admin/config/courseIds", null);
+  await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 }
 
 const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
@@ -61,25 +52,11 @@ export const setCourseIds = async (
     await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
 }
 
-const doSetConfigItem = async (method: string, path: string, body: Object | null): Promise<void> => {
-    const baseOptions: RequestInit = {
-        method: method,
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    const fetchOptions: RequestInit = (method !== "GET")
-        ? {
-            ...baseOptions,
-            body: JSON.stringify(body)
-        } : baseOptions;
-
-    const response = await fetch(useAppConfigStore().backendUrl + path, fetchOptions);
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
-    await useAppConfigStore().updateConfig();
+const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
+  if (method == "GET") {
+    await ServerCommunicator.getRequest(path, false)
+  } else {
+    await ServerCommunicator.postRequest(path, body, false)
+  }
+  await useAppConfigStore().updateConfig();
 }
