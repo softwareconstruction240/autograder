@@ -3,6 +3,7 @@ package edu.byu.cs.service;
 import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.GradingObserverImpl;
 import edu.byu.cs.controller.httpexception.BadRequestException;
 import edu.byu.cs.controller.httpexception.InternalServerException;
 import edu.byu.cs.controller.TrafficController;
@@ -201,78 +202,7 @@ public class SubmissionService {
      * @throws IOException if there is an error creating the grader
      */
     private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
-        // TODO? Make into an actual class...?
-        GradingObserver observer = new GradingObserver() {
-            @Override
-            public void notifyStarted() {
-                try {
-                    DaoService.getQueueDao().markStarted(netId);
-                } catch (DataAccessException e) {
-                    LOGGER.error("Error marking queue item as started", e);
-                    return;
-                }
-
-                notifySubscribers(Map.of("type", "started"));
-
-                try {
-                    TrafficController.broadcastQueueStatus();
-                } catch (Exception e) {
-                    LOGGER.error("Error broadcasting queue status", e);
-                }
-            }
-
-            @Override
-            public void update(String message) {
-                notifySubscribers(Map.of("type", "update", "message", message));
-            }
-
-            @Override
-            public void notifyError(String message) {
-                notifyError(message, Map.of());
-            }
-
-            @Override
-            public void notifyError(String message, Submission submission) {
-                notifyError(message, Map.of("results", Serializer.serialize(submission)));
-            }
-
-            private void notifyError(String message, Map<String, Object> contents) {
-                contents = new HashMap<>(contents);
-                contents.put("type", "error");
-                contents.put("message", message);
-                notifySubscribers(contents);
-                removeFromQueue();
-            }
-
-            @Override
-            public void notifyWarning(String message) {
-                notifySubscribers(Map.of("type", "warning", "message", message));
-            }
-
-            @Override
-            public void notifyDone(Submission submission) {
-                notifySubscribers(Map.of("type", "results", "results", Serializer.serialize(submission)));
-                removeFromQueue();
-            }
-
-            private void notifySubscribers(Map<String, Object> contents) {
-                try {
-                    TrafficController.getInstance().notifySubscribers(netId, contents);
-                } catch (Exception e) {
-                    LOGGER.error("Error updating subscribers", e);
-                }
-            }
-
-            private void removeFromQueue() {
-                TrafficController.sessions.remove(netId);
-                try {
-                    DaoService.getQueueDao().remove(netId);
-                } catch (DataAccessException e) {
-                    LOGGER.error("Error removing queue item", e);
-                }
-            }
-        };
-
+        GradingObserver observer = new GradingObserverImpl(netId);
         return new Grader(repoUrl, netId, observer, phase, adminSubmission);
     }
 

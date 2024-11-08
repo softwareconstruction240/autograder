@@ -28,7 +28,7 @@ public class CasService {
             netId = CasService.validateCasTicket(ticket);
         } catch (IOException e) {
             LOGGER.error("Error validating ticket", e);
-            throw new InternalServerException();
+            throw new InternalServerException("Error validating ticket", e);
         }
 
         if (netId == null) {
@@ -43,7 +43,7 @@ public class CasService {
             user = userDao.getUser(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Couldn't get user from database", e);
-            throw new InternalServerException();
+            throw new InternalServerException("Couldn't get user from database", e);
         }
 
         // If there isn't a student in the database with this netId

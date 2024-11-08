@@ -23,28 +23,6 @@ public class AdminController {
         ctx.json(users);
     };
 
-    public static final Handler userPatch = ctx -> {
-        String netId = ctx.pathParam("netId");
-        String firstName = ctx.queryParam("firstName");
-        String lastName = ctx.queryParam("lastName");
-        String repoUrl = ctx.queryParam("repoUrl");
-        String roleString = ctx.queryParam("role");
-
-        User.Role role = null;
-        if (roleString != null) {
-            try {
-                role = User.Role.parse(roleString);
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("invalid role. must be one of: STUDENT, ADMIN", e);
-            }
-        }
-
-        User userData = new User(netId, -1, firstName, lastName, repoUrl, role);
-        AdminService.updateUser(userData);
-
-        ctx.status(204);
-    };
-
     public static final Handler testModeGet = ctx -> {
         User testStudent = AdminService.updateTestStudent();
         ctx.cookie("token", generateToken(testStudent.netId()), 14400);

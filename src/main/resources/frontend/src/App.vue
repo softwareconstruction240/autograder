@@ -11,6 +11,7 @@ import BannerMessage from '@/components/BannerMessage.vue'
 import PopUp from '@/components/PopUp.vue'
 import RepoEditor from '@/components/RepoEditor.vue'
 import AboutPage from '@/components/AboutPage.vue'
+import { ServerError } from '@/network/ServerError'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -23,9 +24,13 @@ const logOut = async () => {
     await logoutPost()
     useAuthStore().user = null
   } catch (e) {
-    alert(e)
+    if (e instanceof ServerError){
+      alert(e.message)
+    } else {
+      alert(e)
+    }
   }
-  router.push({name: "login"})
+  await router.push({ name: "login" })
 }
 
 onMounted( async () => {

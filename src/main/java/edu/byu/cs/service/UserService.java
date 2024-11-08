@@ -47,7 +47,7 @@ public class UserService {
             }
         } catch (Exception e) {
             LOGGER.error("Error getting repo updates:", e);
-            throw new InternalServerException("There was an internal server error getting repo updates", e);
+            throw new InternalServerException(e.getMessage(), e);
         }
 
         return updates;

@@ -84,8 +84,6 @@ public class Server {
 
                         get("/users", usersGet);
 
-                        patch("/user/{netId}", userPatch);
-
                         post("/submit", adminRepoSubmitPost);
 
                         path("/submissions", () -> {
