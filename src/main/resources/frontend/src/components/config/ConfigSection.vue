@@ -1,4 +1,31 @@
 <script setup lang="ts">
+/**
+ * A reusable wrapper component that provides a consistent interface for editable configuration sections.
+ * Each section includes a title, description, current value display, and an editable popup interface.
+ *
+ * All editors should take a function as a prop for closing the editor popup. The function is provided by
+ * the ConfigSection component by decomposition.
+ *
+ * <template #editor="{ closeEditor }"> gives any element inside the template tag access to the `closeEditor()`
+ * function, which will close the editor popup.
+ *
+ * ConfigSection will automatically reload the config from the server each time an editor is opened, to ensure
+ * the admin has the most upto date config
+ *
+ * @example
+ * <ConfigSection
+ *   title="Banner Message"
+ *   description="A dynamic message displayed across the top of the Autograder"
+ * >
+ *   <template #current>
+ *     <p>Current message: {{ currentMessage }}</p>
+ *   </template>
+ *   <template #editor="{ closeEditor }">
+ *     <BannerConfigEditor :closeEditor="closeEditor"/>
+ *   </template>
+ * </ConfigSection>
+ */
+
 import { ref } from 'vue'
 import PopUp from '@/components/PopUp.vue'
 import { useAppConfigStore } from '@/stores/appConfig'
