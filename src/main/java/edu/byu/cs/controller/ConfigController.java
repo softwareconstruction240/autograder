@@ -29,9 +29,8 @@ public class ConfigController {
     public static final Handler getConfigStudent = ctx -> ctx.result(ConfigService.getPublicConfig().toString());
 
     public static final Handler updateLivePhases = ctx -> {
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(ctx.body(), JsonObject.class);
-        ArrayList phasesArray = gson.fromJson(jsonObject.get("phases"), ArrayList.class);
+        JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
+        ArrayList phasesArray = new Gson().fromJson(jsonObject.get("phases"), ArrayList.class);
         User user = ctx.sessionAttribute("user");
 
         ConfigService.updateLivePhases(phasesArray, user);
@@ -39,11 +38,10 @@ public class ConfigController {
 
     public static final Handler updateBannerMessage = ctx -> {
         User user = ctx.sessionAttribute("user");
+        JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
 
         Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(ctx.body(), JsonObject.class);
         String expirationString = gson.fromJson(jsonObject.get("bannerExpiration"), String.class);
-
         String message = gson.fromJson(jsonObject.get("bannerMessage"), String.class);
         String link = gson.fromJson(jsonObject.get("bannerLink"), String.class);
         String color = gson.fromJson(jsonObject.get("bannerColor"), String.class);
@@ -57,10 +55,8 @@ public class ConfigController {
 
     public static final Handler updateCourseIdsPost = ctx -> {
         SetCourseIdsRequest setCourseIdsRequest = ctx.bodyAsClass(SetCourseIdsRequest.class);
-
         User user = ctx.sessionAttribute("user");
 
-        // Course Number
         try {
             ConfigService.updateCourseIds(user, setCourseIdsRequest);
         } catch (DataAccessException e) {

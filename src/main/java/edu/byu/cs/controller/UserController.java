@@ -37,7 +37,7 @@ public class UserController {
 
     private static void applyRepoPatch(String studentNetId, String adminNetId, Context ctx)
             throws WordOfWisdomViolationException, InternalServerException, BadRequestException {
-        JsonObject jsonObject = new Gson().fromJson(ctx.body(), JsonObject.class);
+        JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
         UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
     }
