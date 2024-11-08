@@ -5,6 +5,10 @@ import { setLivePhases } from '@/services/configService'
 
 const appConfigStore = useAppConfigStore();
 
+const { closeEditor } = defineProps<{
+  closeEditor: () => void
+}>();
+
 const setAllPhases = (setting: boolean) => {
   for (const phase of listOfPhases() as Phase[]) {
     appConfigStore.phaseActivationList[phase] = setting
@@ -23,6 +27,7 @@ const submitLivePhases = async () => {
   } catch (e) {
     alert("There was a problem in saving live phases")
   }
+  closeEditor()
 }
 </script>
 
@@ -47,5 +52,13 @@ const submitLivePhases = async () => {
 .checkboxes {
   display: flex;
   flex-direction: column;
+}
+.submitChanges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.submitChanges >* {
+  margin: 5px;
 }
 </style>

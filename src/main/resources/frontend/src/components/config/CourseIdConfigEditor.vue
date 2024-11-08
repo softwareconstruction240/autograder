@@ -12,9 +12,9 @@ import { useAppConfigStore } from '@/stores/appConfig'
 
 const appConfigStore = useAppConfigStore();
 
-const getUpdatedConfig = async () => {
-  await appConfigStore.updateConfig();
-}
+const { closeEditor } = defineProps<{
+  closeEditor: () => void
+}>();
 
 const assignmentIdProxy = (phase: Phase): WritableComputedRef<number> => computed({
   get: (): number => appConfigStore.assignmentIds.get(phase) || -1,
@@ -74,6 +74,7 @@ const submitManuelCourseIds = async () => {
       alert("There was problem manually setting the course-related IDs: " + (e as Error).message);
     }
   }
+  closeEditor()
 }
 
 const submitCanvasCourseIds = async () => {
@@ -82,6 +83,7 @@ const submitCanvasCourseIds = async () => {
   } catch (e) {
     alert("There was problem getting and setting the course-related IDs using Canvas: " + (e as Error).message);
   }
+  closeEditor()
 }
 
 </script>
@@ -142,5 +144,14 @@ const submitCanvasCourseIds = async () => {
 </template>
 
 <style scoped>
+.inline-container {
+  display: flex;
+  align-items: center;
+  margin-right: 10px; /* Optional: Adjust spacing between elements */
+  margin-left: 10px;
+}
 
+.inline-container label {
+  margin-right: 5px; /* Optional: Adjust spacing between label and input */
+}
 </style>

@@ -3,6 +3,10 @@ import { ref } from 'vue'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { setBanner } from '@/services/configService'
 
+const { closeEditor } = defineProps<{
+  closeEditor: () => void
+}>();
+
 const appConfigStore = useAppConfigStore();
 
 const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage)
@@ -30,7 +34,7 @@ const submitBanner = async () => {
   } catch (e) {
     alert("There was a problem in saving the updated banner message:\n" + e)
   }
-  //openBannerMessage.value = false
+  closeEditor()
 }
 </script>
 

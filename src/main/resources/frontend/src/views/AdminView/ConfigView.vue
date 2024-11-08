@@ -26,24 +26,24 @@ onMounted( async () => {
 <template>
   <div id="configContainer">
     <ConfigSection title="Banner Message" description="A dynamic message displayed across the top of the Autograder">
-      <template v-slot:editor>
-        <BannerConfigEditor/>
+      <template #editor="{ closeEditor }">
+        <BannerConfigEditor :closeEditor="closeEditor"/>
       </template>
-      <template v-slot:current>
-      <span v-if="appConfigStore.bannerMessage">
+      <template #current>
+      <div v-if="appConfigStore.bannerMessage">
         <p><span class="infoDescription">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
         <p><span class="infoDescription">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
         <p><span class="infoDescription">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
-      </span>
+      </div>
         <p v-else>There is currently no banner message</p>
       </template>
     </ConfigSection>
 
-    <ConfigSection title="Live Phases" description="These are the phases are live and open for students to submit to">
-      <template v-slot:editor>
-        <LivePhaseConfigEditor/>
+    <ConfigSection title="Live Phases" description="These phases are live and open for students to submit to">
+      <template #editor="{ closeEditor }">
+        <LivePhaseConfigEditor :closeEditor="closeEditor"/>
       </template>
-      <template v-slot:current>
+      <template #current>
         <div v-for="phase in listOfPhases()">
           <p>
             <i v-if="appConfigStore.phaseActivationList[phase]" class="fa-solid fa-circle-check" style="color: green"/>
@@ -54,10 +54,10 @@ onMounted( async () => {
     </ConfigSection>
 
     <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, rubric points, ">
-      <template v-slot:editor>
-        <CourseIdConfigEditor/>
+      <template #editor="{ closeEditor }">
+        <CourseIdConfigEditor :closeEditor="closeEditor"/>
       </template>
-      <template v-slot:current>
+      <template #current>
         <p><b>Course ID:</b> {{appConfigStore.courseNumber}}</p>
       </template>
     </ConfigSection>
@@ -94,14 +94,13 @@ onMounted( async () => {
 </template>
 
 <style scoped>
-.submitChanges {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+:deep(input[type="text"]) {
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
 }
-.submitChanges >* {
-  margin: 5px;
-}
+
 .infoDescription {
   font-weight: bold;
 }
@@ -128,19 +127,4 @@ input[type="text"]{
   justify-content: center;
   align-items: center;
 }
-
-
-
-.inline-container {
-  display: flex;
-  align-items: center;
-  margin-right: 10px; /* Optional: Adjust spacing between elements */
-  margin-left: 10px;
-}
-
-.inline-container label {
-  margin-right: 5px; /* Optional: Adjust spacing between label and input */
-}
-
-
 </style>

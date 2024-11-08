@@ -14,6 +14,10 @@ const openEditor = () => {
   useAppConfigStore().updateConfig()
   editorPopup.value = true
 }
+
+const closeEditor = () => {
+  editorPopup.value = false;
+}
 </script>
 
 <template>
@@ -25,7 +29,7 @@ const openEditor = () => {
       v-if="editorPopup"
       @closePopUp="editorPopup = false">
       <h3>Edit {{ title }}</h3>
-      <slot name="editor"/>
+      <slot name="editor" :closeEditor="closeEditor"/>
     </PopUp>
   </section>
 </template>
