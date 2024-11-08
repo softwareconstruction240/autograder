@@ -11,6 +11,8 @@ import io.javalin.http.Handler;
 
 import java.util.ArrayList;
 
+import static edu.byu.cs.controller.HandlerWrapper.*;
+
 public class ConfigController {
 
     public static final Handler getConfigAdmin = ctx -> {
@@ -28,16 +30,14 @@ public class ConfigController {
 
     public static final Handler getConfigStudent = ctx -> ctx.result(ConfigService.getPublicConfig().toString());
 
-    public static final Handler updateLivePhases = ctx -> {
+    public static final Handler updateLivePhases = withUser((ctx, user) -> {
         JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
         ArrayList phasesArray = new Gson().fromJson(jsonObject.get("phases"), ArrayList.class);
-        User user = ctx.sessionAttribute("user");
 
         ConfigService.updateLivePhases(phasesArray, user);
-    };
+    });
 
-    public static final Handler updateBannerMessage = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public static final Handler updateBannerMessage = withUser((ctx, user) -> {
         JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
 
         Gson gson = new Gson();
@@ -51,21 +51,18 @@ public class ConfigController {
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e.getMessage(), e);
         }
-    };
+    });
 
-    public static final Handler updateCourseIdsPost = ctx -> {
+    public static final Handler updateCourseIdsPost = withUser((ctx, user) -> {
         SetCourseIdsRequest setCourseIdsRequest = ctx.bodyAsClass(SetCourseIdsRequest.class);
-        User user = ctx.sessionAttribute("user");
-
         try {
             ConfigService.updateCourseIds(user, setCourseIdsRequest);
         } catch (DataAccessException e) {
             throw new BadRequestException(e.getMessage(), e);
         }
-    };
+    });
 
-    public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        ConfigService.updateCourseIdsUsingCanvas(user);
-    };
+    public static final Handler updateCourseIdsUsingCanvasGet = withUser(
+            (ctx, user) -> ConfigService.updateCourseIdsUsingCanvas(user)
+    );
 }
