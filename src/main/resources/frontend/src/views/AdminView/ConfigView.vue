@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import PopUp from '@/components/PopUp.vue'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
-import BannerConfigEditor from '@/components/config/BannerConfigEditor.vue'
-import LivePhaseConfigEditor from '@/components/config/LivePhaseConfigEditor.vue'
-import CourseIdConfigEditor from '@/components/config/CourseIdConfigEditor.vue'
+
+// Lazy Load Editor Components
+const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
+const LivePhaseConfigEditor = defineAsyncComponent(() => import('@/components/config/LivePhaseConfigEditor.vue'))
+const CourseIdConfigEditor = defineAsyncComponent(() => import('@/components/config/CourseIdConfigEditor.vue'))
 
 const appConfigStore = useAppConfigStore();
 
