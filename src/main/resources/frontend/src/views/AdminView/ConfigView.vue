@@ -4,6 +4,7 @@ import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
+import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
@@ -45,6 +46,15 @@ onMounted( async () => {
             <i v-else class="fa-solid fa-x" style="color: red"/>
             {{phase}}</p>
         </div>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection title="Schedule Shutdown" description="Schedule a time for all graded phases to be deactivated for the end of the semester, per University Policy">
+      <template #editor="{ closeEditor }">
+        <ScheduleShutdownEditor :close-editor="closeEditor"/>
+      </template>
+      <template #current>
+        Currently no shutdown scheduled
       </template>
     </ConfigSection>
 

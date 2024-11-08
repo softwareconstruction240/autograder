@@ -34,6 +34,18 @@ export const simpleTimestamp = (date: Date | string) => {
   return months[time.getMonth()] + " " + time.getDate() + " " + time.getHours() + ":" + String(time.getMinutes()).padStart(2, '0')
 }
 
+/**
+ * Creates a time-zone-free timestamp from a date string and time string.
+ *
+ * If the time string is empty, it sets the time to the end of the day.
+ *
+ * @param date a date string formatted as YYYY-MM-DD
+ * @param time a time string formatted as HH:MM
+ */
+export const combineDateAndTime = (date: string, time: string) => {
+  return `${date}T${time ? time + ":00" : "23:59:59"}`;
+}
+
 export const nameFromNetId = (netId: string) => {
   const user = useAdminStore().usersByNetId[netId];
   if (user == null) {

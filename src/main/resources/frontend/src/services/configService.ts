@@ -27,6 +27,10 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
 }
 
+export const setGraderShutdown = async (shutdownTimestamp: string): Promise<void> => {
+  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {"shutdownTimestamp": shutdownTimestamp})
+}
+
 export const setCanvasCourseIds = async (): Promise<void> => {
   await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 }
