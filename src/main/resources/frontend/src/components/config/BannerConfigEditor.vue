@@ -44,7 +44,10 @@ const submitBanner = async () => {
   <p>Set a url that the user will be taken to if they click on the banner</p>
   <input v-model="bannerLinkToSubmit" type="text" placeholder="No Destination URL"/>
   <p>Choose a background color</p>
-  <select id="bannerColorSelect" v-model="bannerColorToSubmit">
+  <select id="bannerColorSelect" v-model="bannerColorToSubmit" :style="{
+      backgroundColor: bannerColorToSubmit,
+      color: (bannerColorToSubmit ? '#ffffff' : '#000000')
+    }">
     <option selected value="">Default</option>
     <option value="#d62b18">Red</option>
     <option value="#eb700c">Orange</option>

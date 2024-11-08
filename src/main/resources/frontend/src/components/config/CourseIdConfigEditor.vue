@@ -65,25 +65,27 @@ const getProxy = <T>(
 });
 
 const submitManuelCourseIds = async () => {
-  const userConfirmed = window.confirm("Are you sure you want to manually override?");
+  const userConfirmed = window.confirm("Are you sure you want to manually override? \n\nIf you changed the course ID incorrectly, it won't be able to reset properly.");
   if (userConfirmed) {
     try {
       await setCourseIds(appConfigStore.courseNumber, appConfigStore.assignmentIds, appConfigStore.rubricInfo);
-      //openManuelCourseIds.value = false;
+      closeEditor()
     } catch (e) {
       alert("There was problem manually setting the course-related IDs: " + (e as Error).message);
     }
   }
-  closeEditor()
 }
 
 const submitCanvasCourseIds = async () => {
-  try {
-    await setCanvasCourseIds();
-  } catch (e) {
-    alert("There was problem getting and setting the course-related IDs using Canvas: " + (e as Error).message);
+  const userConfirmed = window.confirm("Are you sure you want to use Canvas to reset ID values? \n\nNote: This will fail if the currently saved Course ID is incorrect.")
+  if (userConfirmed) {
+    try {
+      await setCanvasCourseIds();
+    } catch (e) {
+      alert("There was problem getting and setting the course-related IDs using Canvas: " + (e as Error).message);
+    }
+    closeEditor()
   }
-  closeEditor()
 }
 
 </script>

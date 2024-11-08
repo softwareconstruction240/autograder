@@ -11,12 +11,6 @@ import CourseIdConfigEditor from '@/components/config/CourseIdConfigEditor.vue'
 
 const appConfigStore = useAppConfigStore();
 
-// PopUp Control
-const openLivePhases = ref<boolean>(false);
-const openCanvasCourseIds = ref<boolean>(false);
-const openManuelCourseIds = ref<boolean>(false);
-
-// =========================
 onMounted( async () => {
   await useAppConfigStore().updateConfig();
 })
@@ -31,9 +25,9 @@ onMounted( async () => {
       </template>
       <template #current>
       <div v-if="appConfigStore.bannerMessage">
-        <p><span class="infoDescription">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
-        <p><span class="infoDescription">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
-        <p><span class="infoDescription">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
+        <p><span class="infoLabel">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
+        <p><span class="infoLabel">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
+        <p><span class="infoLabel">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
       </div>
         <p v-else>There is currently no banner message</p>
       </template>
@@ -53,55 +47,29 @@ onMounted( async () => {
       </template>
     </ConfigSection>
 
-    <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, rubric points, ">
+    <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, and rubric points">
       <template #editor="{ closeEditor }">
         <CourseIdConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
-        <p><b>Course ID:</b> {{appConfigStore.courseNumber}}</p>
+        <p><span class="infoLabel">Course ID:</span> {{appConfigStore.courseNumber}}</p>
+        <p><em>Open editor to see the rest of the values</em></p>
       </template>
     </ConfigSection>
   </div>
-
-  <PopUp
-    v-if="openLivePhases"
-    @closePopUp="openLivePhases = false; appConfigStore.updateConfig()">
-
-  </PopUp>
-
-  <PopUp
-    v-if="openCanvasCourseIds"
-    @closePopUp="openCanvasCourseIds = false">
-
-    <h3 style="text-align: center">Course Related IDs</h3>
-    <p style="text-align: center">
-      Are you sure you want to use Canvas for retrieving assignment IDs, rubric IDs, and rubric points?<br />
-      This will overwrite the preexisting values and cannot be restored.
-    </p>
-
-    <span class="center-buttons">
-      <button @click="submitCanvasCourseIds">Yes</button>
-      <button @click="openCanvasCourseIds = false">Go Back</button>
-    </span>
-  </PopUp>
-
-  <PopUp
-    v-if="openManuelCourseIds"
-    @closePopUp="openManuelCourseIds = false">
-    <h3>Course Related IDs</h3>
-  </PopUp>
-
 </template>
 
 <style scoped>
-:deep(input[type="text"]) {
+:deep(input) {
   border: 1px solid #ccc;
   padding: 8px;
   border-radius: 4px;
+}
+:deep(input[type="text"]) {
   width: 100%;
 }
 
-.infoDescription {
+.infoLabel {
   font-weight: bold;
 }
 
@@ -112,19 +80,8 @@ onMounted( async () => {
   margin: 10px;
 }
 
-button {
-  margin-right: 5px;
-  margin-top: 5px;
-}
-
 input[type="text"]{
   padding: 5px;
   width: 100%;
-}
-
-.center-buttons {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>
