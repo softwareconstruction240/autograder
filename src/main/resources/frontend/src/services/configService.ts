@@ -14,12 +14,12 @@ export const getConfig = (): Promise<Config> => {
   return ServerCommunicator.getRequest<Config>(endpoint)
 }
 
-export const setPenalties = async (maxLateDaysPenalized: number,
+export const setPenalties = (maxLateDaysPenalized: number,
                                    gitCommitPenalty: number,
                                    perDayLatePenalty: number,
                                    linesChangedPerCommit: number,
                                    clockForgivenessMinutes: number) => {
-  await doSetConfigItem("POST", '/api/admin/config/penalties', {
+  return doSetConfigItem("POST", '/api/admin/config/penalties', {
     maxLateDaysPenalized: maxLateDaysPenalized,
     gitCommitPenalty: gitCommitPenalty,
     perDayLatePenalty: perDayLatePenalty,
@@ -42,10 +42,10 @@ export const setLivePhases = (phases: Array<Phase>): Promise<void> => {
   return doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
 }
 
-export const setGraderShutdown = async (shutdownTimestamp: string, shutdownWarningHours: number): Promise<void> => {
+export const setGraderShutdown = (shutdownTimestamp: string, shutdownWarningHours: number): Promise<void> => {
   if (shutdownWarningHours < 0) shutdownWarningHours = 0
 
-  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
+  return doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
     "shutdownTimestamp": shutdownTimestamp,
     "shutdownWarningMilliseconds": Math.trunc(shutdownWarningHours * 60 * 60 * 1000) // convert to milliseconds
   })
@@ -55,8 +55,8 @@ export const setCanvasCourseIds = (): Promise<void> => {
   return doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 }
 
-const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
-    const obj: any = {};
+const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): Record<Phase, Record<RubricType, RubricInfo>> => {
+    const obj = {} as Record<Phase, Record<string, RubricInfo>>;
     rubricInfo.forEach((rubricTypeMap, phase) => {
         obj[phase] = Object.fromEntries(rubricTypeMap.entries());
     });

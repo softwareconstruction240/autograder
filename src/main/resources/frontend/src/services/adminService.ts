@@ -11,8 +11,7 @@ export const submissionsForUserGet = (netId: string): Promise<Submission[]> => {
 }
 
 export const approveSubmissionPost = (netId: string, phase: Phase, penalize: boolean) => {
-    return ServerCommunicator.postRequest('/api/admin/submissions/approve',
-      {
+    return ServerCommunicator.postRequest('/api/admin/submissions/approve', {
         netId,
         phase,
         penalize,
@@ -56,6 +55,6 @@ export const honorCheckerZipGet = async (section: number): Promise<Blob> => {
     }
 }
 
-export const sectionsGet = async (): Promise<CanvasSection[]> => {
+export const sectionsGet = (): Promise<CanvasSection[]> => {
     return ServerCommunicator.getRequestGuaranteed<CanvasSection[]>('/api/admin/sections', [])
 }
