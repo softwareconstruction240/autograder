@@ -28,8 +28,13 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
 }
 
-export const setGraderShutdown = async (shutdownTimestamp: string): Promise<void> => {
-  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {"shutdownTimestamp": shutdownTimestamp})
+export const setGraderShutdown = async (shutdownTimestamp: string, shutdownWarningHours: number): Promise<void> => {
+  if (shutdownWarningHours < 0) shutdownWarningHours = 0
+
+  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
+    "shutdownTimestamp": shutdownTimestamp,
+    "shutdownWarningMilliseconds": Math.trunc(shutdownWarningHours * 60 * 60 * 1000) // convert to milliseconds
+  })
 }
 
 export const setCanvasCourseIds = async (): Promise<void> => {

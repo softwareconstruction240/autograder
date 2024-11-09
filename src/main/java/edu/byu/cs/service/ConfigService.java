@@ -82,6 +82,8 @@ public class ConfigService {
             response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
         }
 
+        response.addProperty("shutdownWarningMilliseconds", dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class));
+
         return response;
     }
 
@@ -124,6 +126,18 @@ public class ConfigService {
         dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
+    }
+
+    public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        if (warningMilliseconds < 0) {
+            throw new IllegalArgumentException("warningMilliseconds must be non-negative");
+        }
+
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, warningMilliseconds, Integer.class);
+
+        logConfigChange("set the shutdown warning duration to %s milliseconds".formatted(warningMilliseconds), user.netId());
     }
 
     public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {

@@ -50,9 +50,11 @@ public class ConfigController {
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
         String shutdownTimestampString = gson.fromJson(jsonObject.get("shutdownTimestamp"), String.class);
+        Integer shutdownWarningMilliseconds = gson.fromJson(jsonObject.get("shutdownWarningMilliseconds"), Integer.class);
 
         try {
             ConfigService.scheduleShutdown(user, shutdownTimestampString);
+            ConfigService.setShutdownWarningDuration(user, shutdownWarningMilliseconds);
         } catch (DataAccessException e) {
             halt(500, e.getMessage());
             return null;

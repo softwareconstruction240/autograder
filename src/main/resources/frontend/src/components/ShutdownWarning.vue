@@ -6,8 +6,8 @@ import { readableTimestamp } from '@/utils/utils'
 const showWarning = computed(() => {
   const shutdownDate = new Date(useAppConfigStore().shutdownSchedule)
   const now = new Date()
-  const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-  return shutdownDate > now && shutdownDate <= twentyFourHoursFromNow
+  const warningWindow = new Date(now.getTime() + useAppConfigStore().shutdownWarningMilliseconds)
+  return shutdownDate <= warningWindow
 })
 </script>
 
