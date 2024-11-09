@@ -33,12 +33,16 @@ public class TestHelper {
      */
     private static final String junitJupiterApiJarPath;
 
+    private static final String jacocoCliJarPath;
+    private static final String jacocoAgentJarPath;
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
         try {
             standaloneJunitJarPath = new File(libsPath.toFile(), "junit-platform-console-standalone-1.10.1.jar").getCanonicalPath();
             junitJupiterApiJarPath = new File(libsPath.toFile(), "junit-jupiter-api-5.10.1.jar").getCanonicalPath();
+            jacocoCliJarPath = new File(libsPath.toFile(), "jacococli.jar").getCanonicalPath();
+            jacocoAgentJarPath = new File(libsPath.toFile(), "jacocoagent.jar").getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -133,19 +137,29 @@ public class TestHelper {
 
         String uberJarPath = uberJar.getAbsolutePath();
 
-        List<String> commands = getRunCommands(packagesToTest, uberJarPath);
+        List<String> runCommands = getRunCommands(packagesToTest, uberJarPath);
 
-        ProcessBuilder processBuilder = new ProcessBuilder()
+        ProcessBuilder runProcessBuilder = new ProcessBuilder()
                 .directory(compiledTests)
-                .command(commands);
+                .command(runCommands);
+
+        List<String> reportCommands = List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
+                "--classfiles", compiledTests.getParent() + "/repo/shared/target/classes", "--xml", "test-output/coverage.xml");
+
+        ProcessBuilder reportProcessBuilder = new ProcessBuilder()
+                .command(reportCommands)
+                .directory(compiledTests);
 
         try {
-            ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(processBuilder);
+            ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(runProcessBuilder);
             String error = processOutput.stdErr();
+
+            ProcessUtils.ProcessOutput reportOutput = ProcessUtils.runProcess(reportProcessBuilder);
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
+            File coverageOutput = new File(testOutputDirectory, "coverage.xml");
             return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
@@ -156,6 +170,7 @@ public class TestHelper {
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {
         List<String> commands = new ArrayList<>();
         commands.add("java");
+        commands.add("-javaagent:" + jacocoAgentJarPath);
         commands.add("-jar");
         commands.add(standaloneJunitJarPath);
         commands.add("execute");
