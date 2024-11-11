@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
+import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
+import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
+
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
@@ -92,7 +95,7 @@ public class ConfigService {
         Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo = new EnumMap<>(Phase.class);
 
         for (Phase phase : Phase.values()) {
-            if (!PhaseUtils.isPhaseGraded(phase)) continue;
+            if (!isPhaseGraded(phase)) continue;
             Integer assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
             assignmentIds.put(phase, assignmentId);
             if (rubricInfo.get(phase) == null) {
@@ -146,6 +149,9 @@ public class ConfigService {
             return;
         }
 
+        //TODO: remove
+        triggerShutdown();
+
         Instant shutdownTimestamp;
         try {
             shutdownTimestamp = getInstantFromUnzonedTime(shutdownTimestampString);
@@ -160,6 +166,22 @@ public class ConfigService {
         ConfigurationDao dao = DaoService.getConfigurationDao();
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, shutdownTimestamp, Instant.class);
         logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
+    }
+
+    public static void triggerShutdown() {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        try {
+            ArrayList<Phase> phases = new ArrayList<>();
+            for (Phase phase: Phase.values()) {
+                if (isPhaseGraded(phase) && isPhaseEnabled(phase)) {
+                    phases.add(phase);
+                }
+            }
+            dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phases, ArrayList.class);
+        } catch (DataAccessException e) {
+            LOGGER.error("Something went wrong while shutting down graded phases: " + e.getMessage());
+        }
     }
 
     public static void clearShutdownSchedule() throws DataAccessException {
