@@ -69,6 +69,8 @@ public class ConfigService {
     }
 
     public static JsonObject getPublicConfig() throws DataAccessException {
+        checkForShutdown();
+
         JsonObject response = new JsonObject();
 
         addBannerConfig(response);
@@ -172,7 +174,18 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Checks that the date for a scheduled shutdown has passed. If it has, it triggers the shutdown method
+     */
     public static void checkForShutdown() {
+        try {
+            Instant shutdownInstant = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
+            if (shutdownInstant.isBefore(Instant.now())) {
+                triggerShutdown();
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error("Something went wrong while checking for shutdown: " + e.getMessage());
+        }
     }
 
     public static void clearShutdownSchedule() throws DataAccessException {

@@ -29,6 +29,8 @@ public class SubmissionService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
     public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
+        ConfigService.checkForShutdown();
+
         if (!isPhaseEnabled(request.phase())) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
         }
