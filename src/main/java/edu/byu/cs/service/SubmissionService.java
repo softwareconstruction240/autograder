@@ -14,7 +14,6 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
-import edu.byu.cs.util.Serializer;
 import edu.byu.cs.util.SubmissionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +22,14 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
+import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
+
 public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
     public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
-        if (!phaseIsEnabled(request.phase())) {
+        if (!isPhaseEnabled(request.phase())) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
         }
 
@@ -38,21 +39,6 @@ public class SubmissionService {
 
         startGrader(user.netId(), request.phase(), user.repoUrl(), false);
 
-    }
-
-    private static boolean phaseIsEnabled(Phase phase) throws DataAccessException {
-        boolean phaseEnabled;
-
-        try {
-            phaseEnabled = DaoService.getConfigurationDao()
-                    .getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
-                    .contains(phase.toString());
-        } catch (DataAccessException e) {
-            LOGGER.error("Error getting configuration for live phase", e);
-            throw e;
-        }
-
-        return phaseEnabled;
     }
 
     public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
