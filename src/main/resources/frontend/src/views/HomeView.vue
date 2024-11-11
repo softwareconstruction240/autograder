@@ -73,7 +73,7 @@ const isPhaseDisabled = () => {
 
       <div v-if="isPhaseDisabled()">
         <br>
-        <span style="color: red; font-weight: bold" >Submissions to this phase are currently disabled</span>
+        <span id="submissionClosedWarning">Submissions to this phase are currently disabled</span>
       </div>
 
       <div id="submitDialog">
@@ -110,6 +110,14 @@ const isPhaseDisabled = () => {
 </template>
 
 <style scoped>
+#submissionClosedWarning {
+  background-color: red;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+
 #studentContainer {
   width: 90%;
   display: flex;

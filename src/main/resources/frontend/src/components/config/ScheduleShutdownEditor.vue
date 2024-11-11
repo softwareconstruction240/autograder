@@ -52,7 +52,7 @@ const cancelShutdown = async () => {
 
     <Panel>
       <p>Admin submissions will not be affected.</p>
-      <p>Any ungraded phases will remain available for students to submit to.</p>
+      <p>Any phases that do not receive a grade (like style checker) will remain available for students to submit to.</p>
       <p>The Autograder will present a message to students {{ shutdownWarningHours }} hours before the shutdown warning them of the deadline.</p>
     </Panel>
   </div>
