@@ -289,37 +289,44 @@ public class Scorer {
     private Rubric applyLatePenalty(Rubric rubric, int daysLate) throws DataAccessException {
         Submission previousSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
-        float lateAdjustment = daysLate * PER_DAY_LATE_PENALTY;
-        for(Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
-            Rubric.Results results = entry.getValue().results();
-
-            String notes = results.notes();
-            float score = results.score() * (1 - lateAdjustment);
-
-            if(previousSubmission != null) {
-                Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(entry.getKey());
-                if(previousItem != null &&
-                        previousItem.results().score() > score &&
-                        previousItem.results().rawScore() <= results.rawScore()) {
-                    notes = String.format("%s\nDeferring to less-penalized prior score of %s/%d",
-                            previousItem.results().notes().trim(),
-                            Math.round(previousItem.results().score() * 100) / 100.0,
-                            previousItem.results().possiblePoints());
-                    score = previousItem.results().score();
-                }
-            }
-
-            results = new Rubric.Results(notes,
-                    score,
-                    results.score(),
-                    results.possiblePoints(),
-                    results.testResults(),
-                    results.textResults());
+        float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
+        for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
+            Rubric.RubricType rubricType = entry.getKey();
             Rubric.RubricItem rubricItem = entry.getValue();
+
+            Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmission, lateScoreMultiplier);
             rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
-            items.put(entry.getKey(), rubricItem);
+            items.put(rubricType, rubricItem);
         }
         return new Rubric(items, rubric.passed(), rubric.notes());
+    }
+
+    private Rubric.Results mergeResultsWithPrevious(Rubric.RubricType rubricType, Rubric.RubricItem rubricItem,
+                                                    Submission previousSubmission, float scoreMultiplier) {
+        Rubric.Results results = rubricItem.results();
+
+        String notes = results.notes();
+        float score = results.score() * scoreMultiplier;
+
+        if (previousSubmission != null) {
+            Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
+            if (previousItem != null &&
+                    previousItem.results().score() > score &&
+                    previousItem.results().rawScore() <= results.rawScore()) {
+                notes = String.format("%s\nDeferring to less-penalized prior score of %s/%d",
+                        previousItem.results().notes().trim(),
+                        Math.round(previousItem.results().score() * 100) / 100.0,
+                        previousItem.results().possiblePoints());
+                score = previousItem.results().score();
+            }
+        }
+
+        return new Rubric.Results(notes,
+                score,
+                results.score(),
+                results.possiblePoints(),
+                results.testResults(),
+                results.textResults());
     }
 
     /**
