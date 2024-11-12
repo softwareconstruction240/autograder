@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from '@/utils/utils'
-import { defineEmits, onMounted, reactive } from 'vue'
+import { defineEmits, reactive } from 'vue'
 import { adminUpdateRepoPatch, studentUpdateRepoPatch } from '@/services/userService'
 import type { User } from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
@@ -42,9 +42,6 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   sendEmit('repoEditSuccess')
 }
 
-onMounted( () => {
-  console.log(user)
-})
 </script>
 
 <template>

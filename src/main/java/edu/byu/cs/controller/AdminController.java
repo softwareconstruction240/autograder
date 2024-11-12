@@ -45,57 +45,6 @@ public class AdminController {
 
     };
 
-    public static final Route userPatch = (req, res) -> {
-        String netId = req.params(":netId");
-
-        UserDao userDao = DaoService.getUserDao();
-        User user;
-        try {
-            user = userDao.getUser(netId);
-        } catch (DataAccessException e) {
-            LOGGER.error("Error getting user", e);
-            halt(500);
-            return null;
-        }
-
-        if (user == null) {
-            halt(404, "user not found");
-            return null;
-        }
-
-        try {
-            String firstName = req.queryParams("firstName");
-            if (firstName != null)
-                userDao.setFirstName(user.netId(), firstName);
-
-            String lastName = req.queryParams("lastName");
-            if (lastName != null)
-                userDao.setLastName(user.netId(), lastName);
-
-            String repoUrl = req.queryParams("repoUrl");
-            if (repoUrl != null)
-                userDao.setRepoUrl(user.netId(), repoUrl);
-
-            String role = req.queryParams("role");
-            if (role != null) {
-                try {
-                    userDao.setRole(user.netId(), User.Role.valueOf(role.toUpperCase()));
-                } catch (IllegalArgumentException e) {
-                    halt(400, "invalid role. must be one of: STUDENT, ADMIN");
-                    return null;
-                }
-            }
-        } catch (DataAccessException e) {
-            LOGGER.error("Error updating user", e);
-            halt(500);
-            return null;
-        }
-
-        res.status(204);
-
-        return "";
-    };
-
     public static final Route testModeGet = (req, res) -> {
         User latestTestStudent;
         try {
