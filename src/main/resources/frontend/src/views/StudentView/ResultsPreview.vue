@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { Submission } from '@/types/types'
 import {
-  commitVerificationFailed, resultsScoreDisplayText,
-  roundTwoDecimals,
-  scoreToPercentage,
+  commitVerificationFailed,
+  resultsScoreDisplayText,
   sortedItems,
   submissionScoreDisplayText
 } from '@/utils/utils'
