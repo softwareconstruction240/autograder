@@ -48,6 +48,17 @@ onMounted( async () => {
       </template>
     </ConfigSection>
 
+    <ConfigSection title="Penalties" description="Values used for calculating penalties">
+      <template #editor="{ closeEditor }">
+
+      </template>
+      <template #current>
+        <p><span class="infoLabel">Daily Late Penalty: </span> 10%</p>
+        <p><span class="infoLabel">Max Days Penalized: </span> 5</p>
+        <p><span class="infoLabel">Git Commit Penalty: </span> 10%</p>
+      </template>
+    </ConfigSection>
+
     <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, and rubric points">
       <template #editor="{ closeEditor }">
         <CourseIdConfigEditor :closeEditor="closeEditor"/>
