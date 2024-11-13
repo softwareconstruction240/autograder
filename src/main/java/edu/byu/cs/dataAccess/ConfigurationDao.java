@@ -17,6 +17,9 @@ public interface ConfigurationDao {
         PHASE4_ASSIGNMENT_NUMBER,
         PHASE5_ASSIGNMENT_NUMBER,
         PHASE6_ASSIGNMENT_NUMBER,
-        COURSE_NUMBER
+        COURSE_NUMBER,
+        MAX_LATE_DAYS_TO_PENALIZE,
+        PER_DAY_LATE_PENALTY,
+        GIT_COMMIT_PENALTY
     }
 }

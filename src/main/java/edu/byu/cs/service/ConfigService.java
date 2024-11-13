@@ -211,4 +211,34 @@ public class ConfigService {
                 user.netId()
         );
     }
+
+    public static void setMaxLateDays(User user, Integer maxDays) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        dao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, maxDays, Integer.class);
+        logConfigChange("set maximum late days penalized to %s".formatted(maxDays), user.netId());
+    }
+
+    /**
+     *
+     * @param user the user making the change
+     * @param perDayPenalty the penalty per day that should be applied. For example, a 10% penalty per day should be
+     *                      passed in as 0.1
+     */
+    public static void setPerDayLatePenalty(User user, Float perDayPenalty) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        dao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, perDayPenalty, Float.class);
+        logConfigChange("set the per day late penalty to %s".formatted(perDayPenalty), user.netId());
+    }
+
+    /**
+     *
+     * @param user the user making the change
+     * @param gitCommitPenalty the penalty should be applied for not having enough commits. For example, a 10%
+     *                         penalty per day should be passed in as 0.1
+     */
+    public static void setGitCommitPenalty(User user, Float gitCommitPenalty) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        dao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, gitCommitPenalty, Float.class);
+        logConfigChange("set the git commit penalty to %s".formatted(gitCommitPenalty), user.netId());
+    }
 }
