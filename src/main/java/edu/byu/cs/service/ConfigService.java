@@ -55,6 +55,14 @@ public class ConfigService {
         response.addProperty("bannerExpiration", bannerExpiration.toString());
     }
 
+    private static void addPenaltyConfig(JsonObject response) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        response.addProperty("perDayLatePenalty", dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class));
+        response.addProperty("gitCommitPenalty", dao.getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class));
+        response.addProperty("maxLateDaysPenalized", dao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class));
+    }
+
     private static void clearBannerConfig() throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
@@ -100,6 +108,8 @@ public class ConfigService {
         }
 
         JsonObject response = getPublicConfig();
+        addPenaltyConfig(response);
+
         int courseNumber = DaoService.getConfigurationDao().getConfiguration(
                 ConfigurationDao.Configuration.COURSE_NUMBER,
                 Integer.class

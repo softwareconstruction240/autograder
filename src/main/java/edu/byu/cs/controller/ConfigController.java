@@ -90,4 +90,20 @@ public class ConfigController {
         res.status(200);
         return "";
     };
+
+    public static final Route updatePenalties = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
+        Float perDayLatePenalty = gson.fromJson(jsonObject.get("perDayLatePenalty"), Float.class);
+        Float gitCommitPenalty = gson.fromJson(jsonObject.get("gitCommitPenalty"), Float.class);
+        Integer maxLateDaysPenalized = gson.fromJson(jsonObject.get("maxLateDaysPenalized"), Integer.class);
+
+        ConfigService.setMaxLateDays(user, maxLateDaysPenalized);
+        ConfigService.setGitCommitPenalty(user, gitCommitPenalty);
+        ConfigService.setPerDayLatePenalty(user, perDayLatePenalty);
+
+        return "";
+    };
 }

@@ -53,9 +53,9 @@ onMounted( async () => {
 
       </template>
       <template #current>
-        <p><span class="infoLabel">Daily Late Penalty: </span> 10%</p>
-        <p><span class="infoLabel">Max Days Penalized: </span> 5</p>
-        <p><span class="infoLabel">Git Commit Penalty: </span> 10%</p>
+        <p><span class="infoLabel">Daily Late Penalty: </span>{{appConfigStore.perDayLatePenalty * 100}}%</p>
+        <p><span class="infoLabel">Max Days Penalized: </span>{{appConfigStore.maxLateDaysPenalized}} days</p>
+        <p><span class="infoLabel">Git Commit Penalty: </span>{{appConfigStore.gitCommitPenalty * 100}}%</p>
       </template>
     </ConfigSection>
 
