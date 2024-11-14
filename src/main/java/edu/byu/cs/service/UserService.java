@@ -1,9 +1,9 @@
 package edu.byu.cs.service;
 
-import edu.byu.cs.controller.httpexception.BadRequestException;
-import edu.byu.cs.controller.httpexception.InternalServerException;
-import edu.byu.cs.controller.httpexception.UnprocessableEntityException;
-import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
+import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.InternalServerException;
+import edu.byu.cs.controller.exception.UnprocessableEntityException;
+import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;

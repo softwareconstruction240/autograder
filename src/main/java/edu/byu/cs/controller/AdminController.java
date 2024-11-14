@@ -1,8 +1,7 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.controller.httpexception.BadRequestException;
-import edu.byu.cs.controller.httpexception.ResourceNotFoundException;
+import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
 import io.javalin.http.Handler;

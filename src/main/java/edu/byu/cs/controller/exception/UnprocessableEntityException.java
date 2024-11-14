@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.httpexception;
+package edu.byu.cs.controller.exception;
 
 public class UnprocessableEntityException extends Exception {
     public UnprocessableEntityException(String message, Throwable cause) {

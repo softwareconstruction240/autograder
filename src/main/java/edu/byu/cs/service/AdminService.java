@@ -4,7 +4,7 @@ import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.controller.httpexception.ResourceNotFoundException;
+import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;

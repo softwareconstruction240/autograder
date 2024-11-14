@@ -1,9 +1,9 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.controller.httpexception.BadRequestException;
-import edu.byu.cs.controller.httpexception.InternalServerException;
-import edu.byu.cs.controller.httpexception.ResourceForbiddenException;
-import edu.byu.cs.controller.httpexception.UnauthorizedException;
+import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.InternalServerException;
+import edu.byu.cs.controller.exception.ResourceForbiddenException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;

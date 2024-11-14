@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.httpexception;
+package edu.byu.cs.controller.exception;
 
 public class ResourceNotFoundException extends Exception {
     public ResourceNotFoundException(String message, Throwable cause) {

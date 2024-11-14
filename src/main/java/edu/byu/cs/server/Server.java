@@ -1,7 +1,7 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.controller.httpexception.*;
+import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;

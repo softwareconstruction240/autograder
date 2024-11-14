@@ -2,9 +2,9 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.byu.cs.controller.httpexception.BadRequestException;
-import edu.byu.cs.controller.httpexception.InternalServerException;
-import edu.byu.cs.controller.httpexception.WordOfWisdomViolationException;
+import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.InternalServerException;
+import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;

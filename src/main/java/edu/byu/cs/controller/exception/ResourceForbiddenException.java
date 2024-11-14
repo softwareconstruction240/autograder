@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.httpexception;
+package edu.byu.cs.controller.exception;
 
 public class ResourceForbiddenException extends Exception {
     public ResourceForbiddenException(String message, Throwable cause) {

@@ -1,6 +1,6 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;

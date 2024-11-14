@@ -2,7 +2,7 @@ package edu.byu.cs.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.byu.cs.controller.httpexception.BadRequestException;
+import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.service.ConfigService;

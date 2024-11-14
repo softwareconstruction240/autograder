@@ -1,4 +1,4 @@
-package edu.byu.cs.controller.httpexception;
+package edu.byu.cs.controller.exception;
 
 public class UnauthorizedException extends Exception {
     public UnauthorizedException(String message, Throwable cause) {
