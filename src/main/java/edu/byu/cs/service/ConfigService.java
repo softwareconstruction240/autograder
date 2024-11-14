@@ -22,17 +22,18 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
 
     private static void logConfigChange(String changeMessage, String adminNetId) {
-        LOGGER.info("[CONFIG] Admin {} has {}}", adminNetId, changeMessage);
+        LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
     }
 
     private static void logAutomaticConfigChange(String changeMessage) {
-        LOGGER.info("[CONFIG] Automatic change: {}}", changeMessage);
+        LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
     }
 
     /**
@@ -228,6 +229,10 @@ public class ConfigService {
         }
 
         ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        Integer current = dao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        if (current.equals(maxDays)) { return; }
+
         dao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, maxDays, Integer.class);
         logConfigChange("set maximum late days penalized to %s".formatted(maxDays), user.netId());
     }
@@ -244,6 +249,10 @@ public class ConfigService {
         }
 
         ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        Float current = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+        if (current.equals(perDayPenalty)) { return; }
+
         dao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, perDayPenalty, Float.class);
         logConfigChange("set the per day late penalty to %s".formatted(perDayPenalty), user.netId());
     }
@@ -260,6 +269,10 @@ public class ConfigService {
         }
 
         ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        Float current = dao.getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class);
+        if (current.equals(gitCommitPenalty)) { return; }
+
         dao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, gitCommitPenalty, Float.class);
         logConfigChange("set the git commit penalty to %s".formatted(gitCommitPenalty), user.netId());
     }
