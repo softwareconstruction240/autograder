@@ -1,6 +1,9 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.InternalServerException;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.CasService;

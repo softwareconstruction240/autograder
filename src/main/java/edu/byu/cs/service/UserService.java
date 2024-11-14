@@ -113,7 +113,8 @@ public class UserService {
     /**
      * Checks to see if anyone currently or previously (other than the provided user) has claimed the provided repoUrl.
      * returns if the repo is available. it will throw otherwise, containing a message why
-     * @param url the repoUrl to check if currently or previously claimed
+     *
+     * @param url   the repoUrl to check if currently or previously claimed
      * @param netId the user trying to claim the url, so that they can claim urls they previously claimed
      * @return null if the repo is available for that user. returns the update that prevents the user from claiming the url.
      */
