@@ -171,9 +171,9 @@ public class PhaseUtils {
      */
     public static Collection<Rubric.RubricType> requiredRubricTypes(Phase phase) {
         return switch (phase) {
-            case Phase0, Phase1, Phase3, Phase4 -> Set.of(Rubric.RubricType.PASSOFF_TESTS);
+            case Phase0, Phase1, Phase3, Phase4, Phase6 -> Set.of(Rubric.RubricType.PASSOFF_TESTS);
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
-            case Phase5, Phase6, Quality, Commits -> Set.of();
+            case Phase5, Quality, Commits -> Set.of();
         };
     }
 
