@@ -9,6 +9,7 @@ import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
@@ -33,11 +34,17 @@ public class Scorer {
      * The penalty to be applied per day to a late submission.
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
      */
-    private static final float PER_DAY_LATE_PENALTY = 0.1F;
+    private final float PER_DAY_LATE_PENALTY;
     private final GradingContext gradingContext;
 
     public Scorer(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
+        try {
+            PER_DAY_LATE_PENALTY = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+        } catch (DataAccessException e) {
+            LOGGER.error("Error while getting Per Day Late Penalty for Scorer.");
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -394,8 +401,13 @@ public class Scorer {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
-        if (numDaysLate > 0)
-            notes += " " + numDaysLate + " days late. -" + (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
+        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+
+        if (numDaysLate >= maxLateDays)
+            notes += " Late penalty maxed out at " + numDaysLate + " days late: -";
+        else if (numDaysLate > 0)
+            notes += " " + numDaysLate + " days late: -";
+        notes += (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
