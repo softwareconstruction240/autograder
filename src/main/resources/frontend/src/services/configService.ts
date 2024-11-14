@@ -13,6 +13,14 @@ export const getConfig = async ():Promise<Config> => {
   return await ServerCommunicator.getRequest<Config>(endpoint)
 }
 
+export const setPenalties = async (maxLateDaysPenalized: number, gitCommitPenalty: number, perDayLatePenalty: number) => {
+  await doSetConfigItem("POST", '/api/admin/config/penalties', {
+    maxLateDaysPenalized: maxLateDaysPenalized,
+    gitCommitPenalty: gitCommitPenalty,
+    perDayLatePenalty: perDayLatePenalty,
+  })
+}
+
 export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/banner', {
     "bannerMessage": message,

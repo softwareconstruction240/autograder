@@ -4,6 +4,7 @@ import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
+import PenaltyConfigEditor from '@/components/config/PenaltyConfigEditor.vue'
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
@@ -50,12 +51,12 @@ onMounted( async () => {
 
     <ConfigSection title="Penalties" description="Values used for calculating penalties">
       <template #editor="{ closeEditor }">
-
+        <PenaltyConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
-        <p><span class="infoLabel">Daily Late Penalty: </span>{{appConfigStore.perDayLatePenalty * 100}}%</p>
+        <p><span class="infoLabel">Git Commit Penalty: </span>{{Math.round(appConfigStore.gitCommitPenalty * 100)}}%</p>
+        <p><span class="infoLabel">Late Penalty: </span>{{Math.round(appConfigStore.perDayLatePenalty * 100)}}%</p>
         <p><span class="infoLabel">Max Days Penalized: </span>{{appConfigStore.maxLateDaysPenalized}} days</p>
-        <p><span class="infoLabel">Git Commit Penalty: </span>{{appConfigStore.gitCommitPenalty * 100}}%</p>
       </template>
     </ConfigSection>
 
