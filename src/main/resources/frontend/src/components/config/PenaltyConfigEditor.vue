@@ -13,6 +13,12 @@ const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100))
 const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100))
 const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized)
 
+const valuesReady = () => {
+  return (gitPenalty.value >= 0) && (gitPenalty.value <= 100)
+    && (latePenalty.value >= 0) && (latePenalty.value <= 100)
+    && (maxLateDays.value >= 0)
+}
+
 const submit = async () => {
   try {
     await setPenalties(maxLateDays.value, gitPenalty.value / 100, latePenalty.value / 100)
@@ -43,7 +49,8 @@ const submit = async () => {
     <p><input type="number" v-model="maxLateDays"/> days</p>
   </div>
 
-  <button @click="submit">Submit</button>
+  <button :disabled="!valuesReady()" @click="submit">Submit</button>
+  <p v-if="!valuesReady()" style="max-width: 350px"><em>All values must be non-negative, and penalties must be equal to or less than 100%</em></p>
 </template>
 
 <style scoped>
@@ -56,8 +63,10 @@ const submit = async () => {
 .penalty {
   margin-top: 5px;
 }
-
 button {
   margin-top: 15px;
+}
+input {
+  max-width: 75px;
 }
 </style>

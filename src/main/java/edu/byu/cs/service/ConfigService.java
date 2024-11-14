@@ -223,6 +223,10 @@ public class ConfigService {
     }
 
     public static void setMaxLateDays(User user, Integer maxDays) throws DataAccessException {
+        if (maxDays < 0) {
+            throw new IllegalArgumentException("Max Late Days must be non-negative");
+        }
+
         ConfigurationDao dao = DaoService.getConfigurationDao();
         dao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, maxDays, Integer.class);
         logConfigChange("set maximum late days penalized to %s".formatted(maxDays), user.netId());
@@ -235,6 +239,10 @@ public class ConfigService {
      *                      passed in as 0.1
      */
     public static void setPerDayLatePenalty(User user, Float perDayPenalty) throws DataAccessException {
+        if ((perDayPenalty < 0) || (perDayPenalty > 1)) {
+            throw new IllegalArgumentException("Per Day Late Penalty must be 0-1");
+        }
+
         ConfigurationDao dao = DaoService.getConfigurationDao();
         dao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, perDayPenalty, Float.class);
         logConfigChange("set the per day late penalty to %s".formatted(perDayPenalty), user.netId());
@@ -247,6 +255,10 @@ public class ConfigService {
      *                         penalty per day should be passed in as 0.1
      */
     public static void setGitCommitPenalty(User user, Float gitCommitPenalty) throws DataAccessException {
+        if ((gitCommitPenalty < 0) || (gitCommitPenalty > 1)) {
+            throw new IllegalArgumentException("Git Commit Penalty must be 0-1");
+        }
+
         ConfigurationDao dao = DaoService.getConfigurationDao();
         dao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, gitCommitPenalty, Float.class);
         logConfigChange("set the git commit penalty to %s".formatted(gitCommitPenalty), user.netId());
