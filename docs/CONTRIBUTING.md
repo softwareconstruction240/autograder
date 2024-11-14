@@ -1,7 +1,7 @@
 # Contribution Guide
 
 Hello there! Welcome to the CS 240 Autograder Repo. If you're new to the 
-Autograder Development team, we're glad to have you here! The CS 240 
+Autograder Development team, we're glad to have you here. The CS 240 
 Autograder relies on TAs like you to maintain and adapt the codebase 
 for our professors and students.
 
