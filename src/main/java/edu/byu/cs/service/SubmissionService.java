@@ -4,8 +4,8 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.GradingObserverImpl;
-import edu.byu.cs.controller.BadRequestException;
-import edu.byu.cs.controller.InternalServerException;
+import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.TrafficController;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
@@ -183,8 +183,8 @@ public class SubmissionService {
     /**
      * Creates a grader for the given request with an observer that sends messages to the subscribed sessions
      *
-     * @param netId the netId of the user
-     * @param phase the phase to grade
+     * @param netId           the netId of the user
+     * @param phase           the phase to grade
      * @param adminSubmission if the grader should run in admin mode
      * @return the grader
      * @throws IOException if there is an error creating the grader
