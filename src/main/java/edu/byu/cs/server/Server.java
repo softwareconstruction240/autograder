@@ -16,7 +16,7 @@ import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Server {
 
-    private static Javalin app;
+    private Javalin app;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
     private final EndpointProvider provider;
@@ -31,7 +31,7 @@ public class Server {
         return chosenPort;
     }
 
-    public int setupEndpoints(int port) {
+    private int setupEndpoints(int port) {
         app = Javalin.create(config -> {
                     config.staticFiles.add("/frontend/dist");
 
