@@ -23,7 +23,7 @@ public class Server {
         return chosenPort;
     }
 
-    public int setupEndpoints(int port) {
+    private int setupEndpoints(int port) {
         port(port);
 
         webSocket("/ws", WebSocketController.class);
