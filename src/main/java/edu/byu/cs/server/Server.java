@@ -1,33 +1,16 @@
 package edu.byu.cs.server;
 
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.controller.WebSocketController;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.properties.ApplicationProperties;
-import edu.byu.cs.service.SubmissionService;
-import edu.byu.cs.util.ResourceUtils;
+import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import edu.byu.cs.util.Serializer;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.HandlerType;
 import io.javalin.http.HttpStatus;
-import org.apache.commons.cli.*;
-import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-
-import static edu.byu.cs.controller.AdminController.*;
-import static edu.byu.cs.controller.AuthController.*;
-import static edu.byu.cs.controller.CasController.*;
-import static edu.byu.cs.controller.ConfigController.*;
-import static edu.byu.cs.controller.SubmissionController.*;
-import static edu.byu.cs.controller.UserController.*;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
@@ -50,100 +33,98 @@ public class Server {
 
     public int setupEndpoints(int port) {
         app = Javalin.create(config -> {
-            config.staticFiles.add("/frontend/dist");
+                    config.staticFiles.add("/frontend/dist");
 
-            config.jsonMapper(Serializer.jsonMapper);
+                    config.jsonMapper(Serializer.jsonMapper);
 
-            config.router.apiBuilder(() -> {
-                path("/auth", () -> {
-                    get("/callback", callbackGet);
-                    get("/login", loginGet);
+                    config.router.apiBuilder(() -> {
+                        path("/auth", () -> {
+                            get("/callback", provider.callbackGet());
+                            get("/login", provider.loginGet());
 
-                    // TODO does Javalin guarantee this...?
-                    // all routes after this point require authentication
-                    post("/logout", logoutPost);
-                });
+                            // TODO does Javalin guarantee this...?
+                            // all routes after this point require authentication
+                            post("/logout", provider.logoutPost());
+                        });
 
-                path("/api", () -> {
-                    before("/*", ctx -> {
-                        if (ctx.method() != HandlerType.OPTIONS)
-                            verifyAuthenticatedMiddleware.handle(ctx);
+                        path("/api", () -> {
+                            before("/*", ctx -> {
+                                if (ctx.method() != HandlerType.OPTIONS) provider.verifyAuthenticatedMiddleware().handle(ctx);
+                            });
+
+                            patch("/repo", provider.repoPatch());
+
+                            get("/submit", provider.submitGet());
+                            post("/submit", provider.submitPost());
+
+                            get("/latest", provider.latestSubmissionForMeGet());
+
+                            get("/submission", provider.submissionXGet());
+                            get("/submission/{phase}", provider.submissionXGet());
+
+                            get("/me", provider.meGet());
+
+                            get("/config", provider.getConfigStudent());
+
+                            path("/admin", () -> {
+                                before("/*", ctx -> {
+                                    if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
+                                });
+
+                                patch("/repo/{netId}", provider.repoPatchAdmin());
+
+                                get("/repo/history", provider.repoHistoryAdminGet());
+
+                                get("/users", provider.usersGet());
+
+                                post("/submit", provider.adminRepoSubmitPost());
+
+                                path("/submissions", () -> {
+                                    post("/approve", provider.approveSubmissionPost());
+
+                                    get("/latest", provider.latestSubmissionsGet());
+
+                                    get("/latest/{count}", provider.latestSubmissionsGet());
+
+                                    get("/active", provider.submissionsActiveGet());
+
+                                    get("/student/{netId}", provider.studentSubmissionsGet());
+
+                                    post("/rerun", provider.submissionsReRunPost());
+                                });
+
+                                get("/test_mode", provider.testModeGet());
+
+                                get("/analytics/commit", provider.commitAnalyticsGet());
+
+                                get("/analytics/commit/{option}", provider.commitAnalyticsGet());
+
+                                get("/honorChecker/zip/{section}", provider.honorCheckerZipGet());
+
+                                get("/sections", provider.sectionsGet());
+
+                                path("/config", () -> {
+                                    get("", provider.getConfigAdmin());
+
+                                    post("/phases", provider.updateLivePhases());
+                                    post("/banner", provider.updateBannerMessage());
+
+                                    post("/courseIds", provider.updateCourseIdsPost());
+                                    get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
+                                });
+                            });
+                        });
+
+                        get("/*", ctx -> {
+                            if (ctx.path().equals("/ws")) // TODO Does this match?
+                                return;
+
+                            String urlParams = ctx.queryString();
+                            urlParams = urlParams == null ? "" : "?" + urlParams;
+                            ctx.redirect("/" + urlParams, HttpStatus.FOUND);
+                        });
                     });
-
-                    patch("/repo", repoPatch);
-
-                    get("/submit", submitGet);
-                    post("/submit", submitPost);
-
-                    get("/latest", latestSubmissionForMeGet);
-
-                    get("/submission", submissionXGet);
-                    get("/submission/{phase}", submissionXGet);
-
-                    get("/me", meGet);
-
-                    get("/config", getConfigStudent);
-
-                    path("/admin", () -> {
-                        before("/*", ctx -> {
-                            if (ctx.method() != HandlerType.OPTIONS)
-                                verifyAdminMiddleware.handle(ctx);
-                        });
-
-                        patch("/repo/{netId}", repoPatchAdmin);
-
-                        get("/repo/history", repoHistoryAdminGet);
-
-                        get("/users", usersGet);
-
-                        post("/submit", adminRepoSubmitPost);
-
-                        path("/submissions", () -> {
-                            post("/approve", approveSubmissionPost);
-
-                            get("/latest", latestSubmissionsGet);
-
-                            get("/latest/{count}", latestSubmissionsGet);
-
-                            get("/active", submissionsActiveGet);
-
-                            get("/student/{netId}", studentSubmissionsGet);
-
-                            post("/rerun", submissionsReRunPost);
-                        });
-
-                        get("/test_mode", testModeGet);
-
-                        get("/analytics/commit", commitAnalyticsGet);
-
-                        get("/analytics/commit/{option}", commitAnalyticsGet);
-
-                        get("/honorChecker/zip/{section}", honorCheckerZipGet);
-
-                        get("/sections", sectionsGet);
-
-                        path("/config", () -> {
-                            get("", getConfigAdmin);
-
-                            post("/phases", updateLivePhases);
-                            post("/banner", updateBannerMessage);
-
-                            post("/courseIds", updateCourseIdsPost);
-                            get("/courseIds", updateCourseIdsUsingCanvasGet);
-                        });
-                    });
-                });
-
-                get("/*", ctx -> {
-                    if (ctx.path().equals("/ws")) // TODO Does this match?
-                        return;
-
-                    String urlParams = ctx.queryString();
-                    urlParams = urlParams == null ? "" : "?" + urlParams;
-                    ctx.redirect("/" + urlParams, HttpStatus.FOUND);
-                });
-            });
-        })
+                })
 
                 .ws("/ws", (wsConfig) -> {
                     wsConfig.onError(WebSocketController::onError);
