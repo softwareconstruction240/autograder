@@ -407,7 +407,7 @@ public class Scorer {
             notes += " Late penalty maxed out at " + numDaysLate + " days late: -";
         else if (numDaysLate > 0)
             notes += " " + numDaysLate + " days late: -";
-        notes += (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "%";
+        notes += (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "% ";
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;

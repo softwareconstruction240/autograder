@@ -32,35 +32,54 @@ const submit = async () => {
 
 <template>
   <div class="penalty">
-    <p class="penaltyName">Git Commit Penalty</p>
-    <p class="penaltyDescription">Applied when students don't have enough commits</p>
-    <p><input type="number" v-model="gitPenalty"/>%</p>
+    <div class="value">
+      <p class="valueName">Late Penalty</p>
+      <p class="valueDescription">Applied per day the submission is late</p>
+      <p><input type="number" v-model="latePenalty"/>%</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Max Late Days</p>
+      <p class="valueDescription">Days after which the late penalty caps out</p>
+      <p><input type="number" v-model="maxLateDays"/> days</p>
+    </div>
   </div>
 
-  <div class="penalty">
-    <p class="penaltyName">Late Penalty</p>
-    <p class="penaltyDescription">Applied per day the submission is late</p>
-    <p><input type="number" v-model="latePenalty"/>%</p>
-  </div>
+  <hr style="width: 100%; color: black; margin-top: 10px;"/>
 
   <div class="penalty">
-    <p class="penaltyName">Max Late Days</p>
-    <p class="penaltyDescription">Days after which the late penalty caps out</p>
-    <p><input type="number" v-model="maxLateDays"/> days</p>
+    <div class="value">
+      <p class="valueName">Git Commit Penalty</p>
+      <p class="valueDescription">Applied when students don't have enough commits</p>
+      <p><input type="number" v-model="gitPenalty"/>%</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Lines Changed Per Commit</p>
+      <p class="valueDescription">The minimum number of lines that must change for a commit to count.</p>
+      <p><input type="number" v-model="gitPenalty"/> lines</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Clock Variability</p>
+      <p class="valueDescription">The commit checker will block if commits are authored in the future.
+        This value controls how far in the future a student's commit can be to account for differences in system time.</p>
+      <p><input type="number" v-model="gitPenalty"/> minutes</p>
+    </div>
   </div>
+
+
 
   <button :disabled="!valuesReady()" @click="submit">Submit</button>
   <p v-if="!valuesReady()" style="max-width: 350px"><em>All values must be non-negative, and penalties must be equal to or less than 100%</em></p>
+  <p><em>None of these values affect admin submissions</em></p>
 </template>
 
 <style scoped>
-.penaltyName {
+.valueName {
   font-weight: bold;
 }
-.penaltyDescription {
+.valueDescription {
   font-style: italic;
 }
-.penalty {
+.value {
   margin-top: 5px;
 }
 button {

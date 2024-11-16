@@ -57,7 +57,9 @@ const closeEditor = () => {
       v-if="editorPopup"
       @closePopUp="editorPopup = false">
       <h3>Edit {{ title }}</h3>
-      <slot name="editor" :closeEditor="closeEditor"/>
+      <div style="max-width: 600px">
+        <slot name="editor" :closeEditor="closeEditor"/>
+      </div>
     </PopUp>
   </section>
 </template>

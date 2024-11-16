@@ -170,7 +170,12 @@ public class PhaseUtils {
 
     public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
         int minimumLinesChanged = 5;
-        int penaltyPct = 10;
+        int penaltyPct;
+        try {
+            penaltyPct = Math.round(DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100);
+        } catch (DataAccessException e) {
+            throw new GradingException("Error getting git commit penalty", e);
+        }
         int forgivenessMinutesHead = 3;
         return switch (phase) {
             case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
