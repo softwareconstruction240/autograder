@@ -19,13 +19,9 @@ export const commitVerificationFailed = (submission: Submission) => {
   return submission.verifiedStatus.toString() === VerifiedStatus[VerifiedStatus.Unapproved];
 }
 
-export const isNeverTimestamp = (timestampString: Date | string): boolean => {
-  return timestampString === "+1000000000-12-31T23:59:59.999999999Z" // The Java Instant.MAX value
-}
-
 export const readableTimestamp = (timestampOrString: Date | string) => {
-  if (isNeverTimestamp(timestampOrString)) {
-    return "never";
+  if (timestampOrString === "never") {
+    return "never"
   }
 
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;

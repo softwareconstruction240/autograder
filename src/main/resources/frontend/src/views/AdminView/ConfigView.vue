@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onMounted } from 'vue'
 import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
-import { generateClickableLink, isNeverTimestamp, readableTimestamp } from '@/utils/utils'
+import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
 import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
 
@@ -55,7 +55,7 @@ onMounted( async () => {
       </template>
       <template #current>
         <p><span class="infoLabel">Scheduled to shutdown: </span> {{readableTimestamp(appConfigStore.shutdownSchedule)}}</p>
-        <p v-if="!isNeverTimestamp(appConfigStore.shutdownSchedule)"><span class="infoLabel">Warning duration: </span> {{appConfigStore.shutdownWarningMilliseconds / (60 * 60 * 1000)}} hours</p>
+        <p v-if="appConfigStore.shutdownSchedule != 'never'"><span class="infoLabel">Warning duration: </span> {{appConfigStore.shutdownWarningMilliseconds / (60 * 60 * 1000)}} hours</p>
       </template>
     </ConfigSection>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Panel from '@/components/Panel.vue'
-import { combineDateAndTime, isNeverTimestamp } from '@/utils/utils'
+import { combineDateAndTime } from '@/utils/utils'
 import { setGraderShutdown } from '@/services/configService'
 import { useAppConfigStore } from '@/stores/appConfig'
 
@@ -47,7 +47,7 @@ const cancelShutdown = async () => {
 
     <div class="section">
       <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button>
-      <button v-if="!isNeverTimestamp(useAppConfigStore().shutdownSchedule)" @click="cancelShutdown">Cancel Shutdown</button>
+      <button v-if="useAppConfigStore().shutdownSchedule != 'never'" @click="cancelShutdown">Cancel Shutdown</button>
     </div>
 
     <Panel>

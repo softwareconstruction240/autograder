@@ -53,10 +53,15 @@ public class ConfigService {
             clearBannerConfig();
         }
 
+        if (bannerExpiration.equals(Instant.MAX)) { //shutdown is not set
+            response.addProperty("bannerExpiration", "never");
+        } else {
+            response.addProperty("bannerExpiration", bannerExpiration.toString());
+        }
+
         response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
         response.addProperty("bannerLink", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_LINK, String.class));
         response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
-        response.addProperty("bannerExpiration", bannerExpiration.toString());
     }
 
     private static void clearBannerConfig() throws DataAccessException {
@@ -79,7 +84,10 @@ public class ConfigService {
         Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
         if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
             clearShutdownSchedule();
-            response.addProperty("shutdownSchedule", Instant.MAX.toString());
+        }
+
+        if (shutdownTimestamp.equals(Instant.MAX)) { //shutdown is not set
+            response.addProperty("shutdownSchedule", "never");
         } else {
             response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
         }
