@@ -5,6 +5,13 @@ import spark.Route;
 
 public interface EndpointProvider {
 
+    // Wildcard endpoints
+
+    Filter beforeAll();
+    Filter afterAll();
+
+    Route defaultGet();
+
     // AdminController
 
     Route usersGet();

@@ -1,7 +1,6 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
-import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +30,7 @@ public class Server {
 
         staticFiles.location("/frontend/dist");
 
-        before((request, response) -> {
-            response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-            response.header("Access-Control-Allow-Credentials", "true");
-            response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
-        });
+        before(provider.beforeAll());
 
         path("/auth", () -> {
             get("/callback", provider.callbackGet());
@@ -115,15 +109,10 @@ public class Server {
         });
 
         // spark's notFound method does not work
-        get("/*", (req, res) -> {
-            if (req.pathInfo().equals("/ws"))
-                return null;
+        get("/*", provider.defaultGet());
 
-            String urlParams = req.queryString();
-            urlParams = urlParams == null ? "" : "?" + urlParams;
-            res.redirect("/" + urlParams, 302);
-            return null;
-        });
+        after(provider.afterAll());
+
         init();
 
         return port();

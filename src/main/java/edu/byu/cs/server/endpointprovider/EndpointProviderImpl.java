@@ -1,10 +1,43 @@
 package edu.byu.cs.server.endpointprovider;
 
 import edu.byu.cs.controller.*;
+import edu.byu.cs.properties.ApplicationProperties;
 import spark.Filter;
 import spark.Route;
 
+import java.util.Map;
+
 public class EndpointProviderImpl implements EndpointProvider {
+
+    // Wildcard endpoints
+
+    @Override
+    public Filter beforeAll() {
+        return (request, response) -> {
+            response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+            response.header("Access-Control-Allow-Credentials", "true");
+            response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
+        };
+    }
+
+    @Override
+    public Filter afterAll() {
+        return (req, res) -> {};
+    }
+
+    @Override
+    public Route defaultGet() {
+        return (req, res) -> {
+            if (req.pathInfo().equals("/ws"))
+                return null;
+
+            String urlParams = req.queryString();
+            urlParams = urlParams == null ? "" : "?" + urlParams;
+            res.redirect("/" + urlParams, 302);
+            return null;
+        };
+    }
 
     // AdminController
 
