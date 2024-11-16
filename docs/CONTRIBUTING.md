@@ -61,7 +61,14 @@ existing issue to work on, or you can write your own.
 but you are welcome to pick any unassigned issue
 
 #### When to Create an Issue
-TODO
+
+An issue generally represents "a single goal or task." Discussion and decisions about how to accomplish the task (and
+even if the task should be done) happens here. Usually, an issue should be fairly narrow in scope, so that it can be
+resolved with a single PR (Pull Request).
+
+Even when you're not sure if the task should be done, or how to go about it, go ahead and create an issue. The issue
+might be closed, but now that decision has been discussed, and the reasons for it are saved somewhere central in case
+they are relevant in the future.
 
 #### Creating an Issue
 - Create the issue from the TA Projects Board (linked above)
@@ -149,7 +156,7 @@ line and the extra details).
 
 ### 4. Pull Requests
 Pull requests are how you get your changes merged into the codebase.
-You create a pull request once you feel your changes are ready. You can also create a draft pull request 
+You create a pull request once you feel your changes are ready for review by other devs. You can also create a draft pull request 
 if you would like some feedback on your code before then.
 
 #### Creating a Pull Request
@@ -164,7 +171,7 @@ if you would like some feedback on your code before then.
   changed without having to read all the new code.
 - Make sure all GitHub actions pass:
   - Your pull request will be blocked from merging if all tests don't pass
-- Move the connected issue into the `PR Submittted` column on the 
+- Move the connected issue into the `PR Submitted` column on the 
   [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
 - Request a review from other Autograder developers
   - If you're changing an existing system, request a review from the developer that 
