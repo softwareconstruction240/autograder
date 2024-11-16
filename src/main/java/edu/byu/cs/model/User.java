@@ -11,6 +11,10 @@ public record User(
 ) {
     public enum Role {
         STUDENT,
-        ADMIN
+        ADMIN;
+
+        public static Role parse(String roleString) throws IllegalArgumentException {
+            return Role.valueOf(roleString.toUpperCase());
+        }
     }
 }
