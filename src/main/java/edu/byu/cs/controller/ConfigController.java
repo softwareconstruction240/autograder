@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.service.ConfigService;
+import edu.byu.cs.util.Serializer;
 import spark.Route;
 
 import java.util.ArrayList;
@@ -33,9 +34,8 @@ public class ConfigController {
     };
 
     public static final Route updateLivePhases = (req, res) -> {
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
-        ArrayList phasesArray = gson.fromJson(jsonObject.get("phases"), ArrayList.class);
+        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        ArrayList phasesArray = Serializer.deserialize(jsonObject.get("phases"), ArrayList.class);
         User user = req.session().attribute("user");
 
         ConfigService.updateLivePhases(phasesArray, user);
@@ -47,10 +47,9 @@ public class ConfigController {
     public static final Route scheduleShutdown = (req, res) -> {
         User user = req.session().attribute("user");
 
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
-        String shutdownTimestampString = gson.fromJson(jsonObject.get("shutdownTimestamp"), String.class);
-        Integer shutdownWarningMilliseconds = gson.fromJson(jsonObject.get("shutdownWarningMilliseconds"), Integer.class);
+        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        String shutdownTimestampString = Serializer.deserialize(jsonObject.get("shutdownTimestamp"), String.class);
+        Integer shutdownWarningMilliseconds = Serializer.deserialize(jsonObject.get("shutdownWarningMilliseconds"), Integer.class);
 
         try {
             ConfigService.scheduleShutdown(user, shutdownTimestampString);
@@ -70,13 +69,12 @@ public class ConfigController {
     public static final Route updateBannerMessage = (req, res) -> {
         User user = req.session().attribute("user");
 
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
-        String expirationString = gson.fromJson(jsonObject.get("bannerExpiration"), String.class);
+        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        String expirationString = Serializer.deserialize(jsonObject.get("bannerExpiration"), String.class);
 
-        String message = gson.fromJson(jsonObject.get("bannerMessage"), String.class);
-        String link = gson.fromJson(jsonObject.get("bannerLink"), String.class);
-        String color = gson.fromJson(jsonObject.get("bannerColor"), String.class);
+        String message = Serializer.deserialize(jsonObject.get("bannerMessage"), String.class);
+        String link = Serializer.deserialize(jsonObject.get("bannerLink"), String.class);
+        String color = Serializer.deserialize(jsonObject.get("bannerColor"), String.class);
 
         try {
             ConfigService.updateBannerMessage(user, expirationString, message, link, color);
@@ -90,7 +88,7 @@ public class ConfigController {
     };
 
     public static final Route updateCourseIdsPost = (req, res) -> {
-        SetCourseIdsRequest setCourseIdsRequest = new Gson().fromJson(req.body(), SetCourseIdsRequest.class);
+        SetCourseIdsRequest setCourseIdsRequest = Serializer.deserialize(req.body(), SetCourseIdsRequest.class);
 
         User user = req.session().attribute("user");
 
