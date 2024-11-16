@@ -155,7 +155,11 @@ public class Server {
     private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
         return (e, ctx) -> {
             ctx.status(statusCode);
-            ctx.result(e.getMessage());
+            if (e.getMessage() != null) {
+                ctx.result(e.getMessage());
+            } else {
+                ctx.result("An unknown %d error occurred.".formatted(statusCode));
+            }
         };
     }
 }
