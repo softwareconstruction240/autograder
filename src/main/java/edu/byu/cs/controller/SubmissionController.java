@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
@@ -31,6 +32,9 @@ public class SubmissionController {
 
     public static final Handler adminRepoSubmitPost = ctx -> {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
 
         GradeRequest request = validateAndUnpackRequest(ctx);
         if (request == null) {
@@ -40,8 +44,11 @@ public class SubmissionController {
         SubmissionService.adminRepoSubmit(user.netId(), request);
     };
 
-    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException {
+    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException, UnauthorizedException {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
@@ -68,12 +75,18 @@ public class SubmissionController {
 
     public static final Handler submitGet = ctx -> {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         boolean inQueue = SubmissionService.isAlreadyInQueue(user.netId());
         ctx.json(Map.of("inQueue", inQueue));
     };
 
     public static final Handler latestSubmissionForMeGet = ctx -> {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
         ctx.json(submission);
     };
@@ -90,6 +103,9 @@ public class SubmissionController {
         }
 
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
         ctx.json(submissions);
     };
@@ -118,6 +134,9 @@ public class SubmissionController {
 
     public static final Handler approveSubmissionPost = ctx -> {
         User adminUser = ctx.sessionAttribute("user");
+        if (adminUser == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
         SubmissionService.approveSubmission(adminUser.netId(), request);
     };

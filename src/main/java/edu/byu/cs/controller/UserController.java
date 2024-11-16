@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
@@ -16,12 +17,18 @@ import java.util.Collection;
 public class UserController {
     public static final Handler repoPatch = ctx -> {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         applyRepoPatch(user.netId(), null, ctx);
         ctx.result("Successfully updated repoUrl");
     };
 
     public static final Handler repoPatchAdmin = ctx -> {
         User admin = ctx.sessionAttribute("user");
+        if (admin == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         String studentNetId = ctx.pathParam("netId");
         applyRepoPatch(studentNetId, admin.netId(), ctx);
         ctx.result("Successfully updated repoUrl for user: " + studentNetId);

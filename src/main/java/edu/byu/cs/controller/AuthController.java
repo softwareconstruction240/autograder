@@ -55,6 +55,10 @@ public class AuthController {
     public static final Handler verifyAdminMiddleware = ctx -> {
         User user = ctx.sessionAttribute("user");
 
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
+
         if (user.role() != User.Role.ADMIN) {
             throw new ResourceForbiddenException();
         }
@@ -62,7 +66,11 @@ public class AuthController {
 
     public static final Handler meGet = ctx -> {
         User user = ctx.sessionAttribute("user");
-        ctx.json(user);
+        if (user == null) {
+            ctx.result("No user found.");
+        } else {
+            ctx.json(user);
+        }
     };
 
 }

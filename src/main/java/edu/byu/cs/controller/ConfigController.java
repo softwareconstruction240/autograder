@@ -3,6 +3,7 @@ package edu.byu.cs.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.controller.exception.BadRequestException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.service.ConfigService;
@@ -32,7 +33,11 @@ public class ConfigController {
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(ctx.body(), JsonObject.class);
         ArrayList phasesArray = gson.fromJson(jsonObject.get("phases"), ArrayList.class);
+
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
 
         ConfigService.updateLivePhases(phasesArray, user);
     };
@@ -71,6 +76,9 @@ public class ConfigController {
 
     public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {
         User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
         ConfigService.updateCourseIdsUsingCanvas(user);
     };
 }
