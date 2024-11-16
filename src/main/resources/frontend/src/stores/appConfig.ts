@@ -13,9 +13,11 @@ export type Config = {
   bannerColor: string
   bannerExpiration: string
 
-  perDayLatePenalty: number,
-  gitCommitPenalty: number,
-  maxLateDaysPenalized: number,
+  perDayLatePenalty: number
+  gitCommitPenalty: number
+  maxLateDaysPenalized: number
+  linesChangedPerCommit: number
+  clockForgivenessMinutes: number
 
   phases: Array<Phase>
   courseNumber?: number
@@ -57,6 +59,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     perDayLatePenalty.value = latestConfig.perDayLatePenalty
     gitCommitPenalty.value = latestConfig.gitCommitPenalty
     maxLateDaysPenalized.value = latestConfig.maxLateDaysPenalized
+    linesChangedPerCommit.value = latestConfig.linesChangedPerCommit
+    clockForgivenessMinutes.value = latestConfig.clockForgivenessMinutes
 
     for (const phase of listOfPhases() as Phase[]) {
       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
@@ -81,6 +85,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const perDayLatePenalty = ref<number>(0)
   const gitCommitPenalty = ref<number>(0)
   const maxLateDaysPenalized = ref<number>(0)
+  const linesChangedPerCommit = ref<number>(0)
+  const clockForgivenessMinutes = ref<number>(0)
 
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
@@ -102,6 +108,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     courseNumber,
     perDayLatePenalty,
     gitCommitPenalty,
-    maxLateDaysPenalized
+    maxLateDaysPenalized,
+    linesChangedPerCommit,
+    clockForgivenessMinutes
   };
 })

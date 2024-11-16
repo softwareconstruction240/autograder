@@ -54,9 +54,12 @@ onMounted( async () => {
         <PenaltyConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
-        <p><span class="infoLabel">Git Commit Penalty: </span>{{Math.round(appConfigStore.gitCommitPenalty * 100)}}%</p>
         <p><span class="infoLabel">Late Penalty: </span>{{Math.round(appConfigStore.perDayLatePenalty * 100)}}%</p>
         <p><span class="infoLabel">Max Days Penalized: </span>{{appConfigStore.maxLateDaysPenalized}} days</p>
+
+        <p><span class="infoLabel">Git Commit Penalty: </span>{{Math.round(appConfigStore.gitCommitPenalty * 100)}}%</p>
+        <p><span class="infoLabel">Lines Per Commit: </span>{{appConfigStore.linesChangedPerCommit }} lines</p>
+        <p><span class="infoLabel">Clock Forgiveness: </span>{{appConfigStore.clockForgivenessMinutes}} minutes</p>
       </template>
     </ConfigSection>
 

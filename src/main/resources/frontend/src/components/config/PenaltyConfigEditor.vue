@@ -9,19 +9,28 @@ const { closeEditor } = defineProps<{
 
 const appConfig = useAppConfigStore();
 
-const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100))
 const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100))
 const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized)
+const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100))
+const linesChangedPerCommit = ref<number>(appConfig.linesChangedPerCommit)
+const clockForgivenessMinutes = ref<number>(appConfig.clockForgivenessMinutes)
 
 const valuesReady = () => {
   return (gitPenalty.value >= 0) && (gitPenalty.value <= 100)
     && (latePenalty.value >= 0) && (latePenalty.value <= 100)
     && (maxLateDays.value >= 0)
+    && (linesChangedPerCommit.value >= 0)
+    && (clockForgivenessMinutes.value >= 0)
 }
 
 const submit = async () => {
   try {
-    await setPenalties(maxLateDays.value, gitPenalty.value / 100, latePenalty.value / 100)
+    await setPenalties(maxLateDays.value,
+      gitPenalty.value / 100,
+      latePenalty.value / 100,
+      linesChangedPerCommit.value,
+      clockForgivenessMinutes.value)
+
     closeEditor()
   } catch (e) {
     appConfig.updateConfig()
@@ -55,20 +64,18 @@ const submit = async () => {
     <div class="value">
       <p class="valueName">Lines Changed Per Commit</p>
       <p class="valueDescription">The minimum number of lines that must change for a commit to count.</p>
-      <p><input type="number" v-model="gitPenalty"/> lines</p>
+      <p><input type="number" v-model="linesChangedPerCommit"/> lines</p>
     </div>
     <div class="value">
-      <p class="valueName">Clock Variability</p>
+      <p class="valueName">Clock Forgiveness</p>
       <p class="valueDescription">The commit checker will block if commits are authored in the future.
         This value controls how far in the future a student's commit can be to account for differences in system time.</p>
-      <p><input type="number" v-model="gitPenalty"/> minutes</p>
+      <p><input type="number" v-model="clockForgivenessMinutes"/> minutes</p>
     </div>
   </div>
 
-
-
   <button :disabled="!valuesReady()" @click="submit">Submit</button>
-  <p v-if="!valuesReady()" style="max-width: 350px"><em>All values must be non-negative, and penalties must be equal to or less than 100%</em></p>
+  <p v-if="!valuesReady()" style="color: red"><em>All values must be non-negative, and penalties must be equal to or less than 100%</em></p>
   <p><em>None of these values affect admin submissions</em></p>
 </template>
 
