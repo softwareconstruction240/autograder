@@ -9,6 +9,7 @@ import edu.byu.cs.dataAccess.ConfigurationDao.Configuration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
@@ -62,6 +63,8 @@ public class ConfigService {
         response.addProperty("perDayLatePenalty", dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class));
         response.addProperty("gitCommitPenalty", dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class));
         response.addProperty("maxLateDaysPenalized", dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class));
+        response.addProperty("linesChangedPerCommit", dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class));
+        response.addProperty("clockForgivenessMinutes", dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class));
     }
 
     private static void clearBannerConfig() throws DataAccessException {
@@ -223,57 +226,49 @@ public class ConfigService {
         );
     }
 
-    public static void setMaxLateDays(User user, Integer maxDays) throws DataAccessException {
-        if (maxDays < 0) {
-            throw new IllegalArgumentException("Max Late Days must be non-negative");
-        }
+    public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
+        validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
+        validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
+        validateNonNegativeInt(request.clockForgivenessMinutes(), "Clock Forgiveness Minutes");
+        validateNonNegativeInt(request.maxLateDaysPenalized(), "Max Late Days Penalized");
+        validateNonNegativeInt(request.linesChangedPerCommit(), "Lines Changed Per Commit");
 
-        ConfigurationDao dao = DaoService.getConfigurationDao();
-
-        Integer current = dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        if (current.equals(maxDays)) { return; }
-
-        dao.setConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, maxDays, Integer.class);
-        logConfigChange("set maximum late days penalized to %s".formatted(maxDays), user.netId());
+        setConfigItem(user, Configuration.GIT_COMMIT_PENALTY, request.gitCommitPenalty(), Float.class);
+        setConfigItem(user, Configuration.PER_DAY_LATE_PENALTY, request.perDayLatePenalty(), Float.class);
+        setConfigItem(user, Configuration.CLOCK_FORGIVENESS_MINUTES, request.clockForgivenessMinutes(), Integer.class);
+        setConfigItem(user, Configuration.MAX_LATE_DAYS_TO_PENALIZE, request.maxLateDaysPenalized(), Integer.class);
+        setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
     }
 
     /**
-     *
-     * @param user the user making the change
-     * @param perDayPenalty the penalty per day that should be applied. For example, a 10% penalty per day should be
-     *                      passed in as 0.1
+     * throws IllegalArgumentException if percent is not valid
+     * @param percent a float that should be between 0 and 1 (inclusive)
+     * @param name the name of the value, only used when throwing the exception
      */
-    public static void setPerDayLatePenalty(User user, Float perDayPenalty) throws DataAccessException {
-        if ((perDayPenalty < 0) || (perDayPenalty > 1)) {
-            throw new IllegalArgumentException("Per Day Late Penalty must be 0-1");
+    private static void validateValidPercentFloat(float percent, String name) {
+        if ((percent < 0) || (percent > 1)) {
+            throw new IllegalArgumentException(name + " must be 0-1");
         }
-
-        ConfigurationDao dao = DaoService.getConfigurationDao();
-
-        Float current = dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class);
-        if (current.equals(perDayPenalty)) { return; }
-
-        dao.setConfiguration(Configuration.PER_DAY_LATE_PENALTY, perDayPenalty, Float.class);
-        logConfigChange("set the per day late penalty to %s".formatted(perDayPenalty), user.netId());
     }
 
     /**
-     *
-     * @param user the user making the change
-     * @param gitCommitPenalty the penalty should be applied for not having enough commits. For example, a 10%
-     *                         penalty per day should be passed in as 0.1
+     * throws IllegalArgumentException if value is negative
+     * @param value
+     * @param name name of the value, used when throwing the exception
      */
-    public static void setGitCommitPenalty(User user, Float gitCommitPenalty) throws DataAccessException {
-        if ((gitCommitPenalty < 0) || (gitCommitPenalty > 1)) {
-            throw new IllegalArgumentException("Git Commit Penalty must be 0-1");
+    private static void validateNonNegativeInt(int value, String name) {
+        if (value < 0) {
+            throw new IllegalArgumentException(name + " must be non-negative");
         }
+    }
 
+    private static <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
 
-        Float current = dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class);
-        if (current.equals(gitCommitPenalty)) { return; }
+        T current = dao.getConfiguration(configKey, type);
+        if (current.equals(value)) return;
 
-        dao.setConfiguration(Configuration.GIT_COMMIT_PENALTY, gitCommitPenalty, Float.class);
-        logConfigChange("set the git commit penalty to %s".formatted(gitCommitPenalty), user.netId());
+        dao.setConfiguration(configKey, value, type);
+        logConfigChange("changed %s to %s".formatted(configKey.name(), value.toString()), admin.netId());
     }
 }

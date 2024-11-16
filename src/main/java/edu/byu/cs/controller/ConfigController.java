@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.service.ConfigService;
+import edu.byu.cs.util.Serializer;
 import spark.Route;
 
 import java.util.ArrayList;
@@ -94,15 +96,14 @@ public class ConfigController {
     public static final Route updatePenalties = (req, res) -> {
         User user = req.session().attribute("user");
 
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(req.body(), JsonObject.class);
-        Float perDayLatePenalty = gson.fromJson(jsonObject.get("perDayLatePenalty"), Float.class);
-        Float gitCommitPenalty = gson.fromJson(jsonObject.get("gitCommitPenalty"), Float.class);
-        Integer maxLateDaysPenalized = gson.fromJson(jsonObject.get("maxLateDaysPenalized"), Integer.class);
+        ConfigPenaltyUpdateRequest request = Serializer.deserialize(req.body(), ConfigPenaltyUpdateRequest.class);
 
-        ConfigService.setMaxLateDays(user, maxLateDaysPenalized);
-        ConfigService.setGitCommitPenalty(user, gitCommitPenalty);
-        ConfigService.setPerDayLatePenalty(user, perDayLatePenalty);
+        try {
+            ConfigService.processPenaltyUpdates(user, request);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        }
 
         return "";
     };

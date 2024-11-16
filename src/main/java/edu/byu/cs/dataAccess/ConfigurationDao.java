@@ -20,6 +20,8 @@ public interface ConfigurationDao {
         COURSE_NUMBER,
         MAX_LATE_DAYS_TO_PENALIZE,
         PER_DAY_LATE_PENALTY,
-        GIT_COMMIT_PENALTY
+        GIT_COMMIT_PENALTY,
+        LINES_PER_COMMIT_REQUIRED,
+        CLOCK_FORGIVENESS_MINUTES
     }
 }
