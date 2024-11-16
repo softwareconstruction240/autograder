@@ -165,8 +165,8 @@ if you would like some feedback on your code before then.
   - It should have a prefix just like an issue
   - It can be basically the name of the branch
     - Issue: `Frontend: refactor all server calls to one place`
-    - Branch: `server-communicator`
-    - Pull Request: `Frontend: ServerCommunicator`
+    - Branch: `refactor-server-calls-to-one-place`
+    - Pull Request: `Frontend: refactor server calls into ServerCommunicator`
 - Fill out the Pull Request template with enough detail for others to understand what 
   changed without having to read all the new code.
 - Make sure all GitHub actions pass:
