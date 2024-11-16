@@ -68,8 +68,7 @@ const submit = async () => {
     </div>
     <div class="value">
       <p class="valueName">Clock Forgiveness</p>
-      <p class="valueDescription">The commit checker will block if commits are authored in the future.
-        This value controls how far in the future a student's commit can be to account for differences in system time.</p>
+      <p class="valueDescription">The number of minutes in the future we will tolerate local clock non-synchronization in Git Commit Verification.</p>
       <p><input type="number" v-model="clockForgivenessMinutes"/> minutes</p>
     </div>
   </div>
