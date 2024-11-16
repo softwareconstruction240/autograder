@@ -164,7 +164,7 @@ if you would like some feedback on your code before then.
   changed without having to read all the new code.
 - Make sure all GitHub actions pass:
   - Your pull request will be blocked from merging if all tests don't pass
-- Move the connected issue into the `PR Submittted` column on the 
+- Move the connected issue into the `PR Submitted` column on the 
   [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
 - Request a review from other Autograder developers
   - If you're changing an existing system, request a review from the developer that 
