@@ -30,7 +30,7 @@ class ServerTest {
     @BeforeAll
     public static void init() {
         server = new Server(mockedMockProvider);
-        int port = server.start(0);
+        int port = server.start(8080);
         System.out.println("Started test HTTP server on " + port);
 
         serverFacade = new TestServerFacade("localhost", port);
