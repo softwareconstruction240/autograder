@@ -2,13 +2,11 @@ package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.controller.exception.*;
-import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import edu.byu.cs.util.Serializer;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.HandlerType;
-import io.javalin.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +36,8 @@ public class Server {
                     config.jsonMapper(Serializer.jsonMapper);
 
                     config.router.apiBuilder(() -> {
+                        before(provider.beforeAll());
+
                         path("/auth", () -> {
                             get("/callback", provider.callbackGet());
                             get("/login", provider.loginGet());
@@ -115,14 +115,9 @@ public class Server {
                             });
                         });
 
-                        get("/*", ctx -> {
-                            if (ctx.path().equals("/ws")) // TODO Does this match?
-                                return;
+                        get("/*", provider.defaultGet());
 
-                            String urlParams = ctx.queryString();
-                            urlParams = urlParams == null ? "" : "?" + urlParams;
-                            ctx.redirect("/" + urlParams, HttpStatus.FOUND);
-                        });
+                        after(provider.afterAll());
                     });
                 })
 
@@ -130,13 +125,6 @@ public class Server {
                     wsConfig.onError(WebSocketController::onError);
                     wsConfig.onMessage(WebSocketController::onMessage);
                     // TODO Spark.webSocketIdleTimeoutMillis(300000);
-                })
-
-                .before(ctx -> {
-                    ctx.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-                    ctx.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-                    ctx.header("Access-Control-Allow-Credentials", "true");
-                    ctx.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
                 })
 
                 .exception(BadRequestException.class, haltWithCode(400))

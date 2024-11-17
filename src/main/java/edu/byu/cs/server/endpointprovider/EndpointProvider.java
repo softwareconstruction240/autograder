@@ -4,6 +4,13 @@ import io.javalin.http.Handler;
 
 public interface EndpointProvider {
 
+    // Wildcard endpoints
+
+    Handler beforeAll();
+    Handler afterAll();
+
+    Handler defaultGet();
+
     // AdminController
 
     Handler usersGet();

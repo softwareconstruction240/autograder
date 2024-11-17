@@ -1,9 +1,39 @@
 package edu.byu.cs.server.endpointprovider;
 
 import edu.byu.cs.controller.*;
+import edu.byu.cs.properties.ApplicationProperties;
 import io.javalin.http.Handler;
+import io.javalin.http.HttpStatus;
 
 public class EndpointProviderImpl implements EndpointProvider {
+
+    // Wildcard endpoints
+
+    @Override
+    public Handler beforeAll() {
+        return ctx -> {
+            ctx.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+            ctx.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+            ctx.header("Access-Control-Allow-Credentials", "true");
+            ctx.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
+        };
+    }
+
+    @Override
+    public Handler afterAll() {
+        return ctx -> {};
+    }
+
+    @Override
+    public Handler defaultGet() {
+        return ctx -> {
+            if (!ctx.path().equals("/ws")) {
+                String urlParams = ctx.queryString();
+                urlParams = urlParams == null ? "" : "?" + urlParams;
+                ctx.redirect("/" + urlParams, HttpStatus.FOUND);
+            }
+        };
+    }
 
     // AdminController
 
