@@ -49,7 +49,7 @@ public class CasController {
         }
 
         // TODO: call cas logout endpoint with ticket
-        ctx.removeCookie("/", "token");
+        ctx.removeCookie("token", "/");
         ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
     };
 
