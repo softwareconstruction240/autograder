@@ -7,9 +7,12 @@ public interface EndpointProvider {
     // Wildcard endpoints
 
     Handler beforeAll();
+
     Handler afterAll();
 
     Handler defaultGet();
+
+    Handler defaultOptions();
 
     // AdminController
 

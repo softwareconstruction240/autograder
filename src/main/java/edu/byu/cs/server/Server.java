@@ -121,6 +121,8 @@ public class Server {
                     });
                 })
 
+                .options("/*", provider.defaultOptions())
+
                 .ws("/ws", (wsConfig) -> {
                     wsConfig.onError(WebSocketController::onError);
                     wsConfig.onMessage(WebSocketController::onMessage);

@@ -35,6 +35,11 @@ public class EndpointProviderImpl implements EndpointProvider {
         };
     }
 
+    @Override
+    public Handler defaultOptions() {
+        return ctx -> {};
+    }
+
     // AdminController
 
     @Override
