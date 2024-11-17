@@ -94,8 +94,7 @@ class ServerTest {
 
                 verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any()); // Then
 
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 failingEndpoints.add(endpointName);
             }
         }
@@ -119,7 +118,7 @@ class ServerTest {
     }
 
     @Test
-    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_handlers_exactly_once_in_order()
+    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order()
             throws IOException, ServerConnectionException, ResponseParseException {
         serverFacade.makeRequest("GET", "/iDoNotExist");
 
@@ -136,7 +135,7 @@ class ServerTest {
     }
 
     @Test
-    void meGet_endpoint_calls_beforeAll_and_afterAll_handlers_exactly_once_in_order()
+    void meGet_endpoint_calls_beforeAll_then_meGet_then_afterAll_exactly_once_in_order()
             throws IOException, ServerConnectionException, ResponseParseException {
         serverFacade.makeRequest("GET", "/api/me");
 
