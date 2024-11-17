@@ -26,7 +26,7 @@ public class MockEndpointProvider implements EndpointProvider {
      * @return null
      */
     public Object runHandler(String name, Request req, Response res) {
-        return null;
+        return "{}";
     }
 
     @Override
