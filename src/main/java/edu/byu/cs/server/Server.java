@@ -20,6 +20,7 @@ public class Server {
     public int start(int desiredPort) {
         int chosenPort = setupEndpoints(desiredPort);
         LOGGER.info("Server started on port {}", chosenPort);
+        awaitInitialization();
         return chosenPort;
     }
 
