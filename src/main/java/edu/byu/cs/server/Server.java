@@ -4,6 +4,7 @@ import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Spark;
 
 import static spark.Spark.*;
 
@@ -20,6 +21,10 @@ public class Server {
         int chosenPort = setupEndpoints(desiredPort);
         LOGGER.info("Server started on port {}", chosenPort);
         return chosenPort;
+    }
+
+    public void stop() {
+        Spark.stop();
     }
 
     private int setupEndpoints(int port) {
