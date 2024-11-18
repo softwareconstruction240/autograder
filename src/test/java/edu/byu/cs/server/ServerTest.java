@@ -109,13 +109,6 @@ class ServerTest {
     }
 
     @Test
-    void nonexistent_GET_endpoint_calls_defaultGet_exactly_once()
-            throws IOException, ServerConnectionException, ResponseParseException {
-        serverFacade.makeRequest("GET", "/iDoNotExist");
-        verify(mockedMockProvider, times(1)).runHandler(eq("defaultGet"), any(), any());
-    }
-
-    @Test
     void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order()
             throws IOException, ServerConnectionException, ResponseParseException {
         serverFacade.makeRequest("GET", "/iDoNotExist");
