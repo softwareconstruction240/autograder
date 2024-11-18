@@ -5,6 +5,8 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
+import java.util.Map;
+
 /**
  * A mock implementation of EndpointProvider designed for use with
  * Mockito.mock(). Because individual endpoint methods only run once at
@@ -24,8 +26,26 @@ public class MockEndpointProvider implements EndpointProvider {
      */
     public void runHandler(String endpointName) {}
 
+    /**
+     * An empty function that is run for each path parameter in each endpoint
+     * that is called. It is designed for use with Mockito.verify() to verify
+     * that endpoints are called with specific path parameters.
+     *
+     * @param endpointName the name of the Route that was called
+     * @param paramName    the name of the parameter
+     * @param paramValue   the value of the parameter
+     */
+    public void hasPathParam(String endpointName, String paramName, String paramValue) {}
+
     private Object extractRequestInfo(String endpointName, Request req, Response res) {
+        Map<String, String> params = req.params();
+        for (String paramName : params.keySet()) {
+            String paramValue = params.get(paramName);
+            this.hasPathParam(endpointName, paramName, paramValue);
+        }
+
         this.runHandler(endpointName);
+
         return "{}";
     }
 
