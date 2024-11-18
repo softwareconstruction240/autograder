@@ -2,6 +2,7 @@ import { type Config, useAppConfigStore } from '@/stores/appConfig'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { useAuthStore } from '@/stores/auth'
 import { ServerCommunicator } from '@/network/ServerCommunicator'
+import { ServerError } from '@/network/ServerError'
 
 export const getConfig = async ():Promise<Config> => {
   let endpoint = "/api"
@@ -41,12 +42,21 @@ export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
 }
 
+export const setGraderShutdown = async (shutdownTimestamp: string, shutdownWarningHours: number): Promise<void> => {
+  if (shutdownWarningHours < 0) shutdownWarningHours = 0
+
+  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
+    "shutdownTimestamp": shutdownTimestamp,
+    "shutdownWarningMilliseconds": Math.trunc(shutdownWarningHours * 60 * 60 * 1000) // convert to milliseconds
+  })
+}
+
 export const setCanvasCourseIds = async (): Promise<void> => {
   await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 }
 
 const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
-    let obj: any = {};
+    const obj: any = {};
     rubricInfo.forEach((rubricTypeMap, phase) => {
         obj[phase] = Object.fromEntries(rubricTypeMap.entries());
     });
@@ -67,10 +77,17 @@ export const setCourseIds = async (
 }
 
 const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
-  if (method == "GET") {
-    await ServerCommunicator.getRequest(path, false)
-  } else {
-    await ServerCommunicator.postRequest(path, body, false)
+  try {
+    if (method == "GET") {
+      await ServerCommunicator.getRequest(path, false)
+    } else {
+      await ServerCommunicator.postRequest(path, body, false)
+    }
+  } catch (e) {
+    if (e instanceof ServerError) {
+      alert(e.message)
+    }
   }
+
   await useAppConfigStore().updateConfig();
 }

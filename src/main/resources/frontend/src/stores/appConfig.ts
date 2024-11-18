@@ -19,6 +19,9 @@ export type Config = {
   linesChangedPerCommit: number
   clockForgivenessMinutes: number
 
+  shutdownSchedule: string
+  shutdownWarningMilliseconds: number
+
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -62,6 +65,10 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     linesChangedPerCommit.value = latestConfig.linesChangedPerCommit
     clockForgivenessMinutes.value = latestConfig.clockForgivenessMinutes
 
+    shutdownSchedule.value = latestConfig.shutdownSchedule
+    shutdownWarningMilliseconds.value = latestConfig.shutdownWarningMilliseconds
+
+
     for (const phase of listOfPhases() as Phase[]) {
       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
     }
@@ -88,6 +95,9 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const linesChangedPerCommit = ref<number>(0)
   const clockForgivenessMinutes = ref<number>(0)
 
+  const shutdownSchedule: Ref<string> = ref<string>("");
+  const shutdownWarningMilliseconds: Ref<number> = ref<number>(0);
+
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
@@ -102,6 +112,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     bannerLink,
     bannerColor,
     bannerExpiration,
+    shutdownSchedule,
+    shutdownWarningMilliseconds,
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,

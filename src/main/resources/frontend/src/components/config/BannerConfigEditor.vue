@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { setBanner } from '@/services/configService'
+import { combineDateAndTime } from '@/utils/utils'
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
@@ -25,7 +26,7 @@ const clearBannerMessage = () => {
 const submitBanner = async () => {
   let combinedDateTime;
   if (bannerWillExpire.value) {
-    combinedDateTime = `${bannerExpirationDate.value}T${bannerExpirationTime.value ? bannerExpirationTime.value : "23:59"}:59`;
+    combinedDateTime = combineDateAndTime(bannerExpirationDate.value, bannerExpirationTime.value);
   } else {
     combinedDateTime = ""
   }

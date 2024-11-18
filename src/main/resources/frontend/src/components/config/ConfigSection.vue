@@ -44,7 +44,6 @@ const openEditor = () => {
 
 const closeEditor = () => {
   editorPopup.value = false;
-  useAppConfigStore().updateConfig()
 }
 </script>
 
