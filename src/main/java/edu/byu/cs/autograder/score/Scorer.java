@@ -40,7 +40,8 @@ public class Scorer {
     public Scorer(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
         try {
-            PER_DAY_LATE_PENALTY = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+            ConfigurationDao dao = DaoService.getConfigurationDao();
+            PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
         } catch (DataAccessException e) {
             LOGGER.error("Error while getting Per Day Late Penalty for Scorer.");
             throw new RuntimeException(e);
