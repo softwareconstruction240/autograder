@@ -17,10 +17,8 @@ class ServerTest {
 
     private static final MockEndpointProvider mockedMockProvider = spy(new MockEndpointProvider());
 
-    // TODO verify middleware
     // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
     // TODO verify endpoints that take pathParams
-    // TODO verify whether authentication is required
 
     @AfterAll
     static void stopServer() {
@@ -93,6 +91,8 @@ class ServerTest {
             } catch (Exception e) {
                 failingEndpoints.add(endpointName);
             }
+
+            reset(mockedMockProvider);
         }
 
         Assertions.assertEquals(new HashSet<>(), failingEndpoints,
@@ -107,8 +107,27 @@ class ServerTest {
         // Then
         InOrder inOrder = inOrder(mockedMockProvider);
         inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
+        this.verifyInOrder_authenticationMiddleware(path, inOrder);
         inOrder.verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any());
         inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
+    }
+
+    private void verifyInOrder_authenticationMiddleware(String path, InOrder inOrder) {
+        List<String> pathNodes = Arrays.stream(path.split("/")).toList();
+
+        if (!pathNodes.contains("api")) {
+            return;
+        }
+
+        if (!pathNodes.contains("auth")) {
+            // Requires authentication
+            inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("verifyAuthenticatedMiddleware"), any(), any());
+        }
+
+        if (pathNodes.contains("admin")) {
+            // Requires admin
+            inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("verifyAdminMiddleware"), any(), any());
+        }
     }
 
     @Test
