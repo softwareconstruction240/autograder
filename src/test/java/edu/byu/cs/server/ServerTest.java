@@ -4,10 +4,14 @@ import edu.byu.cs.server.endpointprovider.MockEndpointProvider;
 import edu.byu.cs.server.exception.ResponseParseException;
 import edu.byu.cs.server.exception.ServerConnectionException;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InOrder;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 
@@ -16,6 +20,37 @@ class ServerTest {
     private static Server server;
 
     private static final MockEndpointProvider mockedMockProvider = spy(new MockEndpointProvider());
+
+    public static Stream<Arguments> getEndpoints() {
+        return Stream.of(
+                Arguments.of("GET", "callbackGet", "/auth/callback"),
+                Arguments.of("GET", "loginGet", "/auth/login"),
+                Arguments.of("GET", "usersGet", "/api/admin/users"),
+                Arguments.of("GET", "testModeGet", "/api/admin/test_mode"),
+                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit"), // TODO: test with {option}
+//                Arguments.of("GET", "honorCheckerZipGet", "/api/admin/honorChecker/zip/{section}"), // TODO: requires {section}
+                Arguments.of("GET", "sectionsGet", "/api/admin/sections"),
+                Arguments.of("GET", "meGet", "/api/me"),
+                Arguments.of("GET", "getConfigAdmin", "/api/admin/config"),
+                Arguments.of("GET", "getConfigStudent", "/api/config"),
+                Arguments.of("GET", "updateCourseIdsUsingCanvasGet", "/api/admin/config/courseIds"),
+                Arguments.of("GET", "submitGet", "/api/submit"),
+                Arguments.of("GET", "latestSubmissionForMeGet", "/api/latest"),
+                Arguments.of("GET", "submissionXGet", "/api/submission"), // TODO test with {phase}
+                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest"), // TODO: test with {count}
+                Arguments.of("GET", "submissionsActiveGet", "/api/admin/submissions/active"),
+//                Arguments.of("GET", "studentSubmissionsGet", "/admin/submissions/student/{netId}"), // TODO: requires {netId}
+                Arguments.of("GET", "repoHistoryAdminGet", "/api/admin/repo/history"),
+                Arguments.of("POST", "logoutPost", "/auth/logout"),
+                Arguments.of("POST", "updateLivePhases", "/api/admin/config/phases"),
+                Arguments.of("POST", "updateBannerMessage", "/api/admin/config/banner"),
+                Arguments.of("POST", "updateCourseIdsPost", "/api/admin/config/courseIds"),
+                Arguments.of("POST", "submitPost", "/api/submit"),
+                Arguments.of("POST", "adminRepoSubmitPost", "/api/admin/submit"),
+                Arguments.of("POST", "approveSubmissionPost", "/api/admin/submissions/approve"),
+                Arguments.of("POST", "submissionsReRunPost", "/api/admin/submissions/rerun")
+        );
+    }
 
     // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
     // TODO verify endpoints that take pathParams
@@ -39,73 +74,16 @@ class ServerTest {
         reset(mockedMockProvider);
     }
 
-    @Test
-    void method_GET_endpoints_call_their_handlers_exactly_once() {
-        String[][] endpoints = {
-                {"callbackGet", "/auth/callback"},
-                {"loginGet", "/auth/login"},
-                {"usersGet", "/api/admin/users"},
-                {"testModeGet", "/api/admin/test_mode"},
-                {"commitAnalyticsGet", "/api/admin/analytics/commit"}, // TODO: test with {option}
-//                {"honorCheckerZipGet", "/api/admin/honorChecker/zip/{section}"}, // TODO: requires {section}
-                {"sectionsGet", "/api/admin/sections"},
-                {"meGet", "/api/me"},
-                {"getConfigAdmin", "/api/admin/config"},
-                {"getConfigStudent", "/api/config"},
-                {"updateCourseIdsUsingCanvasGet", "/api/admin/config/courseIds"},
-                {"submitGet", "/api/submit"},
-                {"latestSubmissionForMeGet", "/api/latest"},
-                {"submissionXGet", "/api/submission"}, // TODO test with {phase}
-                {"latestSubmissionsGet", "/api/admin/submissions/latest"}, // TODO: test with {count}
-                {"submissionsActiveGet", "/api/admin/submissions/active"},
-//                {"studentSubmissionsGet", "/admin/submissions/student/{netId}"}, // TODO requires {netId}
-                {"repoHistoryAdminGet", "/api/admin/repo/history"}
-        };
-
-        verifyEndpointsCallTheirHandlersExactlyOnceInOrder("GET", endpoints);
-    }
-
-    @Test
-    void method_POST_endpoints_call_their_handlers_exactly_once() {
-        String[][] endpoints = {
-                {"logoutPost", "/auth/logout"},
-                {"updateLivePhases", "/api/admin/config/phases"},
-                {"updateBannerMessage", "/api/admin/config/banner"},
-                {"updateCourseIdsPost", "/api/admin/config/courseIds"},
-                {"submitPost", "/api/submit"},
-                {"adminRepoSubmitPost", "/api/admin/submit"},
-                {"approveSubmissionPost", "/api/admin/submissions/approve"},
-                {"submissionsReRunPost", "/api/admin/submissions/rerun"}
-        };
-
-        verifyEndpointsCallTheirHandlersExactlyOnceInOrder("POST", endpoints);
-    }
-
-    private void verifyEndpointsCallTheirHandlersExactlyOnceInOrder(String method, String[][] endpoints) {
-        Set<String> failingEndpoints = new HashSet<>();
-        for (String[] endpoint : endpoints) {
-            String endpointName = endpoint[0];
-            String path = endpoint[1];
-            try {
-                verifyEndpointCallsItsHandlersExactlyOnceInOrder(endpointName, method, path);
-            } catch (Exception e) {
-                failingEndpoints.add(endpointName);
-            }
-
-            reset(mockedMockProvider);
-        }
-
-        Assertions.assertEquals(new HashSet<>(), failingEndpoints,
-                "Not all endpoints had exactly 1 function call.");
-    }
-
-    private void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String endpointName, String method, String path)
+    @ParameterizedTest
+    @MethodSource("getEndpoints")
+    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String endpointName, String path)
             throws ServerConnectionException, ResponseParseException, IOException {
         // When
         serverFacade.makeRequest(method, path);
 
-        // Then
         InOrder inOrder = inOrder(mockedMockProvider);
+
+        // Then
         inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
         this.verifyInOrder_authenticationMiddleware(path, inOrder);
         inOrder.verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any());
