@@ -84,10 +84,10 @@ class ServerTest {
         InOrder inOrder = inOrder(mockedMockProvider);
 
         // Then
-        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
+        inOrder.verify(mockedMockProvider, times(1)).runHandler("beforeAll");
         this.verifyInOrder_authenticationMiddleware(path, inOrder);
-        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any());
-        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
+        inOrder.verify(mockedMockProvider, times(1)).runHandler(endpointName);
+        inOrder.verify(mockedMockProvider, times(1)).runHandler("afterAll");
     }
 
     private void verifyInOrder_authenticationMiddleware(String path, InOrder inOrder) {
@@ -99,12 +99,12 @@ class ServerTest {
 
         if (!pathNodes.contains("auth")) {
             // Requires authentication
-            inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("verifyAuthenticatedMiddleware"), any(), any());
+            inOrder.verify(mockedMockProvider, times(1)).runHandler("verifyAuthenticatedMiddleware");
         }
 
         if (pathNodes.contains("admin")) {
             // Requires admin
-            inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("verifyAdminMiddleware"), any(), any());
+            inOrder.verify(mockedMockProvider, times(1)).runHandler("verifyAdminMiddleware");
         }
     }
 
@@ -115,13 +115,13 @@ class ServerTest {
 
         // Verify they ran in order
         InOrder inOrder = inOrder(mockedMockProvider);
-        inOrder.verify(mockedMockProvider).runHandler(eq("beforeAll"), any(), any());
-        inOrder.verify(mockedMockProvider).runHandler(eq("defaultGet"), any(), any());
-        inOrder.verify(mockedMockProvider).runHandler(eq("afterAll"), any(), any());
+        inOrder.verify(mockedMockProvider).runHandler("beforeAll");
+        inOrder.verify(mockedMockProvider).runHandler("defaultGet");
+        inOrder.verify(mockedMockProvider).runHandler("afterAll");
 
         // Verify they only ran once
-        verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
-        verify(mockedMockProvider, times(1)).runHandler(eq("defaultGet"), any(), any());
-        verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
+        verify(mockedMockProvider, times(1)).runHandler("beforeAll");
+        verify(mockedMockProvider, times(1)).runHandler("defaultGet");
+        verify(mockedMockProvider, times(1)).runHandler("afterAll");
     }
 }
