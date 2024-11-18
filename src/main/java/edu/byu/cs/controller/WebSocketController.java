@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
@@ -25,6 +26,7 @@ public class WebSocketController {
         Session session = ctx.session;
         String message = ctx.message();
         String netId;
+        ctx.enableAutomaticPings(20, TimeUnit.SECONDS);
         try {
             netId = JwtUtils.validateToken(message);
         } catch (Exception e) {

@@ -126,7 +126,6 @@ public class Server {
                 .ws("/ws", (wsConfig) -> {
                     wsConfig.onError(WebSocketController::onError);
                     wsConfig.onMessage(WebSocketController::onMessage);
-                    // TODO Spark.webSocketIdleTimeoutMillis(300000);
                 })
 
                 .exception(BadRequestException.class, haltWithCode(400))
