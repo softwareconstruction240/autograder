@@ -21,14 +21,23 @@ class ServerTest {
 
     private static final MockEndpointProvider mockedMockProvider = spy(new MockEndpointProvider());
 
+    public static Stream<Arguments> getPathParamEndpoints() {
+        return Stream.of(
+                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit", ":option"),
+                Arguments.of("GET", "honorCheckerZipGet", "/api/admin/honorChecker/zip", ":section"),
+                Arguments.of("GET", "submissionXGet", "/api/submission", ":phase"),
+                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest", ":count"),
+                Arguments.of("GET", "studentSubmissionsGet", "/api/admin/submissions/student", ":netid")
+        );
+    }
+
     public static Stream<Arguments> getEndpoints() {
         return Stream.of(
                 Arguments.of("GET", "callbackGet", "/auth/callback"),
                 Arguments.of("GET", "loginGet", "/auth/login"),
                 Arguments.of("GET", "usersGet", "/api/admin/users"),
                 Arguments.of("GET", "testModeGet", "/api/admin/test_mode"),
-                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit"), // TODO: test with {option}
-//                Arguments.of("GET", "honorCheckerZipGet", "/api/admin/honorChecker/zip/{section}"), // TODO: requires {section}
+                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit"),
                 Arguments.of("GET", "sectionsGet", "/api/admin/sections"),
                 Arguments.of("GET", "meGet", "/api/me"),
                 Arguments.of("GET", "getConfigAdmin", "/api/admin/config"),
@@ -36,10 +45,9 @@ class ServerTest {
                 Arguments.of("GET", "updateCourseIdsUsingCanvasGet", "/api/admin/config/courseIds"),
                 Arguments.of("GET", "submitGet", "/api/submit"),
                 Arguments.of("GET", "latestSubmissionForMeGet", "/api/latest"),
-                Arguments.of("GET", "submissionXGet", "/api/submission"), // TODO test with {phase}
-                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest"), // TODO: test with {count}
+                Arguments.of("GET", "submissionXGet", "/api/submission"),
+                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest"),
                 Arguments.of("GET", "submissionsActiveGet", "/api/admin/submissions/active"),
-//                Arguments.of("GET", "studentSubmissionsGet", "/admin/submissions/student/{netId}"), // TODO: requires {netId}
                 Arguments.of("GET", "repoHistoryAdminGet", "/api/admin/repo/history"),
                 Arguments.of("POST", "logoutPost", "/auth/logout"),
                 Arguments.of("POST", "updateLivePhases", "/api/admin/config/phases"),
@@ -53,7 +61,6 @@ class ServerTest {
     }
 
     // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
-    // TODO verify endpoints that take pathParams
 
     @AfterAll
     static void stopServer() {
@@ -88,6 +95,20 @@ class ServerTest {
         this.verifyInOrder_authenticationMiddleware(path, inOrder);
         inOrder.verify(mockedMockProvider, times(1)).runHandler(endpointName);
         inOrder.verify(mockedMockProvider, times(1)).runHandler("afterAll");
+    }
+
+    @ParameterizedTest
+    @MethodSource("getPathParamEndpoints")
+    public void verifyPathParameterHasAValueWhenGivenOne(String method, String endpointName, String path, String pathParamName)
+            throws ServerConnectionException, ResponseParseException, IOException {
+        // Given
+        String fullPath = path + "/testParamValue";
+
+        // When
+        serverFacade.makeRequest(method, fullPath);
+
+        // Then
+        verify(mockedMockProvider, times(1)).hasPathParam(endpointName, pathParamName, "testParamValue");
     }
 
     private void verifyInOrder_authenticationMiddleware(String path, InOrder inOrder) {
