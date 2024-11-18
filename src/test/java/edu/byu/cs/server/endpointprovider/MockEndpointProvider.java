@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * A mock implementation of EndpointProvider designed for use with
- * Mockito.mock(). Because individual endpoint methods only run once at
+ * Mockito.spy() (not mock()). Because individual endpoint methods only run once at
  * Server startup, they aren't useful for verifying endpoint calls.
  * MockEndpointProvider provides a runHandler() method that can be used for
  * that purpose.
