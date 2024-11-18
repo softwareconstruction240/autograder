@@ -64,7 +64,7 @@ class ServerTest {
                 {"repoHistoryAdminGet", "/api/admin/repo/history"}
         };
 
-        verifyEndpointsCallTheirHandlersExactlyOnce("GET", endpoints);
+        verifyEndpointsCallTheirHandlersExactlyOnceInOrder("GET", endpoints);
     }
 
     @Test
@@ -80,20 +80,16 @@ class ServerTest {
                 {"submissionsReRunPost", "/api/admin/submissions/rerun"}
         };
 
-        verifyEndpointsCallTheirHandlersExactlyOnce("POST", endpoints);
+        verifyEndpointsCallTheirHandlersExactlyOnceInOrder("POST", endpoints);
     }
 
-    private void verifyEndpointsCallTheirHandlersExactlyOnce(String method, String[][] endpoints) {
+    private void verifyEndpointsCallTheirHandlersExactlyOnceInOrder(String method, String[][] endpoints) {
         Set<String> failingEndpoints = new HashSet<>();
         for (String[] endpoint : endpoints) {
             String endpointName = endpoint[0];
             String path = endpoint[1];
             try {
-
-                serverFacade.makeRequest(method, path); // When
-
-                verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any()); // Then
-
+                verifyEndpointCallsItsHandlersExactlyOnceInOrder(endpointName, method, path);
             } catch (Exception e) {
                 failingEndpoints.add(endpointName);
             }
@@ -101,6 +97,18 @@ class ServerTest {
 
         Assertions.assertEquals(new HashSet<>(), failingEndpoints,
                 "Not all endpoints had exactly 1 function call.");
+    }
+
+    private void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String endpointName, String method, String path)
+            throws ServerConnectionException, ResponseParseException, IOException {
+        // When
+        serverFacade.makeRequest(method, path);
+
+        // Then
+        InOrder inOrder = inOrder(mockedMockProvider);
+        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
+        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq(endpointName), any(), any());
+        inOrder.verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
     }
 
     @Test
@@ -124,23 +132,6 @@ class ServerTest {
         // Verify they only ran once
         verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
         verify(mockedMockProvider, times(1)).runHandler(eq("defaultGet"), any(), any());
-        verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
-    }
-
-    @Test
-    void meGet_endpoint_calls_beforeAll_then_meGet_then_afterAll_exactly_once_in_order()
-            throws IOException, ServerConnectionException, ResponseParseException {
-        serverFacade.makeRequest("GET", "/api/me");
-
-        // Verify they ran in order
-        InOrder inOrder = inOrder(mockedMockProvider);
-        inOrder.verify(mockedMockProvider).runHandler(eq("beforeAll"), any(), any());
-        inOrder.verify(mockedMockProvider).runHandler(eq("meGet"), any(), any());
-        inOrder.verify(mockedMockProvider).runHandler(eq("afterAll"), any(), any());
-
-        // Verify they only ran once
-        verify(mockedMockProvider, times(1)).runHandler(eq("beforeAll"), any(), any());
-        verify(mockedMockProvider, times(1)).runHandler(eq("meGet"), any(), any());
         verify(mockedMockProvider, times(1)).runHandler(eq("afterAll"), any(), any());
     }
 }
