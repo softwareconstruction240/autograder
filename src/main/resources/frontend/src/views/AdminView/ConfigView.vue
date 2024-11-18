@@ -28,8 +28,11 @@ onMounted( async () => {
       </template>
       <template #current>
       <div v-if="appConfigStore.bannerMessage">
-        <p><span class="infoLabel">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
-        <p><span class="infoLabel">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
+        <p><span class="infoLabel">Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
+        <p><span class="infoLabel">Link: </span>
+          <span v-if="appConfigStore.bannerLink" v-html="generateClickableLink(appConfigStore.bannerLink)"/>
+          <span v-else>none</span>
+        </p>
         <p><span class="infoLabel">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
       </div>
         <p v-else>There is currently no banner message</p>
