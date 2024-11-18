@@ -43,12 +43,12 @@ const submit = async () => {
   <div class="penalty">
     <div class="value">
       <p class="valueName">Late Penalty</p>
-      <p class="valueDescription">Applied per day the submission is late</p>
+      <p class="valueDescription">Applied per day the submission is late.</p>
       <p><input type="number" v-model="latePenalty"/>%</p>
     </div>
     <div class="value">
       <p class="valueName">Max Late Days</p>
-      <p class="valueDescription">Days after which the late penalty caps out</p>
+      <p class="valueDescription">Days after which the late penalty caps out.</p>
       <p><input type="number" v-model="maxLateDays"/> days</p>
     </div>
   </div>
@@ -58,7 +58,7 @@ const submit = async () => {
   <div class="penalty">
     <div class="value">
       <p class="valueName">Git Commit Penalty</p>
-      <p class="valueDescription">Applied when students don't have enough commits</p>
+      <p class="valueDescription">Applied when students don't have enough commits and a TA determines they should receive a penalty.</p>
       <p><input type="number" v-model="gitPenalty"/>%</p>
     </div>
     <div class="value">
