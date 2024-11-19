@@ -1,7 +1,5 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
 import edu.byu.cs.dataAccess.*;
@@ -10,7 +8,9 @@ import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.SubmissionService;
 import edu.byu.cs.util.Serializer;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class SubmissionController {
     public static final Handler adminRepoSubmitPost = ctx -> {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
 
         GradeRequest request = validateAndUnpackRequest(ctx);
@@ -44,30 +44,30 @@ public class SubmissionController {
         SubmissionService.adminRepoSubmit(user.netId(), request);
     };
 
-    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException, UnauthorizedException {
+    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
-            throw new BadRequestException("You are already in the queue");
+            throw new BadRequestResponse("You are already in the queue");
         }
 
         GradeRequest request;
         try {
             request = ctx.bodyAsClass(GradeRequest.class);
         } catch (Serializer.SerializationException e) {
-            throw new BadRequestException("Request must be valid json", e);
+            throw new BadRequestResponse("Request must be valid json");
         }
 
         if (request == null || request.phase() == null) {
-            throw new BadRequestException("Request is invalid");
+            throw new BadRequestResponse("Request is invalid");
         }
 
         if (user.repoUrl() == null && user.role() == User.Role.STUDENT) {
-            throw new BadRequestException("Student has not provided repo url");
+            throw new BadRequestResponse("Student has not provided repo url");
         }
 
         return request;
@@ -76,7 +76,7 @@ public class SubmissionController {
     public static final Handler submitGet = ctx -> {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         boolean inQueue = SubmissionService.isAlreadyInQueue(user.netId());
         ctx.json(Map.of("inQueue", inQueue));
@@ -85,7 +85,7 @@ public class SubmissionController {
     public static final Handler latestSubmissionForMeGet = ctx -> {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
         ctx.json(submission);
@@ -99,12 +99,12 @@ public class SubmissionController {
             phase = Phase.valueOf(phaseString);
         } catch (IllegalArgumentException e) {
             LOGGER.error("Invalid phase", e);
-            throw new BadRequestException("Invalid phase", e);
+            throw new BadRequestResponse("Invalid phase");
         }
 
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
         ctx.json(submissions);
@@ -136,7 +136,7 @@ public class SubmissionController {
     public static final Handler approveSubmissionPost = ctx -> {
         User adminUser = ctx.sessionAttribute("user");
         if (adminUser == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
         SubmissionService.approveSubmission(adminUser.netId(), request);

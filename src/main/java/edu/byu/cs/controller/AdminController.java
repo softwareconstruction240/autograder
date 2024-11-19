@@ -1,10 +1,10 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
 import io.javalin.http.Handler;
+import io.javalin.http.NotFoundResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class AdminController {
             ctx.result(data);
         } catch (IllegalStateException e) {
             LOGGER.error(e.getMessage());
-            throw new ResourceNotFoundException(e.getMessage(), e);
+            throw new NotFoundResponse(e.getMessage());
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
             throw e;

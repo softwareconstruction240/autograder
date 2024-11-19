@@ -1,14 +1,14 @@
 package edu.byu.cs.service;
 
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.controller.exception.UnprocessableEntityException;
-import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.RepoUrlValidator;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ImATeapotResponse;
+import io.javalin.http.InternalServerErrorResponse;
+import io.javalin.http.UnprocessableContentResponse;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -25,17 +25,15 @@ import java.util.UUID;
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
-            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
+    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) {
         String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
         setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
     }
 
-    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
-            throws InternalServerException, UnprocessableEntityException {
+    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId) {
         Collection<RepoUpdate> updates = new ArrayList<>();
         if (repoUrl == null && netId == null) {
-            throw new UnprocessableEntityException("You must provide either a repoUrl or a netId");
+            throw new UnprocessableContentResponse("You must provide either a repoUrl or a netId");
         }
 
         try {
@@ -47,37 +45,36 @@ public class UserService {
             }
         } catch (Exception e) {
             LOGGER.error("Error getting repo updates:", e);
-            throw new InternalServerException(e.getMessage(), e);
+            throw new InternalServerErrorResponse(e.getMessage());
         }
 
         return updates;
     }
 
-    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId)
-            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
+    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId) {
         try {
             if (!isValidRepoUrl(repoUrl)) {
-                throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
+                throw new BadRequestResponse("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
             }
-        } catch (BadRequestException e) {
+        } catch (BadRequestResponse e) {
             throw e;
         } catch (Exception e) {
             LOGGER.error("Error cloning repo during repoPatch: {}", e.getMessage());
-            throw new InternalServerException("There was an internal server error in verifying the Github Repo", e);
+            throw new InternalServerErrorResponse("There was an internal server error in verifying the Github Repo");
         }
 
         RepoUpdate historicalUpdate;
         try {
             historicalUpdate = verifyRepoIsAvailableForUser(repoUrl, studentNetId);
         } catch (DataAccessException e) {
-            throw new InternalServerException("There was an internal server error in checking the repo update history for this url", e);
+            throw new InternalServerErrorResponse("There was an internal server error in checking the repo update history for this url");
         }
         if (historicalUpdate != null) {
             if (adminNetId != null) {
-                throw new WordOfWisdomViolationException("Repo is blocked because of a prior claim: " + historicalUpdate);
+                throw new ImATeapotResponse("Repo is blocked because of a prior claim: " + historicalUpdate);
             } else {
                 LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
-                throw new WordOfWisdomViolationException("Please talk to a TA to submit this url");
+                throw new ImATeapotResponse("Please talk to a TA to submit this url");
             }
         }
 
@@ -86,7 +83,7 @@ public class UserService {
             DaoService.getUserDao().setRepoUrl(studentNetId, repoUrl);
             DaoService.getRepoUpdateDao().insertUpdate(update);
         } catch (DataAccessException e) {
-            throw new InternalServerException("There was an internal server error in saving the GitHub Repo URL", e);
+            throw new InternalServerErrorResponse("There was an internal server error in saving the GitHub Repo URL");
         }
 
         if (adminNetId == null) {
@@ -134,11 +131,11 @@ public class UserService {
     /**
      * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
      */
-    private static String requireCleanRepoUrl(String url) throws BadRequestException {
+    private static String requireCleanRepoUrl(String url) {
         try {
             return RepoUrlValidator.clean(url);
         } catch (RepoUrlValidator.InvalidRepoUrlException e) {
-            throw new BadRequestException("Invalid GitHub Repo URL: " + url);
+            throw new BadRequestResponse("Invalid GitHub Repo URL: " + url);
         }
     }
 }

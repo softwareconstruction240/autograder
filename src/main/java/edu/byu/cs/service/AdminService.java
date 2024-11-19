@@ -4,12 +4,12 @@ import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
+import io.javalin.http.NotFoundResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public class AdminService {
         return users;
     }
 
-    public static void updateUser(User user) throws DataAccessException, ResourceNotFoundException {
+    public static void updateUser(User user) throws DataAccessException {
         UserDao userDao = DaoService.getUserDao();
         User existingUser;
         try {
@@ -48,9 +48,8 @@ public class AdminService {
         }
 
         if (existingUser == null) {
-            ResourceNotFoundException e = new ResourceNotFoundException("user not found");
-            LOGGER.error("user not found", e);
-            throw e;
+            LOGGER.error("user not found");
+            throw new NotFoundResponse("user not found");
         }
 
         try {

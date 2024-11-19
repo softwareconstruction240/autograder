@@ -1,7 +1,6 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
-import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import edu.byu.cs.util.Serializer;
 import io.javalin.Javalin;
@@ -129,12 +128,6 @@ public class Server {
                     wsConfig.onMessage(WebSocketController::onMessage);
                 })
 
-                .exception(BadRequestException.class, haltWithCode(400))
-                .exception(UnauthorizedException.class, haltWithCode(401))
-                .exception(ResourceForbiddenException.class, haltWithCode(403))
-                .exception(ResourceNotFoundException.class, haltWithCode(404))
-                .exception(WordOfWisdomViolationException.class, haltWithCode(418))
-                .exception(UnprocessableEntityException.class, haltWithCode(422))
                 .exception(Exception.class, haltWithCode(500))
 
                 .start(port);

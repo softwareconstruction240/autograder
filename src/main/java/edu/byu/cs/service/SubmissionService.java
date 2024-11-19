@@ -4,8 +4,6 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.GradingObserverImpl;
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.TrafficController;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
@@ -15,6 +13,8 @@ import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.SubmissionUtils;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.InternalServerErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +28,11 @@ public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
-    public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
+    public static void submit(User user, GradeRequest request) throws DataAccessException {
         ConfigService.checkForShutdown();
 
         if (!isPhaseEnabled(request.phase())) {
-            throw new BadRequestException("Student submission is disabled for " + request.phase());
+            throw new BadRequestResponse("Student submission is disabled for " + request.phase());
         }
 
         assertHasNewCommits(user, request.phase());
@@ -43,7 +43,7 @@ public class SubmissionService {
 
     }
 
-    public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
+    public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException {
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", netId, request.phase(),
                 request.repoUrl());
 
@@ -52,7 +52,7 @@ public class SubmissionService {
         startGrader(netId, request.phase(), request.repoUrl(), true);
     }
 
-    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
+    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException {
         QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
         DaoService.getQueueDao().add(qItem);
 
@@ -65,24 +65,24 @@ public class SubmissionService {
 
         } catch (IllegalArgumentException e) {
             LOGGER.error("Invalid phase", e);
-            throw new BadRequestException("Invalid phase", e);
+            throw new BadRequestResponse("Invalid phase");
         } catch (Exception e) {
             LOGGER.error("Error starting grader", e);
-            throw new InternalServerException("Error starting grader", e);
+            throw new InternalServerErrorResponse("Error starting grader");
         }
     }
 
-    private static void assertHasNewCommits(User user, Phase phase) throws DataAccessException, BadRequestException {
+    private static void assertHasNewCommits(User user, Phase phase) throws DataAccessException {
         String headHash;
         try {
             headHash = SubmissionUtils.getRemoteHeadHash(user.repoUrl());
         } catch (DataAccessException e) {
             LOGGER.error("Error getting remote head hash", e);
-            throw new BadRequestException("Invalid repo url", e);
+            throw new BadRequestResponse("Invalid repo url");
         }
         Submission submission = getMostRecentSubmission(user.netId(), phase);
         if (submission != null && submission.headHash().equals(headHash)) {
-            throw new BadRequestException("You have already submitted this version of your code for this phase. Make a new commit before submitting again");
+            throw new BadRequestResponse("You have already submitted this version of your code for this phase. Make a new commit before submitting again");
         }
     }
 
