@@ -8,9 +8,9 @@ import {
 } from '@/utils/utils'
 import { computed, type WritableComputedRef } from 'vue'
 import { setCanvasCourseIds, setCourseIds } from '@/services/configService'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 
-const appConfigStore = useAppConfigStore();
+const appConfigStore = useConfigStore();
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void

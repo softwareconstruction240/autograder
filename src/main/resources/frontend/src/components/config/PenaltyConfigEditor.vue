@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 import { ref } from 'vue'
 import { setPenalties } from '@/services/configService'
 
@@ -7,7 +7,7 @@ const { closeEditor } = defineProps<{
   closeEditor: () => void
 }>();
 
-const appConfig = useAppConfigStore();
+const appConfig = useConfigStore();
 
 const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100))
 const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized)

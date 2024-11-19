@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 import { readableTimestamp } from '@/utils/utils'
 
 const showWarning = computed(() => {
-  const shutdownDate = new Date(useAppConfigStore().shutdownSchedule)
+  const shutdownDate = new Date(useConfigStore().shutdownSchedule)
   const now = new Date()
-  const warningWindow = new Date(now.getTime() + useAppConfigStore().shutdownWarningMilliseconds)
+  const warningWindow = new Date(now.getTime() + useConfigStore().shutdownWarningMilliseconds)
   return shutdownDate <= warningWindow
 })
 </script>
@@ -20,7 +20,7 @@ const showWarning = computed(() => {
     </div>
     <p>Per University Policy, no work may be submitted after the last day of classes. As such, the
       CS 240 Autograder will stop accepting submissions on all graded phases on
-      {{readableTimestamp(useAppConfigStore().shutdownSchedule)}} (Utah Time)</p>
+      {{ readableTimestamp(useConfigStore().shutdownSchedule) }} (Utah Time)</p>
   </div>
 </template>
 

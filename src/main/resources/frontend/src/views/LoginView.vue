@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useAppConfigStore} from "@/stores/appConfig";
+import {useConfigStore} from "@/stores/config";
 import {onBeforeMount, onMounted} from 'vue';
 import { loadUser } from '@/services/authService'
 import router from "@/router";
@@ -10,7 +10,7 @@ onBeforeMount(async () => {
 })
 
 const login = () => {
-  window.location.href = useAppConfigStore().backendUrl + '/auth/login';
+  window.location.href = useConfigStore().backendUrl + '/auth/login';
 }
 
 onMounted(() => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 import { setBanner } from '@/services/configService'
 import { combineDateAndTime } from '@/utils/utils'
 
@@ -8,7 +8,7 @@ const { closeEditor } = defineProps<{
   closeEditor: () => void
 }>();
 
-const appConfigStore = useAppConfigStore();
+const appConfigStore = useConfigStore();
 
 const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage)
 const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor)

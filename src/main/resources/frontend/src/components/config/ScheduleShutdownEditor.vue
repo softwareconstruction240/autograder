@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import Panel from '@/components/Panel.vue'
 import { combineDateAndTime } from '@/utils/utils'
 import { setGraderShutdown } from '@/services/configService'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
@@ -47,7 +47,7 @@ const cancelShutdown = async () => {
 
     <div class="section">
       <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button>
-      <button v-if="useAppConfigStore().shutdownSchedule != 'never'" @click="cancelShutdown">Cancel Shutdown</button>
+      <button v-if="useConfigStore().shutdownSchedule != 'never'" @click="cancelShutdown">Cancel Shutdown</button>
     </div>
 
     <Panel>

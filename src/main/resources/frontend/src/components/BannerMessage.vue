@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 
 const authStore = useAuthStore();
-const appConfigStore = useAppConfigStore();
+const appConfigStore = useConfigStore();
 
 const bannerProps = computed(() => {
   if (authStore.isLoggedIn) {

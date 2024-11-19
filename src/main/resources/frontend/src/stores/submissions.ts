@@ -2,7 +2,7 @@ import {defineStore} from "pinia";
 import {ref} from "vue";
 import type {Phase, Submission} from "@/types/types";
 import { lastSubmissionGet, submissionsGet, submitGet } from '@/services/submissionService'
-import {useAppConfigStore} from "@/stores/appConfig";
+import {useConfigStore} from "@/stores/config";
 import {useAuthStore} from "@/stores/auth";
 
 type SubmissionsByPhase = {
@@ -35,7 +35,7 @@ export const useSubmissionStore = defineStore('submission', () => {
 });
 
 export const subscribeToGradingUpdates = (eventHandler: (event: MessageEvent) => void) => {
-    const wsBackendUrl = useAppConfigStore().backendUrl.replace(/^http/, 'ws') + '/ws';
+    const wsBackendUrl = useConfigStore().backendUrl.replace(/^http/, 'ws') + '/ws';
     const ws = new WebSocket(wsBackendUrl);
     ws.onopen = () => {
         const token = useAuthStore().token;
