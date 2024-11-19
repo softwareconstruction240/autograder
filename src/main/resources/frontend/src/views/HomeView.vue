@@ -10,6 +10,7 @@ import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
 import {useAppConfigStore} from "@/stores/appConfig";
+import ShutdownWarning from '@/components/ShutdownWarning.vue'
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -58,6 +59,7 @@ const isPhaseDisabled = () => {
 
 <template>
   <div id="studentContainer">
+    <ShutdownWarning/>
     <div id="submittingZone">
       <div id="phaseDetails">
         <h3 v-html="uiConfig.getPhaseName(selectedPhase)"/>
@@ -71,7 +73,7 @@ const isPhaseDisabled = () => {
 
       <div v-if="isPhaseDisabled()">
         <br>
-        <span style="color: red; font-weight: bold" >Submissions to this phase are currently disabled</span>
+        <span id="submissionClosedWarning">Submissions to this phase are currently disabled</span>
       </div>
 
       <div id="submitDialog">
@@ -108,6 +110,14 @@ const isPhaseDisabled = () => {
 </template>
 
 <style scoped>
+#submissionClosedWarning {
+  background-color: red;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+
 #studentContainer {
   width: 90%;
   display: flex;
