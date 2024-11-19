@@ -128,21 +128,10 @@ public class Server {
                     wsConfig.onMessage(WebSocketController::onMessage);
                 })
 
-                .exception(Exception.class, haltWithCode(500))
+                .exception(Exception.class, provider.defaultExceptionHandler())
 
                 .start(port);
 
         return app.port();
-    }
-
-    private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
-        return (e, ctx) -> {
-            ctx.status(statusCode);
-            if (e.getMessage() != null) {
-                ctx.result(e.getMessage());
-            } else {
-                ctx.result("An unknown %d error occurred.".formatted(statusCode));
-            }
-        };
     }
 }

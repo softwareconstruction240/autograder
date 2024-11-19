@@ -3,8 +3,10 @@ package edu.byu.cs.server.endpointprovider;
 import edu.byu.cs.controller.*;
 import edu.byu.cs.properties.ApplicationProperties;
 
+import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.InternalServerErrorResponse;
 
 public class EndpointProviderImpl implements EndpointProvider {
 
@@ -22,7 +24,8 @@ public class EndpointProviderImpl implements EndpointProvider {
 
     @Override
     public Handler afterAll() {
-        return ctx -> {};
+        return ctx -> {
+        };
     }
 
     @Override
@@ -38,7 +41,19 @@ public class EndpointProviderImpl implements EndpointProvider {
 
     @Override
     public Handler defaultOptions() {
-        return ctx -> {};
+        return ctx -> {
+        };
+    }
+
+    @Override
+    public ExceptionHandler<Exception> defaultExceptionHandler() {
+        return (e, ctx) -> {
+            if (e.getMessage() != null) {
+                throw new InternalServerErrorResponse(e.getMessage());
+            } else {
+                throw new InternalServerErrorResponse();
+            }
+        };
     }
 
     // AdminController
