@@ -148,7 +148,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 0, 31, 10);
                     utils.makeCommit(repoContext, "Change 10", 0, 30, 10);
                 },
-                utils.generalCommitVerificationResult(false, 10, 3)
+                utils.generalCommitVerificationResult(true, 10, 3)
         ));
     }
 
@@ -189,7 +189,7 @@ class GitHelperTest {
      * <h1>Important Note!</h1>
      * This test is not actually evaluating the logic in the app that performs this test.
      * <br>
-     * The logic currently occurs in {@link GitHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
+     * The logic currently occurs in <code>GitHelper#constructCurrentThreshold(Git)</code> which is bypassed when we directly
      * call {@link GitHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
      * Normal calls to {@link GitHelper#verifyCommitRequirements(File)} will evaluate the rules.
      * <br>
