@@ -5,8 +5,6 @@ import edu.byu.cs.properties.ApplicationProperties;
 import spark.Filter;
 import spark.Route;
 
-import java.util.Map;
-
 public class EndpointProviderImpl implements EndpointProvider {
 
     // Wildcard endpoints
@@ -115,6 +113,11 @@ public class EndpointProviderImpl implements EndpointProvider {
     @Override
     public Route updateLivePhases() {
         return ConfigController.updateLivePhases;
+    }
+
+    @Override
+    public Route scheduleShutdown() {
+        return ConfigController.scheduleShutdown;
     }
 
     @Override
