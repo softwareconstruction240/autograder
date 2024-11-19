@@ -27,10 +27,10 @@ public class ConfigController {
     };
 
     public static final Route getConfigStudent = (req, res) -> {
-        String response = ConfigService.getPublicConfig().toString();
+        PublicConfig config = ConfigService.getPublicConfig();
 
         res.status(200);
-        return response;
+        return Serializer.serialize(config);
     };
 
     public static final Route updateLivePhases = (req, res) -> {

@@ -15,6 +15,7 @@ import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,6 +41,39 @@ public class ConfigService {
 
     private static void logAutomaticConfigChange(String changeMessage) {
         LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
+    }
+
+    private static String translateInstantForFrontEnd(Instant timestamp) {
+        String translatedTime;
+        if (timestamp.equals(Instant.MAX)) {
+            translatedTime = "never";
+        } else {
+            translatedTime = timestamp.toString();
+        }
+        return translatedTime;
+    }
+
+    private static PublicConfig.BannerConfig generateBannerConfig() throws DataAccessException {
+        Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
+        if (bannerExpiration.isBefore(Instant.now())) { //Banner has expired
+            clearBannerConfig();
+        }
+
+        return new PublicConfig.BannerConfig(
+                dao.getConfiguration(Configuration.BANNER_MESSAGE, String.class),
+                dao.getConfiguration(Configuration.BANNER_LINK, String.class),
+                dao.getConfiguration(Configuration.BANNER_COLOR, String.class),
+                translateInstantForFrontEnd(bannerExpiration)
+        );
+    }
+
+    private static PublicConfig.ShutdownConfig generateShutdownConfig() throws DataAccessException {
+        checkForShutdown();
+
+        return new PublicConfig.ShutdownConfig(
+                translateInstantForFrontEnd(dao.getConfiguration(Configuration.GRADER_SHUTDOWN_DATE, Instant.class)),
+                dao.getConfiguration(Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class)
+        );
     }
 
     /**
@@ -83,28 +117,12 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
-    public static JsonObject getPublicConfig() throws DataAccessException {
-        checkForShutdown();
-
-        JsonObject response = new JsonObject();
-
-        addBannerConfig(response);
-        response.addProperty("phases", dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
-
-        Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
-        if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
-            clearShutdownSchedule();
-        }
-
-        if (shutdownTimestamp.equals(Instant.MAX)) { //shutdown is not set
-            response.addProperty("shutdownSchedule", "never");
-        } else {
-            response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
-        }
-
-        response.addProperty("shutdownWarningMilliseconds", dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class));
-
-        return response;
+    public static PublicConfig getPublicConfig() throws DataAccessException {
+        return new PublicConfig(
+                generateBannerConfig(),
+                generateShutdownConfig(),
+                dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
+        );
     }
 
     public static JsonObject getPrivateConfig() throws DataAccessException {
@@ -129,7 +147,7 @@ public class ConfigService {
             }
         }
 
-        JsonObject response = getPublicConfig();
+        JsonObject response = new JsonObject();//getPublicConfig();
         addPenaltyConfig(response);
 
         int courseNumber = dao.getConfiguration(

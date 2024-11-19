@@ -28,7 +28,7 @@
 
 import { ref } from 'vue'
 import PopUp from '@/components/PopUp.vue'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useConfigStore } from '@/stores/config'
 
 defineProps<{
   title: string
@@ -38,7 +38,7 @@ defineProps<{
 const editorPopup = ref<boolean>(false);
 
 const openEditor = () => {
-  useAppConfigStore().updateConfig()
+  useConfigStore().updateConfig()
   editorPopup.value = true
 }
 

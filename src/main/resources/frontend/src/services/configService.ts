@@ -1,17 +1,14 @@
-import { type Config, useAppConfigStore } from '@/stores/appConfig'
+import { type PrivateConfig, type PublicConfig, useConfigStore } from '@/stores/config'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
-import { useAuthStore } from '@/stores/auth'
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 import { ServerError } from '@/network/ServerError'
 
-export const getConfig = async ():Promise<Config> => {
-  let endpoint = "/api"
-  if (useAuthStore().user?.role == 'ADMIN') {
-    endpoint += "/admin"
-  }
-  endpoint += "/config"
+export const getPublicConfig = async ():Promise<PublicConfig> => {
+  return await ServerCommunicator.getRequest<PublicConfig>("/api/config")
+}
 
-  return await ServerCommunicator.getRequest<Config>(endpoint)
+export const getAdminConfig = async ():Promise<PrivateConfig> => {
+  return await ServerCommunicator.getRequest<PrivateConfig>("/api/admin/config")
 }
 
 export const setPenalties = async (maxLateDaysPenalized: number,
@@ -89,5 +86,5 @@ const doSetConfigItem = async (method: string, path: string, body: Object): Prom
     }
   }
 
-  await useAppConfigStore().updateConfig();
+  await useConfigStore().updateConfig();
 }
