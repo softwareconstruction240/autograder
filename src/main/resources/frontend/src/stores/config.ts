@@ -113,23 +113,6 @@ export const useConfigStore = defineStore('config', () => {
     Object.assign(privateConfig, latestAdminConfig)
   }
 
-  // if (latestConfig.bannerColor.value.length == 0) {
-  //       latestConfig.bannerColor.value = "#4fa0ff"
-  //     }
-  //
-  //     for (const phase of listOfPhases() as Phase[]) {
-  //       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
-  //     }
-  //     if (latestConfig.courseNumber) {
-  //       courseNumber.value = latestConfig.courseNumber;
-  //     }
-  //     if (latestConfig.assignmentIds) {
-  //       assignmentIds.value = parseAssignmentIds(latestConfig.assignmentIds);
-  //     }
-  //     if (latestConfig.rubricInfo) {
-  //       rubricInfo.value = parseRubricInfo(latestConfig.rubricInfo);
-  //     }
-
   const backendUrl = ref<string>(env.VITE_APP_BACKEND_URL);
 
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
