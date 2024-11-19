@@ -5,8 +5,6 @@ import edu.byu.cs.properties.ApplicationProperties;
 import spark.Filter;
 import spark.Route;
 
-import java.util.Map;
-
 public class EndpointProviderImpl implements EndpointProvider {
 
     // Wildcard endpoints

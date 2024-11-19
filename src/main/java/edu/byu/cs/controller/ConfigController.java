@@ -1,6 +1,5 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
