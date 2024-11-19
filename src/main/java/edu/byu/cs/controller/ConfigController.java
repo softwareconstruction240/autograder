@@ -16,9 +16,9 @@ public class ConfigController {
 
     public static final Route getConfigAdmin = (req, res) -> {
         try {
-            JsonObject response = ConfigService.getPrivateConfig();
+            PrivateConfig config = ConfigService.getPrivateConfig();
             res.status(200);
-            return response;
+            return Serializer.serialize(config);
         } catch (DataAccessException e) {
             res.status(500);
             res.body(e.getMessage());

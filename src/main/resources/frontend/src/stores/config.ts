@@ -1,6 +1,6 @@
 import { reactive, readonly, ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
-import {listOfPhases, Phase, type RubricInfo, type RubricType} from '@/types/types'
+import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { getAdminConfig, getPublicConfig } from '@/services/configService'
 import { useAuthStore } from '@/stores/auth'
 
@@ -103,13 +103,14 @@ export const useConfigStore = defineStore('config', () => {
 
     Object.assign(publicConfig, latestPublicConfig)
 
+    // Backend lets the front end choose the default banner color
     if (!publicConfig.banner.color) publicConfig.banner.color = "#4fa0ff"
-    console.log("Just updated public config")
-    console.log(publicConfig)
   }
 
   const updateAdminConfig = async () => {
-    await getAdminConfig();
+    const latestAdminConfig = await getAdminConfig();
+
+    Object.assign(privateConfig, latestAdminConfig)
   }
 
   // if (latestConfig.bannerColor.value.length == 0) {

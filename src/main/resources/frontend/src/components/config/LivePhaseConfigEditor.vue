@@ -4,7 +4,7 @@ import { useConfigStore } from '@/stores/config'
 import { setLivePhases } from '@/services/configService'
 import { onMounted, ref } from 'vue'
 
-const appConfigStore = useConfigStore();
+const config = useConfigStore();
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
@@ -23,7 +23,6 @@ onMounted(() => {
       active: useConfigStore().public.livePhases.includes(phase)
     })
   }
-  console.log("PHASES", phases)
 })
 
 const setAllPhases = (setting: boolean) => {
@@ -43,7 +42,7 @@ const submitLivePhases = async () => {
     await setLivePhases(livePhases)
     closeEditor()
   } catch (e) {
-    appConfigStore.updateConfig()
+    config.updatePublicConfig()
     alert("There was a problem in saving live phases")
   }
 }

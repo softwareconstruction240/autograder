@@ -7,13 +7,13 @@ const { closeEditor } = defineProps<{
   closeEditor: () => void
 }>();
 
-const appConfig = useConfigStore();
+const config = useConfigStore();
 
-const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100))
-const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized)
-const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100))
-const linesChangedPerCommit = ref<number>(appConfig.linesChangedPerCommit)
-const clockForgivenessMinutes = ref<number>(appConfig.clockForgivenessMinutes)
+const latePenalty = ref<number>(Math.round(config.admin.penalty.perDayLatePenalty * 100))
+const maxLateDays = ref<number>(config.admin.penalty.maxLateDaysPenalized)
+const gitPenalty = ref<number>(Math.round(config.admin.penalty.gitCommitPenalty * 100))
+const linesChangedPerCommit = ref<number>(config.admin.penalty.linesChangedPerCommit)
+const clockForgivenessMinutes = ref<number>(config.admin.penalty.clockForgivenessMinutes)
 
 const valuesReady = () => {
   return (gitPenalty.value >= 0) && (gitPenalty.value <= 100)
@@ -33,7 +33,7 @@ const submit = async () => {
 
     closeEditor()
   } catch (e) {
-    appConfig.updateConfig()
+    config.updateAdminConfig()
     alert("There was a problem saving the penalties")
   }
 }
