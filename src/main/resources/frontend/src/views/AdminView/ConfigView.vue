@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted } from 'vue'
 import { listOfPhases } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
+import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
@@ -45,6 +46,16 @@ onMounted( async () => {
             <i v-else class="fa-solid fa-x" style="color: red"/>
             {{phase}}</p>
         </div>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection title="Schedule Shutdown" description="Schedule a time for all graded phases to be deactivated for the end of the semester, per University Policy">
+      <template #editor="{ closeEditor }">
+        <ScheduleShutdownEditor :close-editor="closeEditor"/>
+      </template>
+      <template #current>
+        <p><span class="infoLabel">Scheduled to shutdown: </span> {{readableTimestamp(appConfigStore.shutdownSchedule)}}</p>
+        <p v-if="appConfigStore.shutdownSchedule != 'never'"><span class="infoLabel">Warning duration: </span> {{appConfigStore.shutdownWarningMilliseconds / (60 * 60 * 1000)}} hours</p>
       </template>
     </ConfigSection>
 

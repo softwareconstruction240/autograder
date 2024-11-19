@@ -12,6 +12,8 @@ export type Config = {
   bannerLink: string
   bannerColor: string
   bannerExpiration: string
+  shutdownSchedule: string
+  shutdownWarningMilliseconds: number
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -49,6 +51,10 @@ export const useAppConfigStore = defineStore('appConfig', () => {
       bannerColor.value = "#4fa0ff"
     }
 
+    shutdownSchedule.value = latestConfig.shutdownSchedule
+    shutdownWarningMilliseconds.value = latestConfig.shutdownWarningMilliseconds
+
+
     for (const phase of listOfPhases() as Phase[]) {
       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
     }
@@ -68,9 +74,14 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const bannerLink: Ref<string> = ref<string>("");
   const bannerColor: Ref<string> = ref<string>("");
   const bannerExpiration: Ref<string> = ref<string>("");
+
+  const shutdownSchedule: Ref<string> = ref<string>("");
+  const shutdownWarningMilliseconds: Ref<number> = ref<number>(0);
+
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
+
   const rubricInfo: Ref<Map<Phase, Map<RubricType, RubricInfo>>> =
       ref<Map<Phase, Map<RubricType, RubricInfo>>>(new Map<Phase, Map<RubricType, RubricInfo>>);
   const courseNumber: Ref<number> = ref<number>(-1);
@@ -82,6 +93,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     bannerLink,
     bannerColor,
     bannerExpiration,
+    shutdownSchedule,
+    shutdownWarningMilliseconds,
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,
