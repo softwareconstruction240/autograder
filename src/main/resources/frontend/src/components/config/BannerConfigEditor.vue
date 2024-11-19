@@ -8,11 +8,11 @@ const { closeEditor } = defineProps<{
   closeEditor: () => void
 }>();
 
-const appConfigStore = useConfigStore();
+const config = useConfigStore();
 
-const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage)
-const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor)
-const bannerLinkToSubmit = ref<string>(appConfigStore.bannerLink)
+const bannerMessageToSubmit = ref<string>(config.public.banner.message)
+const bannerColorToSubmit = ref<string>(config.public.banner.color)
+const bannerLinkToSubmit = ref<string>(config.public.banner.link)
 const bannerWillExpire = ref<boolean>(false)
 const bannerExpirationDate = ref<string>("")
 const bannerExpirationTime = ref<string>("")
@@ -34,7 +34,7 @@ const submitBanner = async () => {
     await setBanner(bannerMessageToSubmit.value, bannerLinkToSubmit.value, bannerColorToSubmit.value, combinedDateTime)
     closeEditor()
   } catch (e) {
-    appConfigStore.updateConfig()
+    config.updatePublicConfig()
     alert("There was a problem in saving the updated banner message:\n" + e)
   }
 }
