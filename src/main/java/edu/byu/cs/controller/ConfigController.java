@@ -42,26 +42,19 @@ public class ConfigController {
         ConfigService.updateLivePhases(phasesArray, user);
     };
 
-    public static final Route scheduleShutdown = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler scheduleShutdown = ctx -> {
+        User user = ctx.sessionAttribute("user");
 
-        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        JsonObject jsonObject = ctx.bodyAsClass(JsonObject.class);
         String shutdownTimestampString = Serializer.deserialize(jsonObject.get("shutdownTimestamp"), String.class);
         Integer shutdownWarningMilliseconds = Serializer.deserialize(jsonObject.get("shutdownWarningMilliseconds"), Integer.class);
 
         try {
             ConfigService.scheduleShutdown(user, shutdownTimestampString);
             ConfigService.setShutdownWarningDuration(user, shutdownWarningMilliseconds);
-        } catch (DataAccessException e) {
-            halt(500, e.getMessage());
-            return null;
         } catch (IllegalArgumentException e) {
-            halt(400, e.getMessage());
-            return null;
+            throw new BadRequestException(e.getMessage());
         }
-
-        res.status(200);
-        return "";
     };
 
     public static final Handler updateBannerMessage = ctx -> {
