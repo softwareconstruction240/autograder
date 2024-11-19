@@ -22,7 +22,7 @@ public class CasController {
         } catch (CanvasException e) {
             String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
             ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
-            throw e;
+            return;
         }
 
         // FIXME: secure cookie with httpOnly
