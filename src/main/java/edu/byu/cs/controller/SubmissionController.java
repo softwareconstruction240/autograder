@@ -25,9 +25,7 @@ public class SubmissionController {
         User user = ctx.sessionAttribute("user");
 
         GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request != null) {
-            SubmissionService.submit(user, request);
-        }
+        SubmissionService.submit(user, request);
     };
 
     public static final Handler adminRepoSubmitPost = ctx -> {
@@ -37,9 +35,6 @@ public class SubmissionController {
         }
 
         GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request == null) {
-            return;
-        }
 
         SubmissionService.adminRepoSubmit(user.netId(), request);
     };
