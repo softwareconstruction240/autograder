@@ -42,7 +42,6 @@ public class Server {
                             get("/callback", provider.callbackGet());
                             get("/login", provider.loginGet());
 
-                            // TODO does Javalin guarantee this...?
                             // all routes after this point require authentication
                             post("/logout", provider.logoutPost());
                         });
