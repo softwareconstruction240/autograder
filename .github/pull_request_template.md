@@ -15,6 +15,10 @@
 - [ ] Tested edge cases
 - [ ] Manual testing (if needed)
 
+## Dependencies
+<!-- If this PR relies on other PRs not yet merged to main, 
+    mention and link them here. Delete if there are none -->
+
 ## Future Work
 <!-- Discuss things that should be done in the future, 
      or related work going on in other issues/PRs.
