@@ -8,6 +8,8 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +17,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PhaseUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhaseUtils.class);
+
+    public static boolean isPhaseEnabled(Phase phase) throws DataAccessException {
+        boolean phaseEnabled;
+
+        try {
+            phaseEnabled = DaoService.getConfigurationDao()
+                    .getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
+                    .contains(phase.toString());
+        } catch (DataAccessException e) {
+            LOGGER.error("Error getting configuration for live phase", e);
+            throw e;
+        }
+
+        return phaseEnabled;
+    }
 
     /**
      * Given a phase, returns the phase before it, or null.
@@ -152,9 +171,9 @@ public class PhaseUtils {
      */
     public static Collection<Rubric.RubricType> requiredRubricTypes(Phase phase) {
         return switch (phase) {
-            case Phase0, Phase1, Phase3, Phase4 -> Set.of(Rubric.RubricType.PASSOFF_TESTS);
+            case Phase0, Phase1, Phase3, Phase4, Phase6 -> Set.of(Rubric.RubricType.PASSOFF_TESTS);
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
-            case Phase5, Phase6, Quality, Commits -> Set.of();
+            case Phase5, Quality, Commits -> Set.of();
         };
     }
 

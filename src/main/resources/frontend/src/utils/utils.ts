@@ -20,8 +20,8 @@ export const commitVerificationFailed = (submission: Submission) => {
 }
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
-  if (timestampOrString === "+1000000000-12-31T23:59:59.999999999Z") { // The Java Instant.MAX value
-    return "never";
+  if (timestampOrString === "never") {
+    return "never"
   }
 
   const timestamp = typeof timestampOrString === "string" ? new Date(timestampOrString) : timestampOrString;
@@ -32,6 +32,18 @@ export const simpleTimestamp = (date: Date | string) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   const time = typeof date === "string" ? new Date(date) : date;
   return months[time.getMonth()] + " " + time.getDate() + " " + time.getHours() + ":" + String(time.getMinutes()).padStart(2, '0')
+}
+
+/**
+ * Creates a time-zone-free timestamp from a date string and time string.
+ *
+ * If the time string is empty, it sets the time to the end of the day.
+ *
+ * @param date a date string formatted as YYYY-MM-DD
+ * @param time a time string formatted as HH:MM
+ */
+export const combineDateAndTime = (date: string, time: string) => {
+  return `${date}T${time ? time + ":00" : "23:59:59"}`;
 }
 
 export const nameFromNetId = (netId: string) => {
