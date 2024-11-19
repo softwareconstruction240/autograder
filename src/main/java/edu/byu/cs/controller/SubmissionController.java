@@ -111,10 +111,11 @@ public class SubmissionController {
     };
 
     public static final Handler latestSubmissionsGet = ctx -> {
-        // TODO add capability to not give a count--in which case, set it to -1, which gets all latest submissions
-        //  Probably its own endpoint (same, but with no count parameter)
-        String countString = ctx.pathParam("count");
-        int count = Integer.parseInt(countString);
+        int count = -1;
+        if (ctx.pathParamMap().containsKey("count")) {
+            String countString = ctx.pathParam("count");
+            count = Integer.parseInt(countString);
+        }
 
         Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
         ctx.json(submissions);
