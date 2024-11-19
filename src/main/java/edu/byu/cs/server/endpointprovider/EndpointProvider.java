@@ -50,6 +50,8 @@ public interface EndpointProvider {
 
     Handler updateLivePhases();
 
+    Handler scheduleShutdown();
+
     Handler updateBannerMessage();
 
     Handler updateCourseIdsPost();

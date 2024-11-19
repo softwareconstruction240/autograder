@@ -2,6 +2,7 @@ package edu.byu.cs.server.endpointprovider;
 
 import edu.byu.cs.controller.*;
 import edu.byu.cs.properties.ApplicationProperties;
+
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
 
@@ -116,6 +117,11 @@ public class EndpointProviderImpl implements EndpointProvider {
     @Override
     public Handler updateLivePhases() {
         return ConfigController.updateLivePhases;
+    }
+
+    @Override
+    public Handler scheduleShutdown() {
+        return ConfigController.scheduleShutdown;
     }
 
     @Override

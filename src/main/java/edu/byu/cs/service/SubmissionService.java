@@ -22,12 +22,16 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
+import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
+
 public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
     public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
-        if (!phaseIsEnabled(request.phase())) {
+        ConfigService.checkForShutdown();
+
+        if (!isPhaseEnabled(request.phase())) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
         }
 
@@ -37,21 +41,6 @@ public class SubmissionService {
 
         startGrader(user.netId(), request.phase(), user.repoUrl(), false);
 
-    }
-
-    private static boolean phaseIsEnabled(Phase phase) throws DataAccessException {
-        boolean phaseEnabled;
-
-        try {
-            phaseEnabled = DaoService.getConfigurationDao()
-                    .getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
-                    .contains(phase.toString());
-        } catch (DataAccessException e) {
-            LOGGER.error("Error getting configuration for live phase", e);
-            throw e;
-        }
-
-        return phaseEnabled;
     }
 
     public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {

@@ -107,6 +107,8 @@ public class Server {
                                     get("", provider.getConfigAdmin());
 
                                     post("/phases", provider.updateLivePhases());
+                                    post("/phases/shutdown", provider.scheduleShutdown());
+
                                     post("/banner", provider.updateBannerMessage());
 
                                     post("/courseIds", provider.updateCourseIdsPost());

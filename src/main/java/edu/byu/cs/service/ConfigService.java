@@ -23,16 +23,21 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
+import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
+import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
+
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final ConfigurationDao dao = DaoService.getConfigurationDao();
+
 
     private static void logConfigChange(String changeMessage, String adminNetId) {
-        LOGGER.info("[CONFIG] Admin {} has {}}", adminNetId, changeMessage);
+        LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
     }
 
     private static void logAutomaticConfigChange(String changeMessage) {
-        LOGGER.info("[CONFIG] Automatic change: {}}", changeMessage);
+        LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
     }
 
     /**
@@ -42,22 +47,24 @@ public class ConfigService {
      * @throws DataAccessException if it screws up while getting into the database
      */
     private static void addBannerConfig(JsonObject response) throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
         Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
 
         if (bannerExpiration.isBefore(Instant.now())) { //Banner has expired
             clearBannerConfig();
         }
 
+        if (bannerExpiration.equals(Instant.MAX)) { //shutdown is not set
+            response.addProperty("bannerExpiration", "never");
+        } else {
+            response.addProperty("bannerExpiration", bannerExpiration.toString());
+        }
+
         response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
         response.addProperty("bannerLink", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_LINK, String.class));
         response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
-        response.addProperty("bannerExpiration", bannerExpiration.toString());
     }
 
     private static void clearBannerConfig() throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
-
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, "", String.class);
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, "", String.class);
         dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, "", String.class);
@@ -67,12 +74,25 @@ public class ConfigService {
     }
 
     public static JsonObject getPublicConfig() throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
+        checkForShutdown();
 
         JsonObject response = new JsonObject();
 
         addBannerConfig(response);
         response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
+
+        Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
+        if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
+            clearShutdownSchedule();
+        }
+
+        if (shutdownTimestamp.equals(Instant.MAX)) { //shutdown is not set
+            response.addProperty("shutdownSchedule", "never");
+        } else {
+            response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
+        }
+
+        response.addProperty("shutdownWarningMilliseconds", dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class));
 
         return response;
     }
@@ -82,7 +102,7 @@ public class ConfigService {
         Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo = new EnumMap<>(Phase.class);
 
         for (Phase phase : Phase.values()) {
-            if (!PhaseUtils.isPhaseGraded(phase)) continue;
+            if (!isPhaseGraded(phase)) continue;
             Integer assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
             assignmentIds.put(phase, assignmentId);
             if (rubricInfo.get(phase) == null) {
@@ -100,7 +120,7 @@ public class ConfigService {
         }
 
         JsonObject response = getPublicConfig();
-        int courseNumber = DaoService.getConfigurationDao().getConfiguration(
+        int courseNumber = dao.getConfiguration(
                 ConfigurationDao.Configuration.COURSE_NUMBER,
                 Integer.class
         );
@@ -111,16 +131,85 @@ public class ConfigService {
     }
 
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
-
         dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
 
-    public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
+    public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
+        if (warningMilliseconds < 0) {
+            throw new IllegalArgumentException("warningMilliseconds must be non-negative");
+        }
 
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, warningMilliseconds, Integer.class);
+
+        logConfigChange("set the shutdown warning duration to %s milliseconds".formatted(warningMilliseconds), user.netId());
+    }
+
+    public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
+        if (shutdownTimestampString.isEmpty()) {
+            clearShutdownSchedule(user);
+            return;
+        }
+
+        Instant shutdownTimestamp;
+        try {
+            shutdownTimestamp = getInstantFromUnzonedTime(shutdownTimestampString);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Incomplete timestamp. Send a full timestamp {YYYY-MM-DDTHH:MM:SS} or send none at all", e);
+        }
+
+        if (shutdownTimestamp.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("You tried to schedule the shutdown in the past");
+        }
+
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, shutdownTimestamp, Instant.class);
+        logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
+    }
+
+    public static void triggerShutdown() {
+        try {
+            ArrayList<Phase> phases = new ArrayList<>();
+            for (Phase phase: Phase.values()) {
+                if (!isPhaseGraded(phase) && isPhaseEnabled(phase)) {
+                    phases.add(phase);
+                }
+            }
+            dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phases, ArrayList.class);
+            logAutomaticConfigChange("Student submissions have shutdown. These phases remain active: " + phases);
+        } catch (DataAccessException e) {
+            LOGGER.error("Something went wrong while shutting down graded phases: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Checks that the date for a scheduled shutdown has passed. If it has, it triggers the shutdown method
+     */
+    public static void checkForShutdown() {
+        try {
+            Instant shutdownInstant = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
+            if (shutdownInstant.isBefore(Instant.now())) {
+                triggerShutdown();
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error("Something went wrong while checking for shutdown: " + e.getMessage());
+        }
+    }
+
+    public static void clearShutdownSchedule() throws DataAccessException {
+        clearShutdownSchedule(null);
+    }
+
+    public static void clearShutdownSchedule(User user) throws DataAccessException {
+        dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
+        if (user == null) {
+            logAutomaticConfigChange("Grader Shutdown Schedule was cleared");
+        } else {
+            logConfigChange("cleared the Grader Shutdown Schedule", user.netId() );
+        }
+    }
+
+    public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         Instant expirationTimestamp = Instant.MAX;
         if (!expirationString.isEmpty()) {
             try {
@@ -166,7 +255,7 @@ public class ConfigService {
     public static void updateCourseIds(User user, SetCourseIdsRequest setCourseIdsRequest) throws DataAccessException {
 
         // Course Number
-        DaoService.getConfigurationDao().setConfiguration(
+        dao.setConfiguration(
                 ConfigurationDao.Configuration.COURSE_NUMBER,
                 setCourseIdsRequest.courseNumber(),
                 Integer.class

@@ -55,6 +55,9 @@ public class Serializer {
         }
     }
 
+    public static <T> T deserialize(JsonElement jsonElement, Class<T> classOfT) {
+        return deserialize(jsonElement.toString(), classOfT);
+    }
     public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
         try {
             return GSON.fromJson(jsonStr, classOfT);
