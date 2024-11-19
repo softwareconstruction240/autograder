@@ -11,21 +11,11 @@ import io.javalin.http.Handler;
 
 import java.util.ArrayList;
 
-
 public class ConfigController {
 
     public static final Handler getConfigAdmin = ctx -> {
-        try {
-            JsonObject response = ConfigService.getPrivateConfig();
-
-            // TODO unserialize or something...?
-            // Original was simply `return response;`
-            ctx.json(response);
-
-        } catch (DataAccessException e) {
-            ctx.status(500);
-            ctx.result(e.getMessage());
-        }
+        JsonObject response = ConfigService.getPrivateConfig();
+        ctx.json(response);
     };
 
     public static final Handler getConfigStudent = ctx -> ctx.result(ConfigService.getPublicConfig().toString());
