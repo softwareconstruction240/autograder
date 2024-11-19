@@ -1,5 +1,6 @@
 package edu.byu.cs.server;
 
+import edu.byu.cs.controller.ConfigController;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import org.slf4j.Logger;
@@ -100,6 +101,7 @@ public class Server {
                     get("", provider.getConfigAdmin());
 
                     post("/phases", provider.updateLivePhases());
+                    post("/phases/shutdown", ConfigController.scheduleShutdown);
                     post("/banner", provider.updateBannerMessage());
 
                     post("/courseIds", provider.updateCourseIdsPost());
