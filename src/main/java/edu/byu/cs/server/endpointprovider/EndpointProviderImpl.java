@@ -118,6 +118,11 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
+    public Route scheduleShutdown() {
+        return ConfigController.scheduleShutdown;
+    }
+
+    @Override
     public Route updateBannerMessage() {
         return ConfigController.updateBannerMessage;
     }

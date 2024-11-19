@@ -37,6 +37,7 @@ public interface EndpointProvider {
     Route getConfigAdmin();
     Route getConfigStudent();
     Route updateLivePhases();
+    Route scheduleShutdown();
     Route updateBannerMessage();
     Route updateCourseIdsPost();
     Route updateCourseIdsUsingCanvasGet();
