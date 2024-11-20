@@ -173,8 +173,7 @@ public class SubmissionService {
     public static void approveSubmission(String adminNetId, ApprovalRequest request) throws GradingException, DataAccessException {
         int penalty = 0;
         if (request.penalize()) {
-            //TODO: Put somewhere better/more configurable
-            penalty = 10;
+            penalty = Math.round((DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100));
         }
 
         SubmissionUtils.approveSubmission(request.netId(), request.phase(), adminNetId, penalty);

@@ -117,6 +117,8 @@ public class Server {
 
                     post("/courseIds", updateCourseIdsPost);
                     get("/courseIds", updateCourseIdsUsingCanvasGet);
+
+                    post("/penalties", updatePenalties);
                 });
             });
         });
