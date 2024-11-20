@@ -68,6 +68,8 @@ public class ConfigurationSqlDao implements ConfigurationDao {
                 return type.cast(0);
             } else if (type == Boolean.class) {
                 return type.cast(false);
+            } else if (type == Instant.class) {
+                return type.cast(Instant.MAX);
             } else {
                 throw new IllegalArgumentException("Unsupported configuration type: " + type);
             }
