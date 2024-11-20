@@ -14,11 +14,14 @@ import java.util.ArrayList;
 public class ConfigController {
 
     public static final Handler getConfigAdmin = ctx -> {
-        JsonObject response = ConfigService.getPrivateConfig();
-        ctx.json(response);
+        JsonObject configJsonObj = ConfigService.getPrivateConfig();
+        ctx.result(configJsonObj.toString());
     };
 
-    public static final Handler getConfigStudent = ctx -> ctx.result(ConfigService.getPublicConfig().toString());
+    public static final Handler getConfigStudent = ctx -> {
+        JsonObject configJsonObj = ConfigService.getPublicConfig();
+        ctx.result(configJsonObj.toString());
+    };
 
     public static final Handler updateLivePhases = ctx -> {
         JsonObject jsonObject = Serializer.deserialize(ctx.body(), JsonObject.class);
