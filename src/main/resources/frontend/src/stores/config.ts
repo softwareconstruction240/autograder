@@ -39,11 +39,14 @@ export type PrivateConfig = {
     clockForgivenessMinutes: number
   },
 
-  ids?: {
-    courseNumber?: number
-    assignmentIds?: string // Map<Phase, number>
-    rubricInfo?: string // Map<Phase, Map<RubricType, RubricInfo>>
-  }
+  courses: {
+    courseNumber: number
+    assignments: {
+      phase: Phase,
+      assignmentId: number,
+      rubricItems: Map<RubricType, RubricInfo>
+    }[]
+  }[]
 }
 
 // @ts-ignore
@@ -73,25 +76,9 @@ export const useConfigStore = defineStore('config', () => {
       maxLateDaysPenalized: -1,
       linesChangedPerCommit: -1,
       clockForgivenessMinutes: -1,
-    }
+    },
+    courses: []
   })
-
-  const parseAssignmentIds = (idsString: string): Map<Phase, number> => {
-    const idsObject = JSON.parse(idsString);
-    return new Map<Phase, number>(Object.entries(idsObject) as unknown as [Phase, number][]);
-  }
-
-  const parseRubricInfo = (idsString: string): Map<Phase, Map<RubricType, RubricInfo>> => {
-    const idsObject = JSON.parse(idsString);
-    const rubricMap = new Map<Phase, Map<RubricType, RubricInfo>>();
-    for (const phase in idsObject) {
-      rubricMap.set(
-          phase as unknown as Phase,
-          new Map(Object.entries(idsObject[phase]) as unknown as [RubricType, RubricInfo][])
-      );
-    }
-    return rubricMap;
-  }
 
   const updateConfig = async () => {
     if (useAuthStore().isLoggedIn) await updateAdminConfig();
@@ -114,13 +101,6 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   const backendUrl = ref<string>(env.VITE_APP_BACKEND_URL);
-
-  // using the enum, if phaseActivationList[phase] == true, then that phase is active
-  const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
-  const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
-  const rubricInfo: Ref<Map<Phase, Map<RubricType, RubricInfo>>> =
-      ref<Map<Phase, Map<RubricType, RubricInfo>>>(new Map<Phase, Map<RubricType, RubricInfo>>);
-  const courseNumber: Ref<number> = ref<number>(-1);
 
   return {
     updateConfig,
