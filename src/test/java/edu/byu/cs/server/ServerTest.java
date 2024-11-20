@@ -23,41 +23,41 @@ class ServerTest {
 
     public static Stream<Arguments> getPathParamEndpoints() {
         return Stream.of(
-                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit", ":option"),
-                Arguments.of("GET", "honorCheckerZipGet", "/api/admin/honorChecker/zip", ":section"),
-                Arguments.of("GET", "submissionXGet", "/api/submission", ":phase"),
-                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest", ":count"),
-                Arguments.of("GET", "studentSubmissionsGet", "/api/admin/submissions/student", ":netid")
+                Arguments.of("GET", "/api/submission", "submissionXGet", ":phase"),
+                Arguments.of("GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
+                Arguments.of("GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
+                Arguments.of("GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
+                Arguments.of("GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
         );
     }
 
     public static Stream<Arguments> getEndpoints() {
         return Stream.of(
-                Arguments.of("GET", "callbackGet", "/auth/callback"),
-                Arguments.of("GET", "loginGet", "/auth/login"),
-                Arguments.of("GET", "usersGet", "/api/admin/users"),
-                Arguments.of("GET", "testModeGet", "/api/admin/test_mode"),
-                Arguments.of("GET", "commitAnalyticsGet", "/api/admin/analytics/commit"),
-                Arguments.of("GET", "sectionsGet", "/api/admin/sections"),
-                Arguments.of("GET", "meGet", "/api/me"),
-                Arguments.of("GET", "getConfigAdmin", "/api/admin/config"),
-                Arguments.of("GET", "getConfigStudent", "/api/config"),
-                Arguments.of("GET", "updateCourseIdsUsingCanvasGet", "/api/admin/config/courseIds"),
-                Arguments.of("GET", "submitGet", "/api/submit"),
-                Arguments.of("GET", "latestSubmissionForMeGet", "/api/latest"),
-                Arguments.of("GET", "submissionXGet", "/api/submission"),
-                Arguments.of("GET", "latestSubmissionsGet", "/api/admin/submissions/latest"),
-                Arguments.of("GET", "submissionsActiveGet", "/api/admin/submissions/active"),
-                Arguments.of("GET", "repoHistoryAdminGet", "/api/admin/repo/history"),
-                Arguments.of("POST", "logoutPost", "/auth/logout"),
-                Arguments.of("POST", "updateLivePhases", "/api/admin/config/phases"),
-                Arguments.of("POST", "scheduleShutdown", "/api/admin/config/phases/shutdown"),
-                Arguments.of("POST", "updateBannerMessage", "/api/admin/config/banner"),
-                Arguments.of("POST", "updateCourseIdsPost", "/api/admin/config/courseIds"),
-                Arguments.of("POST", "submitPost", "/api/submit"),
-                Arguments.of("POST", "adminRepoSubmitPost", "/api/admin/submit"),
-                Arguments.of("POST", "approveSubmissionPost", "/api/admin/submissions/approve"),
-                Arguments.of("POST", "submissionsReRunPost", "/api/admin/submissions/rerun")
+                Arguments.of("GET", "/auth/callback", "callbackGet"),
+                Arguments.of("GET", "/auth/login", "loginGet"),
+                Arguments.of("GET", "/api/admin/users", "usersGet"),
+                Arguments.of("GET", "/api/admin/test_mode", "testModeGet"),
+                Arguments.of("GET", "/api/admin/analytics/commit", "commitAnalyticsGet"),
+                Arguments.of("GET", "/api/admin/sections", "sectionsGet"),
+                Arguments.of("GET", "/api/me", "meGet"),
+                Arguments.of("GET", "/api/admin/config", "getConfigAdmin"),
+                Arguments.of("GET", "/api/config", "getConfigStudent"),
+                Arguments.of("GET", "/api/admin/config/courseIds", "updateCourseIdsUsingCanvasGet"),
+                Arguments.of("GET", "/api/submit", "submitGet"),
+                Arguments.of("GET", "/api/latest", "latestSubmissionForMeGet"),
+                Arguments.of("GET", "/api/submission", "submissionXGet"),
+                Arguments.of("GET", "/api/admin/submissions/latest", "latestSubmissionsGet"),
+                Arguments.of("GET", "/api/admin/submissions/active", "submissionsActiveGet"),
+                Arguments.of("GET", "/api/admin/repo/history", "repoHistoryAdminGet"),
+                Arguments.of("POST", "/auth/logout", "logoutPost"),
+                Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
+                Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),
+                Arguments.of("POST", "/api/admin/config/banner", "updateBannerMessage"),
+                Arguments.of("POST", "/api/admin/config/courseIds", "updateCourseIdsPost"),
+                Arguments.of("POST", "/api/submit", "submitPost"),
+                Arguments.of("POST", "/api/admin/submit", "adminRepoSubmitPost"),
+                Arguments.of("POST", "/api/admin/submissions/approve", "approveSubmissionPost"),
+                Arguments.of("POST", "/api/admin/submissions/rerun", "submissionsReRunPost")
         );
     }
 
@@ -84,7 +84,7 @@ class ServerTest {
 
     @ParameterizedTest
     @MethodSource("getEndpoints")
-    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String endpointName, String path)
+    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String path, String endpointName)
             throws ServerConnectionException, ResponseParseException, IOException {
         // When
         serverFacade.makeRequest(method, path);
@@ -100,7 +100,7 @@ class ServerTest {
 
     @ParameterizedTest
     @MethodSource("getPathParamEndpoints")
-    public void verifyPathParameterHasAValueWhenGivenOne(String method, String endpointName, String path, String pathParamName)
+    public void verifyPathParameterHasAValueWhenGivenOne(String method, String path, String endpointName, String pathParamName)
             throws ServerConnectionException, ResponseParseException, IOException {
         // Given
         String fullPath = path + "/testParamValue";
