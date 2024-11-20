@@ -33,32 +33,36 @@ class ServerTest {
 
     public static Stream<Arguments> getEndpoints() {
         return Stream.of(
-                Arguments.of("GET", "/auth/callback", "callbackGet"),
-                Arguments.of("GET", "/auth/login", "loginGet"),
-                Arguments.of("GET", "/api/admin/users", "usersGet"),
-                Arguments.of("GET", "/api/admin/test_mode", "testModeGet"),
-                Arguments.of("GET", "/api/admin/analytics/commit", "commitAnalyticsGet"),
-                Arguments.of("GET", "/api/admin/sections", "sectionsGet"),
-                Arguments.of("GET", "/api/me", "meGet"),
-                Arguments.of("GET", "/api/admin/config", "getConfigAdmin"),
-                Arguments.of("GET", "/api/config", "getConfigStudent"),
-                Arguments.of("GET", "/api/admin/config/courseIds", "updateCourseIdsUsingCanvasGet"),
-                Arguments.of("GET", "/api/submit", "submitGet"),
-                Arguments.of("GET", "/api/latest", "latestSubmissionForMeGet"),
-                Arguments.of("GET", "/api/submission", "submissionXGet"),
-                Arguments.of("GET", "/api/admin/submissions/latest", "latestSubmissionsGet"),
-                Arguments.of("GET", "/api/admin/submissions/active", "submissionsActiveGet"),
-                Arguments.of("GET", "/api/admin/repo/history", "repoHistoryAdminGet"),
+                Arguments.of( "GET", "/auth/callback", "callbackGet"),
+                Arguments.of( "GET", "/auth/login", "loginGet"),
                 Arguments.of("POST", "/auth/logout", "logoutPost"),
-                Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
-                Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),
+
+                Arguments.of( "GET", "/api/config", "getConfigStudent"),
+                Arguments.of( "GET", "/api/latest", "latestSubmissionForMeGet"),
+                Arguments.of( "GET", "/api/me", "meGet"),
+                Arguments.of( "GET", "/api/submission", "submissionXGet"),
+                Arguments.of( "GET", "/api/submit", "submitGet"),
+                Arguments.of("POST", "/api/submit", "submitPost"),
+
+                Arguments.of( "GET", "/api/admin/config", "getConfigAdmin"),
                 Arguments.of("POST", "/api/admin/config/banner", "updateBannerMessage"),
                 Arguments.of("POST", "/api/admin/config/courseIds", "updateCourseIdsPost"),
-                Arguments.of("POST", "/api/submit", "submitPost"),
-                Arguments.of("POST", "/api/admin/submit", "adminRepoSubmitPost"),
+                Arguments.of( "GET", "/api/admin/config/courseIds", "updateCourseIdsUsingCanvasGet"),
+                Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
+                Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),
+
+                Arguments.of( "GET", "/api/admin/submissions/active", "submissionsActiveGet"),
                 Arguments.of("POST", "/api/admin/submissions/approve", "approveSubmissionPost"),
-                Arguments.of("POST", "/api/admin/submissions/rerun", "submissionsReRunPost")
-        );
+                Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet"),
+                Arguments.of("POST", "/api/admin/submissions/rerun", "submissionsReRunPost"),
+                Arguments.of("POST", "/api/admin/submit", "adminRepoSubmitPost"),
+
+                Arguments.of( "GET", "/api/admin/analytics/commit", "commitAnalyticsGet"),
+                Arguments.of( "GET", "/api/admin/repo/history", "repoHistoryAdminGet"),
+                Arguments.of( "GET", "/api/admin/sections", "sectionsGet"),
+                Arguments.of( "GET", "/api/admin/test_mode", "testModeGet"),
+                Arguments.of( "GET", "/api/admin/users", "usersGet")
+                );
     }
 
     // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
