@@ -23,11 +23,12 @@ class ServerTest {
 
     public static Stream<Arguments> getPathParamEndpoints() {
         return Stream.of(
-                Arguments.of("GET", "/api/submission", "submissionXGet", ":phase"),
-                Arguments.of("GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
-                Arguments.of("GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
-                Arguments.of("GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
-                Arguments.of("GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
+                Arguments.of( "GET", "/api/submission", "submissionXGet", ":phase"),
+                Arguments.of( "GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
+                Arguments.of("POST", "/api/admin/repo", "setRepoUrlAdmin", ":netid"),
+                Arguments.of( "GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
+                Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
+                Arguments.of( "GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
         );
     }
 
@@ -40,6 +41,7 @@ class ServerTest {
                 Arguments.of( "GET", "/api/config", "getConfigStudent"),
                 Arguments.of( "GET", "/api/latest", "latestSubmissionForMeGet"),
                 Arguments.of( "GET", "/api/me", "meGet"),
+                Arguments.of("POST", "/api/repo", "setRepoUrl"),
                 Arguments.of( "GET", "/api/submission", "submissionXGet"),
                 Arguments.of( "GET", "/api/submit", "submitGet"),
                 Arguments.of("POST", "/api/submit", "submitPost"),
@@ -65,8 +67,6 @@ class ServerTest {
                 );
     }
 
-    // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
-
     @AfterAll
     static void stopServer() {
         server.stop();
@@ -88,8 +88,7 @@ class ServerTest {
 
     @ParameterizedTest
     @MethodSource("getEndpoints")
-    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String path, String endpointName)
-            throws ServerConnectionException, ResponseParseException, IOException {
+    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String path, String endpointName) throws ServerConnectionException, ResponseParseException, IOException {
         // When
         serverFacade.makeRequest(method, path);
 
@@ -104,8 +103,8 @@ class ServerTest {
 
     @ParameterizedTest
     @MethodSource("getPathParamEndpoints")
-    public void verifyPathParameterHasAValueWhenGivenOne(String method, String path, String endpointName, String pathParamName)
-            throws ServerConnectionException, ResponseParseException, IOException {
+    public void verifyPathParameterHasAValueWhenGivenOne(String method, String path, String endpointName,
+            String pathParamName) throws ServerConnectionException, ResponseParseException, IOException {
         // Given
         String fullPath = path + "/testParamValue";
 
@@ -135,8 +134,7 @@ class ServerTest {
     }
 
     @Test
-    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order()
-            throws IOException, ServerConnectionException, ResponseParseException {
+    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order() throws IOException, ServerConnectionException, ResponseParseException {
         serverFacade.makeRequest("GET", "/iDoNotExist");
 
         // Verify they ran in order

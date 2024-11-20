@@ -21,7 +21,8 @@ public class TestServerFacade {
         this.serverURL = "http://%s:%d".formatted(serverURL, port);
     }
 
-    public Object makeRequest(String method, String path) throws IOException, ServerConnectionException, ResponseParseException {
+    public Object makeRequest(String method, String path) throws IOException, ServerConnectionException,
+            ResponseParseException {
         return makeRequest(method, path, null, null, Object.class);
     }
 
