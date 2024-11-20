@@ -45,7 +45,7 @@ public class ConfigService {
     public static PrivateConfig getPrivateConfig() throws DataAccessException {
         return new PrivateConfig(
                 generatePenaltyConfig(),
-                null
+                generateCoursesConfig()
         );
     }
 
@@ -100,7 +100,34 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
-//    public static JsonObject getPrivateConfig() throws DataAccessException {
+    public static ArrayList<PrivateConfig.CourseConfig> generateCoursesConfig() throws DataAccessException {
+        //TODO far down the road:
+        //This function returns an array of CourseConfig so the front end won't need changing when we actually
+        //set up multi course support. This function will need to actually implement that though
+
+        ArrayList<PrivateConfig.CourseConfig.AssignmentConfig> assignments = new ArrayList<>();
+        for (Phase phase : Phase.values()) {
+            if (!isPhaseGraded(phase)) continue;
+
+            int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
+            EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
+
+            assignments.add(new PrivateConfig.CourseConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
+        }
+
+        PrivateConfig.CourseConfig theOneAndOnlyCourseSoFar = new PrivateConfig.CourseConfig(
+                dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
+                assignments
+        );
+
+        ArrayList<PrivateConfig.CourseConfig> courseList = new ArrayList<>();
+        courseList.add(theOneAndOnlyCourseSoFar);
+        return courseList;
+
+//
+//
+//
+//
 //        Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
 //        Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo = new EnumMap<>(Phase.class);
 //
@@ -123,7 +150,6 @@ public class ConfigService {
 //        }
 //
 //        JsonObject response = new JsonObject();//getPublicConfig();
-//        addPenaltyConfig(response);
 //
 //        int courseNumber = dao.getConfiguration(
 //                Configuration.COURSE_NUMBER,
@@ -133,7 +159,7 @@ public class ConfigService {
 //        response.addProperty("assignmentIds", Serializer.serialize(assignmentIds));
 //        response.addProperty("rubricInfo", Serializer.serialize(rubricInfo));
 //        return response;
-//    }
+    }
 
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
         dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
