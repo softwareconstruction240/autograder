@@ -23,11 +23,12 @@ class ServerTest {
 
     public static Stream<Arguments> getPathParamEndpoints() {
         return Stream.of(
-                Arguments.of("GET", "/api/submission", "submissionXGet", ":phase"),
-                Arguments.of("GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
-                Arguments.of("GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
-                Arguments.of("GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
-                Arguments.of("GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
+                Arguments.of( "GET", "/api/submission", "submissionXGet", ":phase"),
+                Arguments.of( "GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
+                Arguments.of("POST", "/api/admin/repo", "setRepoUrlAdmin", ":netid"),
+                Arguments.of( "GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
+                Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
+                Arguments.of( "GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
         );
     }
 
@@ -40,6 +41,7 @@ class ServerTest {
                 Arguments.of( "GET", "/api/config", "getConfigStudent"),
                 Arguments.of( "GET", "/api/latest", "latestSubmissionForMeGet"),
                 Arguments.of( "GET", "/api/me", "meGet"),
+                Arguments.of("POST", "/api/repo", "setRepoUrl"),
                 Arguments.of( "GET", "/api/submission", "submissionXGet"),
                 Arguments.of( "GET", "/api/submit", "submitGet"),
                 Arguments.of("POST", "/api/submit", "submitPost"),
@@ -64,8 +66,6 @@ class ServerTest {
                 Arguments.of( "GET", "/api/admin/users", "usersGet")
                 );
     }
-
-    // TODO figure out how to test PATCH calls... HttpURLConnection thinks it's an invalid method
 
     @AfterAll
     static void stopServer() {
