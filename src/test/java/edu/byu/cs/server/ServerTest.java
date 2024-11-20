@@ -51,6 +51,7 @@ class ServerTest {
                 Arguments.of("GET", "repoHistoryAdminGet", "/api/admin/repo/history"),
                 Arguments.of("POST", "logoutPost", "/auth/logout"),
                 Arguments.of("POST", "updateLivePhases", "/api/admin/config/phases"),
+                Arguments.of("POST", "scheduleShutdown", "/api/admin/config/phases/shutdown"),
                 Arguments.of("POST", "updateBannerMessage", "/api/admin/config/banner"),
                 Arguments.of("POST", "updateCourseIdsPost", "/api/admin/config/courseIds"),
                 Arguments.of("POST", "submitPost", "/api/submit"),

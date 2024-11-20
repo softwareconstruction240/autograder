@@ -135,6 +135,11 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
+    public Route scheduleShutdown() {
+        return (req, res) -> extractRequestInfo("scheduleShutdown", req, res);
+    }
+
+    @Override
     public Route updateBannerMessage() {
         return (req, res) -> extractRequestInfo("updateBannerMessage", req, res);
     }
