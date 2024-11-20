@@ -205,13 +205,13 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
-    public Route repoPatch() {
-        return (req, res) -> extractRequestInfo("repoPatch", req, res);
+    public Route setRepoUrl() {
+        return (req, res) -> extractRequestInfo("setRepoUrl", req, res);
     }
 
     @Override
-    public Route repoPatchAdmin() {
-        return (req, res) -> extractRequestInfo("repoPatchAdmin", req, res);
+    public Route setRepoUrlAdmin() {
+        return (req, res) -> extractRequestInfo("setRepoUrlAdmin", req, res);
     }
 
     @Override

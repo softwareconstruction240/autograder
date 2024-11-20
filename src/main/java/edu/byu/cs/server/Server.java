@@ -51,7 +51,7 @@ public class Server {
                 if (!req.requestMethod().equals("OPTIONS")) provider.verifyAuthenticatedMiddleware().handle(req, res);
             });
 
-            patch("/repo", provider.repoPatch());
+            post("/repo", provider.setRepoUrl());
 
             get("/submit", provider.submitGet());
             post("/submit", provider.submitPost());
@@ -70,7 +70,7 @@ public class Server {
                     if (!req.requestMethod().equals("OPTIONS")) provider.verifyAdminMiddleware().handle(req, res);
                 });
 
-                patch("/repo/:netId", provider.repoPatchAdmin());
+                post("/repo/:netId", provider.setRepoUrlAdmin());
 
                 get("/repo/history", provider.repoHistoryAdminGet());
 
