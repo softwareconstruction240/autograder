@@ -1,9 +1,9 @@
 package edu.byu.cs.controller;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.util.Serializer;
 import spark.Route;
@@ -109,6 +109,21 @@ public class ConfigController {
         User user = req.session().attribute("user");
         ConfigService.updateCourseIdsUsingCanvas(user);
         res.status(200);
+        return "";
+    };
+
+    public static final Route updatePenalties = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        ConfigPenaltyUpdateRequest request = Serializer.deserialize(req.body(), ConfigPenaltyUpdateRequest.class);
+
+        try {
+            ConfigService.processPenaltyUpdates(user, request);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        }
+
         return "";
     };
 }

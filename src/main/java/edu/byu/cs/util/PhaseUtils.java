@@ -188,9 +188,18 @@ public class PhaseUtils {
     }
 
     public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
-        int minimumLinesChanged = 5;
-        int penaltyPct = 10;
-        int forgivenessMinutesHead = 3;
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+        int minimumLinesChanged;
+        int penaltyPct;
+        int forgivenessMinutesHead;
+        try {
+            penaltyPct = Math.round(dao.getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100);
+            minimumLinesChanged = dao.getConfiguration(ConfigurationDao.Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class);
+            forgivenessMinutesHead = dao.getConfiguration(ConfigurationDao.Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class);
+        } catch (DataAccessException e) {
+            throw new GradingException("Error getting git commit config", e);
+        }
+
         return switch (phase) {
             case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
             case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);

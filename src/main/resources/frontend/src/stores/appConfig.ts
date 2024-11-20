@@ -12,8 +12,16 @@ export type Config = {
   bannerLink: string
   bannerColor: string
   bannerExpiration: string
+
+  perDayLatePenalty: number
+  gitCommitPenalty: number
+  maxLateDaysPenalized: number
+  linesChangedPerCommit: number
+  clockForgivenessMinutes: number
+
   shutdownSchedule: string
   shutdownWarningMilliseconds: number
+
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -51,6 +59,12 @@ export const useAppConfigStore = defineStore('appConfig', () => {
       bannerColor.value = "#4fa0ff"
     }
 
+    perDayLatePenalty.value = latestConfig.perDayLatePenalty
+    gitCommitPenalty.value = latestConfig.gitCommitPenalty
+    maxLateDaysPenalized.value = latestConfig.maxLateDaysPenalized
+    linesChangedPerCommit.value = latestConfig.linesChangedPerCommit
+    clockForgivenessMinutes.value = latestConfig.clockForgivenessMinutes
+
     shutdownSchedule.value = latestConfig.shutdownSchedule
     shutdownWarningMilliseconds.value = latestConfig.shutdownWarningMilliseconds
 
@@ -75,13 +89,18 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const bannerColor: Ref<string> = ref<string>("");
   const bannerExpiration: Ref<string> = ref<string>("");
 
+  const perDayLatePenalty = ref<number>(0)
+  const gitCommitPenalty = ref<number>(0)
+  const maxLateDaysPenalized = ref<number>(0)
+  const linesChangedPerCommit = ref<number>(0)
+  const clockForgivenessMinutes = ref<number>(0)
+
   const shutdownSchedule: Ref<string> = ref<string>("");
   const shutdownWarningMilliseconds: Ref<number> = ref<number>(0);
 
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
-
   const rubricInfo: Ref<Map<Phase, Map<RubricType, RubricInfo>>> =
       ref<Map<Phase, Map<RubricType, RubricInfo>>>(new Map<Phase, Map<RubricType, RubricInfo>>);
   const courseNumber: Ref<number> = ref<number>(-1);
@@ -98,6 +117,11 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,
-    courseNumber
+    courseNumber,
+    perDayLatePenalty,
+    gitCommitPenalty,
+    maxLateDaysPenalized,
+    linesChangedPerCommit,
+    clockForgivenessMinutes
   };
 })
