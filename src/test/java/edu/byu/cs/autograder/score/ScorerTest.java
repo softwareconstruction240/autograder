@@ -11,11 +11,13 @@ import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.Submission.VerifiedStatus;
 import edu.byu.cs.properties.ApplicationProperties;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +42,8 @@ class ScorerTest {
     GradingContext gradingContext = null;
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
+    private static final int CODE_QUALITY_POSSIBLE_POINTS = 7;
+    private static final int UNIT_TESTS_POSSIBLE_POINTS = 6;
 
     private static final CommitVerificationConfig standardCVConfig = new CommitVerificationConfig(10, 3, 0, 10, 3);
 
@@ -78,10 +83,22 @@ class ScorerTest {
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
-                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, 
-                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId")))
-        );
+                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId"),
+                        Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory2", "testCriteria2", 0, "testRubricId2")
+                )));
+        RubricConfig phase3RubricConfig = new RubricConfig(
+                Phase.Phase3,
+                new EnumMap<>(Map.of(
+                        Rubric.RubricType.PASSOFF_TESTS, new RubricConfig.RubricConfigItem("testCategory1", "testCriteria1", PASSOFF_POSSIBLE_POINTS, "testRubricId1"),
+                        Rubric.RubricType.QUALITY, new RubricConfig.RubricConfigItem("testCategory2", "testCriteria2", CODE_QUALITY_POSSIBLE_POINTS, "testRubricId2"),
+                        Rubric.RubricType.UNIT_TESTS, new RubricConfig.RubricConfigItem("testCategory3", "testCriteria3", UNIT_TESTS_POSSIBLE_POINTS, "testRubricId3"),
+                        Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory4", "testCriteria4", 0, "testRubricId4")
+                )));
         DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
+        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase3, phase3RubricConfig);
+        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE0_ASSIGNMENT_NUMBER, 0, Integer.class);
+        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE3_ASSIGNMENT_NUMBER, 0, Integer.class);
+
         DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
         DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), false));
 
@@ -209,6 +226,36 @@ class ScorerTest {
         Mockito.verifyNoInteractions(spyCanvasIntegration);
     }
 
+    @Test
+    void score_doesNotDecrease_when_higherPriorScore() throws CanvasException, DataAccessException {
+        gradingContext = new GradingContext(
+                "testNetId", Phase.Phase3, "testPhasesPath", "testStagePath",
+                "testRepoUrl", new File(""),
+                standardCVConfig, mockObserver, false);
+
+        Rubric previousRubric = constructRubric(1, 0.1f, 0.1f);
+        Submission previousSubmission = scoreRubric(previousRubric);
+        DaoService.getSubmissionDao().insertSubmission(previousSubmission);
+
+        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                ZonedDateTime.now().minusDays(30)
+        );
+
+        float newPassoffScore = 10f;
+        float newQualityScore = 6f;
+        float newUnitTestScore = 6f;
+        Rubric newRubric = constructRubric(newPassoffScore / PASSOFF_POSSIBLE_POINTS,
+                newQualityScore / CODE_QUALITY_POSSIBLE_POINTS,
+                newUnitTestScore / UNIT_TESTS_POSSIBLE_POINTS);
+        Submission newSubmission = scoreRubric(newRubric);
+
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = newSubmission.rubric().items();
+
+        Assertions.assertEquals(newPassoffScore, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(newQualityScore / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(newUnitTestScore / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
     // Helper Methods for constructing
 
     /**
@@ -228,6 +275,18 @@ class ScorerTest {
 
         return new Rubric(new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
                         new Rubric.RubricItem("testCategory", results, "testCriteria"))),
+                true, "testNotes");
+    }
+
+    private Rubric constructRubric(float passoffScore, float qualityScore, float unitTestScore) {
+        Rubric.Results passoffResults = new Rubric.Results("testNotes1", passoffScore, PASSOFF_POSSIBLE_POINTS, null, "testTextResults1");
+        Rubric.Results qualityResults = new Rubric.Results("testNotes2", qualityScore, CODE_QUALITY_POSSIBLE_POINTS, null, "testTextResults2");
+        Rubric.Results unitTestResults = new Rubric.Results("testNotes3", unitTestScore, UNIT_TESTS_POSSIBLE_POINTS, null, "testTextResults3");
+
+        return new Rubric(new EnumMap<>(Map.of(
+                Rubric.RubricType.PASSOFF_TESTS, new Rubric.RubricItem("testCategory1", passoffResults, "testCriteria1"),
+                Rubric.RubricType.QUALITY, new Rubric.RubricItem("testCategory2", qualityResults, "testCriteria2"),
+                Rubric.RubricType.UNIT_TESTS, new Rubric.RubricItem("testCategory3", unitTestResults, "testCriteria3"))),
                 true, "testNotes");
     }
 
@@ -296,7 +355,7 @@ class ScorerTest {
         testProperties.setProperty("frontend-url", "testFrontend");
         testProperties.setProperty("cas-callback-url", "testCallback");
         testProperties.setProperty("canvas-token", "testToken");
-        testProperties.setProperty("use-canvas", "false");
+        testProperties.setProperty("use-canvas", "true");
 
         ApplicationProperties.loadProperties(testProperties);
     }
