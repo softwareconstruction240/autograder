@@ -287,14 +287,14 @@ public class Scorer {
     }
 
     private Rubric applyLatePenalty(Rubric rubric, int daysLate) throws DataAccessException {
-        Submission previousSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
+        Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
         for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
             Rubric.RubricType rubricType = entry.getKey();
             Rubric.RubricItem rubricItem = entry.getValue();
 
-            Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmission, lateScoreMultiplier);
+            Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmissions, lateScoreMultiplier);
             rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
             items.put(rubricType, rubricItem);
         }
@@ -302,13 +302,13 @@ public class Scorer {
     }
 
     private Rubric.Results mergeResultsWithPrevious(Rubric.RubricType rubricType, Rubric.RubricItem rubricItem,
-                                                    Submission previousSubmission, float scoreMultiplier) {
+                                                    Collection<Submission> previousSubmissions, float scoreMultiplier) {
         Rubric.Results results = rubricItem.results();
 
         String notes = results.notes();
         float score = results.score() * scoreMultiplier;
 
-        if (previousSubmission != null) {
+        for (Submission previousSubmission : previousSubmissions) {
             Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
             if (previousItem != null &&
                     previousItem.results().score() > score &&
