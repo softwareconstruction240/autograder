@@ -144,7 +144,7 @@ public class TestHelper {
                 .command(runCommands);
 
         List<String> reportCommands = List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
-                "--classfiles", compiledTests.getParent() + "/repo/shared/target/classes", "--xml", "test-output/coverage.xml");
+                "--classfiles", compiledTests.getParent() + "/repo/shared/target/classes", "--csv", "test-output/coverage.csv");
 
         ProcessBuilder reportProcessBuilder = new ProcessBuilder()
                 .command(reportCommands)
@@ -159,7 +159,7 @@ public class TestHelper {
             TestAnalyzer testAnalyzer = new TestAnalyzer();
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
-            File coverageOutput = new File(testOutputDirectory, "coverage.xml");
+            File coverageOutput = new File(testOutputDirectory, "coverage.csv");
             return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
