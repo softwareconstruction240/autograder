@@ -306,19 +306,19 @@ public class Scorer {
         Rubric.Results results = rubricItem.results();
 
         String notes = results.notes();
-        float score = results.score() * scoreMultiplier;
+        float startingScore = results.score() * scoreMultiplier;
+        float score = startingScore;
 
         for (Submission previousSubmission : previousSubmissions) {
             Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
-            if (previousItem != null &&
-                    previousItem.results().score() > score &&
-                    previousItem.results().rawScore() <= results.rawScore()) {
-                notes = String.format("%s\nDeferring to less-penalized prior score of %s/%d",
-                        previousItem.results().notes().trim(),
-                        Math.round(previousItem.results().score() * 100) / 100.0,
-                        previousItem.results().possiblePoints());
-                score = previousItem.results().score();
+            if (previousItem != null && previousItem.results().rawScore() <= results.rawScore()) {
+                score = Math.max(score, previousItem.results().score());
             }
+        }
+
+        if(score > startingScore) {
+            notes = String.format("Deferring to less-penalized prior score of %s/%d\n%s",
+                    Math.round(score * 100) / 100.0, rubricItem.results().possiblePoints(), notes);
         }
 
         return new Rubric.Results(notes,
