@@ -108,6 +108,7 @@ Create the branch directly from the issue so your work is linked.
     - `admin-display-verification-status`
     - `server-communicator`
     - `extract-service-logic-from-controllers`
+- If the issue name is clear and concise, the default branch name from clicking "Create a branch" from the issue page is also fine, it usually looks something like `488-fullstack-add-code-coverage-for-unit-tests`
 - Use kebab-case (lowercase with hyphens)
 - Keep names concise but clear
 - One branch per issue (don't mix different features/fixes)
