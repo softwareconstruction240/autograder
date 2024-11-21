@@ -17,6 +17,10 @@ public class Server {
         this.provider = endpointProvider;
     }
 
+    public int start() {
+        return start(0);
+    }
+
     public int start(int desiredPort) {
         int chosenPort = setupEndpoints(desiredPort);
         LOGGER.info("Server started on port {}", chosenPort);
