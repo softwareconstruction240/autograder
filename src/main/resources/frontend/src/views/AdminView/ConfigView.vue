@@ -4,13 +4,13 @@ import { listOfPhases } from '@/types/types'
 import { useConfigStore } from '@/stores/config'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
-import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
-import PenaltyConfigEditor from '@/components/config/PenaltyConfigEditor.vue'
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
 const LivePhaseConfigEditor = defineAsyncComponent(() => import('@/components/config/LivePhaseConfigEditor.vue'))
-const CourseIdConfigEditor = defineAsyncComponent(() => import('@/components/config/CourseIdConfigEditor.vue'))
+const PenaltyConfigEditor = defineAsyncComponent(() => import('@/components/config/PenaltyConfigEditor.vue'))
+const CoursesConfigEditor = defineAsyncComponent(() => import('@/components/config/CoursesConfigEditor.vue'))
+const ScheduleShutdownEditor = defineAsyncComponent(() => import('@/components/config/ScheduleShutdownEditor.vue'))
 
 const config = useConfigStore();
 
@@ -78,13 +78,15 @@ onMounted( async () => {
       </template>
     </ConfigSection>
 
-    <ConfigSection title="Course IDs" description="Phase assignment ID numbers, rubric IDs, and rubric points">
+    <ConfigSection title="Courses" description="Manage Canvas course connections">
       <template #editor="{ closeEditor }">
-        <CourseIdConfigEditor :closeEditor="closeEditor"/>
+        <CoursesConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
-        <p><span class="infoLabel">Course ID:</span> {{ config.admin.ids?.courseNumber }}</p>
-        <p><em>Open editor to see the rest of the values</em></p>
+        <p><span class="infoLabel">Course IDs:</span></p>
+        <ul>
+          <li v-for="course in config.admin.courses">{{course.courseNumber}}</li>
+        </ul>
       </template>
     </ConfigSection>
   </div>

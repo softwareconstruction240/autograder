@@ -10,7 +10,7 @@ import { computed, type WritableComputedRef } from 'vue'
 import { setCanvasCourseIds, setCourseIds } from '@/services/configService'
 import { useConfigStore } from '@/stores/config'
 
-const appConfigStore = useConfigStore();
+const config = useConfigStore();
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
@@ -91,58 +91,67 @@ const submitCanvasCourseIds = async () => {
 </script>
 
 <template>
-  <p>
-    <i class="fa-solid fa-triangle-exclamation" style="color: orangered"/>
-    Note: All the default input values are the values that are currently being used.
-  </p>
-
-  <br>
-  <h4>Course Number</h4>
-  <label for="courseIdInput">Course Number: </label>
-  <input id="courseIdInput" type="number" v-model.number="appConfigStore.courseNumber" placeholder="Course Number">
-  <br><br>
-  <h4>Assignment and Rubric IDs/Points</h4>
-  <div v-for="(phase, phaseIndex) in listOfPhases()" :key="phaseIndex">
-    <div v-if="isPhaseGraded(phase)">
-      <h4>{{ phase }}:</h4>
-      <label :for="'assignmentIdInput' + phaseIndex">Assignment ID: </label>
-      <input
-        :id="'assignmentIdInput' + phaseIndex"
-        type="number"
-        v-model.number="assignmentIdProxy(phase).value"
-        placeholder="Assignment ID"
-      >
-      <br>
-
-      <ol>
-        <li v-for="(rubricType, rubricIndex) in getRubricTypes(convertPhaseStringToEnum(phase as unknown as string))" :key="rubricIndex">
-          <u>{{ convertRubricTypeToHumanReadable(rubricType) }}</u>:
-          <div class="inline-container">
-            <label :for="'rubricIdInput' + phaseIndex + rubricIndex">Rubric&nbsp;ID: </label>
-            <input
-              :id="'rubricIdInput' + phaseIndex + rubricIndex"
-              type="text"
-              v-model="rubricIdInfoProxy(phase, rubricType).value"
-              placeholder="Rubric ID"
-            >
-          </div>
-          <div class="inline-container">
-            <label :for="'rubricPointsInput' + phaseIndex + rubricIndex">Rubric Points: </label>
-            <input
-              :id="'rubricPointsInput' + phaseIndex + rubricIndex"
-              type="number"
-              v-model.number="rubricPointsInfoProxy(phase, rubricType).value"
-              placeholder="Points"
-            >
-          </div>
-        </li>
-      </ol>
-    </div>
+  <p>The Autograder uses Canvas to know who is enrolled in CS 240, and to save official grades. Students and TAs can not log in
+    unless they are enrolled in a Canvas course listed here.</p>
+  <p><b>Current Courses:</b></p>
+  <div v-for="course in config.admin.courses">
+    <p><i class="fa-solid fa-pen-to-square"></i><em> ID:</em>{{course.courseNumber}} <i class="fa-solid fa-trash"/></p>
   </div>
+  <em>Currently, only one course is supported. This is anticipated to change soon.</em>
 
-  <br>
-  <button @click="submitManuelCourseIds">Submit</button>
-  <button @click="submitCanvasCourseIds">Reset IDs Via Canvas</button>
+
+<!--  <p>-->
+<!--    <i class="fa-solid fa-triangle-exclamation" style="color: orangered"/>-->
+<!--    Note: All the default input values are the values that are currently being used.-->
+<!--  </p>-->
+
+<!--  <br>-->
+<!--  <h4>Course Number</h4>-->
+<!--  <label for="courseIdInput">Course Number: </label>-->
+<!--  <input id="courseIdInput" type="number" v-model.number="appConfigStore.courseNumber" placeholder="Course Number">-->
+<!--  <br><br>-->
+<!--  <h4>Assignment and Rubric IDs/Points</h4>-->
+<!--  <div v-for="(phase, phaseIndex) in listOfPhases()" :key="phaseIndex">-->
+<!--    <div v-if="isPhaseGraded(phase)">-->
+<!--      <h4>{{ phase }}:</h4>-->
+<!--      <label :for="'assignmentIdInput' + phaseIndex">Assignment ID: </label>-->
+<!--      <input-->
+<!--        :id="'assignmentIdInput' + phaseIndex"-->
+<!--        type="number"-->
+<!--        v-model.number="assignmentIdProxy(phase).value"-->
+<!--        placeholder="Assignment ID"-->
+<!--      >-->
+<!--      <br>-->
+
+<!--      <ol>-->
+<!--        <li v-for="(rubricType, rubricIndex) in getRubricTypes(convertPhaseStringToEnum(phase as unknown as string))" :key="rubricIndex">-->
+<!--          <u>{{ convertRubricTypeToHumanReadable(rubricType) }}</u>:-->
+<!--          <div class="inline-container">-->
+<!--            <label :for="'rubricIdInput' + phaseIndex + rubricIndex">Rubric&nbsp;ID: </label>-->
+<!--            <input-->
+<!--              :id="'rubricIdInput' + phaseIndex + rubricIndex"-->
+<!--              type="text"-->
+<!--              v-model="rubricIdInfoProxy(phase, rubricType).value"-->
+<!--              placeholder="Rubric ID"-->
+<!--            >-->
+<!--          </div>-->
+<!--          <div class="inline-container">-->
+<!--            <label :for="'rubricPointsInput' + phaseIndex + rubricIndex">Rubric Points: </label>-->
+<!--            <input-->
+<!--              :id="'rubricPointsInput' + phaseIndex + rubricIndex"-->
+<!--              type="number"-->
+<!--              v-model.number="rubricPointsInfoProxy(phase, rubricType).value"-->
+<!--              placeholder="Points"-->
+<!--            >-->
+<!--          </div>-->
+<!--        </li>-->
+<!--      </ol>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <br>-->
+<!--  <button @click="submitManuelCourseIds">Submit</button>-->
+<!--  <button @click="submitCanvasCourseIds">Reset IDs Via Canvas</button>-->
 </template>
 
 <style scoped>
