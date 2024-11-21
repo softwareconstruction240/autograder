@@ -26,7 +26,6 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -242,6 +241,21 @@ class ScorerTest {
         Assertions.assertEquals(newestPassoffPoints, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
         Assertions.assertEquals(newestQualityPoints / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
         Assertions.assertEquals(newestUnitTestPoints / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
+    @Test
+    void score_doesDecrease_when_higherPriorRawScore() throws CanvasException, DataAccessException {
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, 0, UNIT_TESTS_POSSIBLE_POINTS, -1),
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, 0, 30)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals(PASSOFF_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(CODE_QUALITY_POSSIBLE_POINTS / 2.0f, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(0, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
     }
 
     // Helper Methods for constructing
