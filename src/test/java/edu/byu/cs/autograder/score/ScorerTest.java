@@ -228,17 +228,20 @@ class ScorerTest {
 
     @Test
     void score_doesNotDecrease_when_higherPriorScore() throws CanvasException, DataAccessException {
-        float newPassoffPoints = PASSOFF_POSSIBLE_POINTS;
-        float newQualityPoints = CODE_QUALITY_POSSIBLE_POINTS - 1;
-        float newUnitTestPoints = UNIT_TESTS_POSSIBLE_POINTS;
-        Submission newSubmission = previousSubmissionHelper(PASSOFF_POSSIBLE_POINTS, 1, 1, -1,
-                newPassoffPoints, newQualityPoints, newUnitTestPoints, 30);
+        float newestPassoffPoints = PASSOFF_POSSIBLE_POINTS;
+        float newestQualityPoints = CODE_QUALITY_POSSIBLE_POINTS - 1;
+        float newestUnitTestPoints = UNIT_TESTS_POSSIBLE_POINTS;
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, 1, 1, -1),
+                new Phase3SubmissionValues(newestPassoffPoints, newestQualityPoints, newestUnitTestPoints, 30)
+        );
 
-        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = newSubmission.rubric().items();
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
 
-        Assertions.assertEquals(newPassoffPoints, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
-        Assertions.assertEquals(newQualityPoints / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
-        Assertions.assertEquals(newUnitTestPoints / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+        Assertions.assertEquals(newestPassoffPoints, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(newestQualityPoints / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(newestUnitTestPoints / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
     }
 
     // Helper Methods for constructing
@@ -305,31 +308,34 @@ class ScorerTest {
                 headHash, null);
     }
 
-    private Submission previousSubmissionHelper(float oldPassoffPoints, float oldQualityPoints, float oldUnitTestPoints, int oldDaysLate,
-                                          float newPassoffPoints, float newQualityPoints, float newUnitTestPoints, int newDaysLate) throws DataAccessException, CanvasException {
+    record Phase3SubmissionValues(float passoffPoints, float qualityPoints, float unitTestPoints, int daysLate) {}
+
+    private Submission previousSubmissionHelper(Phase3SubmissionValues... values) throws DataAccessException, CanvasException {
         gradingContext = new GradingContext(
                 "testNetId", Phase.Phase3, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
                 standardCVConfig, mockObserver, false);
 
-        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                ZonedDateTime.now().minusDays(oldDaysLate)
-        );
+        for (int i = 0; i < values.length; i++) {
+            Phase3SubmissionValues value = values[i];
+            when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                    ZonedDateTime.now().minusDays(value.daysLate())
+            );
 
-        Rubric previousRubric =  constructRubric(oldPassoffPoints / PASSOFF_POSSIBLE_POINTS,
-                oldQualityPoints / CODE_QUALITY_POSSIBLE_POINTS,
-                oldUnitTestPoints / UNIT_TESTS_POSSIBLE_POINTS);
-        Submission previousSubmission = scoreRubric(previousRubric);
-        DaoService.getSubmissionDao().insertSubmission(previousSubmission);
+            Rubric rubric =  constructRubric(value.passoffPoints() / PASSOFF_POSSIBLE_POINTS,
+                    value.qualityPoints() / CODE_QUALITY_POSSIBLE_POINTS,
+                    value.unitTestPoints() / UNIT_TESTS_POSSIBLE_POINTS);
+            Submission submission = scoreRubric(rubric);
 
-        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                ZonedDateTime.now().minusDays(newDaysLate)
-        );
+            if (i == values.length - 1) {
+                return submission;
+            }
+            else {
+                DaoService.getSubmissionDao().insertSubmission(submission);
+            }
+        }
 
-        Rubric newRubric = constructRubric(newPassoffPoints / PASSOFF_POSSIBLE_POINTS,
-                newQualityPoints / CODE_QUALITY_POSSIBLE_POINTS,
-                newUnitTestPoints / UNIT_TESTS_POSSIBLE_POINTS);
-        return scoreRubric(newRubric);
+        return null;
     }
 
     private Rubric constructRubric(float passoffScore, float qualityScore, float unitTestScore) {
