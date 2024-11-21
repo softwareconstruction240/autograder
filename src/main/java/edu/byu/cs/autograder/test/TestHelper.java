@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.util.FileUtils;
@@ -160,6 +161,7 @@ public class TestHelper {
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
+            CoverageAnalysis coverage = new CoverageAnalyzer().parse(coverageOutput);
             return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
