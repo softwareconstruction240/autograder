@@ -228,32 +228,17 @@ class ScorerTest {
 
     @Test
     void score_doesNotDecrease_when_higherPriorScore() throws CanvasException, DataAccessException {
-        gradingContext = new GradingContext(
-                "testNetId", Phase.Phase3, "testPhasesPath", "testStagePath",
-                "testRepoUrl", new File(""),
-                standardCVConfig, mockObserver, false);
-
-        Rubric previousRubric = constructRubric(1, 0.1f, 0.1f);
-        Submission previousSubmission = scoreRubric(previousRubric);
-        DaoService.getSubmissionDao().insertSubmission(previousSubmission);
-
-        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
-                ZonedDateTime.now().minusDays(30)
-        );
-
-        float newPassoffScore = 10f;
-        float newQualityScore = 6f;
-        float newUnitTestScore = 6f;
-        Rubric newRubric = constructRubric(newPassoffScore / PASSOFF_POSSIBLE_POINTS,
-                newQualityScore / CODE_QUALITY_POSSIBLE_POINTS,
-                newUnitTestScore / UNIT_TESTS_POSSIBLE_POINTS);
-        Submission newSubmission = scoreRubric(newRubric);
+        float newPassoffPoints = PASSOFF_POSSIBLE_POINTS;
+        float newQualityPoints = CODE_QUALITY_POSSIBLE_POINTS - 1;
+        float newUnitTestPoints = UNIT_TESTS_POSSIBLE_POINTS;
+        Submission newSubmission = previousSubmissionHelper(PASSOFF_POSSIBLE_POINTS, 1, 1, -1,
+                newPassoffPoints, newQualityPoints, newUnitTestPoints, 30);
 
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = newSubmission.rubric().items();
 
-        Assertions.assertEquals(newPassoffScore, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
-        Assertions.assertEquals(newQualityScore / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
-        Assertions.assertEquals(newUnitTestScore / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+        Assertions.assertEquals(newPassoffPoints, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(newQualityPoints / 2, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(newUnitTestPoints / 2, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
     }
 
     // Helper Methods for constructing
@@ -275,18 +260,6 @@ class ScorerTest {
 
         return new Rubric(new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
                         new Rubric.RubricItem("testCategory", results, "testCriteria"))),
-                true, "testNotes");
-    }
-
-    private Rubric constructRubric(float passoffScore, float qualityScore, float unitTestScore) {
-        Rubric.Results passoffResults = new Rubric.Results("testNotes1", passoffScore, PASSOFF_POSSIBLE_POINTS, null, "testTextResults1");
-        Rubric.Results qualityResults = new Rubric.Results("testNotes2", qualityScore, CODE_QUALITY_POSSIBLE_POINTS, null, "testTextResults2");
-        Rubric.Results unitTestResults = new Rubric.Results("testNotes3", unitTestScore, UNIT_TESTS_POSSIBLE_POINTS, null, "testTextResults3");
-
-        return new Rubric(new EnumMap<>(Map.of(
-                Rubric.RubricType.PASSOFF_TESTS, new Rubric.RubricItem("testCategory1", passoffResults, "testCriteria1"),
-                Rubric.RubricType.QUALITY, new Rubric.RubricItem("testCategory2", qualityResults, "testCriteria2"),
-                Rubric.RubricType.UNIT_TESTS, new Rubric.RubricItem("testCategory3", unitTestResults, "testCriteria3"))),
                 true, "testNotes");
     }
 
@@ -330,6 +303,45 @@ class ScorerTest {
                 verified, isCached, 0, 0, 0, false, 0,
                 "", null, null,
                 headHash, null);
+    }
+
+    private Submission previousSubmissionHelper(float oldPassoffPoints, float oldQualityPoints, float oldUnitTestPoints, int oldDaysLate,
+                                          float newPassoffPoints, float newQualityPoints, float newUnitTestPoints, int newDaysLate) throws DataAccessException, CanvasException {
+        gradingContext = new GradingContext(
+                "testNetId", Phase.Phase3, "testPhasesPath", "testStagePath",
+                "testRepoUrl", new File(""),
+                standardCVConfig, mockObserver, false);
+
+        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                ZonedDateTime.now().minusDays(oldDaysLate)
+        );
+
+        Rubric previousRubric =  constructRubric(oldPassoffPoints / PASSOFF_POSSIBLE_POINTS,
+                oldQualityPoints / CODE_QUALITY_POSSIBLE_POINTS,
+                oldUnitTestPoints / UNIT_TESTS_POSSIBLE_POINTS);
+        Submission previousSubmission = scoreRubric(previousRubric);
+        DaoService.getSubmissionDao().insertSubmission(previousSubmission);
+
+        when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
+                ZonedDateTime.now().minusDays(newDaysLate)
+        );
+
+        Rubric newRubric = constructRubric(newPassoffPoints / PASSOFF_POSSIBLE_POINTS,
+                newQualityPoints / CODE_QUALITY_POSSIBLE_POINTS,
+                newUnitTestPoints / UNIT_TESTS_POSSIBLE_POINTS);
+        return scoreRubric(newRubric);
+    }
+
+    private Rubric constructRubric(float passoffScore, float qualityScore, float unitTestScore) {
+        Rubric.Results passoffResults = new Rubric.Results("testNotes1", passoffScore, PASSOFF_POSSIBLE_POINTS, null, "testTextResults1");
+        Rubric.Results qualityResults = new Rubric.Results("testNotes2", qualityScore, CODE_QUALITY_POSSIBLE_POINTS, null, "testTextResults2");
+        Rubric.Results unitTestResults = new Rubric.Results("testNotes3", unitTestScore, UNIT_TESTS_POSSIBLE_POINTS, null, "testTextResults3");
+
+        return new Rubric(new EnumMap<>(Map.of(
+                Rubric.RubricType.PASSOFF_TESTS, new Rubric.RubricItem("testCategory1", passoffResults, "testCriteria1"),
+                Rubric.RubricType.QUALITY, new Rubric.RubricItem("testCategory2", qualityResults, "testCriteria2"),
+                Rubric.RubricType.UNIT_TESTS, new Rubric.RubricItem("testCategory3", unitTestResults, "testCriteria3"))),
+                true, "testNotes");
     }
 
     // Assertion Helpers
