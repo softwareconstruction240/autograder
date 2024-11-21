@@ -1,8 +1,6 @@
 package edu.byu.cs.server;
 
 import com.google.gson.Gson;
-import edu.byu.cs.server.exception.ResponseParseException;
-import edu.byu.cs.server.exception.ServerConnectionException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,20 +19,19 @@ public class TestServerFacade {
         this.serverURL = "http://%s:%d".formatted(serverURL, port);
     }
 
-    public Object makeRequest(String method, String path) throws IOException, ServerConnectionException,
-            ResponseParseException {
+    public Object makeRequest(String method, String path) throws IOException {
         return makeRequest(method, path, null, null, Object.class);
     }
 
     public <T> T makeRequest(String method, String path, Object request, Map<String, String> headers,
-            Class<T> responseClass) throws IOException, ServerConnectionException, ResponseParseException {
+            Class<T> responseClass) throws IOException {
         HttpURLConnection http = getConnection(method, serverURL + path);
         writeRequest(http, request, headers);
         connect(http);
         return readResponse(http, responseClass);
     }
 
-    private HttpURLConnection getConnection(String method, String urlString) throws ServerConnectionException {
+    private HttpURLConnection getConnection(String method, String urlString) throws IOException {
         try {
             URL url = (new URI(urlString)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -42,35 +39,34 @@ public class TestServerFacade {
             http.setDoOutput("POST".equals(method) || "PUT".equals(method));
             return http;
         } catch (IOException | URISyntaxException e) {
-            throw new ServerConnectionException("Failed to set up HTTP connection: " + e.getMessage());
+            throw new IOException("Failed to set up HTTP connection: " + e.getMessage(), e);
         }
     }
 
-    private void writeRequest(HttpURLConnection http, Object requestBody, Map<String, String> headers) throws ServerConnectionException {
+    private void writeRequest(HttpURLConnection http, Object requestBody, Map<String, String> headers) throws IOException {
         try {
             writeHeaders(http, headers);
             writeRequestBody(http, requestBody);
         } catch (IOException e) {
-            throw new ServerConnectionException("Could not write request body: " + e.getMessage());
+            throw new IOException("Could not write request body: " + e.getMessage(), e);
         }
     }
 
-    private void connect(HttpURLConnection http) throws ServerConnectionException {
+    private void connect(HttpURLConnection http) throws IOException {
         try {
             http.connect();
         } catch (IOException e) {
-            throw new ServerConnectionException("Failed to connect to server: " + e.getMessage());
+            throw new IOException("Failed to connect to server: " + e.getMessage(), e);
         }
     }
 
-    private <T> T readResponse(HttpURLConnection http, Class<T> responseClass) throws IOException,
-            ResponseParseException {
+    private <T> T readResponse(HttpURLConnection http, Class<T> responseClass) throws IOException {
         String respString = getRespString(http);
         try {
             return new Gson().fromJson(respString, responseClass);
         } catch (Exception e) {
             String message = String.format("Error parsing response. Expected JSON, got '%s'", respString);
-            throw new ResponseParseException(message, e);
+            throw new IOException(message, e);
         }
     }
 

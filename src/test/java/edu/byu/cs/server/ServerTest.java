@@ -1,8 +1,6 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.server.endpointprovider.MockEndpointProvider;
-import edu.byu.cs.server.exception.ResponseParseException;
-import edu.byu.cs.server.exception.ServerConnectionException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -88,7 +86,7 @@ class ServerTest {
 
     @ParameterizedTest
     @MethodSource("getEndpoints")
-    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String path, String endpointName) throws ServerConnectionException, ResponseParseException, IOException {
+    public void verifyEndpointCallsItsHandlersExactlyOnceInOrder(String method, String path, String endpointName) throws IOException {
         // When
         serverFacade.makeRequest(method, path);
 
@@ -104,7 +102,7 @@ class ServerTest {
     @ParameterizedTest
     @MethodSource("getPathParamEndpoints")
     public void verifyPathParameterHasAValueWhenGivenOne(String method, String path, String endpointName,
-            String pathParamName) throws ServerConnectionException, ResponseParseException, IOException {
+            String pathParamName) throws IOException {
         // Given
         String fullPath = path + "/testParamValue";
 
@@ -134,7 +132,7 @@ class ServerTest {
     }
 
     @Test
-    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order() throws IOException, ServerConnectionException, ResponseParseException {
+    void nonexistent_GET_endpoint_calls_beforeAll_then_defaultGet_then_afterAll_exactly_once_in_order() throws IOException {
         serverFacade.makeRequest("GET", "/iDoNotExist");
 
         // Verify they ran in order
