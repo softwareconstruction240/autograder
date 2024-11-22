@@ -3,7 +3,7 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
@@ -130,8 +130,8 @@ public class TestHelper {
      * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
-    TestAnalysis runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                               Set<String> extraCreditTests) throws GradingException {
+    TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
+                             Set<String> extraCreditTests) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -154,15 +154,17 @@ public class TestHelper {
         try {
             ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(runProcessBuilder);
             String error = processOutput.stdErr();
-
-            ProcessUtils.ProcessOutput reportOutput = ProcessUtils.runProcess(reportProcessBuilder);
+            ProcessUtils.runProcess(reportProcessBuilder);
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
+
             CoverageAnalysis coverage = new CoverageAnalyzer().parse(coverageOutput);
-            return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
+            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, extraCreditTests);
+
+            return new TestOutput(testAnalysis.root(), testAnalysis.extraCredit(), coverage, removeSparkLines(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
