@@ -318,9 +318,11 @@ public class Scorer {
         float score = startingScore;
 
         for (Submission previousSubmission : previousSubmissions) {
-            Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
-            if (previousItem != null && previousItem.results().rawScore() <= results.rawScore()) {
-                score = Math.max(score, previousItem.results().score());
+            if(previousSubmission.passed()) {
+                Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
+                if (previousItem != null && previousItem.results().rawScore() <= results.rawScore()) {
+                    score = Math.max(score, previousItem.results().score());
+                }
             }
         }
 
