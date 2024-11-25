@@ -90,18 +90,10 @@ public class ConfigController {
         ConfigService.updateCourseIdsUsingCanvas(user);
     };
 
-    public static final Route updatePenalties = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler updatePenalties = ctx -> {
+        User user = ctx.sessionAttribute("user");
+        ConfigPenaltyUpdateRequest request = ctx.bodyAsClass(ConfigPenaltyUpdateRequest.class);
 
-        ConfigPenaltyUpdateRequest request = Serializer.deserialize(req.body(), ConfigPenaltyUpdateRequest.class);
-
-        try {
-            ConfigService.processPenaltyUpdates(user, request);
-        } catch (DataAccessException e) {
-            res.status(500);
-            res.body(e.getMessage());
-        }
-
-        return "";
+        ConfigService.processPenaltyUpdates(user, request);
     };
 }

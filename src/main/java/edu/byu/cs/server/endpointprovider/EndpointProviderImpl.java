@@ -140,7 +140,7 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
-    public Route updatePenalties() {
+    public Handler updatePenalties() {
         return ConfigController.updatePenalties;
     }
 
