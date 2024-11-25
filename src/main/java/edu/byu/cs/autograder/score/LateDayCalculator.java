@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
@@ -30,10 +31,6 @@ public class LateDayCalculator {
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
 
-    /**
-     * The max number of days that the late penalty should be applied for.
-     */
-    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
     private Set<LocalDate> publicHolidays;
 
     public LateDayCalculator() {
@@ -54,7 +51,8 @@ public class LateDayCalculator {
         }
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
-        return Math.min(getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+        int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        return Math.min(getNumDaysLate(handInDate, dueDate), maxLateDaysToPenalize);
     }
 
     /**
