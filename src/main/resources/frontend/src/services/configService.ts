@@ -14,6 +14,20 @@ export const getConfig = async ():Promise<Config> => {
   return await ServerCommunicator.getRequest<Config>(endpoint)
 }
 
+export const setPenalties = async (maxLateDaysPenalized: number,
+                                   gitCommitPenalty: number,
+                                   perDayLatePenalty: number,
+                                   linesChangedPerCommit: number,
+                                   clockForgivenessMinutes: number) => {
+  await doSetConfigItem("POST", '/api/admin/config/penalties', {
+    maxLateDaysPenalized: maxLateDaysPenalized,
+    gitCommitPenalty: gitCommitPenalty,
+    perDayLatePenalty: perDayLatePenalty,
+    linesChangedPerCommit: linesChangedPerCommit,
+    clockForgivenessMinutes: clockForgivenessMinutes
+  })
+}
+
 export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
   await doSetConfigItem("POST", '/api/admin/config/banner', {
     "bannerMessage": message,
@@ -42,7 +56,7 @@ export const setCanvasCourseIds = async (): Promise<void> => {
 }
 
 const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
-    let obj: any = {};
+    const obj: any = {};
     rubricInfo.forEach((rubricTypeMap, phase) => {
         obj[phase] = Object.fromEntries(rubricTypeMap.entries());
     });

@@ -5,6 +5,7 @@ import { useAppConfigStore } from '@/stores/appConfig'
 import { generateClickableLink, readableTimestamp } from '@/utils/utils'
 import ConfigSection from '@/components/config/ConfigSection.vue'
 import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
+import PenaltyConfigEditor from '@/components/config/PenaltyConfigEditor.vue'
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
@@ -27,8 +28,11 @@ onMounted( async () => {
       </template>
       <template #current>
       <div v-if="appConfigStore.bannerMessage">
-        <p><span class="infoLabel">Current Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
-        <p><span class="infoLabel">Current Link: </span><span v-html="generateClickableLink(appConfigStore.bannerLink)"/></p>
+        <p><span class="infoLabel">Message: </span><span v-text="appConfigStore.bannerMessage"/></p>
+        <p><span class="infoLabel">Link: </span>
+          <span v-if="appConfigStore.bannerLink" v-html="generateClickableLink(appConfigStore.bannerLink)"/>
+          <span v-else>none</span>
+        </p>
         <p><span class="infoLabel">Expires: </span><span v-text="readableTimestamp(appConfigStore.bannerExpiration)"/></p>
       </div>
         <p v-else>There is currently no banner message</p>
@@ -56,6 +60,20 @@ onMounted( async () => {
       <template #current>
         <p><span class="infoLabel">Scheduled to shutdown: </span> {{readableTimestamp(appConfigStore.shutdownSchedule)}}</p>
         <p v-if="appConfigStore.shutdownSchedule != 'never'"><span class="infoLabel">Warning duration: </span> {{appConfigStore.shutdownWarningMilliseconds / (60 * 60 * 1000)}} hours</p>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection title="Penalties" description="Values used for calculating penalties">
+      <template #editor="{ closeEditor }">
+        <PenaltyConfigEditor :closeEditor="closeEditor"/>
+      </template>
+      <template #current>
+        <p><span class="infoLabel">Late Penalty: </span>{{Math.round(appConfigStore.perDayLatePenalty * 100)}}%</p>
+        <p><span class="infoLabel">Max Days Penalized: </span>{{appConfigStore.maxLateDaysPenalized}} days</p>
+
+        <p><span class="infoLabel">Git Commit Penalty: </span>{{Math.round(appConfigStore.gitCommitPenalty * 100)}}%</p>
+        <p><span class="infoLabel">Lines Per Commit: </span>{{appConfigStore.linesChangedPerCommit }} lines</p>
+        <p><span class="infoLabel">Clock Forgiveness: </span>{{appConfigStore.clockForgivenessMinutes}} minutes</p>
       </template>
     </ConfigSection>
 
