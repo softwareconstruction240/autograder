@@ -28,6 +28,7 @@ class ServerTest {
                 Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
                 Arguments.of( "GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
         );
+        // api/admin/config/penalties
     }
 
     public static Stream<Arguments> getEndpoints() {
@@ -48,6 +49,7 @@ class ServerTest {
                 Arguments.of("POST", "/api/admin/config/banner", "updateBannerMessage"),
                 Arguments.of("POST", "/api/admin/config/courseIds", "updateCourseIdsPost"),
                 Arguments.of( "GET", "/api/admin/config/courseIds", "updateCourseIdsUsingCanvasGet"),
+                Arguments.of("POST", "/api/admin/config/penalties", "updatePenalties"),
                 Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
                 Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),
 
