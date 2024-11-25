@@ -106,7 +106,7 @@ public class Server {
                     post("/courseIds", provider.updateCourseIdsPost());
                     get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
 
-                    post("/penalties", updatePenalties);
+                    post("/penalties", provider.updatePenalties());
                 });
             });
         });

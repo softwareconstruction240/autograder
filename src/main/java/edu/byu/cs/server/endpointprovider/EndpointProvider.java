@@ -41,6 +41,7 @@ public interface EndpointProvider {
     Route updateBannerMessage();
     Route updateCourseIdsPost();
     Route updateCourseIdsUsingCanvasGet();
+    Route updatePenalties();
 
     // SubmissionController
 
