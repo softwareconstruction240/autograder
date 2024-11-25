@@ -5,6 +5,7 @@ import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.util.Serializer;
 import io.javalin.http.Handler;
@@ -87,5 +88,20 @@ public class ConfigController {
             throw new UnauthorizedException("No user credentials found");
         }
         ConfigService.updateCourseIdsUsingCanvas(user);
+    };
+
+    public static final Route updatePenalties = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        ConfigPenaltyUpdateRequest request = Serializer.deserialize(req.body(), ConfigPenaltyUpdateRequest.class);
+
+        try {
+            ConfigService.processPenaltyUpdates(user, request);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        }
+
+        return "";
     };
 }

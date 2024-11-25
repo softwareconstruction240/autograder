@@ -139,6 +139,11 @@ public class EndpointProviderImpl implements EndpointProvider {
         return ConfigController.updateCourseIdsUsingCanvasGet;
     }
 
+    @Override
+    public Route updatePenalties() {
+        return ConfigController.updatePenalties;
+    }
+
     // SubmissionController
 
     @Override

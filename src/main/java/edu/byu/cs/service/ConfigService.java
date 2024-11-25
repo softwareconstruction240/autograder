@@ -5,9 +5,11 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.canvas.model.CanvasAssignment;
 import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.ConfigurationDao.Configuration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
@@ -64,11 +66,19 @@ public class ConfigService {
         response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
     }
 
+    private static void addPenaltyConfig(JsonObject response) throws DataAccessException {
+        response.addProperty("perDayLatePenalty", dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class));
+        response.addProperty("gitCommitPenalty", dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class));
+        response.addProperty("maxLateDaysPenalized", dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class));
+        response.addProperty("linesChangedPerCommit", dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class));
+        response.addProperty("clockForgivenessMinutes", dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class));
+    }
+
     private static void clearBannerConfig() throws DataAccessException {
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, "", String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, "", String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, "", String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
+        dao.setConfiguration(Configuration.BANNER_MESSAGE, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_LINK, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_COLOR, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
 
         logAutomaticConfigChange("Banner message has expired");
     }
@@ -79,7 +89,7 @@ public class ConfigService {
         JsonObject response = new JsonObject();
 
         addBannerConfig(response);
-        response.addProperty("phases", dao.getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
+        response.addProperty("phases", dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
 
         Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
         if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
@@ -120,8 +130,10 @@ public class ConfigService {
         }
 
         JsonObject response = getPublicConfig();
+        addPenaltyConfig(response);
+
         int courseNumber = dao.getConfiguration(
-                ConfigurationDao.Configuration.COURSE_NUMBER,
+                Configuration.COURSE_NUMBER,
                 Integer.class
         );
         response.addProperty("courseNumber", courseNumber);
@@ -131,7 +143,7 @@ public class ConfigService {
     }
 
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
-        dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
+        dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
@@ -228,10 +240,10 @@ public class ConfigService {
             throw new IllegalArgumentException("Invalid hex color code. Must provide a hex code starting with a # symbol, followed by 6 hex digits");
         }
 
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, message, String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_LINK, link, String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, color, String.class);
-        dao.setConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, expirationTimestamp, Instant.class);
+        dao.setConfiguration(Configuration.BANNER_MESSAGE, message, String.class);
+        dao.setConfiguration(Configuration.BANNER_LINK, link, String.class);
+        dao.setConfiguration(Configuration.BANNER_COLOR, color, String.class);
+        dao.setConfiguration(Configuration.BANNER_EXPIRATION, expirationTimestamp, Instant.class);
 
         if (message.isEmpty()) {
             logConfigChange("cleared the banner message", user.netId());
@@ -256,7 +268,7 @@ public class ConfigService {
 
         // Course Number
         dao.setConfiguration(
-                ConfigurationDao.Configuration.COURSE_NUMBER,
+                Configuration.COURSE_NUMBER,
                 setCourseIdsRequest.courseNumber(),
                 Integer.class
         );
@@ -299,5 +311,51 @@ public class ConfigService {
                         "in the database using Canvas",
                 user.netId()
         );
+    }
+
+    public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
+        validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
+        validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
+        validateNonNegativeInt(request.clockForgivenessMinutes(), "Clock Forgiveness Minutes");
+        validateNonNegativeInt(request.maxLateDaysPenalized(), "Max Late Days Penalized");
+        validateNonNegativeInt(request.linesChangedPerCommit(), "Lines Changed Per Commit");
+
+        setConfigItem(user, Configuration.GIT_COMMIT_PENALTY, request.gitCommitPenalty(), Float.class);
+        setConfigItem(user, Configuration.PER_DAY_LATE_PENALTY, request.perDayLatePenalty(), Float.class);
+        setConfigItem(user, Configuration.CLOCK_FORGIVENESS_MINUTES, request.clockForgivenessMinutes(), Integer.class);
+        setConfigItem(user, Configuration.MAX_LATE_DAYS_TO_PENALIZE, request.maxLateDaysPenalized(), Integer.class);
+        setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
+    }
+
+    /**
+     * throws IllegalArgumentException if percent is not valid
+     * @param percent a float that should be between 0 and 1 (inclusive)
+     * @param name the name of the value, only used when throwing the exception
+     */
+    private static void validateValidPercentFloat(float percent, String name) {
+        if ((percent < 0) || (percent > 1)) {
+            throw new IllegalArgumentException(name + " must be 0-1");
+        }
+    }
+
+    /**
+     * throws IllegalArgumentException if value is negative
+     * @param value number we're checking is >= 0
+     * @param name name of the value, used when throwing the exception
+     */
+    private static void validateNonNegativeInt(int value, String name) {
+        if (value < 0) {
+            throw new IllegalArgumentException(name + " must be non-negative");
+        }
+    }
+
+    private static <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
+        ConfigurationDao dao = DaoService.getConfigurationDao();
+
+        T current = dao.getConfiguration(configKey, type);
+        if (current.equals(value)) return;
+
+        dao.setConfiguration(configKey, value, type);
+        logConfigChange("changed %s to %s".formatted(configKey.name(), value.toString()), admin.netId());
     }
 }

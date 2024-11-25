@@ -24,10 +24,11 @@ const submitLivePhases = async () => {
 
   try {
     await setLivePhases(livePhases)
+    closeEditor()
   } catch (e) {
+    appConfigStore.updateConfig()
     alert("There was a problem in saving live phases")
   }
-  closeEditor()
 }
 </script>
 
@@ -44,7 +45,7 @@ const submitLivePhases = async () => {
       <button @click="setAllPhases(true)" class="small">Enable all</button>
       <button @click="setAllPhases(false)" class="small">Disable all</button>
     </div>
-    <button @click="submitLivePhases">Submit Changes</button>
+    <button @click="submitLivePhases">Submit</button>
   </div>
 </template>
 

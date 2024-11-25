@@ -58,6 +58,8 @@ public interface EndpointProvider {
 
     Handler updateCourseIdsUsingCanvasGet();
 
+    Handler updatePenalties();
+
     // SubmissionController
 
     Handler submitPost();
