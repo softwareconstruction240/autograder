@@ -274,6 +274,21 @@ class ScorerTest {
         Assertions.assertEquals(UNIT_TESTS_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
     }
 
+    @Test
+    void score_doesDecrease_when_higherPriorScoreOfFailedSubmission() throws CanvasException, DataAccessException {
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(0, CODE_QUALITY_POSSIBLE_POINTS, UNIT_TESTS_POSSIBLE_POINTS, -1),
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, UNIT_TESTS_POSSIBLE_POINTS, 30)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals(PASSOFF_POSSIBLE_POINTS / 2f, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(CODE_QUALITY_POSSIBLE_POINTS / 2f, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(UNIT_TESTS_POSSIBLE_POINTS / 2f, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
     // Helper Methods for constructing
 
     /**
