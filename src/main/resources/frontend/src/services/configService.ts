@@ -20,11 +20,11 @@ export const setPenalties = (maxLateDaysPenalized: number,
                                    linesChangedPerCommit: number,
                                    clockForgivenessMinutes: number) => {
   return doSetConfigItem("POST", '/api/admin/config/penalties', {
-    maxLateDaysPenalized: maxLateDaysPenalized,
-    gitCommitPenalty: gitCommitPenalty,
-    perDayLatePenalty: perDayLatePenalty,
-    linesChangedPerCommit: linesChangedPerCommit,
-    clockForgivenessMinutes: clockForgivenessMinutes
+    maxLateDaysPenalized,
+    gitCommitPenalty,
+    perDayLatePenalty,
+    linesChangedPerCommit,
+    clockForgivenessMinutes,
   })
 }
 
