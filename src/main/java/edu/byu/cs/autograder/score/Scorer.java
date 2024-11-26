@@ -429,11 +429,7 @@ public class Scorer {
 
         Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
 
-        if (numDaysLate >= maxLateDays)
-            notes += " Late penalty maxed out at " + numDaysLate + " days late: -";
-        else if (numDaysLate > 0)
-            notes += " " + numDaysLate + " days late: -";
-        notes += (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100) + "% ";
+        notes = makeLatePenaltyNotes(numDaysLate, maxLateDays, notes);
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
@@ -463,6 +459,25 @@ public class Scorer {
                 verifiedStatus,
                 null
         );
+    }
+
+    private String makeLatePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes) {
+        if (numDaysLate <= 0) {
+            return origNotes;
+        }
+
+        String penaltyPercentage = String.format("-%d%%", (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100));
+        String lateNotes;
+        if (numDaysLate >= maxLateDays) {
+            lateNotes = "Late penalty maxed out: " + penaltyPercentage;
+        } else {
+            lateNotes = String.format("%d days late: %s", numDaysLate, penaltyPercentage);
+        }
+
+        if (origNotes == null || origNotes.isBlank()) {
+            return lateNotes;
+        }
+        return String.format("%s\n%s", origNotes, lateNotes);
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
