@@ -32,11 +32,8 @@ export const ServerCommunicator = {
  * @returns {Promise<T>} Promise that resolves to the response data of type T
  */
 function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
-  try {
-    return getRequest<T>(endpoint, true)
-  } catch (e) {
-    return Promise.resolve(errorResponse)
-  }
+  return getRequest<T>(endpoint, true)
+    .catch(_error => Promise.resolve(errorResponse));
 }
 
 /**
