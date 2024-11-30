@@ -1,5 +1,8 @@
 # Getting Started
 
+> [!TIP]
+> Read through the [Contribution Guide](../CONTRIBUTING.md) before making contributions to the project.
+
 ## Pre-requisites
 
 > [!IMPORTANT]

@@ -114,6 +114,10 @@ onUnmounted(() => {
           tenure="Jan 2024-Aug 2024"
           contributions="Wrote some systems that did pre-compiling verification of student code"
           fa-icon="fa-solid fa-face-grin-squint-tears"/>
+        <!--
+        New Autograder Developers!
+        Add yourself to the list right above this comment
+        -->
       </div>
 
       <InfoPanel id="about">
