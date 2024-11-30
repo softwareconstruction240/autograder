@@ -1,11 +1,11 @@
 # Contribution Guide
 
-Hello there! Welcome to the CS 240 Autograder Repo. If you're new to the 
-Autograder Development team, we're glad to have you here. The CS 240 
-Autograder relies on TAs like you to maintain and adapt the codebase 
+Hello there! Welcome to the CS 240 Autograder Repo. If you're new to the
+Autograder Development team, we're glad to have you here. The CS 240
+Autograder relies on TAs like you to maintain and adapt the codebase
 for our professors and students.
 
-This document will give you all the info you need to know to successfully 
+This document will give you all the info you need to know to successfully
 contribute to the best Autograder on campus!
 
 ## Table of Contents
@@ -13,19 +13,19 @@ contribute to the best Autograder on campus!
 - [New Contributors [Start here if you're new]](#new-contributors)
 - [Guiding Principles](#guiding-principles)
 - [Development Pipeline](#development-pipeline)
-  - [1: Issues](#1-issues)
-    - [When to Create Issue](#when-to-create-an-issue)
-    - [Creating an Issue](#creating-an-issue)
-    - [Working on an Issue](#working-on-an-issue)
-  - [2: Branches](#2-branches)
-    - [Creating a Branch](#creating-a-branch)
-  - [3: Making Changes](#3-making-changes)
-    - [Writing Good Commit Messages](#writing-good-commit-messages)
-  - [4: Pull Requests](#4-pull-requests)
-    - [Creating a Pull Request](#creating-a-pull-request)
-    - [Scope of a Pull Request](#scope-of-a-pull-request)
-    - [Reviewing a Pull Request](#reviewing-a-pull-request)
-    - [After Merging](#after-merging)
+    - [1: Issues](#1-issues)
+        - [When to Create Issue](#when-to-create-an-issue)
+        - [Creating an Issue](#creating-an-issue)
+        - [Working on an Issue](#working-on-an-issue)
+    - [2: Branches](#2-branches)
+        - [Creating a Branch](#creating-a-branch)
+    - [3: Making Changes](#3-making-changes)
+        - [Writing Good Commit Messages](#writing-good-commit-messages)
+    - [4: Pull Requests](#4-pull-requests)
+        - [Creating a Pull Request](#creating-a-pull-request)
+        - [Scope of a Pull Request](#scope-of-a-pull-request)
+        - [Reviewing a Pull Request](#reviewing-a-pull-request)
+        - [After Merging](#after-merging)
 - [About Page](#about-page)
 - [Reminder About Ownership](#reminder-about-ownership)
 
@@ -35,19 +35,18 @@ contribute to the best Autograder on campus!
 - We are learning/practicing being participants on a small dev team.
 - We thrive with contributions from many diverse perspectives.
 - We serve fellow humans with divine purpose in this order:
-  1. The Lord
-  2. Class professors
-  3. Class students
+    1. The Lord
+    2. Class professors
+    3. Class students
 
 ## New Contributors
-New to the Autograder Development team and not sure how to get 
+New to the Autograder Development team and not sure how to get
 started? Try this:
 
 1. Finish reading this document
 2. Get your dev environment set up by following the [Getting Started Guide](getting-started/getting-started.md)
 3. Review the Sequence/Class Diagrams (_Coming soon_)
-4. Look through some of the code, and try writing documentation 
-   for undocumented code
+4. Look through some of the code, and try writing documentation for undocumented code
 5. Find a section of under-tested code and add some unit tests
 6. Take a look through the GitHub repo's [Issues](https://github.com/softwareconstruction240/autograder/issues) page
    and find one you like, especially (but not limited to) ones labeled
@@ -57,19 +56,19 @@ Don't be afraid to submit a PR, and most importantly, just get sucked in!
 
 ## Development Pipeline
 
-As a broad overview, all changes to the Autograder start as an issue. Each 
+As a broad overview, all changes to the Autograder start as an issue. Each
 issue eventually gets a branch made to solve the issue. And each branch
 gets made into a pull request before becoming part of the main branch of code.
 
 ### 1. Issues
 
-Issues help us track what needs to be done and who's working on what. You can pick an already 
-existing issue to work on, or you can write your own. 
+Issues help us track what needs to be done and who's working on what. You can pick an already
+existing issue to work on, or you can write your own.
 
 > [!TIP]
-> Ideally, you should first work on issues in the `On Deck` column of the 
+> Ideally, you should first work on issues in the `On Deck` column of the
 [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9),
-but you are welcome to pick any unassigned issue
+> but you are welcome to pick any unassigned issue
 
 #### When to Create an Issue
 
@@ -95,14 +94,16 @@ they are relevant in the future.
     - `Dev:` changes to enhance the Autograder development experience
 - Provide a clear and complete PR description. Consider using the following sections:
     - **Overview**: The two sentence of the key problem.
-    - **Discussion**: A brief history of the context or arguments related to the issue. Provide enough context so others can understand the purpose
-    - **Proposal**: Suggested ways the problem could be approached, solved, or implemented. Include specific file/class/method names as appropriate.
+    - **Discussion**: A brief history of the context or arguments related to the issue.
+      Provide enough context so others can understand the purpose.
+    - **Proposal**: Suggested ways the problem could be approached, solved, or implemented.
+      Include specific file/class/method names as appropriate.
     - **Related Work**: Links to related issues, PRs, or other documentation.
 - Add labels as appropriate using the built-in picker.
 - Remember: Issues should be narrow in scope.
 
 #### Working on an Issue
-- Assign the issue to yourself before beginning work (this is how we know 
+- Assign the issue to yourself before beginning work (this is how we know
   who is working on what, and gives you a sort of ownership over the issue)
 - Create a new branch ([more info here](#2-branches))
 - If you find a new issue, file it separately (don't mix concerns)
@@ -134,8 +135,8 @@ Here are important guidelines to follow:
 
 - Review and follow the Style Guide (_Coming Soon_)
 - Write tests for your code. All new features and functionality should have tests demonstrating correctness
-  - Update existing tests if you change functionality
-  - _New contributors: A great way to better understand the codebase is to try writing tests for existing code_
+    - Update existing tests if you change functionality
+    - _New contributors: A great way to better understand the codebase is to try writing tests for existing code_
 - Keep commits focused and meaningful
     - Each commit should represent one logical change
     - Write clear commit messages that describe that change ([See guidelines](#writing-good-commit-messages))
@@ -171,63 +172,65 @@ line and the extra details).
 
 ### 4. Pull Requests
 Pull requests are how you get your changes merged into the codebase.
-You create a pull request once you feel your changes are ready for review by other devs. You can also create a draft pull request 
-if you would like some feedback on your code before then.
+You create a pull request once you feel your changes are ready for review by other devs.
+You can also create a draft pull request if you would like some feedback on your code before then.
 
 ![Pull Request Lifecycle Overview](https://docs.github.com/assets/images/help/repository/branching.png)
 
 #### Creating a Pull Request
 - Make sure you have pushed all changes to GitHub first
 - The title of your pull request should be simple, concise, and descriptive
-  - It should have a prefix just like an issue
-  - It can be basically the name of the branch
-    - Issue: `Frontend: refactor all server calls to one place`
-    - Branch: `refactor-server-calls-to-one-place`
-    - Pull Request: `Frontend: refactor server calls into ServerCommunicator`
-  - Ensure the PR is [linked to the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue) it resolves, if any
-- Fill out the Pull Request template with enough detail for others to understand what 
+    - It should have a prefix just like an issue
+    - It can be basically the name of the branch
+        - Issue: `Frontend: refactor all server calls to one place`
+        - Branch: `refactor-server-calls-to-one-place`
+        - Pull Request: `Frontend: refactor server calls into ServerCommunicator`
+    - Ensure the PR
+      is [linked to the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
+      it resolves, if any
+- Fill out the Pull Request template with enough detail for others to understand what
   changed without having to read all the new code.
 - Make sure all GitHub actions pass:
-  - Your pull request will be blocked from merging if all tests don't pass
-- Move the connected issue into the `PR Submitted` column on the 
+    - Your pull request will be blocked from merging if all tests don't pass
+- Move the connected issue into the `PR Submitted` column on the
   [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
 - Request a review from other Autograder developers
-  - If you're changing an existing system, request a review from the developer that 
-    wrote it initially, or is most familiar with that system
-  - You can request multiple reviewers, but you're only required to get one approval to merge
+    - If you're changing an existing system, request a review from the developer that
+      wrote it initially, or is most familiar with that system
+    - You can request multiple reviewers, but you're only required to get one approval to merge
 
 #### Scope of a Pull Request
 - Pull Requests should represent a complete, reviewable unit of work
 - In most cases, a pull request from one issue
-  - Multiple issues in one PR are fine and encouraged when they depend on each other, or form a cohesive change
+    - Multiple issues in one PR are fine and encouraged when they depend on each other, or form a cohesive change
 - While there's no strict size limit, consider breaking up very large changes if:
-  - They touch multiple unrelated areas
-  - They're becoming difficult to review
-  - They could logically be shipped separately
+    - They touch multiple unrelated areas
+    - They're becoming difficult to review
+    - They could logically be shipped separately
 
 > [!TIP]
 > A good PR represents a complete feature or fix, but shouldn't try to solve everything at once!
 
 #### Reviewing a Pull Request
-A crucial part of this process is the code review. The repo has been set up so that _**no changes may be merged 
+A crucial part of this process is the code review. The repo has been set up so that _**no changes may be merged
 into main without the review of at least one other developer.**_ If someone has requested a review from you, please
 take some time to help out and ensure the Autograder has quality code.
 
 **As a Reviewer**
 - Look for:
-  - Code quality and style guide compliance
-  - Test coverage
-  - Potential bugs or edge cases
-  - Documentation completeness
+    - Code quality and style guide compliance
+    - Test coverage
+    - Potential bugs or edge cases
+    - Documentation completeness
 - Checkout the branch on your local machine and do some manual testing
-  - Specifically verify new/changed systems work. Try breaking it.
-  - Generally check other systems still work and haven't been broken
-    - (Student submissions on test student is most important)
+    - Specifically verify new/changed systems work. Try breaking it.
+    - Generally check other systems still work and haven't been broken
+        - (Student submissions on test student is most important)
 - Be constructive and kind in your feedback. We're all learning here
 - If changes are needed:
-  - Be specific about what needs to change
-  - Explain why the change is needed
-  - Suggest how to make the change if possible
+    - Be specific about what needs to change
+    - Explain why the change is needed
+    - Suggest how to make the change if possible
 - Approve the PR when you're satisfied with all changes
 
 **As a Pull Request Author**
@@ -276,15 +279,15 @@ Tenure should indicate when you worked as a CS 240 TA, not just as an Autograder
 
 Write a short sentence describing your work on the Autograder. You can update this in the future as you make more contributions.
 
-FA-icon is a font-awesome icon. Search through [Font Awesome's free icon collection](https://fontawesome.com/search?o=r&m=free) 
+FA-icon is a font-awesome icon. Search through [Font Awesome's free icon collection](https://fontawesome.com/search?o=r&m=free)
 and choose one to represent you.
 
 ## Reminder About Ownership
 As BYU employees writing code for our job as TAs, all code you contribute becomes the
 intellectual property of Brigham Young University.
 
-> Pursuant to law and university policy, **any work** (whether a Technical Work or a Creative Work) prepared by University
-> Personnel within the scope of their employment, without an express agreement specifying otherwise, **is work for hire
-> owned by the university.**
-> 
+> Pursuant to law and university policy, **any work** (whether a Technical Work or a Creative Work) prepared by
+> University Personnel within the scope of their employment, without an express agreement specifying otherwise,
+> **is work for hire owned by the university**.
+>
 > — [BYU Intellectual Property Policy](https://policy.byu.edu/view/intellectual-property-policy) (emphasis added)
