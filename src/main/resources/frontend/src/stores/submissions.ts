@@ -21,9 +21,7 @@ export const useSubmissionStore = defineStore('submission', () => {
         currentlyGrading.value = await submitGet();
     }
 
-    const getLastSubmission = async () => {
-        return await lastSubmissionGet();
-    }
+    const getLastSubmission = () => lastSubmissionGet();
 
     return {
         submissionsByPhase,

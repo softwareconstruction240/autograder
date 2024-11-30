@@ -8,8 +8,8 @@ type MeResponse = {
     repoUrl: string,
     role: 'STUDENT' | 'ADMIN'
 }
-export const meGet = async () => {
-    return await ServerCommunicator.getRequestGuaranteed<MeResponse | null>('/api/me', null)
+export const meGet = () => {
+    return ServerCommunicator.getRequestGuaranteed<MeResponse | null>('/api/me', null)
 }
 
 export const loadUser = async () => {
@@ -20,6 +20,6 @@ export const loadUser = async () => {
     useAuthStore().user = loggedInUser;
 }
 
-export const logoutPost = async () => {
-    await ServerCommunicator.postRequest( "/auth/logout", null, false)
+export const logoutPost = () => {
+    return ServerCommunicator.postRequest( "/auth/logout", null, false)
 }

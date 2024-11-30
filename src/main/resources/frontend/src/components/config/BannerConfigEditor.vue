@@ -32,10 +32,11 @@ const submitBanner = async () => {
   }
   try {
     await setBanner(bannerMessageToSubmit.value, bannerLinkToSubmit.value, bannerColorToSubmit.value, combinedDateTime)
+    closeEditor()
   } catch (e) {
+    appConfigStore.updateConfig()
     alert("There was a problem in saving the updated banner message:\n" + e)
   }
-  closeEditor()
 }
 </script>
 
@@ -66,8 +67,8 @@ const submitBanner = async () => {
   </div>
 
   <div>
-    <button class="small" @click="submitBanner" :disabled="bannerWillExpire && (bannerExpirationDate.length == 0)">Save</button>
-    <button class="small" @click="clearBannerMessage">Clear</button>
+    <button @click="submitBanner" :disabled="bannerWillExpire && (bannerExpirationDate.length == 0)">Submit</button>
+    <button class="small" @click="clearBannerMessage">Clear Editor</button>
   </div>
 </template>
 
