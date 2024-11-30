@@ -11,6 +11,7 @@ contribute to the best Autograder on campus!
 ## Table of Contents
 - Welcome (You already read that)
 - [New Contributors [Start here if you're new]](#new-contributors)
+- [Guiding Principles](#guiding-principles)
 - [Development Pipeline](#development-pipeline)
   - [1: Issues](#1-issues)
     - [When to Create Issue](#when-to-create-an-issue)
@@ -74,28 +75,31 @@ but you are welcome to pick any unassigned issue
 
 An issue generally represents "a single goal or task." Discussion and decisions about how to accomplish the task (and
 even if the task should be done) happens here. Usually, an issue should be fairly narrow in scope, so that it can be
-resolved with a single PR (Pull Request).
+resolved with a single Pull Request (PR).
 
 Even when you're not sure if the task should be done, or how to go about it, go ahead and create an issue. The issue
 might be closed, but now that decision has been discussed, and the reasons for it are saved somewhere central in case
 they are relevant in the future.
 
 #### Creating an Issue
-- Create the issue from the TA Projects Board (linked above)
-  - Click "add item" at the bottom of the `Todo` list
-  - Type `#autograder` to connect the issue to the Autograder
-  - Type a title and hit enter
+- Create the issue from the [TA Projects Board](https://github.com/orgs/softwareconstruction240/projects/1)
+    - Click "add item" at the bottom of the `Todo` list
+    - Type `#autograder` to connect the issue to the Autograder
+    - Type a title and hit enter
 - Use a clear, descriptive title that uses one of these prefixes (including the colon):
-  - `Backend:` server side changes
-  - `Frontend:` client (web) side changes
-  - `Fullstack:` for issues that require front and backend changes
-  - `Docs:` changes to documentation (either markdown files or JSDocs/JavaDocs)
-  - `Tests:` adding or modifying tests
-  - `Dev:` changes to enhance the Autograder development experience
-- Provide enough context so others can understand the purpose
-- Add labels as appropriate ([Here's the list](https://github.com/softwareconstruction240/autograder/issues/labels))
-- Link related issues
-- Issues should be narrow in scope
+    - `Backend:` server side changes
+    - `Frontend:` client (web) side changes
+    - `Fullstack:` for issues that require front and backend changes
+    - `Docs:` changes to documentation (either markdown files or JSDocs/JavaDocs)
+    - `Tests:` adding or modifying tests
+    - `Dev:` changes to enhance the Autograder development experience
+- Provide a clear and complete PR description. Consider using the following sections:
+    - **Overview**: The two sentence of the key problem.
+    - **Discussion**: A brief history of the context or arguments related to the issue. Provide enough context so others can understand the purpose
+    - **Proposal**: Suggested ways the problem could be approached, solved, or implemented. Include specific file/class/method names as appropriate.
+    - **Related Work**: Links to related issues, PRs, or other documentation.
+- Add labels as appropriate using the built-in picker.
+- Remember: Issues should be narrow in scope.
 
 #### Working on an Issue
 - Assign the issue to yourself before beginning work (this is how we know 
@@ -105,20 +109,21 @@ they are relevant in the future.
 - Leave a comment from time to time with updates on your progress
 
 ### 2. Branches
-Branches in git allow us to all work on separate things in the same codebase.
+Branches in `git` allow us to all work on separate things in the same codebase.
 You will do all your work in a branch.
 
 #### Creating a branch
 Create the branch directly from the issue so your work is linked.
 
-- Always branch from `main` 
-  - (exceptions exist if you know what you're doing)
+- Always branch from `main`
+    - (exceptions exist if you know what you're doing)
 - Use descriptive names that reflect what you're working on:
     - `add-late-submission`
     - `admin-display-verification-status`
     - `server-communicator`
     - `extract-service-logic-from-controllers`
-- If the issue name is clear and concise, the default branch name from clicking "Create a branch" from the issue page is also fine, it usually looks something like `488-fullstack-add-code-coverage-for-unit-tests`
+- If the issue name is clear and concise, the default branch name from clicking "Create a branch" from the issue page is
+  also fine. It usually looks something like `488-fullstack-add-code-coverage-for-unit-tests`
 - Use kebab-case (lowercase with hyphens)
 - Keep names concise but clear
 - One branch per issue (don't mix different features/fixes)
@@ -132,15 +137,15 @@ Here are important guidelines to follow:
   - Update existing tests if you change functionality
   - _New contributors: A great way to better understand the codebase is to try writing tests for existing code_
 - Keep commits focused and meaningful
-  - Each commit should represent one logical change
-  - Write clear commit messages that describe that change ([See guidelines](#writing-good-commit-messages))
+    - Each commit should represent one logical change
+    - Write clear commit messages that describe that change ([See guidelines](#writing-good-commit-messages))
+    - Commit frequently
 - Update documentation as you go
-  - Add JSDoc/JavaDoc comments to new code
-    - _New contributors: Another great way to learn the codebase is to document existing code_
-  - Update repo Markdown docs if needed
-  - Code should for the most part be self-documenting. If not, make sure to add inline comments
-- Push your code to GitHub at the end of each coding session. This lets other
-  team members see how you're doing
+    - Add JSDoc/JavaDoc comments to new code
+        - _New contributors: Another great way to learn the codebase is to document existing code_
+    - Update repo Markdown docs if needed
+    - Code should for the most part be self-documenting. If not, make sure to add inline comments
+- Push your code to GitHub at the end of each coding session. This lets other team members see how you're doing
 
 #### Writing Good Commit Messages
 - Start with an imperative statement that describes what the commit does:
@@ -162,13 +167,14 @@ For bigger changes, you can add more details after the first line (leave a blank
 line and the extra details).
 
 > [!TIP]
-> Remember: A good commit message lets other developers know what changed
-> without having to look at the code!
+> A good commit message lets other developers know what changed without having to look at the code!
 
 ### 4. Pull Requests
 Pull requests are how you get your changes merged into the codebase.
 You create a pull request once you feel your changes are ready for review by other devs. You can also create a draft pull request 
 if you would like some feedback on your code before then.
+
+![Pull Request Lifecycle Overview](https://docs.github.com/assets/images/help/repository/branching.png)
 
 #### Creating a Pull Request
 - Make sure you have pushed all changes to GitHub first
@@ -178,6 +184,7 @@ if you would like some feedback on your code before then.
     - Issue: `Frontend: refactor all server calls to one place`
     - Branch: `refactor-server-calls-to-one-place`
     - Pull Request: `Frontend: refactor server calls into ServerCommunicator`
+  - Ensure the PR is [linked to the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue) it resolves, if any
 - Fill out the Pull Request template with enough detail for others to understand what 
   changed without having to read all the new code.
 - Make sure all GitHub actions pass:
@@ -187,7 +194,7 @@ if you would like some feedback on your code before then.
 - Request a review from other Autograder developers
   - If you're changing an existing system, request a review from the developer that 
     wrote it initially, or is most familiar with that system
-  - You can request multiple reviewers, but you're only required to get approval from one
+  - You can request multiple reviewers, but you're only required to get one approval to merge
 
 #### Scope of a Pull Request
 - Pull Requests should represent a complete, reviewable unit of work
@@ -199,7 +206,7 @@ if you would like some feedback on your code before then.
   - They could logically be shipped separately
 
 > [!TIP]
-> Remember: A good PR represents a complete feature or fix, but shouldn't try to solve everything at once!
+> A good PR represents a complete feature or fix, but shouldn't try to solve everything at once!
 
 #### Reviewing a Pull Request
 A crucial part of this process is the code review. The repo has been set up so that _**no changes may be merged 
@@ -228,8 +235,8 @@ take some time to help out and ensure the Autograder has quality code.
 - Be open to feedback and suggestions
 - Explain your decisions when asked
 - Make requested changes or explain why they shouldn't be made
-- Mark conversations as resolved once you have addressed the concern
-- Re-request their review
+- Mark conversations as resolved _only_ once you have addressed the concern
+- Re-request review from key individuals
 - Thank reviewers for their time
 
 > [!IMPORTANT]
@@ -244,15 +251,15 @@ take some time to help out and ensure the Autograder has quality code.
 Congrats! You just added code to the Autograder!
 
 Make sure you move your issue on the [TA Project Board](https://github.com/orgs/softwareconstruction240/projects/1/views/9)
-to the `Done` column
+to the `Done` column. This will happen automatically if the PR was linked to issue it resolves when the PR was merged.
 
 Celebrate!
 
 ## About Page
 A lot of time and effort goes into developing and maintaining the Autograder. Thank you!
 
-If you're new to the team, add yourself to the Autograder's [About Page](../src/main/resources/frontend/src/components/AboutPage.vue). (You can see the live one by doing the Konami Code
-anywhere on the Autograder front end)
+If you're new to the team, add yourself to the Autograder's [About Page](../src/main/resources/frontend/src/components/AboutPage.vue).
+(You can see the live one by doing the Konami Code anywhere on the Autograder front end.)
 
 Fill this component out and add it to the bottom of the current list of developers:
 ```vue
@@ -276,8 +283,8 @@ and choose one to represent you.
 As BYU employees writing code for our job as TAs, all code you contribute becomes the
 intellectual property of Brigham Young University.
 
-> Pursuant to law and university policy, any work (whether a Technical Work or a Creative Work) prepared by University 
-> Personnel within the scope of their employment, without an express agreement specifying otherwise, is work for hire 
-> owned by the university.
+> Pursuant to law and university policy, **any work** (whether a Technical Work or a Creative Work) prepared by University
+> Personnel within the scope of their employment, without an express agreement specifying otherwise, **is work for hire
+> owned by the university.**
 > 
 > — [BYU Intellectual Property Policy](https://policy.byu.edu/view/intellectual-property-policy) (emphasis added)
