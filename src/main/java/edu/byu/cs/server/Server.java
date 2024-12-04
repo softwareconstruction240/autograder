@@ -3,7 +3,6 @@ package edu.byu.cs.server;
 import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
-import edu.byu.cs.util.Serializer;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.HandlerType;
@@ -33,7 +32,7 @@ public class Server {
         app = Javalin.create(config -> {
                     config.staticFiles.add("/frontend/dist");
 
-                    config.jsonMapper(Serializer.jsonMapper);
+                    config.jsonMapper(new SerializerAdapter());
 
                     config.router.apiBuilder(() -> {
                         before(provider.beforeAll());

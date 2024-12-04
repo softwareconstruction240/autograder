@@ -6,8 +6,6 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
-import io.javalin.json.JsonMapper;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -24,20 +22,6 @@ public class Serializer {
             .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
             .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
             .create();
-
-    public static final JsonMapper jsonMapper = new JsonMapper() {
-        @NotNull
-        @Override
-        public <T> T fromJsonString(@NotNull String json, @NotNull Type targetType) {
-            return deserialize(json, targetType);
-        }
-
-        @NotNull
-        @Override
-        public String toJsonString(@NotNull Object obj, @NotNull Type type) {
-            return serialize(obj, type);
-        }
-    };
 
     public static String serialize(Object obj) {
         try {
