@@ -1,5 +1,6 @@
 package edu.byu.cs.server.endpointprovider;
 
+import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 
 public interface EndpointProvider {
@@ -13,6 +14,8 @@ public interface EndpointProvider {
     Handler defaultGet();
 
     Handler defaultOptions();
+
+    ExceptionHandler<Exception> defaultExceptionHandler();
 
     // AdminController
 

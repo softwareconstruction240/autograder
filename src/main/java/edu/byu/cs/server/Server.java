@@ -1,7 +1,6 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
-import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
@@ -130,27 +129,10 @@ public class Server {
                     wsConfig.onMessage(WebSocketController::onMessage);
                 })
 
-                .exception(BadRequestException.class, haltWithCode(400))
-                .exception(UnauthorizedException.class, haltWithCode(401))
-                .exception(ResourceForbiddenException.class, haltWithCode(403))
-                .exception(ResourceNotFoundException.class, haltWithCode(404))
-                .exception(WordOfWisdomViolationException.class, haltWithCode(418))
-                .exception(UnprocessableEntityException.class, haltWithCode(422))
-                .exception(Exception.class, haltWithCode(500))
+                .exception(Exception.class, provider.defaultExceptionHandler())
 
                 .start(port);
 
         return app.port();
-    }
-
-    private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
-        return (e, ctx) -> {
-            ctx.status(statusCode);
-            if (e.getMessage() != null) {
-                ctx.result(e.getMessage());
-            } else {
-                ctx.result("An unknown %d error occurred.".formatted(statusCode));
-            }
-        };
     }
 }

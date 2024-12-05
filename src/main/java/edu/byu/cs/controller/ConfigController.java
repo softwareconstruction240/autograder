@@ -1,14 +1,14 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.JsonObject;
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.util.Serializer;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Handler;
+import io.javalin.http.UnauthorizedResponse;
 
 import java.util.ArrayList;
 
@@ -30,7 +30,7 @@ public class ConfigController {
 
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
 
         ConfigService.updateLivePhases(phasesArray, user);
@@ -47,7 +47,7 @@ public class ConfigController {
             ConfigService.scheduleShutdown(user, shutdownTimestampString);
             ConfigService.setShutdownWarningDuration(user, shutdownWarningMilliseconds);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(e.getMessage());
+            throw new BadRequestResponse(e.getMessage());
         }
     };
 
@@ -64,7 +64,7 @@ public class ConfigController {
         try {
             ConfigService.updateBannerMessage(user, expirationString, message, link, color);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(e.getMessage(), e);
+            throw new BadRequestResponse(e.getMessage());
         }
     };
 
@@ -85,7 +85,7 @@ public class ConfigController {
     public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
         ConfigService.updateCourseIdsUsingCanvas(user);
     };

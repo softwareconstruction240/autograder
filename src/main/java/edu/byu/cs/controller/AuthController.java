@@ -1,14 +1,14 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.controller.exception.ResourceForbiddenException;
-import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.Handler;
+import io.javalin.http.InternalServerErrorResponse;
+import io.javalin.http.UnauthorizedResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +25,14 @@ public class AuthController {
         String token = ctx.cookie("token");
 
         if (token == null) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedResponse();
         }
         String netId = validateToken(token);
 
         // token is expired or invalid
         if (netId == null) {
             ctx.cookie("token", "", 0);
-            throw new UnauthorizedException();
+            throw new UnauthorizedResponse();
         }
 
         UserDao userDao = DaoService.getUserDao();
@@ -41,12 +41,12 @@ public class AuthController {
             user = userDao.getUser(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error getting user from database", e);
-            throw new InternalServerException("Error getting user from database", e);
+            throw new InternalServerErrorResponse("Error getting user from database");
         }
 
         if (user == null) {
             LOGGER.error("Received request from unregistered user. This shouldn't be possible: {}", netId);
-            throw new BadRequestException("You must register first.");
+            throw new BadRequestResponse("You must register first.");
         }
 
         ctx.sessionAttribute("user", user);
@@ -56,11 +56,11 @@ public class AuthController {
         User user = ctx.sessionAttribute("user");
 
         if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
+            throw new UnauthorizedResponse("No user credentials found");
         }
 
         if (user.role() != User.Role.ADMIN) {
-            throw new ResourceForbiddenException();
+            throw new ForbiddenResponse();
         }
     };
 

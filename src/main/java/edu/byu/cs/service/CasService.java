@@ -3,13 +3,13 @@ package edu.byu.cs.service;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.InternalServerErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +22,17 @@ public class CasService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
 
-    public static User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
+    public static User callback(String ticket) throws DataAccessException, CanvasException {
         String netId;
         try {
             netId = CasService.validateCasTicket(ticket);
         } catch (IOException e) {
             LOGGER.error("Error validating ticket", e);
-            throw new InternalServerException("Error validating ticket", e);
+            throw new InternalServerErrorResponse("Error validating ticket");
         }
 
         if (netId == null) {
-            throw new BadRequestException("Ticket validation failed");
+            throw new BadRequestResponse("Ticket validation failed");
         }
 
         UserDao userDao = DaoService.getUserDao();
@@ -43,7 +43,7 @@ public class CasService {
             user = userDao.getUser(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Couldn't get user from database", e);
-            throw new InternalServerException("Couldn't get user from database", e);
+            throw new InternalServerErrorResponse("Couldn't get user from database");
         }
 
         // If there isn't a student in the database with this netId
