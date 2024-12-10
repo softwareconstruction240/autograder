@@ -29,6 +29,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
@@ -201,58 +203,54 @@ public class GitHelper {
             Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
             throws GitAPIException, IOException, DataAccessException {
 
-        CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-        return commitsPassRequirements(commitHistory);
-    }
-    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-
-        int numCommits = commitsByDay.totalCommits();
-        int daysWithCommits = commitsByDay.dayMap().size();
+        Set<String> excludeCommits = new HashSet<>();
         int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
-        long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
-        CommitVerificationContext context = new CommitVerificationContext(
-                gradingContext.verificationConfig(),
-                commitsByDay,
-                numCommits,
-                daysWithCommits,
-                significantCommits
-        );
-        var excludeSet = commitVerificationStrategy.evaluate(context, gradingContext);
-        if (excludeSet != null && !excludeSet.isEmpty()) {
-            // TODO: This is where we would loop around and restart.
-            LOGGER.warn("Not restarting commit evaluation since we haven't yet built that feature.");
-            return null;
-        }
+        do {
 
-        Result warningResults = commitVerificationStrategy.getWarnings();
-        Result errorResults = commitVerificationStrategy.getErrors();
-        String errorMessage = errorResults == null ? "" : String.join("\n", errorResults.messages());
+            CommitsByDay commitsByDay = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
 
-        boolean hasErrors = errorResults != null && !errorResults.isEmpty();
+            int numCommits = commitsByDay.totalCommits();
+            int daysWithCommits = commitsByDay.dayMap().size();
+            long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
-        // Remove warning commits from results
-        numCommits -= warningResults.commitsAffected().size(); // Important!
-        significantCommits -= warningResults.commitsAffected().size(); // Assume that the affected commits were significant
-        // Don't assume we can modify the daysWithCommits value meaningfully.
-        // Ideally, we would reevaluate all these conditions after
-        // removing the warning commits from the set of valid commits.
+            CommitVerificationContext context = new CommitVerificationContext(
+                    gradingContext.verificationConfig(),
+                    commitsByDay,
+                    numCommits,
+                    daysWithCommits,
+                    significantCommits
+            );
 
-        return new CommitVerificationResult(
-                hasErrors,
-                false,
-                numCommits,
-                (int) significantCommits,
-                daysWithCommits,
-                commitsByDay.missingTailHash(),
-                0, // Penalties are applied by TA's upon approval of unapproved submissions
-                errorMessage,
-                warningResults.messages(),
-                commitsByDay.lowerThreshold().timestamp(),
-                commitsByDay.upperThreshold().timestamp(),
-                commitsByDay.upperThreshold().commitHash(),
-                commitsByDay.lowerThreshold().commitHash()
-        );
+            var excludeSet = commitVerificationStrategy.evaluate(context, gradingContext);
+            if (excludeSet != null && !excludeSet.isEmpty()) {
+                // Restart, but exclude the requested commits
+                excludeCommits.addAll(excludeSet);
+                continue;
+            }
+
+            Result warningResults = commitVerificationStrategy.getWarnings();
+            Result errorResults = commitVerificationStrategy.getErrors();
+            String errorMessage = errorResults == null ? "" : String.join("\n", errorResults.messages());
+            boolean hasErrors = errorResults != null && !errorResults.isEmpty();
+
+            return new CommitVerificationResult(
+                    hasErrors,
+                    false,
+                    numCommits,
+                    (int) significantCommits,
+                    daysWithCommits,
+                    commitsByDay.missingTailHash(),
+                    0, // Penalties are applied by TA's upon approval of unapproved submissions
+                    errorMessage,
+                    warningResults.messages(),
+                    commitsByDay.lowerThreshold().timestamp(),
+                    commitsByDay.upperThreshold().timestamp(),
+                    commitsByDay.upperThreshold().commitHash(),
+                    commitsByDay.lowerThreshold().commitHash()
+            );
+        } while (true);
+
     }
 
     // Evaluation Helpers
