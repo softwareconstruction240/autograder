@@ -208,7 +208,7 @@ public class GitHelper {
 
         do {
 
-            CommitsByDay commitsByDay = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
+            CommitsByDay commitsByDay = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold, excludeCommits);
 
             int numCommits = commitsByDay.totalCommits();
             int daysWithCommits = commitsByDay.dayMap().size();

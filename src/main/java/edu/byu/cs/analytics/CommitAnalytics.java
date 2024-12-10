@@ -46,10 +46,13 @@ public class CommitAnalytics {
      * @param git An open git object for use
      * @param lowerBound The last commit in this log, exclusive
      * @param upperBound The first commit in this log, inclusive
+     * @param excludeCommits A non-null set of commit hashes which will be skipped during analysis
      * @return A {@link CommitsByDay} record with the results
      */
     public static CommitsByDay countCommitsByDay(
-            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
+            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound,
+            Set<String> excludeCommits
+    )
             throws GitAPIException, IOException {
 
         // Verify arguments
@@ -89,8 +92,13 @@ public class CommitAnalytics {
         CommitTimestamps commitTimes;
         String commitHash;
         for (RevCommit rc : commitsBetweenBounds.commits()) {
-            commitTimes = getCommitTime(rc);
             commitHash = rc.getName();
+            if (excludeCommits.contains(commitHash)) {
+                groupCommitsByKey(erroringCommits, "excludedCommits", commitHash);
+                continue;
+            }
+
+            commitTimes = getCommitTime(rc);
             if (commitTimes.seconds <= lowerTimeBoundSecs) {
                 groupCommitsByKey(erroringCommits, "commitsInPast", commitHash);
                 commitsInPast = true;
