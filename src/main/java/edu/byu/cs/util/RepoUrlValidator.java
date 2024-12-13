@@ -17,10 +17,6 @@ public class RepoUrlValidator {
         }
     }
 
-    public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
-        return new RepoUrlValidator().cleanRepoUrl(repoUrl);
-    }
-
     /**
      * Cleans and standardizes the student's repo URL.
      * <br>
@@ -31,7 +27,7 @@ public class RepoUrlValidator {
      * @return Cleaned and standardized repository URL.
      * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
-    public String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
+    public static String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }
@@ -74,7 +70,7 @@ public class RepoUrlValidator {
      * </ol>
      * @return An array of strings representing regexes.
      */
-    private String[] getRepoRegexPatterns() {
+    private static String[] getRepoRegexPatterns() {
         // NOTE: This is the place where we require GitHub links. The rest of the grading system behind this wall
         // will function properly with any link that can be run with `git clone`, but we have arbitrarily chosen
         // to require "github.com" links for now.

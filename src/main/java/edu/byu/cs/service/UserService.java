@@ -27,6 +27,7 @@ public class UserService {
     public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
         String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
         setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
+            String cleanRepoUrl = RepoUrlValidator.cleanRepoUrl(repoUrl);
     }
 
     public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId) throws BadRequestException, InternalServerException {
