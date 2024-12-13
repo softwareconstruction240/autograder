@@ -51,15 +51,15 @@ public class UserService {
     }
 
     private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
+        boolean valid;
         try {
-            if (!isValidRepoUrl(repoUrl)) {
-                throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
-            }
-        } catch (BadRequestException e) {
-            throw e;
+            valid = RepoUrlValidator.isValidRepoUrl(repoUrl);
         } catch (Exception e) {
             LOGGER.error("Error cloning repo during repoPatch: {}", e.getMessage());
             throw new InternalServerException("There was an internal server error in verifying the Github Repo", e);
+        }
+        if (!valid) {
+            throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
         }
 
         RepoUpdate historicalUpdate;
@@ -71,10 +71,9 @@ public class UserService {
         if (historicalUpdate != null) {
             if (adminNetId != null) {
                 throw new PriorRepoClaimBlockageException("Repo is blocked because of a prior claim: " + historicalUpdate);
-            } else {
-                LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
-                throw new PriorRepoClaimBlockageException("Please talk to a TA to submit this url");
             }
+            LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
+            throw new PriorRepoClaimBlockageException("Please talk to a TA to submit this url");
         }
 
         try {
