@@ -58,7 +58,7 @@ public class Grader implements Runnable {
     public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
-            repoUrl = RepoUrlValidator.clean(repoUrl);
+            repoUrl = RepoUrlValidator.cleanRepoUrl(repoUrl);
         }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
