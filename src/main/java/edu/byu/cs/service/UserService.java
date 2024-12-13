@@ -25,9 +25,12 @@ public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
-        String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
-        setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
+        try {
             String cleanRepoUrl = RepoUrlValidator.cleanRepoUrl(repoUrl);
+            setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
+        } catch (RepoUrlValidator.InvalidRepoUrlException e) {
+            throw new BadRequestException("Invalid GitHub Repo URL: " + repoUrl);
+        }
     }
 
     public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId) throws BadRequestException, InternalServerException {
@@ -125,16 +128,5 @@ public class UserService {
             }
         }
         return null;
-    }
-
-    /**
-     * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
-     */
-    private static String requireCleanRepoUrl(String url) throws BadRequestException {
-        try {
-            return RepoUrlValidator.clean(url);
-        } catch (RepoUrlValidator.InvalidRepoUrlException e) {
-            throw new BadRequestException("Invalid GitHub Repo URL: " + url);
-        }
     }
 }
