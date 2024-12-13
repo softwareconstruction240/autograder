@@ -6,20 +6,14 @@ import edu.byu.cs.controller.exception.PriorRepoClaimBlockageException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
-import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.RepoUrlValidator;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.UUID;
 
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
@@ -93,20 +87,6 @@ public class UserService {
         } else {
             LOGGER.info("admin {} changed the repoUrl for student {} to {}", adminNetId, studentNetId, repoUrl);
         }
-    }
-
-    private static boolean isValidRepoUrl(String url) {
-        File cloningDir = new File("./tmp" + UUID.randomUUID());
-        CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
-
-        try (Git git = cloneCommand.call()) {
-            LOGGER.debug("Cloning repo to {} to check repo exists", git.getRepository().getDirectory());
-        } catch (GitAPIException e) {
-            FileUtils.removeDirectory(cloningDir);
-            return false;
-        }
-        FileUtils.removeDirectory(cloningDir);
-        return true;
     }
 
     /**

@@ -2,19 +2,32 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import org.eclipse.jgit.annotations.Nullable;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepoUrlValidator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepoUrlValidator.class);
 
-    public static boolean isValid(@Nullable String repoUrl) {
-        try {
-            clean(repoUrl);
-            return true;
-        } catch (InvalidRepoUrlException e) {
+    public static boolean isValidRepoUrl(String url) {
+        File cloningDir = new File("./tmp" + UUID.randomUUID());
+        CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
+
+        try (Git git = cloneCommand.call()) {
+            LOGGER.debug("Cloning repo to {} to check repo exists", git.getRepository().getDirectory());
+        } catch (GitAPIException e) {
+            FileUtils.removeDirectory(cloningDir);
             return false;
         }
+        FileUtils.removeDirectory(cloningDir);
+        return true;
     }
 
     /**
