@@ -16,14 +16,14 @@ public class RepoUrlValidator {
 
     public static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
+        boolean valid = true;
         try {
             GitHelper.fetchRepo(cloningDir, url);
         } catch (GradingException e) {
-            FileUtils.removeDirectory(cloningDir);
-            return false;
+            valid = false;
         }
         FileUtils.removeDirectory(cloningDir);
-        return true;
+        return valid;
     }
 
     /**
