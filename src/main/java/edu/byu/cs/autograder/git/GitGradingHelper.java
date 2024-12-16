@@ -48,7 +48,7 @@ public class GitGradingHelper {
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchStudentRepo(gradingContext.stageRepo());
+        fetchStudentRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
