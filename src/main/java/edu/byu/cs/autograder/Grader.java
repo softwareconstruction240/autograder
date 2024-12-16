@@ -4,7 +4,7 @@ import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
-import edu.byu.cs.autograder.git.GitHelper;
+import edu.byu.cs.autograder.git.GradingHelper;
 import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
 import edu.byu.cs.autograder.test.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
@@ -40,7 +40,7 @@ public class Grader implements Runnable {
 
     private final DatabaseHelper dbHelper;
 
-    private final GitHelper gitHelper;
+    private final GradingHelper gradingHelper;
     private final CompileHelper compileHelper;
 
     protected final GradingContext gradingContext;
@@ -58,7 +58,7 @@ public class Grader implements Runnable {
     public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
         // Init files
         if (!admin) {
-            repoUrl = RepoUrlValidator.cleanRepoUrl(repoUrl);
+            repoUrl = RepoUrlValidator.clean(repoUrl);
         }
         String phasesPath = new File("./phases").getCanonicalPath();
         long salt = Instant.now().getEpochSecond();
@@ -75,7 +75,7 @@ public class Grader implements Runnable {
 
         // Init helpers
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
-        this.gitHelper = new GitHelper(gradingContext);
+        this.gradingHelper = new GradingHelper(gradingContext);
         this.compileHelper = new CompileHelper(gradingContext);
     }
 
@@ -85,7 +85,7 @@ public class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            commitVerificationResult = gitHelper.setUpAndVerifyHistory();
+            commitVerificationResult = gradingHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION && gradingContext.phase() != Phase.GitHub) {
                 compileHelper.compile();

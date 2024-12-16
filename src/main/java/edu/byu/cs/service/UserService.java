@@ -20,7 +20,7 @@ public class UserService {
 
     public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
         try {
-            String cleanRepoUrl = RepoUrlValidator.cleanRepoUrl(repoUrl);
+            String cleanRepoUrl = RepoUrlValidator.clean(repoUrl);
             setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
         } catch (RepoUrlValidator.InvalidRepoUrlException e) {
             throw new BadRequestException("Invalid GitHub Repo URL: " + repoUrl);

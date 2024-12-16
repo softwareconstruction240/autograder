@@ -1,10 +1,8 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +16,9 @@ public class RepoUrlValidator {
 
     public static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
-        CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
-
-        try (Git git = cloneCommand.call()) {
-            LOGGER.debug("Cloning repo to {} to check repo exists", git.getRepository().getDirectory());
-        } catch (GitAPIException e) {
+        try {
+            GitHelper.fetchRepo(cloningDir, url);
+        } catch (GradingException e) {
             FileUtils.removeDirectory(cloningDir);
             return false;
         }
@@ -40,7 +36,7 @@ public class RepoUrlValidator {
      * @return Cleaned and standardized repository URL.
      * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
-    public static String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
+    public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }

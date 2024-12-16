@@ -24,7 +24,7 @@ public class RepoUrlValidatorTest {
                 "https://github.com/USERNAME/REPO_NAME#/potential/routing/behavior",
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, RepoUrlValidator.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -42,7 +42,7 @@ public class RepoUrlValidatorTest {
                 "GITHUB.com/USERNAME/REPO_NAME.git",
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, RepoUrlValidator.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -57,7 +57,7 @@ public class RepoUrlValidatorTest {
                 "           git@github.com:USERNAME/REPO_NAME.git   "
         };
         for (String urlVariant : urlVariants) {
-            assertEquals(expectedUrl, RepoUrlValidator.cleanRepoUrl(urlVariant));
+            assertEquals(expectedUrl, RepoUrlValidator.clean(urlVariant));
         }
     }
 
@@ -66,11 +66,11 @@ public class RepoUrlValidatorTest {
     @DisplayName("Should convert to HTTPS URL when given SSH URL")
     void should_convertToHttpsUrl_when_givenSshUrl() throws GradingException {
         assertEquals("https://github.com/USERNAME/REPO_NAME",
-                RepoUrlValidator.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME.git"));
+                RepoUrlValidator.clean("git@github.com:USERNAME/REPO_NAME.git"));
         assertEquals("https://github.com/softwareconstruction240/autograder",
-                RepoUrlValidator.cleanRepoUrl("git@github.com:softwareconstruction240/autograder.git"));
+                RepoUrlValidator.clean("git@github.com:softwareconstruction240/autograder.git"));
         assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
-                () -> RepoUrlValidator.cleanRepoUrl("git@github.com:USERNAME/REPO_NAME-git"));
+                () -> RepoUrlValidator.clean("git@github.com:USERNAME/REPO_NAME-git"));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class RepoUrlValidatorTest {
                 "https://github.com/valid-username-0123456789/1_2_3_4_5_6_7_8_9_0.git/",
         };
         for (String badUrl: goodUrls) {
-            assertDoesNotThrow(() -> RepoUrlValidator.cleanRepoUrl(badUrl));
+            assertDoesNotThrow(() -> RepoUrlValidator.clean(badUrl));
         }
     }
 
@@ -92,7 +92,7 @@ public class RepoUrlValidatorTest {
     @Tag("cleanRepoUrl")
     @DisplayName("Should reject with InvalidRepoUrlException when given NULL")
     void should_reject_when_givenNull() {
-        assertThrows(RepoUrlValidator.InvalidRepoUrlException.class, () -> RepoUrlValidator.cleanRepoUrl(null));
+        assertThrows(RepoUrlValidator.InvalidRepoUrlException.class, () -> RepoUrlValidator.clean(null));
     }
 
     @Test
@@ -121,7 +121,7 @@ public class RepoUrlValidatorTest {
         };
         for (String badUrl : badUrls) {
             assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
-                    () -> RepoUrlValidator.cleanRepoUrl(badUrl),
+                    () -> RepoUrlValidator.clean(badUrl),
                     "Did not reject input: " + badUrl);
         }
     }
