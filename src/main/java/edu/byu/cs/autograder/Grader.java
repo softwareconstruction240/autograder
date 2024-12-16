@@ -4,7 +4,7 @@ import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
-import edu.byu.cs.autograder.git.GradingHelper;
+import edu.byu.cs.autograder.git.GitGradingHelper;
 import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
 import edu.byu.cs.autograder.test.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
@@ -40,7 +40,7 @@ public class Grader implements Runnable {
 
     private final DatabaseHelper dbHelper;
 
-    private final GradingHelper gradingHelper;
+    private final GitGradingHelper gitGradingHelper;
     private final CompileHelper compileHelper;
 
     protected final GradingContext gradingContext;
@@ -75,7 +75,7 @@ public class Grader implements Runnable {
 
         // Init helpers
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
-        this.gradingHelper = new GradingHelper(gradingContext);
+        this.gitGradingHelper = new GitGradingHelper(gradingContext);
         this.compileHelper = new CompileHelper(gradingContext);
     }
 
@@ -85,7 +85,7 @@ public class Grader implements Runnable {
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            commitVerificationResult = gradingHelper.setUpAndVerifyHistory();
+            commitVerificationResult = gitGradingHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION && gradingContext.phase() != Phase.GitHub) {
                 compileHelper.compile();

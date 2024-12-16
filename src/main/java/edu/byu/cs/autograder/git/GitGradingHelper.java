@@ -12,7 +12,6 @@ import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
@@ -30,14 +29,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class GradingHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradingHelper.class);
+public class GitGradingHelper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitGradingHelper.class);
     private final GradingContext gradingContext;
     private String headHash;
 
     public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
 
-    public GradingHelper(GradingContext gradingContext) {
+    public GitGradingHelper(GradingContext gradingContext) {
         this.gradingContext = gradingContext;
     }
 
