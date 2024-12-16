@@ -114,7 +114,7 @@ public class GitHelperUtils {
 
                 // Evaluate repo
                 minThreshold = prevVerification == null ?
-                        GitHelper.MIN_COMMIT_THRESHOLD :
+                        GradingHelper.MIN_COMMIT_THRESHOLD :
                         new CommitThreshold(Instant.MIN, prevVerification.headHash());
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
@@ -221,20 +221,20 @@ public class GitHelperUtils {
 
 
     GitEvaluator<CommitVerificationResult> evaluateRepo() {
-        return evaluateRepo(gradingContext, GitHelper.MIN_COMMIT_THRESHOLD);
+        return evaluateRepo(gradingContext, GradingHelper.MIN_COMMIT_THRESHOLD);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(@Nullable CommitThreshold minThreshold) {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        return evaluateRepo(new GitHelper(gradingContext), minThreshold);
+        return evaluateRepo(new GradingHelper(gradingContext), minThreshold);
     }
-    GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
+    GitEvaluator<CommitVerificationResult> evaluateRepo(GradingHelper gradingHelper, @Nullable CommitThreshold minThreshold) {
         return git -> {
-            String currentHeadHash = GitHelper.getHeadHash(git);
+            String currentHeadHash = GradingHelper.getHeadHash(git);
             var maxTimeThreshold = Instant.now().plusSeconds(gradingContext.verificationConfig().forgivenessMinutesHead() * 60L);
             CommitThreshold maxThreshold = new CommitThreshold(maxTimeThreshold, currentHeadHash);
-            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            return gradingHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
         };
     }
 

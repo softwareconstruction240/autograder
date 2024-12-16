@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class GitHelperPerformanceTest {
+public class GradingHelperPerformanceTest {
     private GitHelperUtils utils;
     private static final boolean RUN_PERFORMANCE_SUITE = false;
 
