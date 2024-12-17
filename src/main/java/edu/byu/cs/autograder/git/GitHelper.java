@@ -91,6 +91,7 @@ public class GitHelper {
         fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
     }
 
+    //Method must be static due to the lack of GradingContext in cases where this method is required
     public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(repoUrl)
