@@ -88,8 +88,12 @@ public class GitHelper {
     private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
+        fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
+    }
+
+    public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(gradingContext.repoUrl())
+                .setURI(repoUrl)
                 .setDirectory(intoDirectory);
 
         try (Git git = cloneCommand.call()) {
