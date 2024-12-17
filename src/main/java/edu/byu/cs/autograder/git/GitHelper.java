@@ -49,7 +49,7 @@ public class GitHelper {
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchRepo(gradingContext.stageRepo());
+        fetchRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
