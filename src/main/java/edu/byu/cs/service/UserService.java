@@ -1,5 +1,7 @@
 package edu.byu.cs.service;
 
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.exception.PriorRepoClaimBlockageException;
@@ -94,16 +96,16 @@ public class UserService {
 
     private static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
-        CloneCommand cloneCommand = Git.cloneRepository().setURI(url).setDirectory(cloningDir);
 
-        try (Git git = cloneCommand.call()) {
-            LOGGER.debug("Cloning repo to {} to check repo exists", git.getRepository().getDirectory());
-        } catch (GitAPIException e) {
-            FileUtils.removeDirectory(cloningDir);
+        try {
+            GitHelper.fetchRepoFromUrl(url, cloningDir);
+            return true;
+        } catch (GradingException e) {
             return false;
         }
-        FileUtils.removeDirectory(cloningDir);
-        return true;
+        finally {
+            FileUtils.removeDirectory(cloningDir);
+        }
     }
 
     /**
