@@ -12,14 +12,15 @@ import java.util.regex.Pattern;
 public class RepoUrlValidator {
     public static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
-        boolean valid = true;
         try {
             GitHelper.fetchRepo(cloningDir, url);
+            return true;
         } catch (GradingException e) {
-            valid = false;
+            return false;
         }
-        FileUtils.removeDirectory(cloningDir);
-        return valid;
+        finally {
+            FileUtils.removeDirectory(cloningDir);
+        }
     }
 
     /**
