@@ -3,8 +3,6 @@ package edu.byu.cs.util;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.UUID;
@@ -12,8 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepoUrlValidator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepoUrlValidator.class);
-
     public static boolean isValidRepoUrl(String url) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
         boolean valid = true;

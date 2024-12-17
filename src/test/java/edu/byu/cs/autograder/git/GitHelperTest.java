@@ -6,7 +6,7 @@ import org.junit.jupiter.api.*;
 import java.io.File;
 import java.util.*;
 
-class GitGradingHelperTest {
+class GitHelperTest {
     GitHelperUtils utils;
 
     @AfterAll
@@ -189,14 +189,14 @@ class GitGradingHelperTest {
      * <h1>Important Note!</h1>
      * This test is not actually evaluating the logic in the app that performs this test.
      * <br>
-     * The logic currently occurs in {@link GitGradingHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
-     * call {@link GitGradingHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
-     * Normal calls to {@link GitGradingHelper#verifyCommitRequirements(File)} will evaluate the rules.
+     * The logic currently occurs in {@link GitHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
+     * call {@link GitHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
+     * Normal calls to {@link GitHelper#verifyCommitRequirements(File)} will evaluate the rules.
      * <br>
      * Note that we cannot easily call the <code>constructCurrentThreshold(Git)</code> method since it relies
      * on data configured in the QueueTable and other complex dependencies that are tricky to set up.
      * <br>
-     * Instead, we independently implemented the (simple) logic in {@link GitHelperUtils#evaluateRepo(GitGradingHelper, CommitThreshold)}
+     * Instead, we independently implemented the (simple) logic in {@link GitHelperUtils#evaluateRepo(GitHelper, CommitThreshold)}
      * method which demonstrates that the technique does work.
      */
     @Test
