@@ -49,7 +49,7 @@ public class GitHelper {
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchRepo(gradingContext.stageRepo());
+        fetchRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
@@ -88,8 +88,13 @@ public class GitHelper {
     private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
+        fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
+    }
+
+    //Method must be static due to the lack of GradingContext in cases where this method is required
+    public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(gradingContext.repoUrl())
+                .setURI(repoUrl)
                 .setDirectory(intoDirectory);
 
         try (Git git = cloneCommand.call()) {
