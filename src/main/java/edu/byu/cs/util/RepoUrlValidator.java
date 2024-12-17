@@ -14,8 +14,7 @@ public class RepoUrlValidator {
     public static boolean isValid(@Nullable String repoUrl) {
         File cloningDir = new File("./tmp" + UUID.randomUUID());
         try {
-            String cleanUrl = clean(repoUrl);
-            GitHelper.fetchRepoFromUrl(cleanUrl, cloningDir);
+            GitHelper.fetchRepoFromUrl(repoUrl, cloningDir);
             return true;
         } catch (GradingException e) {
             return false;
