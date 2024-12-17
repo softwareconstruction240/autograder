@@ -1,27 +1,19 @@
 package edu.byu.cs.service;
 
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.exception.PriorRepoClaimBlockageException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
-import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.RepoUrlValidator;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.UUID;
 
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
@@ -95,17 +87,7 @@ public class UserService {
     }
 
     private static boolean isValidRepoUrl(String url) {
-        File cloningDir = new File("./tmp" + UUID.randomUUID());
-
-        try {
-            GitHelper.fetchRepoFromUrl(url, cloningDir);
-            return true;
-        } catch (GradingException e) {
-            return false;
-        }
-        finally {
-            FileUtils.removeDirectory(cloningDir);
-        }
+        return RepoUrlValidator.isValid(url);
     }
 
     /**
