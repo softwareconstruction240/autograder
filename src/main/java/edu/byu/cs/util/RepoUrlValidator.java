@@ -5,16 +5,28 @@ import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.io.File;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
-        File cloningDir = new File("./tmp" + UUID.randomUUID());
+        return canClean(repoUrl) && canClone(repoUrl);
+    }
+
+    public static boolean canClean(String repoUrl) {
         try {
-            GitHelper.fetchRepoFromUrl(repoUrl, cloningDir);
+            clean(repoUrl);
+            return true;
+        } catch (GradingException e) {
+            return false;
+        }
+    }
+
+    public static boolean canClone(String repoUrl) {
+        File cloningDir = null;
+        try {
+            cloningDir = GitHelper.fetchRepoFromUrl(repoUrl);
             return true;
         } catch (GradingException e) {
             return false;
