@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
@@ -49,7 +50,7 @@ public class GitHelper {
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchRepo(gradingContext.stageRepo());
+        fetchRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
@@ -88,8 +89,19 @@ public class GitHelper {
     private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
+        fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
+    }
+
+    public static File fetchRepoFromUrl(String repoUrl) throws GradingException {
+        File cloningDir = new File("./tmp" + UUID.randomUUID());
+        fetchRepoFromUrl(repoUrl, cloningDir);
+        return cloningDir;
+    }
+
+    //Method must be static due to the lack of GradingContext in cases where this method is required
+    public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(gradingContext.repoUrl())
+                .setURI(repoUrl)
                 .setDirectory(intoDirectory);
 
         try (Git git = cloneCommand.call()) {

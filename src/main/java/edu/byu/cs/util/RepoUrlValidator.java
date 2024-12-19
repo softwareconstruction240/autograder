@@ -1,19 +1,38 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
 
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
+        return canClean(repoUrl) && canClone(repoUrl);
+    }
+
+    public static boolean canClean(String repoUrl) {
         try {
             clean(repoUrl);
             return true;
-        } catch (InvalidRepoUrlException e) {
+        } catch (GradingException e) {
             return false;
+        }
+    }
+
+    public static boolean canClone(String repoUrl) {
+        File cloningDir = null;
+        try {
+            cloningDir = GitHelper.fetchRepoFromUrl(repoUrl);
+            return true;
+        } catch (GradingException e) {
+            return false;
+        }
+        finally {
+            FileUtils.removeDirectory(cloningDir);
         }
     }
 
