@@ -64,23 +64,23 @@ public class ConfigurationSqlDao implements ConfigurationDao {
         if (value.equals(DEFAULT_VALUE)) {
             LOGGER.warn("Using default configuration value for key: {} of type {}", key, type);
 
-            return switch (typedObj) {
-                case String ignored -> type.cast("");
-                case Integer ignored -> type.cast(0);
-                case Boolean ignored -> type.cast(false);
-                case Instant ignored -> type.cast(Instant.MAX);
-                case Float ignored -> type.cast(0f);
+            return type.cast(switch (typedObj) {
+                case String ignored -> "";
+                case Integer ignored -> 0;
+                case Boolean ignored -> false;
+                case Instant ignored -> Instant.MAX;
+                case Float ignored -> 0f;
                 default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
-            };
+            });
         }
 
-        return switch (typedObj) {
-            case String ignored -> type.cast(value);
-            case Integer ignored -> type.cast(Integer.parseInt(value));
-            case Boolean ignored -> type.cast(Boolean.parseBoolean(value));
-            case Instant ignored -> type.cast(Instant.parse(value));
-            case Float ignored -> type.cast(Float.parseFloat(value));
+        return type.cast(switch (typedObj) {
+            case String ignored -> value;
+            case Integer ignored -> Integer.parseInt(value);
+            case Boolean ignored -> Boolean.parseBoolean(value);
+            case Instant ignored -> Instant.parse(value);
+            case Float ignored -> Float.parseFloat(value);
             default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
-        };
+        });
     }
 }
