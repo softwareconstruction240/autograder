@@ -1,5 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
+import ch.qos.logback.core.subst.Token;
+import com.ctc.wstx.shaded.msv_core.datatype.xsd.TokenType;
 import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import org.slf4j.Logger;
@@ -58,28 +60,28 @@ public class ConfigurationSqlDao implements ConfigurationDao {
         }
     }
 
-    private <T> T getValue(Configuration key, String value, Class<T> type) throws ReflectiveOperationException {
-        Object typedObj = type.getDeclaredConstructor().newInstance();
+    private <T> T getValue(Configuration key, String value, Class<T> type) {
+        String className = type.getSimpleName();
 
         if (value.equals(DEFAULT_VALUE)) {
             LOGGER.warn("Using default configuration value for key: {} of type {}", key, type);
 
-            return type.cast(switch (typedObj) {
-                case String ignored -> "";
-                case Integer ignored -> 0;
-                case Boolean ignored -> false;
-                case Instant ignored -> Instant.MAX;
-                case Float ignored -> 0f;
+            return type.cast(switch (className) {
+                case "String" -> "";
+                case "Integer" -> 0;
+                case "Boolean" -> false;
+                case "Instant" -> Instant.MAX;
+                case "Float" -> 0f;
                 default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
             });
         }
 
-        return type.cast(switch (typedObj) {
-            case String ignored -> value;
-            case Integer ignored -> Integer.parseInt(value);
-            case Boolean ignored -> Boolean.parseBoolean(value);
-            case Instant ignored -> Instant.parse(value);
-            case Float ignored -> Float.parseFloat(value);
+        return type.cast(switch (className) {
+            case "String" -> value;
+            case "Integer" -> Integer.parseInt(value);
+            case "Boolean" -> Boolean.parseBoolean(value);
+            case "Instant" -> Instant.parse(value);
+            case "Float" -> Float.parseFloat(value);
             default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
         });
     }
