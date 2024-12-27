@@ -69,9 +69,16 @@ public class GitHelper {
         gradingContext.observer().update("Verifying commits...");
 
         try {
-            return shouldVerifyCommits() ?
+            CommitVerificationResult result = shouldVerifyCommits() ?
                     verifyCommitRequirements(gradingContext.stageRepo()) :
                     skipCommitVerification(true, headHash, null);
+
+            if (result.warningMessages() != null) {
+                var observer = gradingContext.observer();
+                result.warningMessages().forEach(observer::notifyWarning);
+            }
+
+            return result;
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
             String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
