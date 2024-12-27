@@ -166,7 +166,7 @@ public class CommitAnalytics {
         for (var commitsAtTimestamp : dataMap.values()) {
             if (commitsAtTimestamp.size() > 1) {
                 allEffectedCommits.addAll(commitsAtTimestamp);
-                duplicatedCommitsOnly.addAll(commitsAtTimestamp.subList(1, commitsAtTimestamp.size()));
+                duplicatedCommitsOnly.addAll(commitsAtTimestamp.subList(0, commitsAtTimestamp.size()-1));
             }
         }
         return new DuplicatedTimestamps(allEffectedCommits, duplicatedCommitsOnly);

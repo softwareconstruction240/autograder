@@ -57,7 +57,8 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
         warnings = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
         errors = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
-        return null; // No need to rerun the evaluation
+        // Rerun the analysis only if we detected amended commits
+        return commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly");
     }
 
     @Override
