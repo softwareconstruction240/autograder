@@ -16,6 +16,8 @@ import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class GitHelperUtils {
@@ -169,17 +171,24 @@ public class GitHelperUtils {
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays) {
         return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, false);
     }
+    CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays, int numWarnings) {
+        var warnings = Collections.nCopies(numWarnings, "SOME WARNING");
+        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, false, warnings);
+    }
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays, boolean missingTail) {
         return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, missingTail);
     }
+    CommitVerificationResult generalCommitVerificationResult(boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail) {
+        return generalCommitVerificationResult(verified, significantCommits, totalCommits, numDays, missingTail, null);
+    }
     CommitVerificationResult generalCommitVerificationResult(
-            boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail) {
+            boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail, Collection<String> warnings) {
         // Note: Unfortunately, we were not able to configure Mockito to properly accept these `any` object times
         // to also accept null. We've moved a different direction now, but we're preserving the `Mockito.nullable/any()`
         // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays,
-                missingTail, 0, null, null, null, null,
+                missingTail, 0, null, warnings, null, null,
                 "ANY_HEAD_HASH", null);
     }
 
@@ -278,5 +287,9 @@ public class GitHelperUtils {
         Assertions.assertEquals(expected.numDays(), actual.numDays());
         Assertions.assertEquals(expected.missingTail(), actual.missingTail());
         Assertions.assertEquals(expected.penaltyPct(), actual.penaltyPct());
+
+        var expectWarnings = expected.warningMessages() == null ? 0 : expected.warningMessages().size();
+        var actualWarnings = actual.warningMessages() == null ? 0 : actual.warningMessages().size();
+        Assertions.assertEquals(expectWarnings, actualWarnings);
     }
 }

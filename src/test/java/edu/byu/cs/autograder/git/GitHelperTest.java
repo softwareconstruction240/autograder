@@ -148,7 +148,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 0, 31, 10);
                     utils.makeCommit(repoContext, "Change 10", 0, 30, 10);
                 },
-                utils.generalCommitVerificationResult(true, 10, 3)
+                utils.generalCommitVerificationResult(true, 10, 3, 2)
         ));
     }
 
@@ -226,7 +226,7 @@ class GitHelperTest {
             utils.makeCommit(repoContext, "Change 3 (amend 1)", 0, 3, 10);
             utils.makeCommit(repoContext, "Change 3 (amend 2)", 0, 3, 10);
             utils.makeCommit(repoContext, "Change 3 (amend 3)", 0, 3, 10);
-        }, utils.generalCommitVerificationResult(true, 3, 1)));
+        }, utils.generalCommitVerificationResult(true, 3, 1, 2)));
     }
 
     @Test
