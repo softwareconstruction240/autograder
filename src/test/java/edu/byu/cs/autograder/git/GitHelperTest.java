@@ -148,7 +148,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 0, 31, 10);
                     utils.makeCommit(repoContext, "Change 10", 0, 30, 10);
                 },
-                utils.generalCommitVerificationResult(false, 10, 3)
+                utils.generalCommitVerificationResult(true, 10, 3, 2)
         ));
     }
 
@@ -189,7 +189,7 @@ class GitHelperTest {
      * <h1>Important Note!</h1>
      * This test is not actually evaluating the logic in the app that performs this test.
      * <br>
-     * The logic currently occurs in {@link GitHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
+     * The logic currently occurs in <code>GitHelper#constructCurrentThreshold(Git)</code> which is bypassed when we directly
      * call {@link GitHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
      * Normal calls to {@link GitHelper#verifyCommitRequirements(File)} will evaluate the rules.
      * <br>
@@ -210,6 +210,23 @@ class GitHelperTest {
                         repoContext -> utils.makeCommit(repoContext, "Change 2", 0, -6, 10), // Major clock issue
                         utils.generalCommitVerificationResult(false, 1, 1))
         ));
+    }
+
+    @Test
+    void amendedCommitsCountedOnce() {
+        utils.setGradingContext(utils.generateGradingContext(3, 0, 0, 0));
+        utils.evaluateTest("amended-commits-counted-once", new VerificationCheckpoint(repoContext -> {
+            utils.makeCommit(repoContext, "Change 1 (initial)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 1 (amend 1)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 1 (amend 2)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 2 (initial)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 2 (amend 1)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 2 (amend 2)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 3 (initial)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 1)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 2)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 3)", 0, 3, 10);
+        }, utils.generalCommitVerificationResult(true, 3, 1, 2)));
     }
 
     @Test

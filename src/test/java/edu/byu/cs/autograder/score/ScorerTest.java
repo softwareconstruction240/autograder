@@ -82,7 +82,8 @@ class ScorerTest {
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
-                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId"),
+                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId"),
                         Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory2", "testCriteria2", 0, "testRubricId2")
                 )));
         RubricConfig phase3RubricConfig = new RubricConfig(
@@ -349,7 +350,7 @@ class ScorerTest {
 
         return new CommitVerificationResult(
                 verified, isCached, 0, 0, 0, false, 0,
-                "", null, null,
+                "", null, null, null,
                 headHash, null);
     }
 
