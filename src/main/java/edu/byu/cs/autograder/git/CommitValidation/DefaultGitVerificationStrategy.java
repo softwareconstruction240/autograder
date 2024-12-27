@@ -73,8 +73,8 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
 
 
     void warningMessageTerminator(Collection<String> warningMessages) {
-        warningMessages.add("Grading will continue on this submission despite detecting poor Git etiquette. "
-                + "We recommend asking a TA to understand why these warnings appeared and how to avoid them in the future.");
+        warningMessages.add("Grading will continue on this submission despite detecting Git warnings. "
+                + "We recommend asking a TA to understand why these warnings appeared.");
     }
 
     void errorMessageTerminator(Collection<String> errorMessages) {
