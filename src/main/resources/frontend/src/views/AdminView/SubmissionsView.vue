@@ -38,8 +38,7 @@ const resetPage = async () => {
   runningAdminRepo.value = false;
   selectedSubmission.value = null;
   allSubmissionsLoaded = false;
-  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
-  loadSubmissionsToTable(submissionsData);
+  await refreshSubmissions();
 }
 
 const refreshSubmissions = async () => {
