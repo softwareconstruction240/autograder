@@ -213,6 +213,23 @@ class GitHelperTest {
     }
 
     @Test
+    void amendedCommitsCountedOnce() {
+        utils.setGradingContext(utils.generateGradingContext(3, 0, 0, 0));
+        utils.evaluateTest("amended-commits-counted-once", new VerificationCheckpoint(repoContext -> {
+            utils.makeCommit(repoContext, "Change 1 (initial)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 1 (amend 1)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 1 (amend 2)", 0, 5, 10);
+            utils.makeCommit(repoContext, "Change 2 (initial)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 2 (amend 1)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 2 (amend 2)", 0, 4, 10);
+            utils.makeCommit(repoContext, "Change 3 (initial)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 1)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 2)", 0, 3, 10);
+            utils.makeCommit(repoContext, "Change 3 (amend 3)", 0, 3, 10);
+        }, utils.generalCommitVerificationResult(true, 3, 1)));
+    }
+
+    @Test
     @Disabled
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
