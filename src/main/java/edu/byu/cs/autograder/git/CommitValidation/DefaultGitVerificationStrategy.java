@@ -54,8 +54,9 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
         };
 
-        warnings = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
-        errors = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
+        // Preserve the first set of messages (preserve the original warnings about amending commits)
+        if (warnings == null) warnings = Result.evaluateConditions(warningConditions, this::warningMessageTerminator);
+        if (errors == null)   errors = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
         // Rerun the analysis only if we detected amended commits
         return commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly");
