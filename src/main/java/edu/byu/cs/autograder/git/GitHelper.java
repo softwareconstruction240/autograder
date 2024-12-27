@@ -235,7 +235,7 @@ public class GitHelper {
             boolean hasErrors = errorResults != null && !errorResults.isEmpty();
 
             return new CommitVerificationResult(
-                    hasErrors,
+                    !hasErrors,
                     false,
                     numCommits,
                     (int) significantCommits,
