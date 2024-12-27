@@ -30,8 +30,7 @@ public class RepoUrlValidator {
             return true;
         } catch (GradingException e) {
             return false;
-        }
-        finally {
+        } finally {
             FileUtils.removeDirectory(cloningDir);
         }
     }
