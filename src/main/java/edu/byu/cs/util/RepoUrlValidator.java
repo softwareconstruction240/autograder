@@ -24,14 +24,12 @@ public class RepoUrlValidator {
     }
 
     public static boolean canClone(String repoUrl) {
-        File cloningDir = null;
         try {
-            cloningDir = GitHelper.fetchRepoFromUrl(repoUrl);
+            File cloningDir = GitHelper.fetchRepoFromUrl(repoUrl);
+            FileUtils.removeDirectory(cloningDir);
             return true;
         } catch (GradingException e) {
             return false;
-        } finally {
-            FileUtils.removeDirectory(cloningDir);
         }
     }
 
