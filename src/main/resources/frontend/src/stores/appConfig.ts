@@ -12,6 +12,16 @@ export type Config = {
   bannerLink: string
   bannerColor: string
   bannerExpiration: string
+
+  perDayLatePenalty: number
+  gitCommitPenalty: number
+  maxLateDaysPenalized: number
+  linesChangedPerCommit: number
+  clockForgivenessMinutes: number
+
+  shutdownSchedule: string
+  shutdownWarningMilliseconds: number
+
   phases: Array<Phase>
   courseNumber?: number
   assignmentIds?: string // Map<Phase, number>
@@ -49,6 +59,16 @@ export const useAppConfigStore = defineStore('appConfig', () => {
       bannerColor.value = "#4fa0ff"
     }
 
+    perDayLatePenalty.value = latestConfig.perDayLatePenalty
+    gitCommitPenalty.value = latestConfig.gitCommitPenalty
+    maxLateDaysPenalized.value = latestConfig.maxLateDaysPenalized
+    linesChangedPerCommit.value = latestConfig.linesChangedPerCommit
+    clockForgivenessMinutes.value = latestConfig.clockForgivenessMinutes
+
+    shutdownSchedule.value = latestConfig.shutdownSchedule
+    shutdownWarningMilliseconds.value = latestConfig.shutdownWarningMilliseconds
+
+
     for (const phase of listOfPhases() as Phase[]) {
       activePhaseList.value[phase] = latestConfig.phases.includes(phase);
     }
@@ -68,6 +88,16 @@ export const useAppConfigStore = defineStore('appConfig', () => {
   const bannerLink: Ref<string> = ref<string>("");
   const bannerColor: Ref<string> = ref<string>("");
   const bannerExpiration: Ref<string> = ref<string>("");
+
+  const perDayLatePenalty = ref<number>(0)
+  const gitCommitPenalty = ref<number>(0)
+  const maxLateDaysPenalized = ref<number>(0)
+  const linesChangedPerCommit = ref<number>(0)
+  const clockForgivenessMinutes = ref<number>(0)
+
+  const shutdownSchedule: Ref<string> = ref<string>("");
+  const shutdownWarningMilliseconds: Ref<number> = ref<number>(0);
+
   // using the enum, if phaseActivationList[phase] == true, then that phase is active
   const activePhaseList: Ref<boolean[]> = ref<Array<boolean>>([]);
   const assignmentIds: Ref<Map<Phase, number>> = ref<Map<Phase, number>>(new Map<Phase, number>);
@@ -82,9 +112,16 @@ export const useAppConfigStore = defineStore('appConfig', () => {
     bannerLink,
     bannerColor,
     bannerExpiration,
+    shutdownSchedule,
+    shutdownWarningMilliseconds,
     phaseActivationList: activePhaseList,
     rubricInfo,
     assignmentIds,
-    courseNumber
+    courseNumber,
+    perDayLatePenalty,
+    gitCommitPenalty,
+    maxLateDaysPenalized,
+    linesChangedPerCommit,
+    clockForgivenessMinutes
   };
 })

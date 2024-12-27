@@ -1,5 +1,5 @@
-import {useAppConfigStore} from "@/stores/appConfig";
 import { useAuthStore } from '@/stores/auth'
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 type MeResponse = {
     netId: string,
@@ -8,17 +8,8 @@ type MeResponse = {
     repoUrl: string,
     role: 'STUDENT' | 'ADMIN'
 }
-export const meGet = async () => {
-    try {
-        const response = await fetch(useAppConfigStore().backendUrl + '/api/me', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        return await response.json() as MeResponse | null;
-    } catch (e) {
-        return null;
-    }
+export const meGet = () => {
+    return ServerCommunicator.getRequestGuaranteed<MeResponse | null>('/api/me', null)
 }
 
 export const loadUser = async () => {
@@ -29,17 +20,6 @@ export const loadUser = async () => {
     useAuthStore().user = loggedInUser;
 }
 
-export const logoutPost = async () => {
-    const response = await fetch(useAppConfigStore().backendUrl + "/auth/logout", {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
+export const logoutPost = () => {
+    return ServerCommunicator.postRequest( "/auth/logout", null, false)
 }

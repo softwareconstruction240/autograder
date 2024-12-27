@@ -66,6 +66,17 @@ public class DaoService {
         DaoService.setSubmissionDao(new SubmissionMemoryDao());
         DaoService.setConfigurationDao(new ConfigurationMemoryDao());
         DaoService.setRepoUpdateDao(new RepoUpdateMemoryDao());
+
+        /* Initialize crucial default values in Config for testing purposes */
+        try {
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, 0.1f, Float.class);
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 0.1f, Float.class);
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.LINES_PER_COMMIT_REQUIRED, 5, Integer.class);
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.CLOCK_FORGIVENESS_MINUTES, 3, Integer.class);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void initializeSqlDAOs() throws DataAccessException {

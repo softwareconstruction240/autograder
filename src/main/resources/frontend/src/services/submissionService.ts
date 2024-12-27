@@ -1,105 +1,34 @@
 import type {Submission} from "@/types/types";
 import { Phase } from "@/types/types";
-import {useAppConfigStore} from "@/stores/appConfig";
+import { ServerCommunicator } from '@/network/ServerCommunicator'
 
-export const submissionsGet = async (phase: Phase | null): Promise<Submission[]> => {
-    let url = useAppConfigStore().backendUrl + '/api/submission' + (phase === null ? "" : "/" + Phase[phase])
-    const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include'
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        return [];
-    }
-
-    return await response.json() as Submission[];
+export const submissionsGet = (phase: Phase | null): Promise<Submission[]> => {
+    const endpoint: string = '/api/submission' + (phase === null ? "" : "/" + Phase[phase])
+    return ServerCommunicator.getRequestGuaranteed<Submission[]>(endpoint, [])
 };
 
-export const lastSubmissionGet = async (): Promise<Submission | null> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/latest', {
-        method: 'GET',
-        credentials: 'include'
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        return null;
-    }
-
-    return await response.json() as Submission;
+export const lastSubmissionGet = (): Promise<Submission | null> => {
+    return ServerCommunicator.getRequestGuaranteed<Submission | null>("/api/latest", null)
 };
 
-export const submissionPost = async (phase: Phase): Promise<void> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/submit', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "phase": Phase[phase],
-        })
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
+export const submissionPost = (phase: Phase): Promise<null> => {
+    return ServerCommunicator.postRequest("/api/submit", { "phase": Phase[phase] }, false)
 }
 
-export const adminSubmissionPost = async (phase: Phase, repoUrl: String): Promise<void> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/admin/submit', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "phase": Phase[phase],
-            "repoUrl": repoUrl
-        })
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
+export const adminSubmissionPost = (phase: Phase, repoUrl: String): Promise<null> => {
+    return ServerCommunicator.postRequest("/api/admin/submit", {
+        "phase": Phase[phase],
+        "repoUrl": repoUrl
+    }, false)
 }
 
 type SubmitGetResponse = {
     inQueue: boolean,
 }
 export const submitGet = async (): Promise<boolean> => {
-    const response = await fetch(useAppConfigStore().backendUrl + '/api/submit', {
-        method: 'GET',
-        credentials: 'include'
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    }
-
-    const body = await response.json() as SubmitGetResponse;
-
-    return body.inQueue;
+    return (await ServerCommunicator.getRequest<SubmitGetResponse>("/api/submit")).inQueue
 }
 
-export const reRunSubmissionsPost = async () => {
-    const response = await fetch(useAppConfigStore().backendUrl + "/api/admin/submissions/rerun", {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        console.error(response);
-        throw new Error(await response.text());
-    } else {
-        return true;
-    }
+export const reRunSubmissionsPost = () => {
+    return ServerCommunicator.postRequest("/api/admin/submissions/rerun")
 }

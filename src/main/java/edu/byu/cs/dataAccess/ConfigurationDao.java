@@ -6,6 +6,8 @@ public interface ConfigurationDao {
 
     enum Configuration {
         STUDENT_SUBMISSIONS_ENABLED,
+        GRADER_SHUTDOWN_DATE,
+        GRADER_SHUTDOWN_WARNING_MILLISECONDS,
         BANNER_MESSAGE,
         BANNER_LINK,
         BANNER_COLOR,
@@ -17,6 +19,11 @@ public interface ConfigurationDao {
         PHASE4_ASSIGNMENT_NUMBER,
         PHASE5_ASSIGNMENT_NUMBER,
         PHASE6_ASSIGNMENT_NUMBER,
-        COURSE_NUMBER
+        COURSE_NUMBER,
+        MAX_LATE_DAYS_TO_PENALIZE,
+        PER_DAY_LATE_PENALTY,
+        GIT_COMMIT_PENALTY,
+        LINES_PER_COMMIT_REQUIRED,
+        CLOCK_FORGIVENESS_MINUTES
     }
 }
