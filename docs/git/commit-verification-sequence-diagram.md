@@ -15,7 +15,7 @@ and therefore enable future developers to understand behavior and extend functio
 | :---------- | :---- |
 | `Grader` | Driver class responsible for running the grading algorithm. |
 | `Observer` | Sends updates to display directly to student. |
-| **`GitHelper`** | Driver class for git commit verification. Contains a few reusable methods in other contexts. |
+| **`GitHelper`** | **Driver class for git commit verification.** Contains a few reusable methods in other contexts. |
 | `SubmissionDao` | Interacts with a database over the internet. |
 | `CommitAnalytics` | Intentionally separates low-level interactions with actual `git` commits from the higher level algorithm. |
 | `CommitVerificationStrategy` | [Strategy pattern](https://refactoring.guru/design-patterns/strategy) intentionally separates the interpretation of the commit results from analysis algorithm. |
@@ -35,7 +35,16 @@ participant SubmissionDao
 participant CommitAnalytics
 participant CommitVerificationStrategy
 
-note left of Grader: Grader `run()` method
+%% GRADING INITIALIZATION
+note over Grader,GitHelper: Grading initialization
+Grader->>+Grader: new Grader(...)
+Grader->>GitHelper: new GitHelper(gradingContext)
+GitHelper->>CommitVerificationStrategy: new DefaultGitVerificationStrategy()
+Grader-->>-Grader: Grader
+
+%% GRADING EVALUATION
+note over Grader,GitHelper: Grading evaluation
+Grader->>+Grader: run()
 Grader->>+GitHelper: setUpAndVerifyHistory()
 
 %% Initial internal setup
@@ -112,5 +121,21 @@ GitHelper-->>-GitHelper: CommitVerificationResult
 
 %% Return to caller
 GitHelper-->>-Grader: CommitVerificationResult
+
+%% GRADING COMPLETION
+%% (Notice this continues in `run()` from above.)
+note over Grader,GitHelper: Grading Completion
+Grader->>+Grader: evaluateProject(CommitVerificationResult)
+note right of Grader: Phase graders may use<br> verification results to assign<br> points directly (ex. GitHub Repo).
+Grader-->>-Grader: Rubric
+
+Grader->>+Grader: Scorer.score(rubric, CommitVerificationResult)
+note right of Grader: Scorer applies penalty in<br> comit verification result<br> with other penalties.
+Grader-->>-Grader: Submission
+
+Grader->>SubmissionDao: insertSubmission(submission)
+Grader->>Observer: notifyDone(submission)
+
+Grader-->>-Grader: void
 
 ```
