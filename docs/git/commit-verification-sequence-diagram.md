@@ -1,3 +1,26 @@
+# Git Commit Verification
+
+This Sequence Diagram is provided to help put each of the internal methods
+in their proper context in the bigger picture. Minor details are omitted,
+but emphasis is placed on actions that directly affect the user 
+(like sending notifications to `Grader`), and network calls to DAOs.
+Emphasis is placed on showing where system requirements are calculated in the logical flow.
+
+Locating a particular function on this map should visualize how it is being used,
+and therefore enable future developers to understand behavior and extend functionality.
+
+## Participant Overview
+
+| Participant | Notes |
+| :---------- | :---- |
+| `Grader` | Driver class responsible for running the grading algorithm. |
+| `Observer` | Sends updates to display directly to student. |
+| **`GitHelper`** | Driver class for git commit verification. Contains a few reusable methods in other contexts. |
+| `SubmissionDao` | Interacts with a database over the internet. |
+| `CommitAnalytics` | Intentionally separates low-level interactions with actual `git` commits from the higher level algorithm. |
+| `CommitVerificationStrategy` | [Strategy pattern](https://refactoring.guru/design-patterns/strategy) intentionally separates the interpretation of the commit results from analysis algorithm. |
+
+## Sequence Diagram
 ```mermaid
 ---
 title: AutoGrader — Git Commit Verification Sequence Diagram
@@ -8,17 +31,9 @@ sequenceDiagram
 participant Grader
 participant Observer
 participant GitHelper
-
-%% This Sequence Diagram is provided to help put each of the internal methods
-%% in their proper context in the bigger picture. Minor details are omitted,
-%% but emphasis is placed on actions that directly affect the user 
-%% (like sending notifications to `Grader`), and network calls to DAOs.
-%% Locating a particular function on this map should visualize how it is being used,
-%% and therefore enable future developers to understand behavior and extend functionality.
-%% Emphasis is placed on showing where system requirements are calculated in the logical flow.
-
-note over SubmissionDao: Calls here travel over the<br> internet to hit a database.
-note over CommitAnalytics: Represents low-level interactions<br> with actual `git` commits.
+participant SubmissionDao
+participant CommitAnalytics
+participant CommitVerificationStrategy
 
 note left of Grader: Grader `run()` method
 Grader->>+GitHelper: setUpAndVerifyHistory()
