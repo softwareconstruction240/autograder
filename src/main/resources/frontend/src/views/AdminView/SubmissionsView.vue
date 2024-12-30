@@ -15,7 +15,7 @@ import {
   renderTimestampCell
 } from "@/utils/tableUtils";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import { generateClickableLink, isPlausibleRepoUrl, nameFromNetId } from '@/utils/utils'
+import { assureHttpPrefix, generateClickableLink, isPlausibleRepoUrl, nameFromNetId } from '@/utils/utils'
 import {adminSubmissionPost} from "@/services/submissionService";
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
@@ -27,7 +27,7 @@ const selectedStudent = ref<User | null>(null);
 const runningAdminRepo = ref<boolean>(false)
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
-let adminRepo = reactive( {
+let adminRepo = reactive({
   value: ""
 })
 
@@ -99,7 +99,8 @@ const adminSubmit = async () => {
     return;
   }
   try {
-    await adminSubmissionPost(selectedAdminPhase.value!, adminRepo.value)
+    const repo = assureHttpPrefix(adminRepo.value);
+    await adminSubmissionPost(selectedAdminPhase.value!, repo)
     runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) { alert("Error running grader: " + error.message) }
@@ -169,7 +170,7 @@ const adminSubmit = async () => {
     @closePopUp="resetPage">
     <div v-if="!selectedSubmission">
       <h3 style="width: 70vw">Running Grader As Admin</h3>
-      <p>Github Repo: <span v-html="generateClickableLink(adminRepo.value)"/></p>
+      <p>Github Repo: <span v-html="generateClickableLink(assureHttpPrefix(adminRepo.value))"/></p>
       <InfoPanel>
         <LiveStatus @show-results="adminDoneGrading"/>
       </InfoPanel>
