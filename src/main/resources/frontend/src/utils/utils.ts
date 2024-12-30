@@ -176,7 +176,7 @@ export const isPlausibleRepoUrl = (url: string): boolean => {
 }
 
 export const assureHttpPrefix = (url: string): string => {
-  if (/https?:\/\//.test(url)) return url;
+  if (/^https?:\/\//.test(url)) return url;
   return `https://${url}`;
 }
 
