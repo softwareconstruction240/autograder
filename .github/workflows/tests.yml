@@ -58,3 +58,23 @@ jobs:
 
       - name: Run Type Checks
         run: yarn --cwd src/main/resources/frontend run type-check
+
+  prettier:
+    name: "Run frontend code quality checks with Prettier"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: "yarn"
+      - name: Install dependencies
+        working-directory: src/main/resources/frontend
+        run: yarn install
+      - name: Run Prettier to Check Formatting
+        working-directory: src/main/resources/frontend
+        run: yarn run prettier:check
