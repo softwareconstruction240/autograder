@@ -75,7 +75,7 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: "yarn"
-          cache-dependency-path: '**/package-lock.json'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
         run: yarn install
