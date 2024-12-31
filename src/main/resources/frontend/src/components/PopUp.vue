@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { defineEmits } from 'vue';
+import { defineEmits } from 'vue'
 
 defineEmits({
-  closePopUp: null,
-});
+  closePopUp: null
+})
 </script>
 
 <template>
   <div class="popup-overlay" @click="$emit('closePopUp')">
     <div class="popup" @click.stop>
-      <i @click="$emit('closePopUp')" class="clickable-style close-button fa-solid fa-square-xmark"></i>
+      <i
+        @click="$emit('closePopUp')"
+        class="clickable-style close-button fa-solid fa-square-xmark"
+      ></i>
       <div class="popup-content">
         <slot />
       </div>

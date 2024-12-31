@@ -3,8 +3,8 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAppConfigStore } from '@/stores/appConfig'
 
-const authStore = useAuthStore();
-const appConfigStore = useAppConfigStore();
+const authStore = useAuthStore()
+const appConfigStore = useAppConfigStore()
 
 const bannerProps = computed(() => {
   if (authStore.isLoggedIn) {
@@ -12,16 +12,16 @@ const bannerProps = computed(() => {
       message: appConfigStore.bannerMessage,
       link: appConfigStore.bannerLink,
       color: appConfigStore.bannerColor
-    };
+    }
   }
-  return {};
-});
+  return {}
+})
 
 const handleClick = () => {
   if (bannerProps.value.link) {
-    window.open(bannerProps.value.link, '_blank');
+    window.open(bannerProps.value.link, '_blank')
   }
-};
+}
 </script>
 
 <template>
@@ -34,7 +34,7 @@ const handleClick = () => {
     }"
     @click="handleClick"
   >
-      <span v-text="bannerProps.message"/>
+    <span v-text="bannerProps.message" />
   </div>
 </template>
 

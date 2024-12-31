@@ -33,7 +33,9 @@ defineProps({
 
 <template>
   <div :id="lead ? 'lead' : ''">
-    <p class="name">{{ name }} <a :href=url target="_blank"><i :class="faIcon"/></a></p>
+    <p class="name">
+      {{ name }} <a :href="url" target="_blank"><i :class="faIcon" /></a>
+    </p>
     <p class="title" v-if="title">{{ title }}</p>
     <p class="tenure">{{ tenure }}</p>
     <p class="contributions">{{ contributions }}</p>
@@ -71,6 +73,6 @@ defineProps({
 }
 
 i {
-  color: #0047BA;
+  color: #0047ba;
 }
 </style>
