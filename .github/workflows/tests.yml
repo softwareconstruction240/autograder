@@ -68,6 +68,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup Node.js
+        working-directory: src/main/resources/frontend
         uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
