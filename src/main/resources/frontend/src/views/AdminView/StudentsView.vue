@@ -1,43 +1,61 @@
 <script setup lang="ts">
-import { AgGridVue } from 'ag-grid-vue3';
+import { AgGridVue } from 'ag-grid-vue3'
 import type { CellClickedEvent } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css';
-import "ag-grid-community/styles/ag-theme-quartz.css";
-import {onMounted, reactive, ref} from "vue";
-import {testStudentModeGet, usersGet} from "@/services/adminService";
-import PopUp from "@/components/PopUp.vue";
-import type {User} from "@/types/types";
-import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import {renderRepoLinkCell, standardColSettings} from "@/utils/tableUtils";
-import Panel from "@/components/Panel.vue";
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-quartz.css'
+import { onMounted, reactive, ref } from 'vue'
+import { testStudentModeGet, usersGet } from '@/services/adminService'
+import PopUp from '@/components/PopUp.vue'
+import type { User } from '@/types/types'
+import StudentInfo from '@/views/AdminView/StudentInfo.vue'
+import { renderRepoLinkCell, standardColSettings } from '@/utils/tableUtils'
+import Panel from '@/components/Panel.vue'
 
-const selectedStudent = ref<User | null>(null);
-let studentData: User[] = [];
+const selectedStudent = ref<User | null>(null)
+let studentData: User[] = []
 
 const cellClickHandler = (event: CellClickedEvent) => {
-  let findResult = studentData.find(user => user.netId === event.data.netId)
-  selectedStudent.value = findResult || null; // Setting selected student opens a popup
+  let findResult = studentData.find((user) => user.netId === event.data.netId)
+  selectedStudent.value = findResult || null // Setting selected student opens a popup
 }
 
 onMounted(async () => {
-  const userData = await usersGet();
-  studentData = userData.filter(user => user.role == "STUDENT") // get rid of users that aren't students
+  const userData = await usersGet()
+  studentData = userData.filter((user) => user.role == 'STUDENT') // get rid of users that aren't students
   var dataToShow: any = []
-  studentData.forEach(student => {
-    dataToShow.push( {
-          name: student.firstName + " " + student.lastName,
-          netId: student.netId,
-          repoUrl: student.repoUrl
-        }
-    )
+  studentData.forEach((student) => {
+    dataToShow.push({
+      name: student.firstName + ' ' + student.lastName,
+      netId: student.netId,
+      repoUrl: student.repoUrl
+    })
   })
   rowData.value = dataToShow
 })
 
 const columnDefs = reactive([
-  { headerName: "Student Name", field: "name", flex: 2, minWidth: 150, onCellClicked: cellClickHandler },
-  { headerName: "BYU netID", field: "netId", flex: 1, minWidth: 75, onCellClicked: cellClickHandler },
-  { headerName: "Github Repo URL", field: "repoUrl", flex: 5, sortable: false, cellRenderer: renderRepoLinkCell, onCellClicked: cellClickHandler }
+  {
+    headerName: 'Student Name',
+    field: 'name',
+    flex: 2,
+    minWidth: 150,
+    onCellClicked: cellClickHandler
+  },
+  {
+    headerName: 'BYU netID',
+    field: 'netId',
+    flex: 1,
+    minWidth: 75,
+    onCellClicked: cellClickHandler
+  },
+  {
+    headerName: 'Github Repo URL',
+    field: 'repoUrl',
+    flex: 5,
+    sortable: false,
+    cellRenderer: renderRepoLinkCell,
+    onCellClicked: cellClickHandler
+  }
 ])
 const rowData = reactive({
   value: []
@@ -45,7 +63,7 @@ const rowData = reactive({
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet()
-  window.location.href = '/';
+  window.location.href = '/'
 }
 </script>
 
@@ -61,19 +79,16 @@ const activateTestStudentMode = async () => {
   </Panel>
 
   <ag-grid-vue
-      class="ag-theme-quartz"
-      style="height: 75vh"
-      :columnDefs="columnDefs"
-      :rowData="rowData.value"
-      :defaultColDef="standardColSettings"
+    class="ag-theme-quartz"
+    style="height: 75vh"
+    :columnDefs="columnDefs"
+    :rowData="rowData.value"
+    :defaultColDef="standardColSettings"
   ></ag-grid-vue>
 
-  <PopUp
-      v-if="selectedStudent"
-      @closePopUp="selectedStudent = null">
+  <PopUp v-if="selectedStudent" @closePopUp="selectedStudent = null">
     <StudentInfo :student="selectedStudent"></StudentInfo>
   </PopUp>
-
 </template>
 
 <style scoped>

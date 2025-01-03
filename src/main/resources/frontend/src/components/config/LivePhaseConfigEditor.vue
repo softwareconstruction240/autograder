@@ -3,11 +3,11 @@ import { listOfPhases, Phase } from '@/types/types'
 import { useAppConfigStore } from '@/stores/appConfig'
 import { setLivePhases } from '@/services/configService'
 
-const appConfigStore = useAppConfigStore();
+const appConfigStore = useAppConfigStore()
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void
-}>();
+}>()
 
 const setAllPhases = (setting: boolean) => {
   for (const phase of listOfPhases() as Phase[]) {
@@ -18,7 +18,7 @@ const submitLivePhases = async () => {
   let livePhases: Phase[] = []
   for (const phase of listOfPhases() as Phase[]) {
     if (useAppConfigStore().phaseActivationList[phase]) {
-      livePhases.push(phase);
+      livePhases.push(phase)
     }
   }
 
@@ -27,7 +27,7 @@ const submitLivePhases = async () => {
     closeEditor()
   } catch (e) {
     appConfigStore.updateConfig()
-    alert("There was a problem in saving live phases")
+    alert('There was a problem in saving live phases')
   }
 }
 </script>
@@ -35,7 +35,10 @@ const submitLivePhases = async () => {
 <template>
   <div class="checkboxes">
     <label v-for="(phase, index) in listOfPhases()" :key="index">
-      <span><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]"> {{ phase }}</span>
+      <span
+        ><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]" />
+        {{ phase }}</span
+      >
     </label>
   </div>
 
@@ -59,7 +62,7 @@ const submitLivePhases = async () => {
   flex-direction: column;
   align-items: center;
 }
-.submitChanges >* {
+.submitChanges > * {
   margin: 5px;
 }
 </style>

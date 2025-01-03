@@ -14,13 +14,15 @@ const showWarning = computed(() => {
 <template>
   <div v-if="showWarning" id="warningBox">
     <div id="warningHeader">
-      <i class="fa-solid fa-circle-exclamation"/>
+      <i class="fa-solid fa-circle-exclamation" />
       <p>WARNING</p>
-      <i class="fa-solid fa-circle-exclamation"/>
+      <i class="fa-solid fa-circle-exclamation" />
     </div>
-    <p>Per University Policy, no work may be submitted after the last day of classes. As such, the
-      CS 240 Autograder will stop accepting submissions on all graded phases on
-      {{readableTimestamp(useAppConfigStore().shutdownSchedule)}} (Utah Time)</p>
+    <p>
+      Per University Policy, no work may be submitted after the last day of classes. As such, the CS
+      240 Autograder will stop accepting submissions on all graded phases on
+      {{ readableTimestamp(useAppConfigStore().shutdownSchedule) }} (Utah Time)
+    </p>
   </div>
 </template>
 

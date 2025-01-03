@@ -5,38 +5,42 @@ import MoreInfo from '@/components/MoreInfo.vue'
 import RubricItemResultsView from '@/views/StudentView/RubricItemResultsView.vue'
 
 defineProps<{
-  rubricItem: RubricItem;
-}>();
-
+  rubricItem: RubricItem
+}>()
 </script>
 
 <template>
   <div id="rubric-item-container">
-
     <p class="itemHeader">
-      <span class="category" v-html="rubricItem.category + ' '"/>
-      <span class="score" v-html="resultsScoreDisplayText(rubricItem.results)"/>
+      <span class="category" v-html="rubricItem.category + ' '" />
+      <span class="score" v-html="resultsScoreDisplayText(rubricItem.results)" />
     </p>
-    <hr/>
+    <hr />
     <div id="details">
       <div class="rubricDetails">
         <h4>Requirements</h4>
-        <p v-html="rubricItem.criteria"/>
+        <p v-html="rubricItem.criteria" />
       </div>
       <div class="rubricDetails">
         <h4>Result Notes</h4>
-        <p v-html="sanitizeHtml(rubricItem.results.notes)"/>
+        <p v-html="sanitizeHtml(rubricItem.results.notes)" />
       </div>
 
-      <MoreInfo v-if="rubricItem.results.testResults || rubricItem.results.textResults" text="details">
+      <MoreInfo
+        v-if="rubricItem.results.testResults || rubricItem.results.textResults"
+        text="details"
+      >
         <div>
-          <span class="category" v-html="rubricItem.category + ' '"/>
-          <span class="score" v-html="resultsScoreDisplayText(rubricItem.results) + '<br/>'"/>
+          <span class="category" v-html="rubricItem.category + ' '" />
+          <span class="score" v-html="resultsScoreDisplayText(rubricItem.results) + '<br/>'" />
         </div>
-        <hr style="min-width: 250px; width: 100%"> <!-- the min-width is a round about way to make the window wide enough the button -->
-        <RubricItemResultsView :test-results="rubricItem.results.testResults" :text-results="rubricItem.results.textResults"/>
+        <hr style="min-width: 250px; width: 100%" />
+        <!-- the min-width is a round about way to make the window wide enough the button -->
+        <RubricItemResultsView
+          :test-results="rubricItem.results.testResults"
+          :text-results="rubricItem.results.textResults"
+        />
       </MoreInfo>
-
     </div>
   </div>
 </template>

@@ -32,8 +32,7 @@ export const ServerCommunicator = {
  * @returns {Promise<T>} Promise that resolves to the response data of type T
  */
 function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
-  return getRequest<T>(endpoint, true)
-    .catch(_error => Promise.resolve(errorResponse));
+  return getRequest<T>(endpoint, true).catch((_error) => Promise.resolve(errorResponse))
 }
 
 /**
@@ -47,7 +46,7 @@ function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T>
  * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
  * @throws {Error} when expectResponse is true but no response is received
  */
-function getRequest(endpoint: string, expectResponse: false): Promise<null>;
+function getRequest(endpoint: string, expectResponse: false): Promise<null>
 /**
  * Makes a GET request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -59,14 +58,35 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
  * @throws {Error} when expectResponse is true but no response is received
  */
-function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
-function getRequest<T>(
+function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>
+function getRequest<T>(endpoint: string, expectResponse: boolean = true): Promise<T | null> {
+  return doRequest('GET', endpoint, null, expectResponse)
+}
+
+/**
+ * Makes a POST request to the specified endpoint.
+ * @template T - The type of the expected response (when expectResponse is true)
+ * @param {string} endpoint - The API endpoint to call
+ * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
+ * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
+ * @returns {Promise<T | null>} Promise that resolves to:
+ *   - The response data of type T when expectResponse is true
+ *   - null when expectResponse is false
+ * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
+ * @throws {Error} when expectResponse is true but no response is received
+ *
+ * @example
+ * // With response
+ * const user = await postRequest<User>('/api/users', { name: 'John' });
+ *
+ * // Without response
+ * await postRequest<void>('/api/logs', { event: 'action' }, false);
+ */
+function postRequest(
   endpoint: string,
-  expectResponse: boolean = true
-): Promise<T | null> {
-  return doRequest("GET", endpoint, null, expectResponse);
-}
-
+  bodyObject: Object | null,
+  expectResponse: false
+): Promise<null>
 /**
  * Makes a POST request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -86,33 +106,17 @@ function getRequest<T>(
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
-/**
- * Makes a POST request to the specified endpoint.
- * @template T - The type of the expected response (when expectResponse is true)
- * @param {string} endpoint - The API endpoint to call
- * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
- * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
- * @returns {Promise<T | null>} Promise that resolves to:
- *   - The response data of type T when expectResponse is true
- *   - null when expectResponse is false
- * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
- * @throws {Error} when expectResponse is true but no response is received
- *
- * @example
- * // With response
- * const user = await postRequest<User>('/api/users', { name: 'John' });
- *
- * // Without response
- * await postRequest<void>('/api/logs', { event: 'action' }, false);
- */
-function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
+function postRequest<T>(
+  endpoint: string,
+  bodyObject?: Object | null,
+  expectResponse?: boolean
+): Promise<T>
 function postRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
+  return doRequest<T>('POST', endpoint, bodyObject, expectResponse)
 }
 
 /**
@@ -134,7 +138,11 @@ function postRequest<T>(
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function patchRequest(
+  endpoint: string,
+  bodyObject: Object | null,
+  expectResponse: false
+): Promise<null>
 /**
  * Makes a PATCH request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -154,16 +162,20 @@ function patchRequest(endpoint: string, bodyObject: Object | null, expectRespons
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
+function patchRequest<T>(
+  endpoint: string,
+  bodyObject?: Object | null,
+  expectResponse?: boolean
+): Promise<T>
 async function patchRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
   expectResponse: boolean = true
 ): Promise<T | null> {
   if (expectResponse) {
-    return doRequest<T>("PATCH", endpoint, bodyObject, true);
+    return doRequest<T>('PATCH', endpoint, bodyObject, true)
   }
-  return doRequest<T>("PATCH", endpoint, bodyObject, false);
+  return doRequest<T>('PATCH', endpoint, bodyObject, false)
 }
 
 /**
@@ -185,7 +197,7 @@ function doRequest(
   endpoint: string,
   bodyObject: Object | null,
   expectResponse: false
-): Promise<null>;
+): Promise<null>
 /**
  * Internal method to make an HTTP request.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -205,7 +217,7 @@ function doRequest<T>(
   endpoint: string,
   bodyObject?: Object | null,
   expectResponse?: boolean
-): Promise<T>;
+): Promise<T>
 /**
  * Internal method to make an HTTP request.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -226,10 +238,10 @@ async function doRequest<T>(
   bodyObject: Object | null = null,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  const response = await doUnprocessedRequest(method, endpoint, bodyObject);
+  const response = await doUnprocessedRequest(method, endpoint, bodyObject)
 
   if (!expectResponse) {
-    return null;
+    return null
   }
 
   const text = await response.text()
@@ -238,9 +250,9 @@ async function doRequest<T>(
   }
 
   if (bodyObject) {
-    console.error("Body request:", bodyObject)
+    console.error('Body request:', bodyObject)
   }
-  console.error("Response: ", response)
+  console.error('Response: ', response)
   throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
 }
 
@@ -257,20 +269,22 @@ async function doUnprocessedRequest(
   endpoint: string,
   bodyObject: Object | null = null
 ): Promise<Response> {
-  const authToken = useAuthStore().token ?? ""
+  const authToken = useAuthStore().token ?? ''
 
   const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
     method: method,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': authToken
+      Authorization: authToken
     },
     body: bodyObject ? JSON.stringify(bodyObject) : null
-  });
+  })
 
   if (!response.ok) {
-    console.error(`A ${response.status} error occurred while making a ${method} request to ${endpoint}`)
+    console.error(
+      `A ${response.status} error occurred while making a ${method} request to ${endpoint}`
+    )
     console.error(response)
     throw new ServerError(endpoint, await response.text(), response.status, response.statusText)
   }

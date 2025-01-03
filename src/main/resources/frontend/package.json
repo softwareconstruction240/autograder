@@ -10,7 +10,8 @@
     "build-only": "vite build --mode prod",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "format": "prettier --write src/"
+    "prettier:format": "prettier --write src/",
+    "prettier:check": "prettier --check src/"
   },
   "dependencies": {
     "ag-grid-vue3": "^31.2.0",

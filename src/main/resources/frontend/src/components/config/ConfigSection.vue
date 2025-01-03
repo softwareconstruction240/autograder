@@ -35,7 +35,7 @@ defineProps<{
   description: string
 }>()
 
-const editorPopup = ref<boolean>(false);
+const editorPopup = ref<boolean>(false)
 
 const openEditor = () => {
   useAppConfigStore().updateConfig()
@@ -43,21 +43,21 @@ const openEditor = () => {
 }
 
 const closeEditor = () => {
-  editorPopup.value = false;
+  editorPopup.value = false
 }
 </script>
 
 <template>
   <section class="config-section">
-    <h3 @click="openEditor" style="cursor: pointer">{{ title }} <i class="fa-solid fa-pen-to-square"/></h3>
+    <h3 @click="openEditor" style="cursor: pointer">
+      {{ title }} <i class="fa-solid fa-pen-to-square" />
+    </h3>
     <p>{{ description }}</p>
-    <slot name="current"/>
-    <PopUp
-      v-if="editorPopup"
-      @closePopUp="editorPopup = false">
+    <slot name="current" />
+    <PopUp v-if="editorPopup" @closePopUp="editorPopup = false">
       <h3>Edit {{ title }}</h3>
       <div style="max-width: 600px">
-        <slot name="editor" :closeEditor="closeEditor"/>
+        <slot name="editor" :closeEditor="closeEditor" />
       </div>
     </PopUp>
   </section>

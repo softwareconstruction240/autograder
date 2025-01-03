@@ -1,37 +1,40 @@
 <script lang="ts" setup>
-import {onMounted, onUnmounted, reactive, ref} from "vue";
-import {getQueueStatus} from "@/services/adminService";
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { getQueueStatus } from '@/services/adminService'
 import { reRunSubmissionsPost } from '@/services/submissionService'
-import Panel from "@/components/Panel.vue";
+import Panel from '@/components/Panel.vue'
 
-const currentlyGrading = ref<string[]>([]);
-const inQueue = ref<string[]>([]);
+const currentlyGrading = ref<string[]>([])
+const inQueue = ref<string[]>([])
 
 const getQueueStatusPoll = async () => {
-  const queueStatus = await getQueueStatus();
-  currentlyGrading.value = queueStatus.currentlyGrading;
-  inQueue.value = queueStatus.inQueue;
-};
+  const queueStatus = await getQueueStatus()
+  currentlyGrading.value = queueStatus.currentlyGrading
+  inQueue.value = queueStatus.inQueue
+}
 
-let intervalId: number;
+let intervalId: number
 onMounted(async () => {
-  await getQueueStatusPoll();
-  intervalId = setInterval(getQueueStatusPoll, 5000);
-});
+  await getQueueStatusPoll()
+  intervalId = setInterval(getQueueStatusPoll, 5000)
+})
 
 onUnmounted(() => {
-  clearInterval(intervalId);
-});
+  clearInterval(intervalId)
+})
 
-let reRunStatusMessage = reactive({value: "This is run automatically everytime the autograder server starts up."})
+let reRunStatusMessage = reactive({
+  value: 'This is run automatically everytime the autograder server starts up.'
+})
 
 const reRunQueue = async () => {
-  reRunStatusMessage.value = "Refreshing grading queue...";
+  reRunStatusMessage.value = 'Refreshing grading queue...'
   try {
-    await reRunSubmissionsPost();
-    reRunStatusMessage.value = "The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again";
+    await reRunSubmissionsPost()
+    reRunStatusMessage.value =
+      'The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again'
   } catch (e) {
-    reRunStatusMessage.value = "Something went wrong while re-running queue."
+    reRunStatusMessage.value = 'Something went wrong while re-running queue.'
   }
 }
 </script>
@@ -58,7 +61,7 @@ const reRunQueue = async () => {
       <div id="queue-refresh">
         <p>This re-runs every submission in the queue. Used if something has gone wrong.</p>
         <button @click="reRunQueue">Rerun Submissions In Queue</button>
-        <p id="queue-refresh-message">{{reRunStatusMessage.value}}</p>
+        <p id="queue-refresh-message">{{ reRunStatusMessage.value }}</p>
       </div>
     </div>
   </div>
@@ -72,11 +75,11 @@ const reRunQueue = async () => {
 }
 
 .grading-queue {
-margin: 10px;
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 5px;
-background-color: #f2f2f2;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f2f2f2;
 }
 
 #queue-refresh-message {
