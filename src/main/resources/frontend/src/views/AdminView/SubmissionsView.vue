@@ -13,10 +13,15 @@ import {
   renderPhaseCell,
   renderScoreCell,
   renderTimestampCell
-} from "@/utils/tableUtils";
-import StudentInfo from "@/views/AdminView/StudentInfo.vue";
-import { assureHttpPrefix, generateClickableLink, isPlausibleRepoUrl, nameFromNetId } from '@/utils/utils'
-import {adminSubmissionPost} from "@/services/submissionService";
+} from '@/utils/tableUtils'
+import StudentInfo from '@/views/AdminView/StudentInfo.vue'
+import {
+  assureHttpPrefix,
+  generateClickableLink,
+  isPlausibleRepoUrl,
+  nameFromNetId
+} from '@/utils/utils'
+import { adminSubmissionPost } from '@/services/submissionService'
 import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
 import LiveStatus from '@/views/StudentView/LiveStatus.vue'
 import { useSubmissionStore } from '@/stores/submissions'
@@ -25,10 +30,10 @@ import InfoPanel from '@/components/InfoPanel.vue'
 const selectedSubmission = ref<Submission | null>(null)
 const selectedStudent = ref<User | null>(null)
 const runningAdminRepo = ref<boolean>(false)
-const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
-let allSubmissionsLoaded = false;
+const DEFAULT_SUBMISSIONS_TO_LOAD = 25
+let allSubmissionsLoaded = false
 let adminRepo = reactive({
-  value: ""
+  value: ''
 })
 
 onMounted(async () => {
