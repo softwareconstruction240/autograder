@@ -120,8 +120,6 @@ const adminSubmit = async () => {
     return
   }
   try {
-    await adminSubmissionPost(selectedAdminPhase.value!, adminRepo.value)
-    runningAdminRepo.value = true
     const repo = assureHttpPrefix(adminRepo.value)
     await adminSubmissionPost(selectedAdminPhase.value!, repo)
     runningAdminRepo.value = true
