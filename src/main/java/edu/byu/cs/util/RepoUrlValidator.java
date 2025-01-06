@@ -63,6 +63,18 @@ public class RepoUrlValidator {
      * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
     public String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
+        var parts = extractRepoParts(repoUrl);
+        return assembleCleanedRepoUrl(parts);
+    }
+
+    private record RepoUrlParts(String domainName, String username, String repoName) { }
+
+    private String assembleCleanedRepoUrl(RepoUrlParts parts) {
+        return String.format("https://%s/%s/%s", parts.domainName, parts.username, parts.repoName);
+    }
+
+
+    private RepoUrlParts extractRepoParts(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }
@@ -81,7 +93,7 @@ public class RepoUrlValidator {
                 domainName = matcher.group(1).toLowerCase();
                 githubUsername = matcher.group(2);
                 repositoryName = matcher.group(3);
-                return String.format("https://%s/%s/%s", domainName, githubUsername, repositoryName);
+                return new RepoUrlParts(domainName, githubUsername, repositoryName);
             }
         }
 
