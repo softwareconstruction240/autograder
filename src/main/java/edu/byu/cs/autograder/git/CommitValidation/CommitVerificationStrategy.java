@@ -11,10 +11,18 @@ public interface CommitVerificationStrategy {
      *
      * @param commitContext Precompiled information relating to the passoff state of the commit history.
      * @param gradingContext Commonly used throughout the app. Represents the submission and student being graded.
-     * @return A nullable collection of commit hashes. If defined and non-empty,
-     * the history will be re-evaluated, but those commits will be excluded.
      */
-    Collection<String> evaluate(CommitVerificationContext commitContext, GradingContext gradingContext);
+    void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext);
+
+    /**
+     * Supplies new commit hashes which will be added to the existing exclude set.
+     * <br>
+     * If this is non-null and non-empty on a particular invocation, the commits
+     * will be re-evaluated and recounted while honoring the new requirements.
+     *
+     * @return A nullable collection of commit hashes.
+     */
+    Collection<String> getExcludeSet();
 
     /**
      * Supplies any warnings that were generated during the evaluation the history.

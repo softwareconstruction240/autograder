@@ -9,9 +9,10 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
     private GradingContext gradingContext;
     private Result warnings;
     private Result errors;
+    private Collection<String> expandExcludeSet;
 
     @Override
-    public Collection<String> evaluate(CommitVerificationContext commitContext, GradingContext gradingContext) {
+    public void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext) {
         this.gradingContext = gradingContext;
         var requiredCommits = commitContext.config().requiredCommits();
         var requiredDaysWithCommits = commitContext.config().requiredDaysWithCommits();
@@ -59,7 +60,12 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
         if (errors == null)   errors = Result.evaluateConditions(assertedConditions, this::errorMessageTerminator);
 
         // Rerun the analysis only if we detected amended commits
-        return commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly");
+        this.expandExcludeSet = commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly");
+    }
+
+    @Override
+    public Collection<String> getExcludeSet() {
+        return expandExcludeSet;
     }
 
     @Override

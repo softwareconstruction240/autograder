@@ -266,7 +266,8 @@ public class GitHelper {
                     significantCommits
             );
 
-            var excludeSet = commitVerificationStrategy.evaluate(context, gradingContext);
+            commitVerificationStrategy.evaluate(context, gradingContext);
+            var excludeSet = commitVerificationStrategy.getExcludeSet();
             if (excludeSet != null && !excludeSet.isEmpty()) {
                 // Restart, but exclude the requested commits
                 excludeCommits.addAll(excludeSet);
