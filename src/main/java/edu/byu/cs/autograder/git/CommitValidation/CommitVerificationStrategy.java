@@ -22,7 +22,7 @@ public interface CommitVerificationStrategy {
      *
      * @return A nullable collection of commit hashes.
      */
-    Collection<String> getExcludeSet();
+    Collection<String> extendExcludeSet();
 
     /**
      * Supplies any warnings that were generated during the evaluation the history.

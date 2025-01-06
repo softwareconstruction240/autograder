@@ -64,7 +64,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
     }
 
     @Override
-    public Collection<String> getExcludeSet() {
+    public Collection<String> extendExcludeSet() {
         return expandExcludeSet;
     }
 
