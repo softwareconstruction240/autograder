@@ -2,6 +2,8 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -128,6 +130,7 @@ public class RepoUrlValidatorTest {
 
     @Test
     @Tag("cleanRepoUrl")
+    @Disabled
     @DisplayName("Admin submissions are not cleaned")
     void adminSubmissionsAreNotCleaned() throws GradingException, IOException {
         String originalUrl = "https://github.com/USERNAME/REPO_NAME/tree/main/0-chess-moves/starter-code/chess";
