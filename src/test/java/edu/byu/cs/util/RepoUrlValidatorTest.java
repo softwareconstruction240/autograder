@@ -148,6 +148,12 @@ public class RepoUrlValidatorTest {
 
     @Test
     @Tag("isNotFork")
+    void isNotForkAcceptsDuplicatedRepos() {
+        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-duplicated"));
+    }
+
+    @Test
+    @Tag("isNotFork")
     void isNotForkRejectsForks() {
         assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-fork"));
     }
