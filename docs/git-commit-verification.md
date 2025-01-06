@@ -50,7 +50,7 @@ Grader->>+GitHelper: setUpAndVerifyHistory()
 %% Initial internal setup
 GitHelper->>+GitHelper: setUp()
 note right of GitHelper: Download repository from internet <br>and determine head hash
-GitHelper->>-GitHelper: void
+GitHelper-->>-GitHelper: void
 %% Finish internal setup
 
 %% Decision making points
@@ -130,12 +130,11 @@ note right of Grader: Phase graders may use<br> verification results to assign<b
 Grader-->>-Grader: Rubric
 
 Grader->>+Grader: Scorer.score(rubric, CommitVerificationResult)
-note right of Grader: Scorer applies penalty in<br> comit verification result<br> with other penalties.
+note right of Grader: Scorer applies penalty in<br> commit verification result<br> with other penalties.
 Grader-->>-Grader: Submission
 
 Grader->>SubmissionDao: insertSubmission(submission)
 Grader->>Observer: notifyDone(submission)
 
 Grader-->>-Grader: void
-
 ```
