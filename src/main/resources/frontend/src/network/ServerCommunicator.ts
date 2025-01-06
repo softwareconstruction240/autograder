@@ -31,13 +31,11 @@ export const ServerCommunicator = {
  * returns nothing or responds with a non-2XX code
  * @returns {Promise<T>} Promise that resolves to the response data of type T
  */
-async function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
-  try {
-    return await getRequest<T>(endpoint, true)
-  } catch (e) {
-    return errorResponse
-  }
+function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
+  return getRequest<T>(endpoint, true)
+    .catch(_error => Promise.resolve(errorResponse));
 }
+
 /**
  * Makes a GET request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -61,15 +59,12 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
  * @throws {Error} when expectResponse is true but no response is received
  */
-function getRequest<T>(endpoint: string, expectResponse?: true): Promise<T>;
-async function getRequest<T>(
+function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
+function getRequest<T>(
   endpoint: string,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  if (expectResponse) {
-    return await doRequest<T>("GET", endpoint, null, true);
-  }
-  return await doRequest<T>("GET", endpoint, null, false);
+  return doRequest("GET", endpoint, null, expectResponse);
 }
 
 /**
@@ -111,17 +106,13 @@ function postRequest(endpoint: string, bodyObject: Object | null, expectResponse
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
-async function postRequest<T>(
+function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
+function postRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
   expectResponse: boolean = true
 ): Promise<T | null> {
-  if (expectResponse) {
-    return await doRequest<T>("POST", endpoint, bodyObject, true);
-  }
-  return await doRequest<T>("POST", endpoint, bodyObject, false);
-
+  return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
 }
 
 /**
@@ -163,7 +154,7 @@ function patchRequest(endpoint: string, bodyObject: Object | null, expectRespons
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: true): Promise<T>;
+function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
 async function patchRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
@@ -189,7 +180,7 @@ async function patchRequest<T>(
  * @throws {Error} When expectResponse is true but no response is received
  * @internal
  */
-function doRequest<T>(
+function doRequest(
   method: string,
   endpoint: string,
   bodyObject: Object | null,
@@ -213,7 +204,7 @@ function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject?: Object | null,
-  expectResponse?: true
+  expectResponse?: boolean
 ): Promise<T>;
 /**
  * Internal method to make an HTTP request.

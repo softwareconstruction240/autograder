@@ -10,6 +10,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.SubmissionDao;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
@@ -29,7 +30,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
+/**
+ * In this class, <pre>static</pre> methods are used to distinguish those that run are threadsafe and preserve no state.
+ */
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
@@ -49,7 +54,7 @@ public class GitHelper {
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchRepo(gradingContext.stageRepo());
+        fetchRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
@@ -88,8 +93,40 @@ public class GitHelper {
     private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
+        fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
+    }
+
+    /**
+     * Clones a repo URL into a temporary directory, and returns the directory where it was saved.
+     * <br>
+     * If any problems arise, the temporary directory is cleaned up and a {@link GradingException} is thrown.
+     *
+     * @param repoUrl The string URL to clone.
+     * @return A {@link File} to the newly cloned repo root.
+     * @throws GradingException When any problem occurs while downloading the repo. No temporary directory is preserved.
+     */
+    public static File fetchRepoFromUrl(String repoUrl) throws GradingException {
+        File cloningDir = new File("./tmp" + UUID.randomUUID());
+        try {
+            fetchRepoFromUrl(repoUrl, cloningDir);
+        } catch (GradingException exception) {
+            FileUtils.removeDirectory(cloningDir);
+            throw exception;
+        }
+        return cloningDir;
+    }
+
+    /**
+     * Clones a repo URL into the specified directory on the local machine.
+     *
+     * @param repoUrl A string URL to clone
+     * @param intoDirectory A {@link File} representing the target location.
+     * @throws GradingException When the repo cannot be cloned. This is usually due to an invalid or non-existent repository.
+     *                          When this occurs, the temporary directory will have any remnants of the partially complete clone command.
+     */
+    public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(gradingContext.repoUrl())
+                .setURI(repoUrl)
                 .setDirectory(intoDirectory);
 
         try (Git git = cloneCommand.call()) {
