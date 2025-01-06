@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
-        return canClean(repoUrl) && canClone(repoUrl);
+        return canClean(repoUrl) && isNotFork(repoUrl) && canClone(repoUrl);
     }
 
     public static boolean canClean(String repoUrl) {
@@ -31,6 +31,11 @@ public class RepoUrlValidator {
         } catch (GradingException e) {
             return false;
         }
+    }
+
+    public static boolean isNotFork(String repoUrl) {
+        // FIXME: Make a call to the GitHub API and interpret the isFork field
+        return true;
     }
 
     public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
