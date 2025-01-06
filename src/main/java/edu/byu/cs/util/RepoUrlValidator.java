@@ -5,13 +5,14 @@ import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
 
 import java.io.File;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
-        return canClean(repoUrl) && isNotFork(repoUrl) && canClone(repoUrl);
+        return canClean(repoUrl) && isNotFork(repoUrl, repoUrl) && canClone(repoUrl);
     }
 
     public static boolean canClean(String repoUrl) {
@@ -33,9 +34,18 @@ public class RepoUrlValidator {
         }
     }
 
-    public static boolean isNotFork(String repoUrl) {
-        // FIXME: Make a call to the GitHub API and interpret the isFork field
-        return true;
+    public static boolean isNotFork(String githubUsername, String repoName) {
+        String apiUrl = String.format("https://api.github.com/repos/%s/%s", githubUsername, repoName);
+        var apiJSON = NetworkUtils.readGetRequestBody(apiUrl);
+        var jsonObj = Serializer.deserialize(apiJSON, Map.class);
+        if (jsonObj == null || jsonObj.isEmpty()) {
+            return false; // Error response, empty response. Could indicate network error.
+        }
+
+        // The repo exists and is not a fork.
+        // `True` values are obvious failures.
+        // `null` can also occur, but are not acceptable for our purposes.
+        return jsonObj.containsKey("fork") && jsonObj.get("fork").equals(false);
     }
 
     public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {

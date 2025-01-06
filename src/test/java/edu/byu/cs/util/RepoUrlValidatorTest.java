@@ -140,4 +140,28 @@ public class RepoUrlValidatorTest {
 //        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
     }
 
+    @Test
+    @Tag("isNotFork")
+    void isNotForkAcceptsNonForks() {
+        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsForks() {
+        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-fork"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsInvalidRepos() {
+        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "invalid-repo-name"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsInvalidUsernames() {
+        assertFalse(RepoUrlValidator.isNotFork("invalid-username", "chess"));
+    }
+
 }
