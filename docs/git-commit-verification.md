@@ -85,14 +85,15 @@ GitHelper-->>-GitHelper: boolean
 
             %% Perform commit verification
             GitHelper->>+GitHelper: verifyRegularCommits(lowerThreshold, upperThreshold)
-            loop do until no repeat requested
+            loop do until no commits added to exclude set
                 GitHelper->>+CommitAnalytics: countCommitsByDay()
                 note over CommitAnalytics: Analyze all commits between<br>thresholds, checking conditions<br> and tallying violations
                 CommitAnalytics-->>-GitHelper: CommitsByDay
 
                 GitHelper->>+CommitVerificationStrategy: evaluate(CommitVerificationContext, GradingContext)
-                note over CommitVerificationStrategy: Review results to determine<br>if the submission passes.<br> Optionally, signal to repeat by<br> returning an exclude set of commit hashes.
-                CommitVerificationStrategy-->>-GitHelper: Collection<String> excludeCommitHashes | null
+                note over CommitVerificationStrategy: Review results to determine<br>if the submission passes.<br> Optionally, signal to repeat by<br> preparing an exclude set of commit hashes.
+                CommitVerificationStrategy-->>-GitHelper: void
+                GitHelper->>CommitVerificationStrategy: extendExcludeSet()
             end
             GitHelper->>CommitVerificationStrategy: getWarnings()
             GitHelper->>CommitVerificationStrategy: getErrors()
