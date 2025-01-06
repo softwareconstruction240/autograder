@@ -140,6 +140,7 @@ public class RepoUrlValidatorTest {
 //        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
     }
 
+    //  TODO: Convert these to @ParameterizedTest
     @Test
     @Tag("isNotFork")
     void isNotForkAcceptsNonForks() {
@@ -168,6 +169,31 @@ public class RepoUrlValidatorTest {
     @Tag("isNotFork")
     void isNotForkRejectsInvalidUsernames() {
         assertFalse(RepoUrlValidator.isNotFork("invalid-username", "chess"));
+    }
+
+    // TODO: Convert to @ParameterizedTest to leverage asynchronous evaluation
+    @Test
+    void isValidRepoUrlAcceptsValidRepoUrls() {
+        String[] validRepos = {
+            "git@github.com:softwareconstruction240/chess.git",
+            "git@github.com:softwareconstruction240/chess-duplicated.git",
+            "https://github.com/softwareconstruction240/chess-duplicated.git"
+        };
+        for (var url : validRepos) {
+            assertTrue(RepoUrlValidator.isValid(url));
+        }
+    }
+
+    @Test
+    void isValidRepoUrlRejectsInvalidRepoUrls() {
+        String[] invalidRepos = {
+                "git@github.com:softwareconstruction240/chess-fork.git",
+                "git@github.com:softwareconstruction240/missing-repo-name.git",
+                "git@github.com:missing-username/chess.git",
+        };
+        for (var url : invalidRepos) {
+            assertFalse(RepoUrlValidator.isValid(url));
+        }
     }
 
 }

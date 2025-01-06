@@ -12,7 +12,13 @@ import java.util.regex.Pattern;
 public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
-        return canClean(repoUrl) && isNotFork(repoUrl, repoUrl) && canClone(repoUrl);
+        try {
+            var validator = new RepoUrlValidator();
+            var parts = validator.extractRepoParts(repoUrl);
+            return isNotFork(parts.username, parts.repoName) && canClone(validator.assembleCleanedRepoUrl(parts));
+        } catch (InvalidRepoUrlException e) {
+            return false;
+        }
     }
 
     public static boolean canClean(String repoUrl) {
