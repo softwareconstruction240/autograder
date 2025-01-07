@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { listOfPhases, Phase, type RubricInfo, type RubricType } from '@/types/types';
+import { listOfPhases, Phase, type RubricInfo, type RubricType } from "@/types/types";
 import {
   convertPhaseStringToEnum,
   convertRubricTypeToHumanReadable,
   getRubricTypes,
   isPhaseGraded,
-} from '@/utils/utils';
-import { computed, type WritableComputedRef } from 'vue';
-import { setCanvasCourseIds, setCourseIds } from '@/services/configService';
-import { useAppConfigStore } from '@/stores/appConfig';
+} from "@/utils/utils";
+import { computed, type WritableComputedRef } from "vue";
+import { setCanvasCourseIds, setCourseIds } from "@/services/configService";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 const appConfigStore = useAppConfigStore();
 
@@ -28,7 +28,7 @@ const rubricIdInfoProxy = (phase: Phase, rubricType: RubricType): WritableComput
     rubricType,
     (rubricInfo) => rubricInfo.id,
     (rubricInfo, value) => (rubricInfo.id = value),
-    'No Rubric ID found',
+    "No Rubric ID found",
   );
 };
 
@@ -82,21 +82,21 @@ const submitManuelCourseIds = async () => {
       );
       closeEditor();
     } catch (e) {
-      alert('There was problem manually setting the course-related IDs: ' + (e as Error).message);
+      alert("There was problem manually setting the course-related IDs: " + (e as Error).message);
     }
   }
 };
 
 const submitCanvasCourseIds = async () => {
   const userConfirmed = window.confirm(
-    'Are you sure you want to use Canvas to reset ID values? \n\nNote: This will fail if the currently saved Course ID is incorrect.',
+    "Are you sure you want to use Canvas to reset ID values? \n\nNote: This will fail if the currently saved Course ID is incorrect.",
   );
   if (userConfirmed) {
     try {
       await setCanvasCourseIds();
     } catch (e) {
       alert(
-        'There was problem getting and setting the course-related IDs using Canvas: ' +
+        "There was problem getting and setting the course-related IDs using Canvas: " +
           (e as Error).message,
       );
     }

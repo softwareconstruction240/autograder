@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import PopUp from '@/components/PopUp.vue';
-import { onMounted, onUnmounted, ref } from 'vue';
-import sound from '@/assets/saints.mp3';
-import InfoPanel from '@/components/InfoPanel.vue';
-import AboutPagePerson from '@/components/AboutPagePerson.vue';
+import PopUp from "@/components/PopUp.vue";
+import { onMounted, onUnmounted, ref } from "vue";
+import sound from "@/assets/saints.mp3";
+import InfoPanel from "@/components/InfoPanel.vue";
+import AboutPagePerson from "@/components/AboutPagePerson.vue";
 
 const audio = new Audio(sound);
 
@@ -31,14 +31,14 @@ const deactivate = () => {
 };
 
 const secretCode = [
-  'ArrowUp',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowLeft',
-  'ArrowRight',
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
 ];
 
 let codeIndex = 0;
@@ -58,10 +58,10 @@ const checkCode = (event: KeyboardEvent) => {
 };
 
 onMounted(() => {
-  window.addEventListener('keydown', checkCode);
+  window.addEventListener("keydown", checkCode);
 });
 onUnmounted(() => {
-  window.removeEventListener('keydown', checkCode);
+  window.removeEventListener("keydown", checkCode);
 });
 </script>
 

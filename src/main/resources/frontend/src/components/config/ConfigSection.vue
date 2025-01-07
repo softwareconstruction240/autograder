@@ -26,9 +26,9 @@
  * </ConfigSection>
  */
 
-import { ref } from 'vue';
-import PopUp from '@/components/PopUp.vue';
-import { useAppConfigStore } from '@/stores/appConfig';
+import { ref } from "vue";
+import PopUp from "@/components/PopUp.vue";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 defineProps<{
   title: string;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { listOfPhases, Phase } from '@/types/types';
-import { useAppConfigStore } from '@/stores/appConfig';
-import { setLivePhases } from '@/services/configService';
+import { listOfPhases, Phase } from "@/types/types";
+import { useAppConfigStore } from "@/stores/appConfig";
+import { setLivePhases } from "@/services/configService";
 
 const appConfigStore = useAppConfigStore();
 
@@ -27,7 +27,7 @@ const submitLivePhases = async () => {
     closeEditor();
   } catch (e) {
     appConfigStore.updateConfig();
-    alert('There was a problem in saving live phases');
+    alert("There was a problem in saving live phases");
   }
 };
 </script>

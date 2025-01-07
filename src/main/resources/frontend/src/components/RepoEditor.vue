@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { isPlausibleRepoUrl } from '@/utils/utils';
-import { defineEmits, reactive } from 'vue';
-import { adminUpdateRepoPatch, studentUpdateRepoPatch } from '@/services/userService';
-import type { User } from '@/types/types';
-import { useAuthStore } from '@/stores/auth';
+import { isPlausibleRepoUrl } from "@/utils/utils";
+import { defineEmits, reactive } from "vue";
+import { adminUpdateRepoPatch, studentUpdateRepoPatch } from "@/services/userService";
+import type { User } from "@/types/types";
+import { useAuthStore } from "@/stores/auth";
 
 const { user } = defineProps<{
   user: User | null;
@@ -14,7 +14,7 @@ defineEmits({
 });
 
 let newRepoUrl = reactive({
-  value: '',
+  value: "",
 });
 let waitingForRepoCheck = reactive({ value: false });
 let success = reactive({ value: false });
@@ -24,16 +24,16 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   waitingForRepoCheck.value = true;
 
   try {
-    if (useAuthStore().user?.role == 'ADMIN' && user != null) {
+    if (useAuthStore().user?.role == "ADMIN" && user != null) {
       await adminUpdateRepoPatch(newRepoUrl.value, user.netId);
     } else {
       await studentUpdateRepoPatch(newRepoUrl.value);
     }
   } catch (error) {
     if (error instanceof Error) {
-      alert('Failed to save the Github Repo: \n' + error.message);
+      alert("Failed to save the Github Repo: \n" + error.message);
     } else {
-      alert('Unknown error updating Github Repo');
+      alert("Unknown error updating Github Repo");
     }
     waitingForRepoCheck.value = false;
     return;
@@ -41,7 +41,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
 
   waitingForRepoCheck.value = false;
   success.value = true;
-  sendEmit('repoEditSuccess');
+  sendEmit("repoEditSuccess");
 };
 </script>
 

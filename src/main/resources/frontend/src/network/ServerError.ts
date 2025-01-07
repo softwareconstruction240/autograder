@@ -4,7 +4,7 @@ export class ServerError extends Error {
   readonly statusText: string;
   constructor(endpoint: string, message: string, status: number, statusText: string) {
     super(message);
-    this.name = 'ServerError';
+    this.name = "ServerError";
     this.endpoint = endpoint;
     this.status = status;
     this.statusText = statusText;

@@ -1,11 +1,11 @@
-import { defineStore } from 'pinia';
-import type { User } from '@/types/types';
-import { computed, ref } from 'vue';
-import { usersGet } from '@/services/adminService';
+import { defineStore } from "pinia";
+import type { User } from "@/types/types";
+import { computed, ref } from "vue";
+import { usersGet } from "@/services/adminService";
 
 export type NetIdToUserMap = Record<string, User>;
 
-export const useAdminStore = defineStore('admin', () => {
+export const useAdminStore = defineStore("admin", () => {
   const users = ref<User[]>([]);
   const usersByNetId = ref<NetIdToUserMap>({});
 
@@ -21,9 +21,9 @@ export const useAdminStore = defineStore('admin', () => {
     usersByNetId.value = byNetId;
   };
 
-  const admins = computed(() => users.value.filter((user) => user.role === 'ADMIN'));
+  const admins = computed(() => users.value.filter((user) => user.role === "ADMIN"));
 
-  const students = computed(() => users.value.filter((user) => user.role === 'STUDENT'));
+  const students = computed(() => users.value.filter((user) => user.role === "STUDENT"));
 
   return { users, admins, students, updateUsers, usersByNetId };
 });

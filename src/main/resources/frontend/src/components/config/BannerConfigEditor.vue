@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useAppConfigStore } from '@/stores/appConfig';
-import { setBanner } from '@/services/configService';
-import { combineDateAndTime } from '@/utils/utils';
+import { ref } from "vue";
+import { useAppConfigStore } from "@/stores/appConfig";
+import { setBanner } from "@/services/configService";
+import { combineDateAndTime } from "@/utils/utils";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
@@ -14,13 +14,13 @@ const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage);
 const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor);
 const bannerLinkToSubmit = ref<string>(appConfigStore.bannerLink);
 const bannerWillExpire = ref<boolean>(false);
-const bannerExpirationDate = ref<string>('');
-const bannerExpirationTime = ref<string>('');
+const bannerExpirationDate = ref<string>("");
+const bannerExpirationTime = ref<string>("");
 const clearBannerMessage = () => {
-  bannerMessageToSubmit.value = '';
-  bannerLinkToSubmit.value = '';
-  bannerColorToSubmit.value = '';
-  bannerColorToSubmit.value = '';
+  bannerMessageToSubmit.value = "";
+  bannerLinkToSubmit.value = "";
+  bannerColorToSubmit.value = "";
+  bannerColorToSubmit.value = "";
   bannerWillExpire.value = false;
 };
 const submitBanner = async () => {
@@ -28,7 +28,7 @@ const submitBanner = async () => {
   if (bannerWillExpire.value) {
     combinedDateTime = combineDateAndTime(bannerExpirationDate.value, bannerExpirationTime.value);
   } else {
-    combinedDateTime = '';
+    combinedDateTime = "";
   }
   try {
     await setBanner(
@@ -40,7 +40,7 @@ const submitBanner = async () => {
     closeEditor();
   } catch (e) {
     appConfigStore.updateConfig();
-    alert('There was a problem in saving the updated banner message:\n' + e);
+    alert("There was a problem in saving the updated banner message:\n" + e);
   }
 };
 </script>

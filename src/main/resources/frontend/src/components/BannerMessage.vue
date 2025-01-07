@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useAppConfigStore } from '@/stores/appConfig';
+import { computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 const authStore = useAuthStore();
 const appConfigStore = useAppConfigStore();
@@ -19,7 +19,7 @@ const bannerProps = computed(() => {
 
 const handleClick = () => {
   if (bannerProps.value.link) {
-    window.open(bannerProps.value.link, '_blank');
+    window.open(bannerProps.value.link, "_blank");
   }
 };
 </script>

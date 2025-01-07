@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useAppConfigStore } from '@/stores/appConfig';
-import { ref } from 'vue';
-import { setPenalties } from '@/services/configService';
+import { useAppConfigStore } from "@/stores/appConfig";
+import { ref } from "vue";
+import { setPenalties } from "@/services/configService";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
@@ -40,7 +40,7 @@ const submit = async () => {
     closeEditor();
   } catch (e) {
     appConfig.updateConfig();
-    alert('There was a problem saving the penalties');
+    alert("There was a problem saving the penalties");
   }
 };
 </script>

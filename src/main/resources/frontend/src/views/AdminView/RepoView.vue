@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { RepoUpdate, User } from '@/types/types';
-import { generateClickableLink, simpleTimestamp } from '@/utils/utils';
-import RepoEditor from '@/components/RepoEditor.vue';
-import { onMounted, ref } from 'vue';
-import { repoHistoryGet } from '@/services/userService';
+import type { RepoUpdate, User } from "@/types/types";
+import { generateClickableLink, simpleTimestamp } from "@/utils/utils";
+import RepoEditor from "@/components/RepoEditor.vue";
+import { onMounted, ref } from "vue";
+import { repoHistoryGet } from "@/services/userService";
 
 const { student } = defineProps<{
   student: User;

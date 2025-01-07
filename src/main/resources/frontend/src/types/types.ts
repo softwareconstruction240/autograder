@@ -53,7 +53,7 @@ export type RubricItem = {
   results: RubricItemResults;
 };
 
-export type RubricType = 'PASSOFF_TESTS' | 'UNIT_TESTS' | 'QUALITY' | 'GIT_COMMITS' | 'GITHUB_REPO';
+export type RubricType = "PASSOFF_TESTS" | "UNIT_TESTS" | "QUALITY" | "GIT_COMMITS" | "GITHUB_REPO";
 
 export type RubricInfo = {
   id: string;
@@ -93,7 +93,7 @@ export type User = {
   firstName: string;
   lastName: string;
   repoUrl: string;
-  role: 'STUDENT' | 'ADMIN';
+  role: "STUDENT" | "ADMIN";
 };
 
 export type CanvasSection = {

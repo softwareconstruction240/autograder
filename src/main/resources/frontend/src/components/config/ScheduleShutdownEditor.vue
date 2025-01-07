@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import Panel from '@/components/Panel.vue';
-import { combineDateAndTime } from '@/utils/utils';
-import { setGraderShutdown } from '@/services/configService';
-import { useAppConfigStore } from '@/stores/appConfig';
+import { ref } from "vue";
+import Panel from "@/components/Panel.vue";
+import { combineDateAndTime } from "@/utils/utils";
+import { setGraderShutdown } from "@/services/configService";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
 }>();
 
-const shutdownDate = ref<string>('');
-const shutdownTime = ref<string>('');
+const shutdownDate = ref<string>("");
+const shutdownTime = ref<string>("");
 const shutdownWarningHours = ref<number>(24);
 
 const submitShutdown = async () => {
@@ -20,15 +20,15 @@ const submitShutdown = async () => {
       shutdownWarningHours.value,
     );
   } catch (e) {
-    alert('There was a problem scheduling the shutdown\n' + e);
+    alert("There was a problem scheduling the shutdown\n" + e);
   }
   closeEditor();
 };
 
 const cancelShutdown = async () => {
-  const confirm = window.confirm('Are you sure you want to cancel the already scheduled shutdown?');
+  const confirm = window.confirm("Are you sure you want to cancel the already scheduled shutdown?");
   if (confirm) {
-    await setGraderShutdown('', 0);
+    await setGraderShutdown("", 0);
     closeEditor();
   }
 };

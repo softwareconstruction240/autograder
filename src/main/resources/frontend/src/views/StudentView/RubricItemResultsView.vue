@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { generateResultsHtmlStringFromTestNode, sanitizeHtml } from '@/utils/utils';
-import type { TestResult } from '@/types/types';
-import PopUp from '@/components/PopUp.vue';
-import { ref } from 'vue';
+import { generateResultsHtmlStringFromTestNode, sanitizeHtml } from "@/utils/utils";
+import type { TestResult } from "@/types/types";
+import PopUp from "@/components/PopUp.vue";
+import { ref } from "vue";
 
 defineProps<{
   testResults?: TestResult;

@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/stores/auth';
-import { ServerError } from '@/network/ServerError';
-import { useAppConfigStore } from '@/stores/appConfig';
+import { useAuthStore } from "@/stores/auth";
+import { ServerError } from "@/network/ServerError";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 /**
  * Utility for making authenticated HTTP requests to the server with automatic error handling
@@ -60,7 +60,7 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  */
 function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
 function getRequest<T>(endpoint: string, expectResponse: boolean = true): Promise<T | null> {
-  return doRequest('GET', endpoint, null, expectResponse);
+  return doRequest("GET", endpoint, null, expectResponse);
 }
 
 /**
@@ -116,7 +116,7 @@ function postRequest<T>(
   bodyObject: Object | null = null,
   expectResponse: boolean = true,
 ): Promise<T | null> {
-  return doRequest<T>('POST', endpoint, bodyObject, expectResponse);
+  return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
 }
 
 /**
@@ -173,9 +173,9 @@ async function patchRequest<T>(
   expectResponse: boolean = true,
 ): Promise<T | null> {
   if (expectResponse) {
-    return doRequest<T>('PATCH', endpoint, bodyObject, true);
+    return doRequest<T>("PATCH", endpoint, bodyObject, true);
   }
-  return doRequest<T>('PATCH', endpoint, bodyObject, false);
+  return doRequest<T>("PATCH", endpoint, bodyObject, false);
 }
 
 /**
@@ -250,9 +250,9 @@ async function doRequest<T>(
   }
 
   if (bodyObject) {
-    console.error('Body request:', bodyObject);
+    console.error("Body request:", bodyObject);
   }
-  console.error('Response: ', response);
+  console.error("Response: ", response);
   throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`);
 }
 
@@ -269,13 +269,13 @@ async function doUnprocessedRequest(
   endpoint: string,
   bodyObject: Object | null = null,
 ): Promise<Response> {
-  const authToken = useAuthStore().token ?? '';
+  const authToken = useAuthStore().token ?? "";
 
   const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
     method: method,
-    credentials: 'include',
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: authToken,
     },
     body: bodyObject ? JSON.stringify(bodyObject) : null,

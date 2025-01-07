@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue';
+import { provide, ref } from "vue";
 import {
   activeTabHashKey,
   addTabKey,
   type Tab as TabType,
-} from '@/components/tabs/TabInjectionKeys';
+} from "@/components/tabs/TabInjectionKeys";
 
-const activeTabHash = ref('');
+const activeTabHash = ref("");
 const tabs = ref<TabType[]>([]);
 
 provide(addTabKey, (tab) => {

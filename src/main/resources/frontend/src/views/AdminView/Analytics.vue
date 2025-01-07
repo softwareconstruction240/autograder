@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { commitAnalyticsGet } from '@/services/adminService';
-import sound from '@/assets/wet-hands.mp3';
+import { onMounted, ref } from "vue";
+import { commitAnalyticsGet } from "@/services/adminService";
+import sound from "@/assets/wet-hands.mp3";
 
-export type Option = 'update' | 'cached' | 'when';
+export type Option = "update" | "cached" | "when";
 
-const lastCache = ref<string>('');
-const infoText = ref<string>('');
+const lastCache = ref<string>("");
+const infoText = ref<string>("");
 const cachedButtonDisabled = ref<boolean>(false);
 const updateButtonDisabled = ref<boolean>(false);
 
@@ -17,9 +17,9 @@ onMounted(async () => {
 });
 
 const getMostRecent = async () => {
-  const data: string = await commitAnalyticsGet('when');
+  const data: string = await commitAnalyticsGet("when");
   if (data.length == 0) {
-    lastCache.value = 'never';
+    lastCache.value = "never";
     cachedButtonDisabled.value = true;
   } else {
     lastCache.value = data;
@@ -28,13 +28,13 @@ const getMostRecent = async () => {
 };
 
 const getCachedData = async () => {
-  await getData('Downloading cached data...', 'cached', false);
+  await getData("Downloading cached data...", "cached", false);
 };
 
 const getNewData = async () => {
   await getData(
-    'Downloading data... (should take around 90 seconds) Enjoy this song in the meantime.',
-    'update',
+    "Downloading data... (should take around 90 seconds) Enjoy this song in the meantime.",
+    "update",
     true,
   );
   await getMostRecent();
@@ -46,11 +46,11 @@ const getData = async (info: string, option: Option, music: boolean) => {
   infoText.value = info;
   if (music) playAudio();
   const data: string = await commitAnalyticsGet(option);
-  triggerDownload(data, 'commit-data-' + Math.floor(Date.now() / 1000) + '.csv');
+  triggerDownload(data, "commit-data-" + Math.floor(Date.now() / 1000) + ".csv");
   if (data.length == 0) {
-    infoText.value = 'Error occurred server side. Check logs or browser console.';
+    infoText.value = "Error occurred server side. Check logs or browser console.";
   } else {
-    infoText.value = 'Complete! Check your downloads folder for the .csv file.';
+    infoText.value = "Complete! Check your downloads folder for the .csv file.";
   }
   if (music) stopAudio();
   updateButtonDisabled.value = false;
@@ -58,8 +58,8 @@ const getData = async (info: string, option: Option, music: boolean) => {
 };
 
 const triggerDownload = (csvData: string, filename: string) => {
-  const blob = new Blob([csvData], { type: 'text/csv' });
-  const link = document.createElement('a');
+  const blob = new Blob([csvData], { type: "text/csv" });
+  const link = document.createElement("a");
 
   link.href = window.URL.createObjectURL(blob);
   link.download = filename;

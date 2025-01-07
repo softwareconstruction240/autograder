@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
-import { getQueueStatus } from '@/services/adminService';
-import { reRunSubmissionsPost } from '@/services/submissionService';
-import Panel from '@/components/Panel.vue';
+import { onMounted, onUnmounted, reactive, ref } from "vue";
+import { getQueueStatus } from "@/services/adminService";
+import { reRunSubmissionsPost } from "@/services/submissionService";
+import Panel from "@/components/Panel.vue";
 
 const currentlyGrading = ref<string[]>([]);
 const inQueue = ref<string[]>([]);
@@ -24,17 +24,17 @@ onUnmounted(() => {
 });
 
 let reRunStatusMessage = reactive({
-  value: 'This is run automatically everytime the autograder server starts up.',
+  value: "This is run automatically everytime the autograder server starts up.",
 });
 
 const reRunQueue = async () => {
-  reRunStatusMessage.value = 'Refreshing grading queue...';
+  reRunStatusMessage.value = "Refreshing grading queue...";
   try {
     await reRunSubmissionsPost();
     reRunStatusMessage.value =
-      'The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again';
+      "The queue has been refreshed and all submissions previously stuck in the queue are running through the grader again";
   } catch (e) {
-    reRunStatusMessage.value = 'Something went wrong while re-running queue.';
+    reRunStatusMessage.value = "Something went wrong while re-running queue.";
   }
 };
 </script>

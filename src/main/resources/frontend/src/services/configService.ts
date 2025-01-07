@@ -1,15 +1,15 @@
-import { type Config, useAppConfigStore } from '@/stores/appConfig';
-import { Phase, type RubricInfo, type RubricType } from '@/types/types';
-import { useAuthStore } from '@/stores/auth';
-import { ServerCommunicator } from '@/network/ServerCommunicator';
-import { ServerError } from '@/network/ServerError';
+import { type Config, useAppConfigStore } from "@/stores/appConfig";
+import { Phase, type RubricInfo, type RubricType } from "@/types/types";
+import { useAuthStore } from "@/stores/auth";
+import { ServerCommunicator } from "@/network/ServerCommunicator";
+import { ServerError } from "@/network/ServerError";
 
 export const getConfig = (): Promise<Config> => {
-  let endpoint = '/api';
-  if (useAuthStore().user?.role == 'ADMIN') {
-    endpoint += '/admin';
+  let endpoint = "/api";
+  if (useAuthStore().user?.role == "ADMIN") {
+    endpoint += "/admin";
   }
-  endpoint += '/config';
+  endpoint += "/config";
 
   return ServerCommunicator.getRequest<Config>(endpoint);
 };
@@ -21,7 +21,7 @@ export const setPenalties = (
   linesChangedPerCommit: number,
   clockForgivenessMinutes: number,
 ) => {
-  return doSetConfigItem('POST', '/api/admin/config/penalties', {
+  return doSetConfigItem("POST", "/api/admin/config/penalties", {
     maxLateDaysPenalized,
     gitCommitPenalty,
     perDayLatePenalty,
@@ -36,7 +36,7 @@ export const setBanner = (
   color: String,
   expirationTimestamp: String,
 ): Promise<void> => {
-  return doSetConfigItem('POST', '/api/admin/config/banner', {
+  return doSetConfigItem("POST", "/api/admin/config/banner", {
     bannerMessage: message,
     bannerLink: link,
     bannerColor: color,
@@ -45,7 +45,7 @@ export const setBanner = (
 };
 
 export const setLivePhases = (phases: Array<Phase>): Promise<void> => {
-  return doSetConfigItem('POST', '/api/admin/config/phases', { phases: phases });
+  return doSetConfigItem("POST", "/api/admin/config/phases", { phases: phases });
 };
 
 export const setGraderShutdown = (
@@ -54,14 +54,14 @@ export const setGraderShutdown = (
 ): Promise<void> => {
   if (shutdownWarningHours < 0) shutdownWarningHours = 0;
 
-  return doSetConfigItem('POST', '/api/admin/config/phases/shutdown', {
+  return doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
     shutdownTimestamp: shutdownTimestamp,
     shutdownWarningMilliseconds: Math.trunc(shutdownWarningHours * 60 * 60 * 1000), // convert to milliseconds
   });
 };
 
 export const setCanvasCourseIds = (): Promise<void> => {
-  return doSetConfigItem('GET', '/api/admin/config/courseIds', {});
+  return doSetConfigItem("GET", "/api/admin/config/courseIds", {});
 };
 
 const convertRubricInfoToObj = (
@@ -84,12 +84,12 @@ export const setCourseIds = (
     assignmentIds: Object.fromEntries(assignmentIds.entries()),
     rubricInfo: convertRubricInfoToObj(rubricInfo),
   };
-  return doSetConfigItem('POST', '/api/admin/config/courseIds', body);
+  return doSetConfigItem("POST", "/api/admin/config/courseIds", body);
 };
 
 const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
   try {
-    if (method == 'GET') {
+    if (method == "GET") {
       await ServerCommunicator.getRequest(path, false);
     } else {
       await ServerCommunicator.postRequest(path, body, false);

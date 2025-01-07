@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { loadUser, logoutPost } from '@/services/authService';
-import router from '@/router';
-import '@/assets/fontawesome/css/fontawesome.css';
-import '@/assets/fontawesome/css/solid.css';
-import { useAppConfigStore } from '@/stores/appConfig';
-import BannerMessage from '@/components/BannerMessage.vue';
-import PopUp from '@/components/PopUp.vue';
-import RepoEditor from '@/components/RepoEditor.vue';
-import AboutPage from '@/components/AboutPage.vue';
-import { ServerError } from '@/network/ServerError';
+import { computed, onMounted, reactive } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { loadUser, logoutPost } from "@/services/authService";
+import router from "@/router";
+import "@/assets/fontawesome/css/fontawesome.css";
+import "@/assets/fontawesome/css/solid.css";
+import { useAppConfigStore } from "@/stores/appConfig";
+import BannerMessage from "@/components/BannerMessage.vue";
+import PopUp from "@/components/PopUp.vue";
+import RepoEditor from "@/components/RepoEditor.vue";
+import AboutPage from "@/components/AboutPage.vue";
+import { ServerError } from "@/network/ServerError";
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -29,7 +29,7 @@ const logOut = async () => {
       alert(e);
     }
   }
-  await router.push({ name: 'login' });
+  await router.push({ name: "login" });
 };
 
 onMounted(async () => {

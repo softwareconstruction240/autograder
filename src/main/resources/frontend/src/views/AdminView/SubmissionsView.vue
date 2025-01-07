@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
-import { Phase, type Submission, type User } from '@/types/types';
-import { submissionsLatestGet } from '@/services/adminService';
-import { useAdminStore } from '@/stores/admin';
-import PopUp from '@/components/PopUp.vue';
-import { AgGridVue } from 'ag-grid-vue3';
-import type { CellClickedEvent } from 'ag-grid-community';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { onMounted, reactive, ref } from "vue";
+import { Phase, type Submission, type User } from "@/types/types";
+import { submissionsLatestGet } from "@/services/adminService";
+import { useAdminStore } from "@/stores/admin";
+import PopUp from "@/components/PopUp.vue";
+import { AgGridVue } from "ag-grid-vue3";
+import type { CellClickedEvent } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import {
   standardColSettings,
   renderPhaseCell,
   renderScoreCell,
   renderTimestampCell,
-} from '@/utils/tableUtils';
-import StudentInfo from '@/views/AdminView/StudentInfo.vue';
+} from "@/utils/tableUtils";
+import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import {
   assureHttpPrefix,
   generateClickableLink,
   isPlausibleRepoUrl,
   nameFromNetId,
-} from '@/utils/utils';
-import { adminSubmissionPost } from '@/services/submissionService';
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue';
-import LiveStatus from '@/views/StudentView/LiveStatus.vue';
-import { useSubmissionStore } from '@/stores/submissions';
-import InfoPanel from '@/components/InfoPanel.vue';
+} from "@/utils/utils";
+import { adminSubmissionPost } from "@/services/submissionService";
+import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
+import LiveStatus from "@/views/StudentView/LiveStatus.vue";
+import { useSubmissionStore } from "@/stores/submissions";
+import InfoPanel from "@/components/InfoPanel.vue";
 
 const selectedSubmission = ref<Submission | null>(null);
 const selectedStudent = ref<User | null>(null);
@@ -33,7 +33,7 @@ const runningAdminRepo = ref<boolean>(false);
 const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
 let allSubmissionsLoaded = false;
 let adminRepo = reactive({
-  value: '',
+  value: "",
 });
 
 onMounted(async () => {
@@ -86,27 +86,27 @@ const nameCellClicked = (event: CellClickedEvent) => {
 };
 
 const columnDefs = reactive([
-  { headerName: 'Name', field: 'name', flex: 2, onCellClicked: nameCellClicked },
-  { headerName: 'Phase', field: 'phase', flex: 1, cellRenderer: renderPhaseCell },
+  { headerName: "Name", field: "name", flex: 2, onCellClicked: nameCellClicked },
+  { headerName: "Phase", field: "phase", flex: 1, cellRenderer: renderPhaseCell },
   {
-    headerName: 'Timestamp',
-    field: 'timestamp',
-    sort: 'desc',
+    headerName: "Timestamp",
+    field: "timestamp",
+    sort: "desc",
     sortedAt: 0,
-    filter: 'agDateColumnFilter',
+    filter: "agDateColumnFilter",
     flex: 1.5,
     cellRenderer: renderTimestampCell,
     onCellClicked: openSubmission,
   },
   {
-    headerName: 'Score',
-    field: 'score',
+    headerName: "Score",
+    field: "score",
     flex: 1,
     minWidth: 85,
     cellRenderer: renderScoreCell,
     onCellClicked: openSubmission,
   },
-  { headerName: 'Notes', field: 'notes', flex: 4, onCellClicked: openSubmission },
+  { headerName: "Notes", field: "notes", flex: 4, onCellClicked: openSubmission },
 ]);
 const rowData = reactive({
   value: [],
@@ -116,7 +116,7 @@ const selectedAdminPhase = ref<Phase | null>(null);
 
 const adminSubmit = async () => {
   if (selectedAdminPhase.value == null) {
-    console.error('Tried to run an admin submission with no phase');
+    console.error("Tried to run an admin submission with no phase");
     return;
   }
   try {
@@ -125,9 +125,9 @@ const adminSubmit = async () => {
     runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) {
-      alert('Error running grader: ' + error.message);
+      alert("Error running grader: " + error.message);
     } else {
-      alert('Unknown error running grader');
+      alert("Unknown error running grader");
     }
   }
 };

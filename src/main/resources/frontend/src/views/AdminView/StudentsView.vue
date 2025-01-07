@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { AgGridVue } from 'ag-grid-vue3';
-import type { CellClickedEvent } from 'ag-grid-community';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { onMounted, reactive, ref } from 'vue';
-import { testStudentModeGet, usersGet } from '@/services/adminService';
-import PopUp from '@/components/PopUp.vue';
-import type { User } from '@/types/types';
-import StudentInfo from '@/views/AdminView/StudentInfo.vue';
-import { renderRepoLinkCell, standardColSettings } from '@/utils/tableUtils';
-import Panel from '@/components/Panel.vue';
+import { AgGridVue } from "ag-grid-vue3";
+import type { CellClickedEvent } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import { onMounted, reactive, ref } from "vue";
+import { testStudentModeGet, usersGet } from "@/services/adminService";
+import PopUp from "@/components/PopUp.vue";
+import type { User } from "@/types/types";
+import StudentInfo from "@/views/AdminView/StudentInfo.vue";
+import { renderRepoLinkCell, standardColSettings } from "@/utils/tableUtils";
+import Panel from "@/components/Panel.vue";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
@@ -21,11 +21,11 @@ const cellClickHandler = (event: CellClickedEvent) => {
 
 onMounted(async () => {
   const userData = await usersGet();
-  studentData = userData.filter((user) => user.role == 'STUDENT'); // get rid of users that aren't students
+  studentData = userData.filter((user) => user.role == "STUDENT"); // get rid of users that aren't students
   var dataToShow: any = [];
   studentData.forEach((student) => {
     dataToShow.push({
-      name: student.firstName + ' ' + student.lastName,
+      name: student.firstName + " " + student.lastName,
       netId: student.netId,
       repoUrl: student.repoUrl,
     });
@@ -35,22 +35,22 @@ onMounted(async () => {
 
 const columnDefs = reactive([
   {
-    headerName: 'Student Name',
-    field: 'name',
+    headerName: "Student Name",
+    field: "name",
     flex: 2,
     minWidth: 150,
     onCellClicked: cellClickHandler,
   },
   {
-    headerName: 'BYU netID',
-    field: 'netId',
+    headerName: "BYU netID",
+    field: "netId",
     flex: 1,
     minWidth: 75,
     onCellClicked: cellClickHandler,
   },
   {
-    headerName: 'Github Repo URL',
-    field: 'repoUrl',
+    headerName: "Github Repo URL",
+    field: "repoUrl",
     flex: 5,
     sortable: false,
     cellRenderer: renderRepoLinkCell,
@@ -63,7 +63,7 @@ const rowData = reactive({
 
 const activateTestStudentMode = async () => {
   await testStudentModeGet();
-  window.location.href = '/';
+  window.location.href = "/";
 };
 </script>
 

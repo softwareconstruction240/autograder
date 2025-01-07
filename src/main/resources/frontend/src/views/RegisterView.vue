@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { onBeforeMount } from 'vue';
-import { meGet } from '@/services/authService';
-import { useAuthStore } from '@/stores/auth';
-import router from '@/router';
-import { uiConfig } from '@/stores/uiConfig';
-import { Phase } from '@/types/types';
-import RepoEditor from '@/components/RepoEditor.vue';
+import { onBeforeMount } from "vue";
+import { meGet } from "@/services/authService";
+import { useAuthStore } from "@/stores/auth";
+import router from "@/router";
+import { uiConfig } from "@/stores/uiConfig";
+import { Phase } from "@/types/types";
+import RepoEditor from "@/components/RepoEditor.vue";
 
 onBeforeMount(async () => {
   const loggedInUser = await meGet();
   if (loggedInUser == null) return;
 
   useAuthStore().user = loggedInUser;
-  router.push({ name: 'home' });
+  router.push({ name: "home" });
 });
 
 const goToApp = () => {
-  window.location.href = '/';
+  window.location.href = "/";
 };
 </script>
 

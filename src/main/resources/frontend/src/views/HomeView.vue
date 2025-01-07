@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useSubmissionStore } from '@/stores/submissions';
-import { Phase, type Submission } from '@/types/types';
-import { uiConfig } from '@/stores/uiConfig';
-import { submissionPost } from '@/services/submissionService';
-import LiveStatus from '@/views/StudentView/LiveStatus.vue';
-import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue';
-import InfoPanel from '@/components/InfoPanel.vue';
-import ResultsPreview from '@/views/StudentView/ResultsPreview.vue';
-import { useAppConfigStore } from '@/stores/appConfig';
-import ShutdownWarning from '@/components/ShutdownWarning.vue';
+import { onMounted, ref } from "vue";
+import { useSubmissionStore } from "@/stores/submissions";
+import { Phase, type Submission } from "@/types/types";
+import { uiConfig } from "@/stores/uiConfig";
+import { submissionPost } from "@/services/submissionService";
+import LiveStatus from "@/views/StudentView/LiveStatus.vue";
+import SubmissionHistory from "@/views/StudentView/SubmissionHistory.vue";
+import InfoPanel from "@/components/InfoPanel.vue";
+import ResultsPreview from "@/views/StudentView/ResultsPreview.vue";
+import { useAppConfigStore } from "@/stores/appConfig";
+import ShutdownWarning from "@/components/ShutdownWarning.vue";
 
 // periodically check if grading is happening
 onMounted(async () => {
@@ -26,7 +26,7 @@ const lastSubmission = ref<Submission | null>(null);
 const submitSelectedPhase = async () => {
   if (selectedPhase.value === null) {
     // make typescript happy
-    console.error('submitPhase() was called without a phase selected');
+    console.error("submitPhase() was called without a phase selected");
     return;
   }
   await submitPhase(selectedPhase.value);

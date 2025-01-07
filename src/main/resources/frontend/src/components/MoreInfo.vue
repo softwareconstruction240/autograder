@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import PopUp from '@/components/PopUp.vue';
-import { ref } from 'vue';
+import PopUp from "@/components/PopUp.vue";
+import { ref } from "vue";
 const openInfo = ref<boolean>(false);
 
 defineProps<{

@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import type { Submission, User } from '@/types/types';
-import { onMounted, reactive, ref } from 'vue';
-import { submissionsForUserGet } from '@/services/adminService';
-import { AgGridVue } from 'ag-grid-vue3';
-import type { CellClickedEvent } from 'ag-grid-community';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
-import PopUp from '@/components/PopUp.vue';
+import type { Submission, User } from "@/types/types";
+import { onMounted, reactive, ref } from "vue";
+import { submissionsForUserGet } from "@/services/adminService";
+import { AgGridVue } from "ag-grid-vue3";
+import type { CellClickedEvent } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import PopUp from "@/components/PopUp.vue";
 import {
   renderPhaseCell,
   renderScoreCell,
   renderTimestampCell,
   standardColSettings,
-} from '@/utils/tableUtils';
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue';
-import { generateClickableLink } from '@/utils/utils';
-import RepoView from '@/views/AdminView/RepoView.vue';
+} from "@/utils/tableUtils";
+import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
+import { generateClickableLink } from "@/utils/utils";
+import RepoView from "@/views/AdminView/RepoView.vue";
 
 const { student } = defineProps<{
   student: User;
@@ -43,23 +43,23 @@ const cellClickHandler = (event: CellClickedEvent) => {
 };
 
 const columnDefs = reactive([
-  { headerName: 'Phase', field: 'phase', flex: 1, cellRenderer: renderPhaseCell },
+  { headerName: "Phase", field: "phase", flex: 1, cellRenderer: renderPhaseCell },
   {
-    headerName: 'Timestamp',
-    field: 'timestamp',
-    sort: 'desc',
+    headerName: "Timestamp",
+    field: "timestamp",
+    sort: "desc",
     sortedAt: 0,
     flex: 1,
     cellRenderer: renderTimestampCell,
   },
   {
-    headerName: 'Score',
-    field: 'score',
+    headerName: "Score",
+    field: "score",
     flex: 1,
     cellRenderer: renderScoreCell,
     onCellClicked: cellClickHandler,
   },
-  { headerName: 'Notes', field: 'notes', flex: 5, onCellClicked: cellClickHandler },
+  { headerName: "Notes", field: "notes", flex: 5, onCellClicked: cellClickHandler },
 ]);
 const rowData = reactive({
   value: [],
