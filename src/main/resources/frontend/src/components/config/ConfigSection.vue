@@ -26,25 +26,25 @@
  * </ConfigSection>
  */
 
-import { ref } from 'vue'
-import PopUp from '@/components/PopUp.vue'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { ref } from 'vue';
+import PopUp from '@/components/PopUp.vue';
+import { useAppConfigStore } from '@/stores/appConfig';
 
 defineProps<{
-  title: string
-  description: string
-}>()
+  title: string;
+  description: string;
+}>();
 
-const editorPopup = ref<boolean>(false)
+const editorPopup = ref<boolean>(false);
 
 const openEditor = () => {
-  useAppConfigStore().updateConfig()
-  editorPopup.value = true
-}
+  useAppConfigStore().updateConfig();
+  editorPopup.value = true;
+};
 
 const closeEditor = () => {
-  editorPopup.value = false
-}
+  editorPopup.value = false;
+};
 </script>
 
 <template>

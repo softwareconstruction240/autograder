@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { AgGridVue } from 'ag-grid-vue3'
-import type { CellClickedEvent } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-quartz.css'
-import { onMounted, reactive, ref } from 'vue'
-import { testStudentModeGet, usersGet } from '@/services/adminService'
-import PopUp from '@/components/PopUp.vue'
-import type { User } from '@/types/types'
-import StudentInfo from '@/views/AdminView/StudentInfo.vue'
-import { renderRepoLinkCell, standardColSettings } from '@/utils/tableUtils'
-import Panel from '@/components/Panel.vue'
+import { AgGridVue } from 'ag-grid-vue3';
+import type { CellClickedEvent } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { onMounted, reactive, ref } from 'vue';
+import { testStudentModeGet, usersGet } from '@/services/adminService';
+import PopUp from '@/components/PopUp.vue';
+import type { User } from '@/types/types';
+import StudentInfo from '@/views/AdminView/StudentInfo.vue';
+import { renderRepoLinkCell, standardColSettings } from '@/utils/tableUtils';
+import Panel from '@/components/Panel.vue';
 
-const selectedStudent = ref<User | null>(null)
-let studentData: User[] = []
+const selectedStudent = ref<User | null>(null);
+let studentData: User[] = [];
 
 const cellClickHandler = (event: CellClickedEvent) => {
-  let findResult = studentData.find((user) => user.netId === event.data.netId)
-  selectedStudent.value = findResult || null // Setting selected student opens a popup
-}
+  let findResult = studentData.find((user) => user.netId === event.data.netId);
+  selectedStudent.value = findResult || null; // Setting selected student opens a popup
+};
 
 onMounted(async () => {
-  const userData = await usersGet()
-  studentData = userData.filter((user) => user.role == 'STUDENT') // get rid of users that aren't students
-  var dataToShow: any = []
+  const userData = await usersGet();
+  studentData = userData.filter((user) => user.role == 'STUDENT'); // get rid of users that aren't students
+  var dataToShow: any = [];
   studentData.forEach((student) => {
     dataToShow.push({
       name: student.firstName + ' ' + student.lastName,
       netId: student.netId,
-      repoUrl: student.repoUrl
-    })
-  })
-  rowData.value = dataToShow
-})
+      repoUrl: student.repoUrl,
+    });
+  });
+  rowData.value = dataToShow;
+});
 
 const columnDefs = reactive([
   {
@@ -39,14 +39,14 @@ const columnDefs = reactive([
     field: 'name',
     flex: 2,
     minWidth: 150,
-    onCellClicked: cellClickHandler
+    onCellClicked: cellClickHandler,
   },
   {
     headerName: 'BYU netID',
     field: 'netId',
     flex: 1,
     minWidth: 75,
-    onCellClicked: cellClickHandler
+    onCellClicked: cellClickHandler,
   },
   {
     headerName: 'Github Repo URL',
@@ -54,17 +54,17 @@ const columnDefs = reactive([
     flex: 5,
     sortable: false,
     cellRenderer: renderRepoLinkCell,
-    onCellClicked: cellClickHandler
-  }
-])
+    onCellClicked: cellClickHandler,
+  },
+]);
 const rowData = reactive({
-  value: []
-})
+  value: [],
+});
 
 const activateTestStudentMode = async () => {
-  await testStudentModeGet()
-  window.location.href = '/'
-}
+  await testStudentModeGet();
+  window.location.href = '/';
+};
 </script>
 
 <template>

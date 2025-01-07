@@ -1,89 +1,89 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import { Phase, type Submission, type User } from '@/types/types'
-import { submissionsLatestGet } from '@/services/adminService'
-import { useAdminStore } from '@/stores/admin'
-import PopUp from '@/components/PopUp.vue'
-import { AgGridVue } from 'ag-grid-vue3'
-import type { CellClickedEvent } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-quartz.css'
+import { onMounted, reactive, ref } from 'vue';
+import { Phase, type Submission, type User } from '@/types/types';
+import { submissionsLatestGet } from '@/services/adminService';
+import { useAdminStore } from '@/stores/admin';
+import PopUp from '@/components/PopUp.vue';
+import { AgGridVue } from 'ag-grid-vue3';
+import type { CellClickedEvent } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
   standardColSettings,
   renderPhaseCell,
   renderScoreCell,
-  renderTimestampCell
-} from '@/utils/tableUtils'
-import StudentInfo from '@/views/AdminView/StudentInfo.vue'
+  renderTimestampCell,
+} from '@/utils/tableUtils';
+import StudentInfo from '@/views/AdminView/StudentInfo.vue';
 import {
   assureHttpPrefix,
   generateClickableLink,
   isPlausibleRepoUrl,
-  nameFromNetId
-} from '@/utils/utils'
-import { adminSubmissionPost } from '@/services/submissionService'
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
-import LiveStatus from '@/views/StudentView/LiveStatus.vue'
-import { useSubmissionStore } from '@/stores/submissions'
-import InfoPanel from '@/components/InfoPanel.vue'
+  nameFromNetId,
+} from '@/utils/utils';
+import { adminSubmissionPost } from '@/services/submissionService';
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue';
+import LiveStatus from '@/views/StudentView/LiveStatus.vue';
+import { useSubmissionStore } from '@/stores/submissions';
+import InfoPanel from '@/components/InfoPanel.vue';
 
-const selectedSubmission = ref<Submission | null>(null)
-const selectedStudent = ref<User | null>(null)
-const runningAdminRepo = ref<boolean>(false)
-const DEFAULT_SUBMISSIONS_TO_LOAD = 25
-let allSubmissionsLoaded = false
+const selectedSubmission = ref<Submission | null>(null);
+const selectedStudent = ref<User | null>(null);
+const runningAdminRepo = ref<boolean>(false);
+const DEFAULT_SUBMISSIONS_TO_LOAD = 25;
+let allSubmissionsLoaded = false;
 let adminRepo = reactive({
-  value: ''
-})
+  value: '',
+});
 
 onMounted(async () => {
-  await resetPage()
-})
+  await resetPage();
+});
 
 const resetPage = async () => {
-  runningAdminRepo.value = false
-  selectedSubmission.value = null
-  allSubmissionsLoaded = false
-  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD)
-  loadSubmissionsToTable(submissionsData)
-}
+  runningAdminRepo.value = false;
+  selectedSubmission.value = null;
+  allSubmissionsLoaded = false;
+  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
+  loadSubmissionsToTable(submissionsData);
+};
 
 const refreshSubmissions = async () => {
   if (allSubmissionsLoaded) {
-    await loadAllSubmissions()
+    await loadAllSubmissions();
   } else {
-    loadSubmissionsToTable(await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD))
+    loadSubmissionsToTable(await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD));
   }
-}
+};
 
 const loadAllSubmissions = async () => {
-  loadSubmissionsToTable(await submissionsLatestGet())
-  allSubmissionsLoaded = true
-}
+  loadSubmissionsToTable(await submissionsLatestGet());
+  allSubmissionsLoaded = true;
+};
 
 const loadSubmissionsToTable = (submissionsData: Submission[]) => {
-  const dataToShow: any = []
+  const dataToShow: any = [];
   submissionsData.forEach((submission) => {
     dataToShow.push({
       ...submission,
-      name: nameFromNetId(submission.netId)
-    })
-  })
-  rowData.value = dataToShow
-}
+      name: nameFromNetId(submission.netId),
+    });
+  });
+  rowData.value = dataToShow;
+};
 
 const openSubmission = (event: CellClickedEvent) => {
-  selectedSubmission.value = event.data
-}
+  selectedSubmission.value = event.data;
+};
 
 const adminDoneGrading = async () => {
-  let data = await submissionsLatestGet(1)
-  selectedSubmission.value = data[0]
-}
+  let data = await submissionsLatestGet(1);
+  selectedSubmission.value = data[0];
+};
 
 const nameCellClicked = (event: CellClickedEvent) => {
-  selectedStudent.value = useAdminStore().usersByNetId[event.data.netId]
-}
+  selectedStudent.value = useAdminStore().usersByNetId[event.data.netId];
+};
 
 const columnDefs = reactive([
   { headerName: 'Name', field: 'name', flex: 2, onCellClicked: nameCellClicked },
@@ -96,7 +96,7 @@ const columnDefs = reactive([
     filter: 'agDateColumnFilter',
     flex: 1.5,
     cellRenderer: renderTimestampCell,
-    onCellClicked: openSubmission
+    onCellClicked: openSubmission,
   },
   {
     headerName: 'Score',
@@ -104,33 +104,33 @@ const columnDefs = reactive([
     flex: 1,
     minWidth: 85,
     cellRenderer: renderScoreCell,
-    onCellClicked: openSubmission
+    onCellClicked: openSubmission,
   },
-  { headerName: 'Notes', field: 'notes', flex: 4, onCellClicked: openSubmission }
-])
+  { headerName: 'Notes', field: 'notes', flex: 4, onCellClicked: openSubmission },
+]);
 const rowData = reactive({
-  value: []
-})
+  value: [],
+});
 
-const selectedAdminPhase = ref<Phase | null>(null)
+const selectedAdminPhase = ref<Phase | null>(null);
 
 const adminSubmit = async () => {
   if (selectedAdminPhase.value == null) {
-    console.error('Tried to run an admin submission with no phase')
-    return
+    console.error('Tried to run an admin submission with no phase');
+    return;
   }
   try {
-    const repo = assureHttpPrefix(adminRepo.value)
-    await adminSubmissionPost(selectedAdminPhase.value!, repo)
-    runningAdminRepo.value = true
+    const repo = assureHttpPrefix(adminRepo.value);
+    await adminSubmissionPost(selectedAdminPhase.value!, repo);
+    runningAdminRepo.value = true;
   } catch (error) {
     if (error instanceof Error) {
-      alert('Error running grader: ' + error.message)
+      alert('Error running grader: ' + error.message);
     } else {
-      alert('Unknown error running grader')
+      alert('Unknown error running grader');
     }
   }
-}
+};
 </script>
 
 <template>

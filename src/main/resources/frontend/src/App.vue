@@ -1,47 +1,47 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { loadUser, logoutPost } from '@/services/authService'
-import router from '@/router'
-import '@/assets/fontawesome/css/fontawesome.css'
-import '@/assets/fontawesome/css/solid.css'
-import { useAppConfigStore } from '@/stores/appConfig'
-import BannerMessage from '@/components/BannerMessage.vue'
-import PopUp from '@/components/PopUp.vue'
-import RepoEditor from '@/components/RepoEditor.vue'
-import AboutPage from '@/components/AboutPage.vue'
-import { ServerError } from '@/network/ServerError'
+import { computed, onMounted, reactive } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { loadUser, logoutPost } from '@/services/authService';
+import router from '@/router';
+import '@/assets/fontawesome/css/fontawesome.css';
+import '@/assets/fontawesome/css/solid.css';
+import { useAppConfigStore } from '@/stores/appConfig';
+import BannerMessage from '@/components/BannerMessage.vue';
+import PopUp from '@/components/PopUp.vue';
+import RepoEditor from '@/components/RepoEditor.vue';
+import AboutPage from '@/components/AboutPage.vue';
+import { ServerError } from '@/network/ServerError';
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
-    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `
+    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `;
   }
-})
+});
 
 const logOut = async () => {
   try {
-    await logoutPost()
-    useAuthStore().user = null
+    await logoutPost();
+    useAuthStore().user = null;
   } catch (e) {
     if (e instanceof ServerError) {
-      alert(e.message)
+      alert(e.message);
     } else {
-      alert(e)
+      alert(e);
     }
   }
-  await router.push({ name: 'login' })
-}
+  await router.push({ name: 'login' });
+};
 
 onMounted(async () => {
-  await useAppConfigStore().updateConfig()
-})
+  await useAppConfigStore().updateConfig();
+});
 
-const openRepoEditor = reactive({ value: false })
+const openRepoEditor = reactive({ value: false });
 
 const repoEditDone = () => {
-  openRepoEditor.value = false
-  loadUser()
-}
+  openRepoEditor.value = false;
+  loadUser();
+};
 </script>
 
 <template>

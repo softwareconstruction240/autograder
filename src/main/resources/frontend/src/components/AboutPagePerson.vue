@@ -2,33 +2,33 @@
 defineProps({
   lead: {
     type: Boolean,
-    required: false
+    required: false,
   },
   name: {
     type: String,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    required: false
+    required: false,
   },
   url: {
     type: String,
-    required: true
+    required: true,
   },
   faIcon: {
     type: String,
-    required: true
+    required: true,
   },
   tenure: {
     type: String,
-    required: true
+    required: true,
   },
   contributions: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 </script>
 
 <template>

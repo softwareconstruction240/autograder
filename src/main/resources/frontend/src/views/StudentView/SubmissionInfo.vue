@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Submission } from '@/types/types'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-quartz.css'
+import type { Submission } from '@/types/types';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
   commitVerificationFailed,
   generateClickableCommitLink,
@@ -10,35 +10,35 @@ import {
   phaseString,
   readableTimestamp,
   submissionScoreDisplayText,
-  sortedItems
-} from '@/utils/utils'
-import RubricItemView from '@/views/StudentView/RubricItemView.vue'
-import InfoPanel from '@/components/InfoPanel.vue'
-import { useAuthStore } from '@/stores/auth'
-import { approveSubmissionPost } from '@/services/adminService'
-import { ref } from 'vue'
+  sortedItems,
+} from '@/utils/utils';
+import RubricItemView from '@/views/StudentView/RubricItemView.vue';
+import InfoPanel from '@/components/InfoPanel.vue';
+import { useAuthStore } from '@/stores/auth';
+import { approveSubmissionPost } from '@/services/adminService';
+import { ref } from 'vue';
 
 const { submission } = defineProps<{
-  submission: Submission
-}>()
+  submission: Submission;
+}>();
 
-const unapproved = ref<boolean>(true)
+const unapproved = ref<boolean>(true);
 
 const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) => void) => {
   try {
-    await approveSubmissionPost(submission.netId, submission.phase, penalize)
+    await approveSubmissionPost(submission.netId, submission.phase, penalize);
   } catch (e) {
     console.log(
-      'Error while approving submission for ' + submission.netId + ' on phase ' + submission.phase
-    )
+      'Error while approving submission for ' + submission.netId + ' on phase ' + submission.phase,
+    );
     alert(
-      'Something went wrong while sending the approval. Try refreshing the page before trying again'
-    )
-    return
+      'Something went wrong while sending the approval. Try refreshing the page before trying again',
+    );
+    return;
   }
-  unapproved.value = false
-  emit('approvedSubmission')
-}
+  unapproved.value = false;
+  emit('approvedSubmission');
+};
 </script>
 
 <template>

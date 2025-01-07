@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import PopUp from '@/components/PopUp.vue'
-import { ref } from 'vue'
-const openInfo = ref<boolean>(false)
+import PopUp from '@/components/PopUp.vue';
+import { ref } from 'vue';
+const openInfo = ref<boolean>(false);
 
 defineProps<{
-  text?: string
-  iconSize?: number
-}>()
+  text?: string;
+  iconSize?: number;
+}>();
 </script>
 
 <template>

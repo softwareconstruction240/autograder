@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import PopUp from '@/components/PopUp.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
-import sound from '@/assets/saints.mp3'
-import InfoPanel from '@/components/InfoPanel.vue'
-import AboutPagePerson from '@/components/AboutPagePerson.vue'
+import PopUp from '@/components/PopUp.vue';
+import { onMounted, onUnmounted, ref } from 'vue';
+import sound from '@/assets/saints.mp3';
+import InfoPanel from '@/components/InfoPanel.vue';
+import AboutPagePerson from '@/components/AboutPagePerson.vue';
 
-const audio = new Audio(sound)
+const audio = new Audio(sound);
 
 const playAudio = () => {
-  audio.volume = 0.5
-  audio.play()
-}
+  audio.volume = 0.5;
+  audio.play();
+};
 
 const stopAudio = () => {
-  audio.pause()
-  audio.currentTime = 0
-}
+  audio.pause();
+  audio.currentTime = 0;
+};
 
-const activated = ref<boolean>(false)
+const activated = ref<boolean>(false);
 
 const activate = () => {
-  activated.value = true
-  playAudio()
-}
+  activated.value = true;
+  playAudio();
+};
 
 const deactivate = () => {
-  stopAudio()
-  codeIndex = 0
-  activated.value = false
-}
+  stopAudio();
+  codeIndex = 0;
+  activated.value = false;
+};
 
 const secretCode = [
   'ArrowUp',
@@ -38,31 +38,31 @@ const secretCode = [
   'ArrowLeft',
   'ArrowRight',
   'ArrowLeft',
-  'ArrowRight'
-]
+  'ArrowRight',
+];
 
-let codeIndex = 0
+let codeIndex = 0;
 
 const checkCode = (event: KeyboardEvent) => {
   if (activated.value) {
-    return
+    return;
   }
   if (event.key === secretCode[codeIndex]) {
-    codeIndex++
+    codeIndex++;
     if (codeIndex === secretCode.length) {
-      activate()
+      activate();
     }
   } else {
-    codeIndex = 0
+    codeIndex = 0;
   }
-}
+};
 
 onMounted(() => {
-  window.addEventListener('keydown', checkCode)
-})
+  window.addEventListener('keydown', checkCode);
+});
 onUnmounted(() => {
-  window.removeEventListener('keydown', checkCode)
-})
+  window.removeEventListener('keydown', checkCode);
+});
 </script>
 
 <template>

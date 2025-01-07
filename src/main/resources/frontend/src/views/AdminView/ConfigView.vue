@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted } from 'vue'
-import { listOfPhases } from '@/types/types'
-import { useAppConfigStore } from '@/stores/appConfig'
-import { generateClickableLink, readableTimestamp } from '@/utils/utils'
-import ConfigSection from '@/components/config/ConfigSection.vue'
-import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue'
-import PenaltyConfigEditor from '@/components/config/PenaltyConfigEditor.vue'
+import { defineAsyncComponent, onMounted } from 'vue';
+import { listOfPhases } from '@/types/types';
+import { useAppConfigStore } from '@/stores/appConfig';
+import { generateClickableLink, readableTimestamp } from '@/utils/utils';
+import ConfigSection from '@/components/config/ConfigSection.vue';
+import ScheduleShutdownEditor from '@/components/config/ScheduleShutdownEditor.vue';
+import PenaltyConfigEditor from '@/components/config/PenaltyConfigEditor.vue';
 
 // Lazy Load Editor Components
 const BannerConfigEditor = defineAsyncComponent(
-  () => import('@/components/config/BannerConfigEditor.vue')
-)
+  () => import('@/components/config/BannerConfigEditor.vue'),
+);
 const LivePhaseConfigEditor = defineAsyncComponent(
-  () => import('@/components/config/LivePhaseConfigEditor.vue')
-)
+  () => import('@/components/config/LivePhaseConfigEditor.vue'),
+);
 const CourseIdConfigEditor = defineAsyncComponent(
-  () => import('@/components/config/CourseIdConfigEditor.vue')
-)
+  () => import('@/components/config/CourseIdConfigEditor.vue'),
+);
 
-const appConfigStore = useAppConfigStore()
+const appConfigStore = useAppConfigStore();
 
 onMounted(async () => {
-  await useAppConfigStore().updateConfig()
-})
+  await useAppConfigStore().updateConfig();
+});
 </script>
 
 <template>

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useAppConfigStore } from '@/stores/appConfig'
-import { readableTimestamp } from '@/utils/utils'
+import { computed } from 'vue';
+import { useAppConfigStore } from '@/stores/appConfig';
+import { readableTimestamp } from '@/utils/utils';
 
 const showWarning = computed(() => {
-  const shutdownDate = new Date(useAppConfigStore().shutdownSchedule)
-  const now = new Date()
-  const warningWindow = new Date(now.getTime() + useAppConfigStore().shutdownWarningMilliseconds)
-  return shutdownDate <= warningWindow
-})
+  const shutdownDate = new Date(useAppConfigStore().shutdownSchedule);
+  const now = new Date();
+  const warningWindow = new Date(now.getTime() + useAppConfigStore().shutdownWarningMilliseconds);
+  return shutdownDate <= warningWindow;
+});
 </script>
 
 <template>

@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue'
+import { provide, ref } from 'vue';
 import {
   activeTabHashKey,
   addTabKey,
-  type Tab as TabType
-} from '@/components/tabs/TabInjectionKeys'
+  type Tab as TabType,
+} from '@/components/tabs/TabInjectionKeys';
 
-const activeTabHash = ref('')
-const tabs = ref<TabType[]>([])
+const activeTabHash = ref('');
+const tabs = ref<TabType[]>([]);
 
 provide(addTabKey, (tab) => {
-  const count = tabs.value.push(tab)
+  const count = tabs.value.push(tab);
 
   if (count === 1) {
-    activeTabHash.value = tab.hash
+    activeTabHash.value = tab.hash;
   }
-})
-provide(activeTabHashKey, activeTabHash)
+});
+provide(activeTabHashKey, activeTabHash);
 
 const setActiveTabHash = (tab: TabType) => {
-  if (!tab.disabled) activeTabHash.value = tab.hash
-}
+  if (!tab.disabled) activeTabHash.value = tab.hash;
+};
 </script>
 
 <template>

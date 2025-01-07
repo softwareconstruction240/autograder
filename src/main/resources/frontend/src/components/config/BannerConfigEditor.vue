@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAppConfigStore } from '@/stores/appConfig'
-import { setBanner } from '@/services/configService'
-import { combineDateAndTime } from '@/utils/utils'
+import { ref } from 'vue';
+import { useAppConfigStore } from '@/stores/appConfig';
+import { setBanner } from '@/services/configService';
+import { combineDateAndTime } from '@/utils/utils';
 
 const { closeEditor } = defineProps<{
-  closeEditor: () => void
-}>()
+  closeEditor: () => void;
+}>();
 
-const appConfigStore = useAppConfigStore()
+const appConfigStore = useAppConfigStore();
 
-const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage)
-const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor)
-const bannerLinkToSubmit = ref<string>(appConfigStore.bannerLink)
-const bannerWillExpire = ref<boolean>(false)
-const bannerExpirationDate = ref<string>('')
-const bannerExpirationTime = ref<string>('')
+const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage);
+const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor);
+const bannerLinkToSubmit = ref<string>(appConfigStore.bannerLink);
+const bannerWillExpire = ref<boolean>(false);
+const bannerExpirationDate = ref<string>('');
+const bannerExpirationTime = ref<string>('');
 const clearBannerMessage = () => {
-  bannerMessageToSubmit.value = ''
-  bannerLinkToSubmit.value = ''
-  bannerColorToSubmit.value = ''
-  bannerColorToSubmit.value = ''
-  bannerWillExpire.value = false
-}
+  bannerMessageToSubmit.value = '';
+  bannerLinkToSubmit.value = '';
+  bannerColorToSubmit.value = '';
+  bannerColorToSubmit.value = '';
+  bannerWillExpire.value = false;
+};
 const submitBanner = async () => {
-  let combinedDateTime
+  let combinedDateTime;
   if (bannerWillExpire.value) {
-    combinedDateTime = combineDateAndTime(bannerExpirationDate.value, bannerExpirationTime.value)
+    combinedDateTime = combineDateAndTime(bannerExpirationDate.value, bannerExpirationTime.value);
   } else {
-    combinedDateTime = ''
+    combinedDateTime = '';
   }
   try {
     await setBanner(
       bannerMessageToSubmit.value,
       bannerLinkToSubmit.value,
       bannerColorToSubmit.value,
-      combinedDateTime
-    )
-    closeEditor()
+      combinedDateTime,
+    );
+    closeEditor();
   } catch (e) {
-    appConfigStore.updateConfig()
-    alert('There was a problem in saving the updated banner message:\n' + e)
+    appConfigStore.updateConfig();
+    alert('There was a problem in saving the updated banner message:\n' + e);
   }
-}
+};
 </script>
 
 <template>
@@ -56,7 +56,7 @@ const submitBanner = async () => {
     v-model="bannerColorToSubmit"
     :style="{
       backgroundColor: bannerColorToSubmit,
-      color: bannerColorToSubmit ? '#ffffff' : '#000000'
+      color: bannerColorToSubmit ? '#ffffff' : '#000000',
     }"
   >
     <option selected value="">Default</option>

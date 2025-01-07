@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { Submission } from '@/types/types'
+import type { Submission } from '@/types/types';
 import {
   commitVerificationFailed,
   resultsScoreDisplayText,
   sortedItems,
-  submissionScoreDisplayText
-} from '@/utils/utils'
-import PopUp from '@/components/PopUp.vue'
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
-import { ref } from 'vue'
+  submissionScoreDisplayText,
+} from '@/utils/utils';
+import PopUp from '@/components/PopUp.vue';
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue';
+import { ref } from 'vue';
 
 defineProps<{
-  submission: Submission
-}>()
+  submission: Submission;
+}>();
 
-const openDetails = ref<boolean>(false)
+const openDetails = ref<boolean>(false);
 </script>
 
 <template>
@@ -51,7 +51,7 @@ const openDetails = ref<boolean>(false)
     <button
       @click="
         () => {
-          openDetails = true
+          openDetails = true;
         }
       "
       class="secondary"

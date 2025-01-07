@@ -1,38 +1,38 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import type { Submission } from '@/types/types'
+import { onMounted, reactive, ref } from 'vue';
+import type { Submission } from '@/types/types';
 import {
   renderPhaseCell,
   renderScoreCell,
   renderTimestampCell,
-  standardColSettings
-} from '@/utils/tableUtils'
-import { submissionsGet } from '@/services/submissionService'
-import { AgGridVue } from 'ag-grid-vue3'
-import PopUp from '@/components/PopUp.vue'
-import type { CellClickedEvent } from 'ag-grid-community'
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
+  standardColSettings,
+} from '@/utils/tableUtils';
+import { submissionsGet } from '@/services/submissionService';
+import { AgGridVue } from 'ag-grid-vue3';
+import PopUp from '@/components/PopUp.vue';
+import type { CellClickedEvent } from 'ag-grid-community';
+import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue';
 
 onMounted(async () => {
-  await loadSubmissions()
-})
-const selectedSubmission = ref<Submission | null>(null)
+  await loadSubmissions();
+});
+const selectedSubmission = ref<Submission | null>(null);
 
 const loadSubmissions = async () => {
   try {
-    loadSubmissionsToTable(await submissionsGet(null))
+    loadSubmissionsToTable(await submissionsGet(null));
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
-}
+};
 
 const loadSubmissionsToTable = (submissionsData: Submission[]) => {
-  rowData.value = submissionsData
-}
+  rowData.value = submissionsData;
+};
 
 const handleSubmissionOpen = (event: CellClickedEvent) => {
-  selectedSubmission.value = event.data
-}
+  selectedSubmission.value = event.data;
+};
 
 const columnDefs = reactive([
   {
@@ -40,7 +40,7 @@ const columnDefs = reactive([
     field: 'phase',
     flex: 1,
     onCellClicked: handleSubmissionOpen,
-    cellRenderer: renderPhaseCell
+    cellRenderer: renderPhaseCell,
   },
   {
     headerName: 'Timestamp',
@@ -50,7 +50,7 @@ const columnDefs = reactive([
     sortingOrder: 0,
     filter: 'agDateColumnFilter',
     flex: 1.5,
-    cellRenderer: renderTimestampCell
+    cellRenderer: renderTimestampCell,
   },
   {
     headerName: 'Score',
@@ -60,7 +60,7 @@ const columnDefs = reactive([
     minWidth: 85,
     filter: false,
     sortable: false,
-    cellRenderer: renderScoreCell
+    cellRenderer: renderScoreCell,
   },
   {
     headerName: 'Notes',
@@ -68,12 +68,12 @@ const columnDefs = reactive([
     flex: 3,
     onCellClicked: handleSubmissionOpen,
     sortable: false,
-    hide: window.innerWidth < 700
-  }
-])
+    hide: window.innerWidth < 700,
+  },
+]);
 const rowData = reactive({
-  value: [] as Submission[]
-})
+  value: [] as Submission[],
+});
 </script>
 
 <template>

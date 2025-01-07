@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import type { RepoUpdate, User } from '@/types/types'
-import { generateClickableLink, simpleTimestamp } from '@/utils/utils'
-import RepoEditor from '@/components/RepoEditor.vue'
-import { onMounted, ref } from 'vue'
-import { repoHistoryGet } from '@/services/userService'
+import type { RepoUpdate, User } from '@/types/types';
+import { generateClickableLink, simpleTimestamp } from '@/utils/utils';
+import RepoEditor from '@/components/RepoEditor.vue';
+import { onMounted, ref } from 'vue';
+import { repoHistoryGet } from '@/services/userService';
 
 const { student } = defineProps<{
-  student: User
-}>()
+  student: User;
+}>();
 
 onMounted(async () => {
-  repoUpdateHistory.value = (await repoHistoryGet(student.netId)).reverse()
-})
+  repoUpdateHistory.value = (await repoHistoryGet(student.netId)).reverse();
+});
 const reloadPage = () => {
-  window.location.reload()
-}
+  window.location.reload();
+};
 
-const repoUpdateHistory = ref<RepoUpdate[]>([])
+const repoUpdateHistory = ref<RepoUpdate[]>([]);
 </script>
 
 <template>

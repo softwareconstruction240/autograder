@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useAppConfigStore } from '@/stores/appConfig'
-import { ref } from 'vue'
-import { setPenalties } from '@/services/configService'
+import { useAppConfigStore } from '@/stores/appConfig';
+import { ref } from 'vue';
+import { setPenalties } from '@/services/configService';
 
 const { closeEditor } = defineProps<{
-  closeEditor: () => void
-}>()
+  closeEditor: () => void;
+}>();
 
-const appConfig = useAppConfigStore()
+const appConfig = useAppConfigStore();
 
-const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100))
-const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized)
-const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100))
-const linesChangedPerCommit = ref<number>(appConfig.linesChangedPerCommit)
-const clockForgivenessMinutes = ref<number>(appConfig.clockForgivenessMinutes)
+const latePenalty = ref<number>(Math.round(appConfig.perDayLatePenalty * 100));
+const maxLateDays = ref<number>(appConfig.maxLateDaysPenalized);
+const gitPenalty = ref<number>(Math.round(appConfig.gitCommitPenalty * 100));
+const linesChangedPerCommit = ref<number>(appConfig.linesChangedPerCommit);
+const clockForgivenessMinutes = ref<number>(appConfig.clockForgivenessMinutes);
 
 const valuesReady = () => {
   return (
@@ -24,8 +24,8 @@ const valuesReady = () => {
     maxLateDays.value >= 0 &&
     linesChangedPerCommit.value >= 0 &&
     clockForgivenessMinutes.value >= 0
-  )
-}
+  );
+};
 
 const submit = async () => {
   try {
@@ -34,15 +34,15 @@ const submit = async () => {
       gitPenalty.value / 100,
       latePenalty.value / 100,
       linesChangedPerCommit.value,
-      clockForgivenessMinutes.value
-    )
+      clockForgivenessMinutes.value,
+    );
 
-    closeEditor()
+    closeEditor();
   } catch (e) {
-    appConfig.updateConfig()
-    alert('There was a problem saving the penalties')
+    appConfig.updateConfig();
+    alert('There was a problem saving the penalties');
   }
-}
+};
 </script>
 
 <template>

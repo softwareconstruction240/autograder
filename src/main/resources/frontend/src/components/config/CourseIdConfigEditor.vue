@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { listOfPhases, Phase, type RubricInfo, type RubricType } from '@/types/types'
+import { listOfPhases, Phase, type RubricInfo, type RubricType } from '@/types/types';
 import {
   convertPhaseStringToEnum,
   convertRubricTypeToHumanReadable,
   getRubricTypes,
-  isPhaseGraded
-} from '@/utils/utils'
-import { computed, type WritableComputedRef } from 'vue'
-import { setCanvasCourseIds, setCourseIds } from '@/services/configService'
-import { useAppConfigStore } from '@/stores/appConfig'
+  isPhaseGraded,
+} from '@/utils/utils';
+import { computed, type WritableComputedRef } from 'vue';
+import { setCanvasCourseIds, setCourseIds } from '@/services/configService';
+import { useAppConfigStore } from '@/stores/appConfig';
 
-const appConfigStore = useAppConfigStore()
+const appConfigStore = useAppConfigStore();
 
 const { closeEditor } = defineProps<{
-  closeEditor: () => void
-}>()
+  closeEditor: () => void;
+}>();
 
 const assignmentIdProxy = (phase: Phase): WritableComputedRef<number> =>
   computed({
     get: (): number => appConfigStore.assignmentIds.get(phase) || -1,
-    set: (value: number) => appConfigStore.assignmentIds.set(phase, value)
-  })
+    set: (value: number) => appConfigStore.assignmentIds.set(phase, value),
+  });
 
 const rubricIdInfoProxy = (phase: Phase, rubricType: RubricType): WritableComputedRef<string> => {
   return getProxy(
@@ -28,81 +28,81 @@ const rubricIdInfoProxy = (phase: Phase, rubricType: RubricType): WritableComput
     rubricType,
     (rubricInfo) => rubricInfo.id,
     (rubricInfo, value) => (rubricInfo.id = value),
-    'No Rubric ID found'
-  )
-}
+    'No Rubric ID found',
+  );
+};
 
 const rubricPointsInfoProxy = (
   phase: Phase,
-  rubricType: RubricType
+  rubricType: RubricType,
 ): WritableComputedRef<number> => {
   return getProxy(
     phase,
     rubricType,
     (rubricInfo) => rubricInfo.points,
     (rubricInfo, value) => (rubricInfo.points = value),
-    -1
-  )
-}
+    -1,
+  );
+};
 
 const getProxy = <T,>(
   phase: Phase,
   rubricType: RubricType,
   getFunc: (rubricInfo: RubricInfo) => T,
   setFunc: (rubricInfo: RubricInfo, value: T) => void,
-  defaultValue: T
+  defaultValue: T,
 ): WritableComputedRef<T> =>
   computed({
     get: (): T => {
-      const rubricIdMap = appConfigStore.rubricInfo.get(phase)
-      if (!rubricIdMap) return defaultValue
-      const rubricInfo = rubricIdMap.get(rubricType)
-      if (!rubricInfo) return defaultValue
-      return getFunc(rubricInfo)
+      const rubricIdMap = appConfigStore.rubricInfo.get(phase);
+      if (!rubricIdMap) return defaultValue;
+      const rubricInfo = rubricIdMap.get(rubricType);
+      if (!rubricInfo) return defaultValue;
+      return getFunc(rubricInfo);
     },
     set: (value: T) => {
-      const rubricTypeMap = appConfigStore.rubricInfo.get(phase)
-      if (!rubricTypeMap) return
-      const rubricInfo = rubricTypeMap.get(rubricType)
-      if (!rubricInfo) return
-      setFunc(rubricInfo, value)
-    }
-  })
+      const rubricTypeMap = appConfigStore.rubricInfo.get(phase);
+      if (!rubricTypeMap) return;
+      const rubricInfo = rubricTypeMap.get(rubricType);
+      if (!rubricInfo) return;
+      setFunc(rubricInfo, value);
+    },
+  });
 
 const submitManuelCourseIds = async () => {
   const userConfirmed = window.confirm(
-    "Are you sure you want to manually override? \n\nIf you changed the course ID incorrectly, it won't be able to reset properly."
-  )
+    "Are you sure you want to manually override? \n\nIf you changed the course ID incorrectly, it won't be able to reset properly.",
+  );
   if (userConfirmed) {
     try {
       await setCourseIds(
         appConfigStore.courseNumber,
         appConfigStore.assignmentIds,
-        appConfigStore.rubricInfo
-      )
-      closeEditor()
+        appConfigStore.rubricInfo,
+      );
+      closeEditor();
     } catch (e) {
-      alert('There was problem manually setting the course-related IDs: ' + (e as Error).message)
+      alert('There was problem manually setting the course-related IDs: ' + (e as Error).message);
     }
   }
-}
+};
 
 const submitCanvasCourseIds = async () => {
   const userConfirmed = window.confirm(
-    'Are you sure you want to use Canvas to reset ID values? \n\nNote: This will fail if the currently saved Course ID is incorrect.'
-  )
+    'Are you sure you want to use Canvas to reset ID values? \n\nNote: This will fail if the currently saved Course ID is incorrect.',
+  );
   if (userConfirmed) {
     try {
-      await setCanvasCourseIds()
+      await setCanvasCourseIds();
     } catch (e) {
       alert(
         'There was problem getting and setting the course-related IDs using Canvas: ' +
-          (e as Error).message
-      )
+          (e as Error).message,
+      );
     }
-    closeEditor()
+    closeEditor();
   }
-}
+};
 </script>
 
 <template>
@@ -137,7 +137,7 @@ const submitCanvasCourseIds = async () => {
       <ol>
         <li
           v-for="(rubricType, rubricIndex) in getRubricTypes(
-            convertPhaseStringToEnum(phase as unknown as string)
+            convertPhaseStringToEnum(phase as unknown as string),
           )"
           :key="rubricIndex"
         >

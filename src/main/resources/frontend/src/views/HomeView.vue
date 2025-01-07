@@ -1,61 +1,61 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useSubmissionStore } from '@/stores/submissions'
-import { Phase, type Submission } from '@/types/types'
-import { uiConfig } from '@/stores/uiConfig'
-import { submissionPost } from '@/services/submissionService'
-import LiveStatus from '@/views/StudentView/LiveStatus.vue'
-import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
-import InfoPanel from '@/components/InfoPanel.vue'
-import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
-import { useAppConfigStore } from '@/stores/appConfig'
-import ShutdownWarning from '@/components/ShutdownWarning.vue'
+import { onMounted, ref } from 'vue';
+import { useSubmissionStore } from '@/stores/submissions';
+import { Phase, type Submission } from '@/types/types';
+import { uiConfig } from '@/stores/uiConfig';
+import { submissionPost } from '@/services/submissionService';
+import LiveStatus from '@/views/StudentView/LiveStatus.vue';
+import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue';
+import InfoPanel from '@/components/InfoPanel.vue';
+import ResultsPreview from '@/views/StudentView/ResultsPreview.vue';
+import { useAppConfigStore } from '@/stores/appConfig';
+import ShutdownWarning from '@/components/ShutdownWarning.vue';
 
 // periodically check if grading is happening
 onMounted(async () => {
   setInterval(async () => {
-    if (!useSubmissionStore().currentlyGrading) await useSubmissionStore().checkGrading()
-  }, 5000)
-})
+    if (!useSubmissionStore().currentlyGrading) await useSubmissionStore().checkGrading();
+  }, 5000);
+});
 
-const selectedPhase = ref<Phase | null>(null)
-const openGrader = ref<boolean>(false)
-const showResults = ref<boolean>(false)
-const lastSubmission = ref<Submission | null>(null)
+const selectedPhase = ref<Phase | null>(null);
+const openGrader = ref<boolean>(false);
+const showResults = ref<boolean>(false);
+const lastSubmission = ref<Submission | null>(null);
 
 const submitSelectedPhase = async () => {
   if (selectedPhase.value === null) {
     // make typescript happy
-    console.error('submitPhase() was called without a phase selected')
-    return
+    console.error('submitPhase() was called without a phase selected');
+    return;
   }
-  await submitPhase(selectedPhase.value)
-}
+  await submitPhase(selectedPhase.value);
+};
 
 const submitPhase = async (phase: Phase) => {
   try {
-    showResults.value = false
-    await submissionPost(phase)
-    openGrader.value = true
-    useSubmissionStore().currentlyGrading = true
+    showResults.value = false;
+    await submissionPost(phase);
+    openGrader.value = true;
+    useSubmissionStore().currentlyGrading = true;
   } catch (e) {
-    alert(e)
-    useSubmissionStore().currentlyGrading = false
+    alert(e);
+    useSubmissionStore().currentlyGrading = false;
   }
-}
+};
 
 const handleGradingDone = async () => {
-  useSubmissionStore().currentlyGrading = false
-  lastSubmission.value = await useSubmissionStore().getLastSubmission()
-  showResults.value = true
-}
+  useSubmissionStore().currentlyGrading = false;
+  lastSubmission.value = await useSubmissionStore().getLastSubmission();
+  showResults.value = true;
+};
 
 const isPhaseDisabled = () => {
   return (
     selectedPhase.value != null &&
     !useAppConfigStore().phaseActivationList[Phase[selectedPhase.value] as unknown as Phase]
-  )
-}
+  );
+};
 </script>
 
 <template>
