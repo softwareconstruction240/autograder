@@ -20,15 +20,12 @@ public class NetworkUtils {
      * @return The {@link HttpResponse<String>} response, or the errors generated in the process.
      */
     public static HttpResponse<String> makeGetRequest(String url) throws IOException, InterruptedException {
-        // Create an HttpClient
         try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            // Create an HttpRequest
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .GET() // HTTP GET method
                     .build();
 
-            // Send the request and get the response
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         }
     }
