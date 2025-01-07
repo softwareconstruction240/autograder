@@ -19,7 +19,7 @@ public class RepoUrlValidator {
         }
     }
 
-    public static boolean canClean(String repoUrl) {
+    public static boolean canClean(@Nullable String repoUrl) {
         try {
             clean(repoUrl);
             return true;
@@ -28,9 +28,14 @@ public class RepoUrlValidator {
         }
     }
 
-    public static boolean isNotFork(String githubUsername, String repoName) {
+    public static boolean isNotFork(@Nullable String githubUsername, @Nullable String repoName) {
+        if (githubUsername == null || repoName == null) {
+            return false; // Invalid to have NULL
+        }
+
         String apiUrl = String.format("https://api.github.com/repos/%s/%s", githubUsername, repoName);
         var apiJSON = NetworkUtils.readGetRequestBody(apiUrl);
+
         var jsonObj = Serializer.deserialize(apiJSON, Map.class);
         if (jsonObj == null || jsonObj.isEmpty()) {
             return false; // Error response, empty response. Could indicate network error.
@@ -67,7 +72,13 @@ public class RepoUrlValidator {
         return String.format("https://%s/%s/%s", parts.domainName, parts.username, parts.repoName);
     }
 
-
+    /**
+     * Decides if a repo URL is valid, and returns the extracted parts from the URL when the URL is valid.
+     *
+     * @param repoUrl A string repo URL to parse.
+     * @return {@link RepoUrlParts} When the URL is valid.
+     * @throws InvalidRepoUrlException When the URL in invalid.
+     */
     private RepoUrlParts extractRepoParts(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
