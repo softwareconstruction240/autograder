@@ -2,6 +2,8 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -128,6 +130,7 @@ public class RepoUrlValidatorTest {
 
     @Test
     @Tag("cleanRepoUrl")
+    @Disabled
     @DisplayName("Admin submissions are not cleaned")
     void adminSubmissionsAreNotCleaned() throws GradingException, IOException {
         String originalUrl = "https://github.com/USERNAME/REPO_NAME/tree/main/0-chess-moves/starter-code/chess";
@@ -135,6 +138,62 @@ public class RepoUrlValidatorTest {
         // As this point, we are not spending the time to make `Grader` into a more testable format.
 //        var grader = new Grader(originalUrl, "student_id", null, null , true);
 //        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
+    }
+
+    //  TODO: Convert these to @ParameterizedTest
+    @Test
+    @Tag("isNotFork")
+    void isNotForkAcceptsNonForks() {
+        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkAcceptsDuplicatedRepos() {
+        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-duplicated"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsForks() {
+        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-fork"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsInvalidRepos() {
+        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "invalid-repo-name"));
+    }
+
+    @Test
+    @Tag("isNotFork")
+    void isNotForkRejectsInvalidUsernames() {
+        assertFalse(RepoUrlValidator.isNotFork("invalid-username", "chess"));
+    }
+
+    // TODO: Convert to @ParameterizedTest to leverage asynchronous evaluation
+    @Test
+    void isValidRepoUrlAcceptsValidRepoUrls() {
+        String[] validRepos = {
+            "git@github.com:softwareconstruction240/chess.git",
+            "git@github.com:softwareconstruction240/chess-duplicated.git",
+            "https://github.com/softwareconstruction240/chess-duplicated.git"
+        };
+        for (var url : validRepos) {
+            assertTrue(RepoUrlValidator.isValid(url));
+        }
+    }
+
+    @Test
+    void isValidRepoUrlRejectsInvalidRepoUrls() {
+        String[] invalidRepos = {
+                "git@github.com:softwareconstruction240/chess-fork.git",
+                "git@github.com:softwareconstruction240/missing-repo-name.git",
+                "git@github.com:missing-username/chess.git",
+        };
+        for (var url : invalidRepos) {
+            assertFalse(RepoUrlValidator.isValid(url));
+        }
     }
 
 }
