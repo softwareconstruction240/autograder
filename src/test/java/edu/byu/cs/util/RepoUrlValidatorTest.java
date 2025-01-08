@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 
@@ -15,7 +17,7 @@ public class RepoUrlValidatorTest {
     @Test
     @Tag("cleanRepoUrl")
     @DisplayName("Should strip off trailing characters after repo name when given repo URL")
-        void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() throws GradingException {
+    void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() throws GradingException {
         // Should strip off characters after repo name
         String expectedUrl = "https://github.com/USERNAME/REPO_NAME";
         String[] urlVariants = {
@@ -140,60 +142,32 @@ public class RepoUrlValidatorTest {
 //        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
     }
 
-    //  TODO: Convert these to @ParameterizedTest
-    @Test
+    @ParameterizedTest
     @Tag("isNotFork")
-    void isNotForkAcceptsNonForks() {
-        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess"));
+    @CsvSource({
+            "softwareconstruction240, chess, true",
+            "softwareconstruction240, chess-duplicated, true",
+            "softwareconstruction240, chess-fork, false",
+            "softwareconstruction240, invalid-repo-name, false",
+            "invalid-username, chess, false"
+    })
+    @DisplayName("Test RepoUrlValidator.isNotFork with various inputs")
+    void isNotForkTests(String username, String repoName, boolean expectedResult) {
+        assertEquals(expectedResult, RepoUrlValidator.isNotFork(username, repoName));
     }
 
-    @Test
-    @Tag("isNotFork")
-    void isNotForkAcceptsDuplicatedRepos() {
-        assertTrue(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-duplicated"));
-    }
-
-    @Test
-    @Tag("isNotFork")
-    void isNotForkRejectsForks() {
-        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "chess-fork"));
-    }
-
-    @Test
-    @Tag("isNotFork")
-    void isNotForkRejectsInvalidRepos() {
-        assertFalse(RepoUrlValidator.isNotFork("softwareconstruction240", "invalid-repo-name"));
-    }
-
-    @Test
-    @Tag("isNotFork")
-    void isNotForkRejectsInvalidUsernames() {
-        assertFalse(RepoUrlValidator.isNotFork("invalid-username", "chess"));
-    }
-
-    // TODO: Convert to @ParameterizedTest to leverage asynchronous evaluation
-    @Test
-    void isValidRepoUrlAcceptsValidRepoUrls() {
-        String[] validRepos = {
-            "git@github.com:softwareconstruction240/chess.git",
-            "git@github.com:softwareconstruction240/chess-duplicated.git",
-            "https://github.com/softwareconstruction240/chess-duplicated.git"
-        };
-        for (var url : validRepos) {
-            assertTrue(RepoUrlValidator.isValid(url));
-        }
-    }
-
-    @Test
-    void isValidRepoUrlRejectsInvalidRepoUrls() {
-        String[] invalidRepos = {
-                "git@github.com:softwareconstruction240/chess-fork.git",
-                "git@github.com:softwareconstruction240/missing-repo-name.git",
-                "git@github.com:missing-username/chess.git",
-        };
-        for (var url : invalidRepos) {
-            assertFalse(RepoUrlValidator.isValid(url));
-        }
+    @ParameterizedTest
+    @CsvSource({
+            "git@github.com:softwareconstruction240/chess.git, true",
+            "git@github.com:softwareconstruction240/chess-duplicated.git, true",
+            "https://github.com/softwareconstruction240/chess-duplicated.git, true",
+            "git@github.com:softwareconstruction240/chess-fork.git, false",
+            "git@github.com:softwareconstruction240/missing-repo-name.git, false",
+            "git@github.com:missing-username/chess.git, false"
+    })
+    @DisplayName("Test RepoUrlValidator.isValid with various inputs")
+    void isValidRepoUrlTests(String url, boolean expectedResult) {
+        assertEquals(expectedResult, RepoUrlValidator.isValid(url));
     }
 
 }
