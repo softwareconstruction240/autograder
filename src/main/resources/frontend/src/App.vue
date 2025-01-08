@@ -1,48 +1,47 @@
 <script setup lang="ts">
-
-import { computed, onMounted, reactive } from 'vue'
-import {useAuthStore} from "@/stores/auth";
-import { loadUser, logoutPost } from '@/services/authService'
-import router from '@/router'
-import '@/assets/fontawesome/css/fontawesome.css'
-import '@/assets/fontawesome/css/solid.css'
-import { useAppConfigStore } from '@/stores/appConfig'
-import BannerMessage from '@/components/BannerMessage.vue'
-import PopUp from '@/components/PopUp.vue'
-import RepoEditor from '@/components/RepoEditor.vue'
-import AboutPage from '@/components/AboutPage.vue'
-import { ServerError } from '@/network/ServerError'
+import { computed, onMounted, reactive } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { loadUser, logoutPost } from "@/services/authService";
+import router from "@/router";
+import "@/assets/fontawesome/css/fontawesome.css";
+import "@/assets/fontawesome/css/solid.css";
+import { useAppConfigStore } from "@/stores/appConfig";
+import BannerMessage from "@/components/BannerMessage.vue";
+import PopUp from "@/components/PopUp.vue";
+import RepoEditor from "@/components/RepoEditor.vue";
+import AboutPage from "@/components/AboutPage.vue";
+import { ServerError } from "@/network/ServerError";
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
-    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `
+    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `;
   }
 });
 
 const logOut = async () => {
   try {
-    await logoutPost()
-    useAuthStore().user = null
+    await logoutPost();
+    useAuthStore().user = null;
   } catch (e) {
-    if (e instanceof ServerError){
-      alert(e.message)
+    if (e instanceof ServerError) {
+      alert(e.message);
     } else {
-      alert(e)
+      alert(e);
     }
   }
-  await router.push({ name: "login" })
-}
+  await router.push({ name: "login" });
+};
 
-onMounted( async () => {
+onMounted(async () => {
   await useAppConfigStore().updateConfig();
-})
+});
 
-const openRepoEditor = reactive({value: false})
+const openRepoEditor = reactive({ value: false });
 
 const repoEditDone = () => {
-  openRepoEditor.value = false
-  loadUser()
-}
+  openRepoEditor.value = false;
+  loadUser();
+};
 </script>
 
 <template>
@@ -51,19 +50,19 @@ const repoEditDone = () => {
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
     <p>{{ useAuthStore().user?.repoUrl }}</p>
-    <BannerMessage/>
+    <BannerMessage />
   </header>
   <main>
     <PopUp
       id="repoEditorPopUp"
       v-if="openRepoEditor.value"
-      @closePopUp="openRepoEditor.value = false">
-      <RepoEditor
-      @repoEditSuccess="repoEditDone" :user="useAuthStore().user"/>
+      @closePopUp="openRepoEditor.value = false"
+    >
+      <RepoEditor @repoEditSuccess="repoEditDone" :user="useAuthStore().user" />
     </PopUp>
 
-    <router-view/>
-    <AboutPage/>
+    <router-view />
+    <AboutPage />
   </main>
 </template>
 
@@ -117,7 +116,7 @@ a {
   }
 }
 
-@media only screen and (min-width: 601px) and (max-width: 900px){
+@media only screen and (min-width: 601px) and (max-width: 900px) {
   main {
     width: 75%;
     max-width: none;

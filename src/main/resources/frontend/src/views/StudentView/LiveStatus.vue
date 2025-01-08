@@ -1,8 +1,7 @@
 <script setup lang="ts">
-
-import {onMounted, ref} from "vue";
-import type {Submission} from "@/types/types";
-import {subscribeToGradingUpdates} from "@/stores/submissions";
+import { onMounted, ref } from "vue";
+import type { Submission } from "@/types/types";
+import { subscribeToGradingUpdates } from "@/stores/submissions";
 
 const emit = defineEmits<{
   "show-results": [submission: Submission];
@@ -11,7 +10,7 @@ const emit = defineEmits<{
 type GradingStatus = {
   status: string;
   type: "update" | "warning" | "error";
-}
+};
 
 const statuses = ref<GradingStatus[]>([]);
 const warnings = ref<boolean>(false);
@@ -22,27 +21,30 @@ onMounted(() => {
     const messageData = JSON.parse(event.data);
 
     switch (messageData.type) {
-      case 'queueStatus':
-        statuses.value.push({type: 'update', status: `You are currently #${messageData.position} in line`}) ;
+      case "queueStatus":
+        statuses.value.push({
+          type: "update",
+          status: `You are currently #${messageData.position} in line`,
+        });
         return;
-      case 'started':
-        statuses.value.push({type: 'update', status: `Autograding has started`});
+      case "started":
+        statuses.value.push({ type: "update", status: `Autograding has started` });
         return;
-      case 'warning':
+      case "warning":
         warnings.value = true;
-        statuses.value.push({type: messageData.type, status: messageData.message});
+        statuses.value.push({ type: messageData.type, status: messageData.message });
         return;
-      case 'update':
-        statuses.value.push({type: messageData.type, status: messageData.message});
+      case "update":
+        statuses.value.push({ type: messageData.type, status: messageData.message });
         return;
-      case 'results':
-        statuses.value.push({type: 'update', status: `Finished!`});
+      case "results":
+        statuses.value.push({ type: "update", status: `Finished!` });
         const results = JSON.parse(messageData.results);
-        if(!warnings.value) showResults(results);
+        if (!warnings.value) showResults(results);
         else submission.value = results;
         return;
-      case 'error':
-        statuses.value.push({type: 'error', status: `Error: ${messageData.message}`});
+      case "error":
+        statuses.value.push({ type: "error", status: `Error: ${messageData.message}` });
         warnings.value = true;
         const errorResults = JSON.parse(messageData.results);
         submission.value = errorResults;
@@ -53,26 +55,34 @@ onMounted(() => {
 
 const showResults = (results: Submission) => {
   emit("show-results", results);
-}
+};
 
 const getStatusClass = (status: GradingStatus) => {
   switch (status.type) {
     case "warning":
-      return "status warning"
+      return "status warning";
     case "error":
-      return "status error"
+      return "status error";
     default:
       return "status";
   }
-}
-
+};
 </script>
 
 <template>
-<div class="status-container">
-  <span v-for="status of statuses" :class=getStatusClass(status)>{{ status.status }}</span>
-  <button v-if="warnings && submission" @click="() => {showResults(submission!)}">See Results</button>
-</div>
+  <div class="status-container">
+    <span v-for="status of statuses" :class="getStatusClass(status)">{{ status.status }}</span>
+    <button
+      v-if="warnings && submission"
+      @click="
+        () => {
+          showResults(submission!);
+        }
+      "
+    >
+      See Results
+    </button>
+  </div>
 </template>
 
 <style scoped>
