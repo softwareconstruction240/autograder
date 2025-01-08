@@ -87,8 +87,8 @@ public class RepoUrlValidatorTest {
                 "https://github.com/valid-username-0123456789/valid-repo-name.git/",
                 "https://github.com/valid-username-0123456789/1_2_3_4_5_6_7_8_9_0.git/",
         };
-        for (String badUrl: goodUrls) {
-            assertDoesNotThrow(() -> RepoUrlValidator.clean(badUrl));
+        for (String url : goodUrls) {
+            assertDoesNotThrow(() -> RepoUrlValidator.clean(url));
         }
     }
 
@@ -123,10 +123,10 @@ public class RepoUrlValidatorTest {
                 "github.com:8080/USERNAME/REPO_NAME.git",
                 "https://github.com:443/softwareconstruction240/autograder",
         };
-        for (String badUrl : badUrls) {
+        for (String url : badUrls) {
             assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
-                    () -> RepoUrlValidator.clean(badUrl),
-                    "Did not reject input: " + badUrl);
+                    () -> RepoUrlValidator.clean(url),
+                    "Did not reject input: " + url);
         }
     }
 
