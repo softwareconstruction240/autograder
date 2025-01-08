@@ -131,6 +131,11 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
+    public Route updateCourseIdPost() {
+        return ConfigController.updateCourseIdPost;
+    }
+
+    @Override
     public Route updateCourseIdsUsingCanvasGet() {
         return ConfigController.updateCourseIdsUsingCanvasGet;
     }

@@ -40,6 +40,7 @@ public interface EndpointProvider {
     Route scheduleShutdown();
     Route updateBannerMessage();
     Route updateCourseIdsPost();
+    Route updateCourseIdPost();
     Route updateCourseIdsUsingCanvasGet();
     Route updatePenalties();
 

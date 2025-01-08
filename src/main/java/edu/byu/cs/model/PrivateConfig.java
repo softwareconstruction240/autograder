@@ -1,13 +1,12 @@
 package edu.byu.cs.model;
 
-import edu.byu.cs.canvas.model.CanvasAssignment;
-
 import java.util.ArrayList;
 import java.util.Map;
 
 public record PrivateConfig(
     PenaltyConfig penalty,
-    ArrayList<CourseConfig> courses
+    int courseNumber,
+    ArrayList<AssignmentConfig> assignments
 ) {
     public record PenaltyConfig(
         float perDayLatePenalty,
@@ -17,14 +16,9 @@ public record PrivateConfig(
         int clockForgivenessMinutes
     ){}
 
-    public record CourseConfig(
-        int courseNumber,
-        ArrayList<AssignmentConfig> assignments
-    ){
-        public record AssignmentConfig(
-                Phase phase,
-                int assignmentId,
-                Map<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricItems
-        ){}
-    }
+    public record AssignmentConfig(
+            Phase phase,
+            int assignmentId,
+            Map<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricItems
+    ){}
 }

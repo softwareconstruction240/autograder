@@ -1,6 +1,5 @@
 package edu.byu.cs.service;
 
-import com.google.gson.JsonObject;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.canvas.model.CanvasAssignment;
@@ -11,11 +10,9 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.util.PhaseUtils;
-import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -24,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.Map;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
@@ -45,7 +41,8 @@ public class ConfigService {
     public static PrivateConfig getPrivateConfig() throws DataAccessException {
         return new PrivateConfig(
                 generatePenaltyConfig(),
-                generateCoursesConfig()
+                dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
+                generateAssignmentsConfig()
         );
     }
 
@@ -100,65 +97,17 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
-    public static ArrayList<PrivateConfig.CourseConfig> generateCoursesConfig() throws DataAccessException {
-        //TODO far down the road:
-        //This function returns an array of CourseConfig so the front end won't need changing when we actually
-        //set up multi course support. This function will need to actually implement that though
-
-        ArrayList<PrivateConfig.CourseConfig.AssignmentConfig> assignments = new ArrayList<>();
+    public static ArrayList<PrivateConfig.AssignmentConfig> generateAssignmentsConfig() throws DataAccessException {
+        ArrayList<PrivateConfig.AssignmentConfig> assignments = new ArrayList<>();
         for (Phase phase : Phase.values()) {
             if (!isPhaseGraded(phase)) continue;
 
             int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
             EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
 
-            assignments.add(new PrivateConfig.CourseConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
+            assignments.add(new PrivateConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
         }
-
-        PrivateConfig.CourseConfig theOneAndOnlyCourseSoFar = new PrivateConfig.CourseConfig(
-                dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
-                assignments
-        );
-
-        ArrayList<PrivateConfig.CourseConfig> courseList = new ArrayList<>();
-        courseList.add(theOneAndOnlyCourseSoFar);
-        return courseList;
-
-//
-//
-//
-//
-//        Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
-//        Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo = new EnumMap<>(Phase.class);
-//
-//        for (Phase phase : Phase.values()) {
-//            if (!isPhaseGraded(phase)) continue;
-//            Integer assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
-//            assignmentIds.put(phase, assignmentId);
-//            if (rubricInfo.get(phase) == null) {
-//                rubricInfo.put(phase, new EnumMap<>(Rubric.RubricType.class));
-//            }
-//            var rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
-//            for (Rubric.RubricType type : rubricConfigItems.keySet()) {
-//                RubricConfig.RubricConfigItem item = rubricConfigItems.get(type);
-//                if (item == null) continue;
-//                rubricInfo.get(phase).put(
-//                        type,
-//                        new CanvasAssignment.CanvasRubric(item.rubric_id(), item.points(), null)
-//                );
-//            }
-//        }
-//
-//        JsonObject response = new JsonObject();//getPublicConfig();
-//
-//        int courseNumber = dao.getConfiguration(
-//                Configuration.COURSE_NUMBER,
-//                Integer.class
-//        );
-//        response.addProperty("courseNumber", courseNumber);
-//        response.addProperty("assignmentIds", Serializer.serialize(assignmentIds));
-//        response.addProperty("rubricInfo", Serializer.serialize(rubricInfo));
-//        return response;
+        return assignments;
     }
 
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
@@ -257,6 +206,21 @@ public class ConfigService {
             logConfigChange("set the banner message to: '%s' with link: {%s} to expire at %s".formatted(message, link, expirationString), user.netId());
         }
 
+    }
+
+    public static void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
+        Integer oldCourseJustInCase = dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class);
+        dao.setConfiguration(Configuration.COURSE_NUMBER, newCourseId, Integer.class);
+        logConfigChange("changed the Canvas course ID to %d".formatted(newCourseId), user.netId());
+
+        try {
+            // if this line fails, we need to revert back to the previous course id
+            updateCourseIdsUsingCanvas(user);
+        } catch (CanvasException e) {
+            dao.setConfiguration(Configuration.COURSE_NUMBER, oldCourseJustInCase, Integer.class);
+            logAutomaticConfigChange("While fetching new course assignment info for course %d, an error occurred. Reverting course id to %d".formatted(newCourseId, oldCourseJustInCase));
+            throw e;
+        }
     }
 
     public static void updateCourseIds(User user, SetCourseIdsRequest setCourseIdsRequest) throws DataAccessException {

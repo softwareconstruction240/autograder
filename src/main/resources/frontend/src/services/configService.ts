@@ -73,6 +73,10 @@ export const setCourseIds = async (
   await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
 }
 
+export const setCourseId = async (courseNumber: number) => {
+  await doSetConfigItem("POST", "/api/admin/config/courseId", { courseId: courseNumber });
+}
+
 const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
   try {
     if (method == "GET") {

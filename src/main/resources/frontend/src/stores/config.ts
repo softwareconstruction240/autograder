@@ -1,4 +1,4 @@
-import { reactive, readonly, ref, type Ref } from 'vue'
+import { reactive, readonly, ref } from 'vue'
 import { defineStore } from 'pinia'
 import {Phase, type RubricInfo, type RubricType} from '@/types/types'
 import { getAdminConfig, getPublicConfig } from '@/services/configService'
@@ -39,13 +39,11 @@ export type PrivateConfig = {
     clockForgivenessMinutes: number
   },
 
-  courses: {
-    courseNumber: number
-    assignments: {
-      phase: Phase,
-      assignmentId: number,
-      rubricItems: Map<RubricType, RubricInfo>
-    }[]
+  courseNumber: number
+  assignments: {
+    phase: Phase,
+    assignmentId: number,
+    rubricItems: Map<RubricType, RubricInfo>
   }[]
 }
 
@@ -77,7 +75,8 @@ export const useConfigStore = defineStore('config', () => {
       linesChangedPerCommit: -1,
       clockForgivenessMinutes: -1,
     },
-    courses: []
+    courseNumber: -1,
+    assignments: [],
   })
 
   const updateConfig = async () => {
@@ -97,7 +96,11 @@ export const useConfigStore = defineStore('config', () => {
   const updateAdminConfig = async () => {
     const latestAdminConfig = await getAdminConfig();
 
+    console.log(latestAdminConfig)
+
     Object.assign(privateConfig, latestAdminConfig)
+
+    console.log(privateConfig)
   }
 
   const backendUrl = ref<string>(env.VITE_APP_BACKEND_URL);

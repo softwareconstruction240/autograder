@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.JsonObject;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
@@ -102,6 +103,24 @@ public class ConfigController {
         }
 
         res.status(200);
+        return "";
+    };
+
+    public static final Route updateCourseIdPost = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        Integer courseId = Serializer.deserialize(jsonObject.get("courseId"), Integer.class);
+
+        try {
+            ConfigService.setCourseId(user, courseId);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        } catch (CanvasException e) {
+            res.status(400);
+            res.body("Canvas Error:\nEither the Canvas Course #%d doesn't exist, the Autograder doesn't have access to the course, or Canvas was unable to be reached.".formatted(courseId));
+        }
         return "";
     };
 

@@ -103,6 +103,9 @@ public class Server {
                     post("/phases/shutdown", provider.scheduleShutdown());
                     post("/banner", provider.updateBannerMessage());
 
+                    post("/courseId", provider.updateCourseIdPost());
+
+                    //TODO: simplify or remove
                     post("/courseIds", provider.updateCourseIdsPost());
                     get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
 

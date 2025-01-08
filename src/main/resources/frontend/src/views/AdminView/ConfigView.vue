@@ -83,10 +83,7 @@ onMounted( async () => {
         <CoursesConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
-        <p><span class="infoLabel">Course IDs:</span></p>
-        <ul>
-          <li v-for="course in config.admin.courses">{{course.courseNumber}}</li>
-        </ul>
+        <p><span class="infoLabel">Course ID: </span>{{config.admin.courseNumber}}</p>
       </template>
     </ConfigSection>
   </div>
