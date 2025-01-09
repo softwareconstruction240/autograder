@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { listOfPhases, Phase } from '@/types/types'
-import { useAppConfigStore } from '@/stores/appConfig'
-import { setLivePhases } from '@/services/configService'
+import { listOfPhases, Phase } from "@/types/types";
+import { useAppConfigStore } from "@/stores/appConfig";
+import { setLivePhases } from "@/services/configService";
 
 const appConfigStore = useAppConfigStore();
 
 const { closeEditor } = defineProps<{
-  closeEditor: () => void
+  closeEditor: () => void;
 }>();
 
 const setAllPhases = (setting: boolean) => {
   for (const phase of listOfPhases() as Phase[]) {
-    appConfigStore.phaseActivationList[phase] = setting
+    appConfigStore.phaseActivationList[phase] = setting;
   }
-}
+};
 const submitLivePhases = async () => {
-  let livePhases: Phase[] = []
+  let livePhases: Phase[] = [];
   for (const phase of listOfPhases() as Phase[]) {
     if (useAppConfigStore().phaseActivationList[phase]) {
       livePhases.push(phase);
@@ -23,19 +23,22 @@ const submitLivePhases = async () => {
   }
 
   try {
-    await setLivePhases(livePhases)
-    closeEditor()
+    await setLivePhases(livePhases);
+    closeEditor();
   } catch (e) {
-    appConfigStore.updateConfig()
-    alert("There was a problem in saving live phases")
+    appConfigStore.updateConfig();
+    alert("There was a problem in saving live phases");
   }
-}
+};
 </script>
 
 <template>
   <div class="checkboxes">
     <label v-for="(phase, index) in listOfPhases()" :key="index">
-      <span><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]"> {{ phase }}</span>
+      <span
+        ><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]" />
+        {{ phase }}</span
+      >
     </label>
   </div>
 
@@ -59,7 +62,7 @@ const submitLivePhases = async () => {
   flex-direction: column;
   align-items: center;
 }
-.submitChanges >* {
+.submitChanges > * {
   margin: 5px;
 }
 </style>
