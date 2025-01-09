@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
-import { ServerError } from '@/network/ServerError'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { useAuthStore } from "@/stores/auth";
+import { ServerError } from "@/network/ServerError";
+import { useAppConfigStore } from "@/stores/appConfig";
 
 /**
  * Utility for making authenticated HTTP requests to the server with automatic error handling
@@ -18,8 +18,8 @@ export const ServerCommunicator = {
   getRequestGuaranteed: getRequestGuaranteed,
   postRequest: postRequest,
   patchRequest: patchRequest,
-  doUnprocessedRequest: doUnprocessedRequest
-}
+  doUnprocessedRequest: doUnprocessedRequest,
+};
 
 /**
  * Makes a GET request to the specified endpoint with a guaranteed response.
@@ -32,8 +32,7 @@ export const ServerCommunicator = {
  * @returns {Promise<T>} Promise that resolves to the response data of type T
  */
 function getRequestGuaranteed<T>(endpoint: string, errorResponse: T): Promise<T> {
-  return getRequest<T>(endpoint, true)
-    .catch(_error => Promise.resolve(errorResponse));
+  return getRequest<T>(endpoint, true).catch((_error) => Promise.resolve(errorResponse));
 }
 
 /**
@@ -60,10 +59,7 @@ function getRequest(endpoint: string, expectResponse: false): Promise<null>;
  * @throws {Error} when expectResponse is true but no response is received
  */
 function getRequest<T>(endpoint: string, expectResponse?: boolean): Promise<T>;
-function getRequest<T>(
-  endpoint: string,
-  expectResponse: boolean = true
-): Promise<T | null> {
+function getRequest<T>(endpoint: string, expectResponse: boolean = true): Promise<T | null> {
   return doRequest("GET", endpoint, null, expectResponse);
 }
 
@@ -86,7 +82,11 @@ function getRequest<T>(
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function postRequest(
+  endpoint: string,
+  bodyObject: Object | null,
+  expectResponse: false,
+): Promise<null>;
 /**
  * Makes a POST request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -106,11 +106,15 @@ function postRequest(endpoint: string, bodyObject: Object | null, expectResponse
  * // Without response
  * await postRequest<void>('/api/logs', { event: 'action' }, false);
  */
-function postRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
+function postRequest<T>(
+  endpoint: string,
+  bodyObject?: Object | null,
+  expectResponse?: boolean,
+): Promise<T>;
 function postRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
-  expectResponse: boolean = true
+  expectResponse: boolean = true,
 ): Promise<T | null> {
   return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
 }
@@ -134,7 +138,11 @@ function postRequest<T>(
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest(endpoint: string, bodyObject: Object | null, expectResponse: false): Promise<null>;
+function patchRequest(
+  endpoint: string,
+  bodyObject: Object | null,
+  expectResponse: false,
+): Promise<null>;
 /**
  * Makes a PATCH request to the specified endpoint.
  * @template T - The type of the expected response (when expectResponse is true)
@@ -154,11 +162,15 @@ function patchRequest(endpoint: string, bodyObject: Object | null, expectRespons
  * // Without response
  * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
  */
-function patchRequest<T>(endpoint: string, bodyObject?: Object | null, expectResponse?: boolean): Promise<T>;
+function patchRequest<T>(
+  endpoint: string,
+  bodyObject?: Object | null,
+  expectResponse?: boolean,
+): Promise<T>;
 async function patchRequest<T>(
   endpoint: string,
   bodyObject: Object | null = null,
-  expectResponse: boolean = true
+  expectResponse: boolean = true,
 ): Promise<T | null> {
   if (expectResponse) {
     return doRequest<T>("PATCH", endpoint, bodyObject, true);
@@ -184,7 +196,7 @@ function doRequest(
   method: string,
   endpoint: string,
   bodyObject: Object | null,
-  expectResponse: false
+  expectResponse: false,
 ): Promise<null>;
 /**
  * Internal method to make an HTTP request.
@@ -204,7 +216,7 @@ function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject?: Object | null,
-  expectResponse?: boolean
+  expectResponse?: boolean,
 ): Promise<T>;
 /**
  * Internal method to make an HTTP request.
@@ -224,7 +236,7 @@ async function doRequest<T>(
   method: string,
   endpoint: string,
   bodyObject: Object | null = null,
-  expectResponse: boolean = true
+  expectResponse: boolean = true,
 ): Promise<T | null> {
   const response = await doUnprocessedRequest(method, endpoint, bodyObject);
 
@@ -232,16 +244,16 @@ async function doRequest<T>(
     return null;
   }
 
-  const text = await response.text()
+  const text = await response.text();
   if (text) {
-    return JSON.parse(text) as T
+    return JSON.parse(text) as T;
   }
 
   if (bodyObject) {
-    console.error("Body request:", bodyObject)
+    console.error("Body request:", bodyObject);
   }
-  console.error("Response: ", response)
-  throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`)
+  console.error("Response: ", response);
+  throw new Error(`Expected a response from ${method} call to ${endpoint} but got none`);
 }
 
 /**
@@ -255,24 +267,26 @@ async function doRequest<T>(
 async function doUnprocessedRequest(
   method: string,
   endpoint: string,
-  bodyObject: Object | null = null
+  bodyObject: Object | null = null,
 ): Promise<Response> {
-  const authToken = useAuthStore().token ?? ""
+  const authToken = useAuthStore().token ?? "";
 
   const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
     method: method,
-    credentials: 'include',
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': authToken
+      "Content-Type": "application/json",
+      Authorization: authToken,
     },
-    body: bodyObject ? JSON.stringify(bodyObject) : null
+    body: bodyObject ? JSON.stringify(bodyObject) : null,
   });
 
   if (!response.ok) {
-    console.error(`A ${response.status} error occurred while making a ${method} request to ${endpoint}`)
-    console.error(response)
-    throw new ServerError(endpoint, await response.text(), response.status, response.statusText)
+    console.error(
+      `A ${response.status} error occurred while making a ${method} request to ${endpoint}`,
+    );
+    console.error(response);
+    throw new ServerError(endpoint, await response.text(), response.status, response.statusText);
   }
-  return response
+  return response;
 }
