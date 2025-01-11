@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.BiFunction;
 
 class LateDayCalculatorTest {
 
@@ -206,8 +207,17 @@ class LateDayCalculatorTest {
         };
         validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customlateDayCalculator2);
     }
+
     private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
                                           LateDayCalculator lateDayCalculator) {
+        validateExpectedDays(dueDateStr, expectedDaysLate, lateDayCalculator::getNumDaysLate);
+    }
+    private void validateExpectedDaysEarly(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
+                                          LateDayCalculator lateDayCalculator) {
+        validateExpectedDays(dueDateStr, expectedDaysLate, lateDayCalculator::getNumDaysEarly);
+    }
+    private void validateExpectedDays(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
+                                      BiFunction<ZonedDateTime, ZonedDateTime, Integer> operator) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a z");
         ZonedDateTime dueDate = ZonedDateTime.parse(dueDateStr, formatter);
@@ -216,7 +226,7 @@ class LateDayCalculatorTest {
         ZonedDateTime handInTime;
         for (var expectedResult : expectedDaysLate) {
             handInTime = ZonedDateTime.parse(expectedResult.handInDate, formatter);
-            Assertions.assertEquals(expectedResult.daysLate, lateDayCalculator.getNumDaysLate(handInTime, dueDate));
+            Assertions.assertEquals(expectedResult.daysLate, operator.apply(handInTime, dueDate));
         }
     }
 

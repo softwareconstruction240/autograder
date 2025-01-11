@@ -12,6 +12,7 @@ import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -59,7 +60,7 @@ public class LateDayCalculator {
 
     /**
      * Gets the number of days late the submission is. This excludes weekends and public holidays.
-     *
+     * <br>
      * In the event that the due date also happens to be a holiday, the assignment not receive
      * a late penalty until AFTER the holiday and weekends following it. While this behavior
      * may be surprising, it can be controlled by professors being careful to never assign a
@@ -85,6 +86,21 @@ public class LateDayCalculator {
         }
 
         return daysLate;
+    }
+
+    /**
+     * Gets the number of full 24-hour periods that fit between the hand-in date and the due date.
+     * <br>
+     * This method does not respect holidays; any 24-hour period counts as an early day.
+     *
+     * @param handInDate the date the submission was handed in
+     * @param dueDate    the due date of the phase
+     * @return the number of days early or 0 if the submission is not early
+     */
+    public int getNumDaysEarly(@Nullable ZonedDateTime handInDate, @Nullable ZonedDateTime dueDate) {
+        if (handInDate == null || dueDate == null) return 0; // Missing values
+        if (handInDate.isAfter(dueDate)) return 0; // Turned in late
+        return (int) (Duration.between(handInDate, dueDate).toHours() / 24);
     }
 
     /**
