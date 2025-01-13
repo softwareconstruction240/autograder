@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { loadUser, logoutPost } from "@/services/authService";
 import router from "@/router";
@@ -50,15 +50,14 @@ const repoEditDone = () => {
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
-    <p @click="openRepoEditor = true" style="cursor: pointer;">{{ useAuthStore().user?.repoUrl }} <i class="fa-solid fa-pen-to-square" v-if="useAuthStore().user?.repoUrl"/></p>
+    <p @click="openRepoEditor = true" style="cursor: pointer">
+      {{ useAuthStore().user?.repoUrl }}
+      <i class="fa-solid fa-pen-to-square" v-if="useAuthStore().user?.repoUrl" />
+    </p>
     <BannerMessage />
   </header>
   <main>
-    <PopUp
-      id="repoEditorPopUp"
-      v-if="openRepoEditor"
-      @closePopUp="openRepoEditor = false"
-    >
+    <PopUp id="repoEditorPopUp" v-if="openRepoEditor" @closePopUp="openRepoEditor = false">
       <h2>Change Repo</h2>
       <RepoEditor @repoEditSuccess="repoEditDone" :user="useAuthStore().user" />
       This will not affect previous submissions.
