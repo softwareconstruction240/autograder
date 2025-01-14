@@ -208,6 +208,72 @@ class LateDayCalculatorTest {
         validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customLateDayCalculator2);
     }
 
+    @Test
+    void getNumDaysEarly() {
+        // Initialize without holidays
+        LateDayCalculator lateDayCalculator = new LateDayCalculator();
+        lateDayCalculator.initializePublicHolidays();
+
+        // See images: days-early
+        String dueDateStr = "1999-11-19 11:59:00 PM -07:00";
+        ExpectedDaysLate[] expectedDaysLate = {
+                // Day of submissions
+                // Notice the timezone testing and edge case testing
+                new ExpectedDaysLate("1999-11-19 02:00:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-19 02:00:00 PM -17:00", 0),
+                new ExpectedDaysLate("1999-11-19 11:59:00 AM -07:00", 0),
+                new ExpectedDaysLate("1999-11-19 03:00:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-20 01:12:00 AM -05:00", 0),
+
+                // Edge case, late submissions
+                new ExpectedDaysLate("1999-11-19 11:59:13 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-19 11:59:45 PM -07:00", 0),
+
+                new ExpectedDaysLate("1999-11-20 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-21 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-22 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-23 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-24 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-25 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-26 11:50:00 PM -07:00", 0),
+                new ExpectedDaysLate("1999-11-27 11:50:00 PM -07:00", 0),
+
+                // Early submissions (1 day to 1 week)
+                new ExpectedDaysLate("1999-11-18 12:15:00 AM -07:00", 1),
+                new ExpectedDaysLate("1999-11-18 08:15:00 AM -07:00", 1),
+                new ExpectedDaysLate("1999-11-18 02:15:00 PM -07:00", 1),
+                new ExpectedDaysLate("1999-11-18 11:58:45 PM -07:00", 1), // A full day early
+                new ExpectedDaysLate("1999-11-18 11:59:45 PM -07:00", 0), // Not a full day early
+
+                new ExpectedDaysLate("1999-11-17 11:58:03 PM -07:00", 2),
+                new ExpectedDaysLate("1999-11-16 02:15:00 PM -07:00", 3),
+                new ExpectedDaysLate("1999-11-15 02:15:00 PM -07:00", 4),
+                new ExpectedDaysLate("1999-11-14 02:15:00 PM -07:00", 5),
+                new ExpectedDaysLate("1999-11-13 02:15:00 PM -07:00", 6),
+
+                // Early submissions (1 week to 3 weeks)
+                new ExpectedDaysLate("1999-11-12 02:15:00 PM -07:00", 7),
+                new ExpectedDaysLate("1999-11-11 02:15:00 PM -07:00", 8),
+
+                new ExpectedDaysLate("1999-11-10 02:15:00 PM -07:00", 9),
+                new ExpectedDaysLate("1999-11-09 02:15:00 PM -07:00", 10),
+                new ExpectedDaysLate("1999-11-08 02:15:00 PM -07:00", 11),
+                new ExpectedDaysLate("1999-11-07 02:15:00 PM -07:00", 12),
+                new ExpectedDaysLate("1999-11-06 02:15:00 PM -07:00", 13),
+                new ExpectedDaysLate("1999-11-05 02:15:00 PM -07:00", 14),
+                new ExpectedDaysLate("1999-11-04 02:15:00 PM -07:00", 15),
+                new ExpectedDaysLate("1999-11-03 02:15:00 PM -07:00", 16),
+                new ExpectedDaysLate("1999-11-02 02:15:00 PM -07:00", 17),
+                new ExpectedDaysLate("1999-11-01 02:15:00 PM -07:00", 18),
+
+                // Early submissions (1+ months)
+                new ExpectedDaysLate("1999-10-12 02:15:00 PM -07:00", 38),
+        };
+
+        // Validate
+        validateExpectedDaysEarly(dueDateStr, expectedDaysLate, lateDayCalculator);
+    }
+
     private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
                                           LateDayCalculator lateDayCalculator) {
         validateExpectedDays(dueDateStr, expectedDaysLate, lateDayCalculator::getNumDaysLate);
