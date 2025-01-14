@@ -39,7 +39,7 @@ public class LateDayCalculator {
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
     private Set<LocalDate> publicHolidays;
-    private final Map<String, LateDayInfo> lateDayInfoCache = new HashMap<>();
+    private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
 
     public LateDayCalculator() {
         initializePublicHolidays(getEncodedPublicHolidays());
@@ -64,50 +64,50 @@ public class LateDayCalculator {
      * @param handInDate
      * @param maxLateDaysToPenalize
      */
-    private record LateDayInfo(
+    private record LateDayContext(
             ZonedDateTime dueDate,
             ZonedDateTime handInDate,
             int maxLateDaysToPenalize
     ) { }
 
-    private LateDayInfo getLateDayInfo(Phase phase, String netId) throws DataAccessException, GradingException {
+    private LateDayContext getLateDayContext(Phase phase, String netId) throws DataAccessException, GradingException {
         // Read from local cache
         String keyHash = hashCacheKeys(phase, netId);
-        if (lateDayInfoCache.containsKey(keyHash)) {
-            return lateDayInfoCache.get(keyHash);
+        if (lateDayContextCache.containsKey(keyHash)) {
+            return lateDayContextCache.get(keyHash);
         }
 
         // Cache and return
-        LateDayInfo info = fetchLateDayInfo(phase, netId);
-        lateDayInfoCache.put(keyHash, info);
-        return info;
+        LateDayContext lateDayContext = fetchLateDayContext(phase, netId);
+        lateDayContextCache.put(keyHash, lateDayContext);
+        return lateDayContext;
     }
 
     private String hashCacheKeys(Phase phase, String netId) {
         return phase.name() + "---" + netId;
     }
 
-    private LateDayInfo fetchLateDayInfo(Phase phase, String netId) throws GradingException, DataAccessException {
+    private LateDayContext fetchLateDayContext(Phase phase, String netId) throws GradingException, DataAccessException {
         // Skip network calls when configured
         if (!ApplicationProperties.useCanvas()) {
-            return new LateDayInfo(null, null, 0);
+            return new LateDayContext(null, null, 0);
         }
 
         // Request from network (expensive)
         ZonedDateTime dueDate = LateDayCalculator.getPhaseDueDateZoned(phase, netId);
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        return new LateDayInfo(dueDate, handInDate, maxLateDaysToPenalize);
+        return new LateDayContext(dueDate, handInDate, maxLateDaysToPenalize);
     }
 
     public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
-        var info = getLateDayInfo(phase, netId);
-        return Math.min(getNumDaysLate(info.handInDate, info.dueDate), info.maxLateDaysToPenalize);
+        var context = getLateDayContext(phase, netId);
+        return Math.min(getNumDaysLate(context.handInDate, context.dueDate), context.maxLateDaysToPenalize);
     }
 
     public int calculateEarlyDays(Phase phase, String netId) throws GradingException, DataAccessException {
-        var info = getLateDayInfo(phase, netId);
-        return getNumDaysEarly(info.handInDate, info.dueDate);
+        var context = getLateDayContext(phase, netId);
+        return getNumDaysEarly(context.handInDate, context.dueDate);
     }
 
     /**
