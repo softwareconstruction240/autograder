@@ -17,22 +17,29 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Calculates late days
- * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
+ * Calculates late days.
+ * <br>
+ * The calculation of the late/early days requires additional information which must be requested from a network.
+ * This information is fetched and cached so that subsequent requests requiring the details
+ * do not create a performance bottleneck.
+ * <br>
+ * It is intended that an instance of this class will be shared and reused for at least an entire grading session.
+ * Since the simple cache preserves all metadata, it would be efficient to restart the object for each new grading
+ * session to avoid a memory leak.
+ * <br>
+ * CONSIDER: Implementing a max-cache-count cache which would not require a new instance in order to avoid memory leaks.
+ * At the present time, this system is more complex than is necessary.
  */
 public class LateDayCalculator {
 
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
-
     private Set<LocalDate> publicHolidays;
+    private final Map<String, LateDayInfo> lateDayInfoCache = new HashMap<>();
 
     public LateDayCalculator() {
         initializePublicHolidays(getEncodedPublicHolidays());
@@ -49,13 +56,54 @@ public class LateDayCalculator {
         }
     }
 
-    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
-        if (!ApplicationProperties.useCanvas()) return 0;
+    /**
+     * Contains several pieces of information which must be queried from online sources.
+     * This information is cached to respond quickly to repeated requests for the same information.
+     *
+     * @param dueDate
+     * @param handInDate
+     * @param maxLateDaysToPenalize
+     */
+    private record LateDayInfo(
+            ZonedDateTime dueDate,
+            ZonedDateTime handInDate,
+            int maxLateDaysToPenalize
+    ) { }
 
+    private LateDayInfo getLateDayInfo(Phase phase, String netId) throws DataAccessException, GradingException {
+        // Read from local cache
+        String keyHash = hashCacheKeys(phase, netId);
+        if (lateDayInfoCache.containsKey(keyHash)) {
+            return lateDayInfoCache.get(keyHash);
+        }
+
+        // Cache and return
+        LateDayInfo info = fetchLateDayInfo(phase, netId);
+        lateDayInfoCache.put(keyHash, info);
+        return info;
+    }
+
+    private String hashCacheKeys(Phase phase, String netId) {
+        return phase.name() + "---" + netId;
+    }
+
+    private LateDayInfo fetchLateDayInfo(Phase phase, String netId) throws GradingException, DataAccessException {
+        // Skip network calls when configured
+        if (!ApplicationProperties.useCanvas()) {
+            ZonedDateTime now = ZonedDateTime.now();
+            return new LateDayInfo(now, now, 0);
+        }
+
+        // Request from network (expensive)
         ZonedDateTime dueDate = LateDayCalculator.getPhaseDueDateZoned(phase, netId);
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        return Math.min(getNumDaysLate(handInDate, dueDate), maxLateDaysToPenalize);
+        return new LateDayInfo(dueDate, handInDate, maxLateDaysToPenalize);
+    }
+
+    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
+        var info = getLateDayInfo(phase, netId);
+        return Math.min(getNumDaysLate(info.handInDate, info.dueDate), info.maxLateDaysToPenalize);
     }
 
     /**
