@@ -226,7 +226,8 @@ class LateDayCalculatorTest {
         ZonedDateTime handInTime;
         for (var expectedResult : expectedDaysLate) {
             handInTime = ZonedDateTime.parse(expectedResult.handInDate, formatter);
-            Assertions.assertEquals(expectedResult.daysLate, operator.apply(handInTime, dueDate));
+            Assertions.assertEquals(expectedResult.daysLate, operator.apply(handInTime, dueDate),
+                    "Incorrect answer for hand in date: " + expectedResult.handInDate);
         }
     }
 
