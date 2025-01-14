@@ -90,8 +90,7 @@ public class LateDayCalculator {
     private LateDayInfo fetchLateDayInfo(Phase phase, String netId) throws GradingException, DataAccessException {
         // Skip network calls when configured
         if (!ApplicationProperties.useCanvas()) {
-            ZonedDateTime now = ZonedDateTime.now();
-            return new LateDayInfo(now, now, 0);
+            return new LateDayInfo(null, null, 0);
         }
 
         // Request from network (expensive)
@@ -106,6 +105,11 @@ public class LateDayCalculator {
         return Math.min(getNumDaysLate(info.handInDate, info.dueDate), info.maxLateDaysToPenalize);
     }
 
+    public int calculateEarlyDays(Phase phase, String netId) throws GradingException, DataAccessException {
+        var info = getLateDayInfo(phase, netId);
+        return getNumDaysEarly(info.handInDate, info.dueDate);
+    }
+
     /**
      * Gets the number of days late the submission is. This excludes weekends and public holidays.
      * <br>
@@ -118,10 +122,13 @@ public class LateDayCalculator {
      * @param dueDate    the due date of the phase
      * @return the number of days late or 0 if the submission is not late
      */
-    public int getNumDaysLate(@NonNull ZonedDateTime handInDate, @NonNull ZonedDateTime dueDate) {
+    public int getNumDaysLate(@Nullable ZonedDateTime handInDate, @Nullable ZonedDateTime dueDate) {
         if (publicHolidays == null) {
             throw new RuntimeException("Public Holidays have not yet been initialized. "
                     + "Call `dateTimeUtils.initializePublicHolidays()` before attempting to count the days late.");
+        }
+        if (handInDate == null || dueDate == null) {
+            return 0;
         }
 
         int daysLate = 0;
