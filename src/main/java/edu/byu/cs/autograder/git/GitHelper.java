@@ -45,10 +45,6 @@ public class GitHelper {
 
     public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
 
-    public GitHelper(GradingContext gradingContext) {
-        this(gradingContext, new DefaultGitVerificationStrategy());
-    }
-
     public GitHelper(GradingContext gradingContext, CommitVerificationStrategy commitVerificationStrategy) {
         this.gradingContext = gradingContext;
         this.commitVerificationStrategy = commitVerificationStrategy;

@@ -149,7 +149,7 @@ class ScorerTest {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, new EnumMap<>(Rubric.RubricType.class));
         setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        var scorer = new Scorer(gradingContext);
+        var scorer = constructScorer();
         var rubric = constructRubric(1f);
         assertThrows(GradingException.class, () -> scorer.score(rubric, PASSING_COMMIT_VERIFICATION));
     }
@@ -292,6 +292,9 @@ class ScorerTest {
 
     // Helper Methods for constructing
 
+    private Scorer constructScorer() {
+        return new Scorer(gradingContext, new LateDayCalculator());
+    }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
      *
@@ -331,7 +334,7 @@ class ScorerTest {
         return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
     }
     private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
-        Scorer scorer = new Scorer(gradingContext);
+        Scorer scorer = constructScorer();
         return scoreRubric(scorer, rubric, commitVerification);
     }
     private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {

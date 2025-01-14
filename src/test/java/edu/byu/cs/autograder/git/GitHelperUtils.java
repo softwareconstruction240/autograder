@@ -3,6 +3,8 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
+import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
@@ -237,7 +239,9 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        return evaluateRepo(new GitHelper(gradingContext), minThreshold);
+        return evaluateRepo(
+                new GitHelper(gradingContext, new DefaultGitVerificationStrategy(new LateDayCalculator())),
+                minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
         return git -> {
