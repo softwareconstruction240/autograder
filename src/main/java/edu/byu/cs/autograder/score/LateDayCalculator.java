@@ -45,17 +45,6 @@ public class LateDayCalculator {
         initializePublicHolidays(getEncodedPublicHolidays());
     }
 
-    protected ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
-
-        try {
-            return CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
-        } catch (CanvasException e) {
-            throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
-        }
-    }
-
     /**
      * Contains several pieces of information which must be queried from online sources.
      * This information is cached to respond quickly to repeated requests for the same information.
@@ -102,6 +91,17 @@ public class LateDayCalculator {
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         return new LateDayContext(dueDate, handInDate, maxLateDaysToPenalize);
+    }
+
+    protected ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+
+        try {
+            return CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+        } catch (CanvasException e) {
+            throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
+        }
     }
 
     public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
