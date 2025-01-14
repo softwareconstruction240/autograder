@@ -50,9 +50,7 @@ const repoEditDone = () => {
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
-    <p v-if="useAuthStore().user?.repoUrl"
-       @click="openRepoEditor = true"
-       style="cursor: pointer">
+    <p v-if="useAuthStore().user?.repoUrl" @click="openRepoEditor = true" style="cursor: pointer">
       {{ useAuthStore().user?.repoUrl }}
       <i class="fa-solid fa-pen-to-square" />
     </p>
