@@ -78,8 +78,8 @@ class LateDayCalculatorTest {
     @Test
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
-        LateDayCalculator standardlateDayCalculator = new LateDayCalculator();
-        standardlateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration(), QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator standardLateDayCalculator = new LateDayCalculator();
+        standardLateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration(), QUIET_HOLIDAY_INIT_WARNINGS);
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -111,7 +111,7 @@ class LateDayCalculatorTest {
                 new ExpectedDaysLate("2024-03-24 02:15:00 PM -07:00", 11),
                 new ExpectedDaysLate("2024-03-25 02:15:00 PM -07:00", 11),
         };
-        validateExpectedDaysLate(commonDueDate, commonExpectedDaysLate, standardlateDayCalculator);
+        validateExpectedDaysLate(commonDueDate, commonExpectedDaysLate, standardLateDayCalculator);
 
         // See image: days-late-with-holidays-due-on-holiday
         // This edge case is professor approved
@@ -146,12 +146,12 @@ class LateDayCalculatorTest {
                 new ExpectedDaysLate("2024-07-05 02:15:00 PM -07:00", 10),
                 new ExpectedDaysLate("2024-07-06 02:15:00 PM -07:00", 11), // Weekend
         };
-        validateExpectedDaysLate(holidayDueDate, holidayExpectedDaysLate, standardlateDayCalculator);
+        validateExpectedDaysLate(holidayDueDate, holidayExpectedDaysLate, standardLateDayCalculator);
 
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
-        LateDayCalculator customlateDayCalculator = new LateDayCalculator();
-        customlateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025", QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator customLateDayCalculator = new LateDayCalculator();
+        customLateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025", QUIET_HOLIDAY_INIT_WARNINGS);
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysLate[] fridayHolidayAndConsecutiveHolidays = {
                 // On Time
@@ -188,12 +188,12 @@ class LateDayCalculatorTest {
                 new ExpectedDaysLate("2025-01-10 02:15:00 PM -07:00", 10),
                 new ExpectedDaysLate("2025-01-11 02:15:00 PM -07:00", 11), // Weekend
         };
-        validateExpectedDaysLate(fridayHolidayDueDate, fridayHolidayAndConsecutiveHolidays, customlateDayCalculator);
+        validateExpectedDaysLate(fridayHolidayDueDate, fridayHolidayAndConsecutiveHolidays, customLateDayCalculator);
 
 
         // See image: days-late-with-holidays-holidays-on-weekends
-        LateDayCalculator customlateDayCalculator2 = new LateDayCalculator();
-        customlateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;", QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator customLateDayCalculator2 = new LateDayCalculator();
+        customLateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;", QUIET_HOLIDAY_INIT_WARNINGS);
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
         ExpectedDaysLate[] holidaysOnWeekends = {
                 new ExpectedDaysLate("2028-09-14 02:15:00 PM -07:00", 0), // Due date
@@ -205,7 +205,7 @@ class LateDayCalculatorTest {
                 new ExpectedDaysLate("2028-09-20 02:15:00 PM -07:00", 3),
                 new ExpectedDaysLate("2028-09-21 02:15:00 PM -07:00", 4),
         };
-        validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customlateDayCalculator2);
+        validateExpectedDaysLate(holidaysOnWeekendsDueDate, holidaysOnWeekends, customLateDayCalculator2);
     }
 
     private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysLate[] expectedDaysLate,
