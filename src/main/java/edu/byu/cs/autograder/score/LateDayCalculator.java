@@ -45,7 +45,7 @@ public class LateDayCalculator {
         initializePublicHolidays(getEncodedPublicHolidays());
     }
 
-    public static ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
+    protected ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
@@ -64,7 +64,7 @@ public class LateDayCalculator {
      * @param handInDate
      * @param maxLateDaysToPenalize
      */
-    private record LateDayContext(
+    protected record LateDayContext(
             ZonedDateTime dueDate,
             ZonedDateTime handInDate,
             int maxLateDaysToPenalize
@@ -94,7 +94,11 @@ public class LateDayCalculator {
         }
 
         // Request from network (expensive)
-        ZonedDateTime dueDate = LateDayCalculator.getPhaseDueDateZoned(phase, netId);
+        return doFetchLateDayContext(phase, netId);
+    }
+
+    protected LateDayContext doFetchLateDayContext(Phase phase, String netId) throws GradingException, DataAccessException {
+        ZonedDateTime dueDate = getPhaseDueDateZoned(phase, netId);
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         return new LateDayContext(dueDate, handInDate, maxLateDaysToPenalize);
