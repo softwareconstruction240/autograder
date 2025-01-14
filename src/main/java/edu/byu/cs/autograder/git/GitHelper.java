@@ -190,7 +190,7 @@ public class GitHelper {
 
                 return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
-        } catch (IOException | GitAPIException | DataAccessException e) {
+        } catch (Exception e) {
             throw new GradingException("Failed to verify commits: " + e.getMessage(), e);
         }
     }
@@ -241,7 +241,7 @@ public class GitHelper {
      */
     CommitVerificationResult verifyRegularCommits(
             Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
-            throws GitAPIException, IOException, DataAccessException {
+            throws GitAPIException, IOException, DataAccessException, GradingException {
 
         Set<String> excludeCommits = new HashSet<>();
         int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
