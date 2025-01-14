@@ -1,6 +1,9 @@
 package edu.byu.cs.autograder.git.CommitValidation;
 
 import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.score.LateDayCalculator;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.util.Collection;
@@ -10,9 +13,14 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
     private Result warnings;
     private Result errors;
     private Collection<String> expandExcludeSet;
+    private final LateDayCalculator lateDayCalculator;
+
+    public DefaultGitVerificationStrategy(LateDayCalculator lateDayCalculator) {
+        this.lateDayCalculator = lateDayCalculator;
+    }
 
     @Override
-    public void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext) {
+    public void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext) throws GradingException, DataAccessException {
         this.gradingContext = gradingContext;
         var requiredCommits = commitContext.config().requiredCommits();
         var requiredDaysWithCommits = commitContext.config().requiredDaysWithCommits();
@@ -22,6 +30,9 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
         var significantCommits = commitContext.significantCommits();
         var commitsByDay = commitContext.commitsByDay();
 
+        var daysSubmittedEarly = lateDayCalculator.calculateEarlyDays(gradingContext.phase(), gradingContext.netId());
+        var insufficientDaysWithCommits = daysWithCommits + daysSubmittedEarly < requiredDaysWithCommits;
+
         CV[] assertedConditions = {
                 new CV(
                         numCommits < requiredCommits,
@@ -30,7 +41,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         numCommits >= requiredCommits && significantCommits < requiredCommits,
                         String.format("Have some commits, but some of them are too insignificant for credit (%d/%d).", significantCommits, requiredCommits)),
                 new CV(
-                        daysWithCommits < requiredDaysWithCommits,
+                        insufficientDaysWithCommits,
                         String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
                         commitsByDay.commitsInFuture(),
@@ -46,6 +57,9 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         "Missing tail hash. The previous submission commit could not be found in the repository."),
         };
         CV[] warningConditions = {
+                new CV(
+                        !insufficientDaysWithCommits && daysWithCommits < requiredCommits && daysSubmittedEarly > 0,
+                        String.format("Committed %d of %d required days, but early completion made up the difference.", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
                         !commitsByDay.commitsInOrder(),
                         "Congratulations! You have changed the order of some of your commits. You won a medal for manipulating your git history in advanced ways🏅"),
