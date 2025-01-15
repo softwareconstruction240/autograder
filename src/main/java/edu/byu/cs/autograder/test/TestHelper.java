@@ -145,7 +145,7 @@ public class TestHelper {
                 .command(runCommands);
 
         List<String> reportCommands = List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
-                "--classfiles", compiledTests.getParent() + "/repo/shared/target/classes", "--csv", "test-output/coverage.csv");
+                "--classfiles", uberJar.getParent() + "/classes", "--csv", "test-output/coverage.csv");
 
         ProcessBuilder reportProcessBuilder = new ProcessBuilder()
                 .command(reportCommands)

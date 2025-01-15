@@ -66,7 +66,7 @@ public abstract class TestGrader {
 
         results.root().setTestName(testName());
         if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
-            results = new TestOutput(results.root(), null, new CoverageAnalysis(new HashSet<>()), results.error());
+            results = new TestOutput(results.root(), null, results.coverage(), results.error());
         }
         else {
             results.extraCredit().setTestName("Extra Credit");
