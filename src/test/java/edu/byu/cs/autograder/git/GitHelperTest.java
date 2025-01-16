@@ -267,4 +267,19 @@ class GitHelperTest {
                     utils.generalCommitVerificationResult(false, 2, 2, true))
         ));
     }
+
+    @Test
+    void passoffEarlyInsufficientDays() {
+        utils.setGradingContext(utils.generateGradingContext(1, 3, 10,  1));
+        utils.evaluateTest("passoff-early-insufficient-days", new VerificationCheckpoint(
+                repoContext -> {
+                        utils.makeCommit(repoContext, "Change 1", 5, 2, 20);
+                        utils.makeCommit(repoContext, "Change 2", 5, 1, 20);
+                        utils.makeCommit(repoContext, "Change 3", 4, 2, 20);
+                        utils.makeCommit(repoContext, "Change 4", 4, 1, 20);
+                },
+                // TODO: Assert submitted 1 day early
+                utils.generalCommitVerificationResult(true, 4, 2))
+        );
+    }
 }
