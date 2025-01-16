@@ -58,7 +58,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
         };
         CV[] warningConditions = {
                 new CV(
-                        !insufficientDaysWithCommits && daysWithCommits < requiredCommits && daysSubmittedEarly > 0,
+                        !insufficientDaysWithCommits && daysWithCommits < requiredDaysWithCommits && daysSubmittedEarly > 0,
                         String.format("Committed %d of %d required days, but early completion made up the difference.", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
                         !commitsByDay.commitsInOrder(),
