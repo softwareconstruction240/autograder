@@ -2,6 +2,8 @@
 import { useConfigStore } from '@/stores/config'
 import { ref } from 'vue'
 import { setCourseId } from '@/services/configService'
+import PopUp from '@/components/PopUp.vue'
+import AdvancedCourseConfigEditor from '@/components/config/AdvancedCourseConfigEditor.vue'
 
 const config = useConfigStore();
 
@@ -21,6 +23,14 @@ const submit = async () => {
   closeEditor()
 }
 
+const openAdvanced = () => {
+  showAdvancedWindow.value = true
+}
+const closeAdvanced = () => {
+  showAdvancedWindow.value = false
+}
+const showAdvancedWindow = ref<boolean>(false)
+
 </script>
 
 <template>
@@ -31,9 +41,23 @@ const submit = async () => {
   <p>You can find the course number in the course homepage URL.</p>
   <p><em>https://byu.instructure.com/courses/<b>12345</b></em> would mean the course number is <b>12345</b></p>
   <button :disabled="!valueReady()" @click="submit">Submit</button>
+  <p class="advanced" @click="openAdvanced">Advanced Settings</p>
+
+  <PopUp
+    v-if="showAdvancedWindow"
+    @closePopUp="closeAdvanced()">
+    asdf
+    <AdvancedCourseConfigEditor :close-editor="closeAdvanced"/>
+  </PopUp>
 </template>
 
 <style scoped>
+.advanced {
+  font-style: italic;
+  text-decoration: underline;
+  cursor: pointer;
+  width: 150px;
+}
 .inline-container {
   display: flex;
   align-items: center;

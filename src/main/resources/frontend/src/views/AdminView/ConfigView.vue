@@ -9,7 +9,7 @@ import ConfigSection from '@/components/config/ConfigSection.vue'
 const BannerConfigEditor = defineAsyncComponent(() => import('@/components/config/BannerConfigEditor.vue'))
 const LivePhaseConfigEditor = defineAsyncComponent(() => import('@/components/config/LivePhaseConfigEditor.vue'))
 const PenaltyConfigEditor = defineAsyncComponent(() => import('@/components/config/PenaltyConfigEditor.vue'))
-const CoursesConfigEditor = defineAsyncComponent(() => import('@/components/config/CoursesConfigEditor.vue'))
+const CourseConfigEditor = defineAsyncComponent(() => import('@/components/config/CourseConfigEditor.vue'))
 const ScheduleShutdownEditor = defineAsyncComponent(() => import('@/components/config/ScheduleShutdownEditor.vue'))
 
 const config = useConfigStore();
@@ -80,7 +80,7 @@ onMounted( async () => {
 
     <ConfigSection title="Courses" description="Manage Canvas course connections">
       <template #editor="{ closeEditor }">
-        <CoursesConfigEditor :closeEditor="closeEditor"/>
+        <CourseConfigEditor :closeEditor="closeEditor"/>
       </template>
       <template #current>
         <p><span class="infoLabel">Course ID: </span>{{config.admin.courseNumber}}</p>
