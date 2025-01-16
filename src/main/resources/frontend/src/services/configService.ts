@@ -1,7 +1,6 @@
 import { type PrivateConfig, type PublicConfig, useConfigStore } from '@/stores/config'
-import {Phase, type RubricInfo, type RubricType} from '@/types/types'
+import {Phase} from '@/types/types'
 import { ServerCommunicator } from '@/network/ServerCommunicator'
-import { ServerError } from '@/network/ServerError'
 
 export const getPublicConfig = async ():Promise<PublicConfig> => {
   return await ServerCommunicator.getRequest<PublicConfig>("/api/config")
@@ -16,7 +15,7 @@ export const setPenalties = async (maxLateDaysPenalized: number,
                                    perDayLatePenalty: number,
                                    linesChangedPerCommit: number,
                                    clockForgivenessMinutes: number) => {
-  await doSetConfigItem("POST", '/api/admin/config/penalties', {
+  await doSetConfigItem( '/api/admin/config/penalties', {
     maxLateDaysPenalized: maxLateDaysPenalized,
     gitCommitPenalty: gitCommitPenalty,
     perDayLatePenalty: perDayLatePenalty,
@@ -26,7 +25,7 @@ export const setPenalties = async (maxLateDaysPenalized: number,
 }
 
 export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
-  await doSetConfigItem("POST", '/api/admin/config/banner', {
+  await doSetConfigItem( '/api/admin/config/banner', {
       "bannerMessage": message,
       "bannerLink": link,
       "bannerColor": color,
@@ -36,59 +35,27 @@ export const setBanner = async (message: String, link: String, color: String, ex
 }
 
 export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
-  await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
+  await doSetConfigItem( '/api/admin/config/phases', {"phases": phases});
 }
 
 export const setGraderShutdown = async (shutdownTimestamp: string, shutdownWarningHours: number): Promise<void> => {
   if (shutdownWarningHours < 0) shutdownWarningHours = 0
 
-  await doSetConfigItem("POST", "/api/admin/config/phases/shutdown", {
+  await doSetConfigItem( "/api/admin/config/phases/shutdown", {
     "shutdownTimestamp": shutdownTimestamp,
     "shutdownWarningMilliseconds": Math.trunc(shutdownWarningHours * 60 * 60 * 1000) // convert to milliseconds
   })
 }
 
-export const setCanvasCourseIds = async (): Promise<void> => {
-  await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
-}
-
-const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
-  const obj: any = {};
-  rubricInfo.forEach((rubricTypeMap, phase) => {
-    obj[phase] = Object.fromEntries(rubricTypeMap.entries());
-  });
-  return obj;
-}
-
-export const setCourseIds = async (
-  courseNumber: number,
-  assignmentIds: Map<Phase, number>,
-  rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>
-): Promise<void> => {
-  const body = {
-    "courseNumber": courseNumber,
-    "assignmentIds": Object.fromEntries(assignmentIds.entries()),
-    "rubricInfo": convertRubricInfoToObj(rubricInfo)
-  };
-  await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
+export const reloadCourseIds = async (): Promise<void> => {
+  await doSetConfigItem( "/api/admin/config/reloadCourseIds", {});
 }
 
 export const setCourseId = async (courseNumber: number) => {
-  await doSetConfigItem("POST", "/api/admin/config/courseId", { courseId: courseNumber });
+  await doSetConfigItem( "/api/admin/config/courseId", { courseId: courseNumber });
 }
 
-const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
-  try {
-    if (method == "GET") {
-      await ServerCommunicator.getRequest(path, false)
-    } else {
-      await ServerCommunicator.postRequest(path, body, false)
-    }
-  } catch (e) {
-    if (e instanceof ServerError) {
-      alert(e.message)
-    }
-  }
-
+const doSetConfigItem = async (path: string, body: Object): Promise<void> => {
+  await ServerCommunicator.postRequest(path, body, false)
   await useConfigStore().updateConfig();
 }

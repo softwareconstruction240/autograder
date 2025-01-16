@@ -17,8 +17,12 @@ const valueReady = ():boolean => {
 }
 
 const submit = async () => {
-  await setCourseId(courseNumber.value)
-  closeEditor()
+  try {
+    await setCourseId(courseNumber.value)
+    closeEditor()
+  } catch (e) {
+    alert(e)
+  }
 }
 
 </script>

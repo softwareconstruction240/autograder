@@ -16,17 +16,21 @@ const shutdownWarningHours = ref<number>(24)
 const submitShutdown = async () => {
   try {
     await setGraderShutdown(combineDateAndTime(shutdownDate.value, shutdownTime.value), shutdownWarningHours.value)
+    closeEditor()
   } catch (e) {
     alert("There was a problem scheduling the shutdown\n" + e)
   }
-  closeEditor()
 }
 
 const cancelShutdown = async () => {
   const confirm = window.confirm("Are you sure you want to cancel the already scheduled shutdown?")
   if (confirm) {
-    await setGraderShutdown("", 0)
-    closeEditor()
+    try {
+      await setGraderShutdown("", 0)
+      closeEditor()
+    } catch (e) {
+      alert("Something went wrong while canceling the shutdown")
+    }
   }
 }
 </script>
@@ -47,7 +51,7 @@ const cancelShutdown = async () => {
 
     <div class="section">
       <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button>
-      <button v-if="useConfigStore().shutdownSchedule != 'never'" @click="cancelShutdown">Cancel Shutdown</button>
+      <button v-if="useConfigStore().public.shutdown.timestamp != 'never'" @click="cancelShutdown">Cancel Shutdown</button>
     </div>
 
     <Panel>
