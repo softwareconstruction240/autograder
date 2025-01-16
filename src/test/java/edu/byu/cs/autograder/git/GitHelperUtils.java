@@ -40,6 +40,7 @@ public class GitHelperUtils {
 
     private GradingContext gradingContext;
     private CommitVerificationResult prevVerification;
+    private int submitDaysEarly = 0;
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
@@ -78,6 +79,9 @@ public class GitHelperUtils {
     }
     public void setPrevVerification(CommitVerificationResult prevVerification) {
         this.prevVerification = prevVerification;
+    }
+    public void setSubmitDaysEarly(int submitDaysEarly) {
+        this.submitDaysEarly = submitDaysEarly;
     }
 
 
@@ -240,7 +244,7 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(0);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
         return evaluateRepo(
                 new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator)),
                 minThreshold);

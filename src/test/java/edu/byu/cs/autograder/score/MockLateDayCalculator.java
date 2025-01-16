@@ -10,7 +10,7 @@ public class MockLateDayCalculator extends LateDayCalculator {
     public MockLateDayCalculator(int daysBeforeDueDate) {
         super();
         var now = ZonedDateTime.now();
-        fixedContext = new LateDayContext(now, now.plusDays(daysBeforeDueDate), 0);
+        fixedContext = new LateDayContext(now, now.minusDays(daysBeforeDueDate), 0);
     }
 
     @Override
