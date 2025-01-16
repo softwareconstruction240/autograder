@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useConfigStore } from '@/stores/config'
 import { ref } from 'vue'
-import { setCourseId } from '@/services/configService'
+import { reloadCourseIds, setCourseId } from '@/services/configService'
 
 const config = useConfigStore();
 
@@ -25,6 +25,14 @@ const submit = async () => {
   }
 }
 
+const reloadIds = async () => {
+  try {
+    await reloadCourseIds()
+    closeEditor()
+  } catch (e) {
+    alert(e)
+  }
+}
 </script>
 
 <template>
@@ -35,23 +43,18 @@ const submit = async () => {
   <p>You can find the course number in the course homepage URL.</p>
   <p><em>https://byu.instructure.com/courses/<b>12345</b></em> would mean the course number is <b>12345</b></p>
   <button :disabled="!valueReady()" @click="submit">Submit</button>
+  <hr />
+  <div>
+    <h4>Other Ids</h4>
+    <p><em>You should not need to use this button in most cases:</em></p>
+    <p>The Autograder uses the assignment and rubric ids to map submissions to their proper place in Canvas. These are automatically pulled from Canvas when you set the course id, but if rubric items or assignments were changed after the fact, then you made need to reload them.</p>
+    <button class="small" @click="reloadIds">Reload Assignment/Rubric Ids</button>
+    <p><em>This will reload assignment and rubric ids from the current course: {{config.admin.courseNumber}}</em></p>
+  </div>
 </template>
 
 <style scoped>
-.advanced {
-  font-style: italic;
-  text-decoration: underline;
-  cursor: pointer;
-  width: 150px;
-}
-.inline-container {
-  display: flex;
-  align-items: center;
-  margin-right: 10px; /* Optional: Adjust spacing between elements */
-  margin-left: 10px;
-}
-
-.inline-container label {
-  margin-right: 5px; /* Optional: Adjust spacing between label and input */
+hr {
+  margin: 10px 0;
 }
 </style>
