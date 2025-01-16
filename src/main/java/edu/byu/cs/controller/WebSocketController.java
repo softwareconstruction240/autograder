@@ -36,16 +36,16 @@ public class WebSocketController {
             return;
         }
 
-        if (!TrafficController.sessions.containsKey(netId)) {
+        if (!TrafficController.getSessions().containsKey(netId)) {
             sendError(session, "You are not in the queue");
             session.close();
             return;
         }
 
-        if (TrafficController.sessions.get(netId).contains(session))
+        if (TrafficController.getSessions().get(netId).contains(session))
             return;
 
-        TrafficController.sessions.get(netId).add(session);
+        TrafficController.getSessions().get(netId).add(session);
         try {
             TrafficController.broadcastQueueStatus();
         } catch (DataAccessException e) {

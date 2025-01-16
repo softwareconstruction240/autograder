@@ -22,7 +22,11 @@ public class TrafficController {
     /**
      * A map of netIds to sessions that are subscribed to updates for that netId
      */
-    public static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
+
+    public static ConcurrentHashMap<String, List<Session>> getSessions() {
+        return sessions;
+    }
 
     /**
      * The executor service that runs the graders
