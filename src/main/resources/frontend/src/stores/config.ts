@@ -1,71 +1,70 @@
-import { reactive, readonly, ref } from 'vue'
-import { defineStore } from 'pinia'
-import {Phase, type RubricInfo, type RubricType} from '@/types/types'
-import { getAdminConfig, getPublicConfig } from '@/services/configService'
-import { useAuthStore } from '@/stores/auth'
+import { reactive, readonly, ref } from "vue";
+import { defineStore } from "pinia";
+import { Phase, type RubricInfo, type RubricType } from "@/types/types";
+import { getAdminConfig, getPublicConfig } from "@/services/configService";
+import { useAuthStore } from "@/stores/auth";
 
 type ImportMeta = {
-    VITE_APP_BACKEND_URL: string
-}
+  VITE_APP_BACKEND_URL: string;
+};
 
 /**
  * Config available to be read by any user
  */
 export type PublicConfig = {
   banner: {
-    message: string
-    link: string
-    color: string
-    expiration: string
-  },
+    message: string;
+    link: string;
+    color: string;
+    expiration: string;
+  };
 
   shutdown: {
-    timestamp: string
-    warningMilliseconds: number
-  },
+    timestamp: string;
+    warningMilliseconds: number;
+  };
 
-  livePhases: Array<Phase>
-}
+  livePhases: Array<Phase>;
+};
 
 /**
  * Config available to be read only by admins
  */
 export type PrivateConfig = {
   penalty: {
-    perDayLatePenalty: number
-    gitCommitPenalty: number
-    maxLateDaysPenalized: number
-    linesChangedPerCommit: number
-    clockForgivenessMinutes: number
-  },
+    perDayLatePenalty: number;
+    gitCommitPenalty: number;
+    maxLateDaysPenalized: number;
+    linesChangedPerCommit: number;
+    clockForgivenessMinutes: number;
+  };
 
-  courseNumber: number
+  courseNumber: number;
   assignments: {
-    phase: Phase,
-    assignmentId: number,
-    rubricItems: Map<RubricType, RubricInfo>
-  }[]
-}
+    phase: Phase;
+    assignmentId: number;
+    rubricItems: Map<RubricType, RubricInfo>;
+  }[];
+};
 
 // @ts-ignore
 const env: ImportMeta = import.meta.env;
-export const useConfigStore = defineStore('config', () => {
-
+export const useConfigStore = defineStore("config", () => {
   const publicConfig = reactive<PublicConfig>({
     banner: {
-      message: '',
-      link: '',
-      color: '',
-      expiration: ''
+      message: "",
+      link: "",
+      color: "",
+      expiration: "",
     },
 
     shutdown: {
-      timestamp: '',
-      warningMilliseconds: 0
+      timestamp: "",
+      warningMilliseconds: 0,
     },
 
-    livePhases: []
-  })
+    livePhases: [],
+  });
 
   const privateConfig = reactive<PrivateConfig>({
     penalty: {
@@ -77,31 +76,31 @@ export const useConfigStore = defineStore('config', () => {
     },
     courseNumber: -1,
     assignments: [],
-  })
+  });
 
   const updateConfig = async () => {
     if (useAuthStore().isLoggedIn) await updateAdminConfig();
-    await updatePublicConfig()
-  }
+    await updatePublicConfig();
+  };
 
   const updatePublicConfig = async () => {
     const latestPublicConfig: PublicConfig = await getPublicConfig();
 
-    Object.assign(publicConfig, latestPublicConfig)
+    Object.assign(publicConfig, latestPublicConfig);
 
     // Backend lets the front end choose the default banner color
-    if (!publicConfig.banner.color) publicConfig.banner.color = "#4fa0ff"
-  }
+    if (!publicConfig.banner.color) publicConfig.banner.color = "#4fa0ff";
+  };
 
   const updateAdminConfig = async () => {
     const latestAdminConfig = await getAdminConfig();
 
-    console.log(latestAdminConfig)
+    console.log(latestAdminConfig);
 
-    Object.assign(privateConfig, latestAdminConfig)
+    Object.assign(privateConfig, latestAdminConfig);
 
-    console.log(privateConfig)
-  }
+    console.log(privateConfig);
+  };
 
   const backendUrl = ref<string>(env.VITE_APP_BACKEND_URL);
 
@@ -111,6 +110,6 @@ export const useConfigStore = defineStore('config', () => {
     updateAdminConfig,
     backendUrl: readonly(backendUrl),
     public: readonly(publicConfig),
-    admin: readonly(privateConfig)
+    admin: readonly(privateConfig),
   };
-})
+});

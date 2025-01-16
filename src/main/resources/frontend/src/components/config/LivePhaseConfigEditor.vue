@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { listOfPhases, Phase } from '@/types/types'
-import { useConfigStore } from '@/stores/config'
-import { setLivePhases } from '@/services/configService'
-import { onMounted, ref } from 'vue'
+import { listOfPhases, Phase } from "@/types/types";
+import { useConfigStore } from "@/stores/config";
+import { setLivePhases } from "@/services/configService";
+import { onMounted, ref } from "vue";
 
 const config = useConfigStore();
 
 const { closeEditor } = defineProps<{
-  closeEditor: () => void
+  closeEditor: () => void;
 }>();
 
 type PhaseSetting = {
-  phase: Phase,
-  active: boolean
-}
-const phases = ref<PhaseSetting[]>([])
+  phase: Phase;
+  active: boolean;
+};
+const phases = ref<PhaseSetting[]>([]);
 
 onMounted(() => {
   for (const phase of listOfPhases() as Phase[]) {
     phases.value.push({
       phase: phase,
-      active: useConfigStore().public.livePhases.includes(phase)
-    })
+      active: useConfigStore().public.livePhases.includes(phase),
+    });
   }
-})
+});
 
 const setAllPhases = (setting: boolean) => {
   for (const phaseSetting of phases.value) {
-    phaseSetting.active = setting
+    phaseSetting.active = setting;
   }
-}
+};
 const submitLivePhases = async () => {
-  let livePhases: Phase[] = []
+  let livePhases: Phase[] = [];
   for (const phaseSetting of phases.value) {
     if (phaseSetting.active) {
       livePhases.push(phaseSetting.phase);
@@ -39,20 +39,20 @@ const submitLivePhases = async () => {
   }
 
   try {
-    await setLivePhases(livePhases)
-    closeEditor()
+    await setLivePhases(livePhases);
+    closeEditor();
   } catch (e) {
-    config.updatePublicConfig()
-    alert("There was a problem in saving live phases")
+    config.updatePublicConfig();
+    alert("There was a problem in saving live phases");
   }
-}
+};
 </script>
 
 <template>
   <div class="checkboxes">
     <label v-for="phaseSetting in phases" :key="phaseSetting.phase">
       <span>
-        <input type="checkbox" v-model="phaseSetting.active">
+        <input type="checkbox" v-model="phaseSetting.active" />
         {{ phaseSetting.phase }}
       </span>
     </label>
@@ -78,7 +78,7 @@ const submitLivePhases = async () => {
   flex-direction: column;
   align-items: center;
 }
-.submitChanges >* {
+.submitChanges > * {
   margin: 5px;
 }
 </style>
