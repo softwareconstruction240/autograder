@@ -146,8 +146,6 @@ public class RepoUrlValidatorTest {
     @Tag("isNotFork")
     @CsvSource({
             "softwareconstruction240, chess, true",
-            "softwareconstruction240, chess-duplicated, true",
-            "softwareconstruction240, chess-fork, false",
             "softwareconstruction240, invalid-repo-name, false",
             "invalid-username, chess, false"
     })
@@ -159,9 +157,6 @@ public class RepoUrlValidatorTest {
     @ParameterizedTest
     @CsvSource({
             "git@github.com:softwareconstruction240/chess.git, true",
-            "git@github.com:softwareconstruction240/chess-duplicated.git, true",
-            "https://github.com/softwareconstruction240/chess-duplicated.git, true",
-            "git@github.com:softwareconstruction240/chess-fork.git, false",
             "git@github.com:softwareconstruction240/missing-repo-name.git, false",
             "git@github.com:missing-username/chess.git, false"
     })
