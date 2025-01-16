@@ -88,24 +88,6 @@ public class ConfigController {
         return "";
     };
 
-    public static final Route updateCourseIdsPost = (req, res) -> {
-        SetCourseIdsRequest setCourseIdsRequest = Serializer.deserialize(req.body(), SetCourseIdsRequest.class);
-
-        User user = req.session().attribute("user");
-
-        // Course Number
-        try {
-            ConfigService.updateCourseIds(user, setCourseIdsRequest);
-        } catch (DataAccessException e) {
-            res.status(400);
-            res.body(e.getMessage());
-            return res;
-        }
-
-        res.status(200);
-        return "";
-    };
-
     public static final Route updateCourseIdPost = (req, res) -> {
         User user = req.session().attribute("user");
 

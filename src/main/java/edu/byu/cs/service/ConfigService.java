@@ -223,44 +223,6 @@ public class ConfigService {
         }
     }
 
-    public static void updateCourseIds(User user, SetCourseIdsRequest setCourseIdsRequest) throws DataAccessException {
-
-        // Course Number
-        dao.setConfiguration(
-                Configuration.COURSE_NUMBER,
-                setCourseIdsRequest.courseNumber(),
-                Integer.class
-        );
-
-        // Assignment IDs and Rubric Info
-        var assignmentIds = setCourseIdsRequest.assignmentIds();
-        var rubricInfo = setCourseIdsRequest.rubricInfo();
-        for (Phase phase : assignmentIds.keySet()) {
-            Integer id = assignmentIds.get(phase);
-            DaoService.getConfigurationDao().setConfiguration(
-                    PhaseUtils.getConfigurationAssignmentNumber(phase),
-                    id,
-                    Integer.class
-            );
-            var rubricTypeMap = rubricInfo.get(phase);
-            for (Rubric.RubricType type : rubricTypeMap.keySet()) {
-                CanvasAssignment.CanvasRubric rubric = rubricTypeMap.get(type);
-                DaoService.getRubricConfigDao().setRubricIdAndPoints(
-                        phase,
-                        type,
-                        rubric.points(),
-                        rubric.id()
-                );
-            }
-        }
-
-        logConfigChange(
-                "updated course info (course number, assignment IDs, rubric, IDs, rubric points) " +
-                        "in the database manually",
-                user.netId()
-        );
-    }
-
     public static void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
         var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         retriever.useCourseRelatedInfoFromCanvas();
