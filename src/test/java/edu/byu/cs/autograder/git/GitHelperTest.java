@@ -58,7 +58,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 9", 21, 31, 10);
                             utils.makeCommit(repoContext, "Change 10", 20, 30, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
@@ -73,7 +73,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 19", 11, 21, 10);
                             utils.makeCommit(repoContext, "Change 20", 10, 20, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
@@ -88,7 +88,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 39", 1, 11, 10);
                             utils.makeCommit(repoContext, "Change 40", 0, 10, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 )
         ));
     }
@@ -279,7 +279,7 @@ class GitHelperTest {
                         utils.makeCommit(repoContext, "Change 3", 4, 2, 20);
                         utils.makeCommit(repoContext, "Change 4", 4, 1, 20);
                 },
-                utils.generalCommitVerificationResult(true, 4, 2, 2))
+                utils.generalCommitVerificationResult(true, 4, 2, 2)) // Has warnings
         );
     }
 }
