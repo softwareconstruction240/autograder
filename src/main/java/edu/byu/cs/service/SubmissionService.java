@@ -56,7 +56,7 @@ public class SubmissionService {
         QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
         DaoService.getQueueDao().add(qItem);
 
-        TrafficController.getSessions().put(netId, new ArrayList<>());
+        TrafficController.addNetId(netId);
 
         try {
             Grader grader = getGrader(netId, phase, repoUrl, adminSubmission);

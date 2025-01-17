@@ -82,7 +82,7 @@ public class GradingObserverImpl implements GradingObserver {
     }
 
     private void removeFromQueue() {
-        TrafficController.getSessions().remove(netId);
+        TrafficController.clearSessions(netId);
         try {
             DaoService.getQueueDao().remove(netId);
         } catch (DataAccessException e) {
