@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.score.MockLateDayCalculator;
@@ -245,9 +246,9 @@ public class GitHelperUtils {
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
         LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
-        return evaluateRepo(
-                new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator)),
-                minThreshold);
+        CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
+        var gitHelper = new GitHelper(gradingContext, verificationStrategy);
+        return evaluateRepo(gitHelper, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
         return git -> {

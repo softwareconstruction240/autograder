@@ -270,7 +270,7 @@ class GitHelperTest {
 
     @Test
     void passoffEarlyInsufficientDays() {
-        utils.setGradingContext(utils.generateGradingContext(1, 3, 10,  1));
+        utils.setGradingContext(utils.generateGradingContext(1, 3, 10, 1));
         utils.setSubmitDaysEarly(1);
         utils.evaluateTest("passoff-early-insufficient-days", new VerificationCheckpoint(
                 repoContext -> {

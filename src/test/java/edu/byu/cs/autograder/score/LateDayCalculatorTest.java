@@ -216,7 +216,7 @@ class LateDayCalculatorTest {
 
         // See images: days-early
         String dueDateStr = "1999-11-19 11:59:00 PM -07:00";
-        ExpectedDaysDiff[] expectedDaysLate = {
+        ExpectedDaysDiff[] expectedDaysEarly = {
                 // Day of submissions
                 // Notice the timezone testing and edge case testing
                 new ExpectedDaysDiff("1999-11-19 02:00:00 PM -07:00", 0),
@@ -271,7 +271,7 @@ class LateDayCalculatorTest {
         };
 
         // Validate
-        validateExpectedDaysEarly(dueDateStr, expectedDaysLate, lateDayCalculator);
+        validateExpectedDaysEarly(dueDateStr, expectedDaysEarly, lateDayCalculator);
     }
 
     private void validateExpectedDaysLate(String dueDateStr, ExpectedDaysDiff[] expectedDaysLate,
