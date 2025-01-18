@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 public class CoverageAnalyzer {
-    private static final String COVERAGE_TESTED = "LINE";
+    private static final String COVERAGE_TESTED = "BRANCH";
     private static final String COVERAGE_MISSED_HEADER = COVERAGE_TESTED + "_MISSED";
     private static final String COVERAGE_COVERED_HEADER = COVERAGE_TESTED + "_COVERED";
     private static final String PACKAGE_HEADER = "PACKAGE";
