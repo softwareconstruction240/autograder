@@ -22,7 +22,7 @@ public class TrafficController {
     private static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
 
     public static void addNetId(String netId){
-        sessions.put(netId, new ArrayList<>());
+        sessions.putIfAbsent(netId, new ArrayList<>());
     }
 
     public static List<Session> getSessions(String netId){
@@ -31,16 +31,21 @@ public class TrafficController {
 
     public static boolean hasSession(String netId, Session session){
         List<Session> sessionList = sessions.get(netId);
-        return sessionList == null || sessionList.contains(session);
+        return sessionList != null && sessionList.contains(session);
     }
 
     public static void addSession(String netId, Session session){
-        sessions.putIfAbsent(netId, new ArrayList<>());
+        addNetId(netId);
         List<Session> sessionList = sessions.get(netId);
         sessionList.add(session);
     }
 
     public static void clearSessions(String netId){
+        List<Session> sessionList = sessions.get(netId);
+        if(sessionList==null) return;
+        for(Session session : sessionList){
+            session.close();
+        }
         sessions.remove(netId);
     }
 
