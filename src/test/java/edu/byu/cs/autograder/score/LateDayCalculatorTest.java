@@ -22,8 +22,7 @@ class LateDayCalculatorTest {
     @Test
     void getNumDaysLateWithoutHolidays() {
         // Initialize without holidays
-        LateDayCalculator lateDayCalculator = new LateDayCalculator();
-        lateDayCalculator.initializePublicHolidays();
+        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null);
 
         // See images: days-late-without-holidays (1&2)
         String dueDateStr = "2024-03-07 11:59:00 PM -07:00";
@@ -78,8 +77,8 @@ class LateDayCalculatorTest {
     @Test
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
-        LateDayCalculator standardLateDayCalculator = new MockLateDayCalculator();
-        standardLateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration(), QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator standardLateDayCalculator = getHolidayLateDayCalculator(
+                getMultilinePublicHolidaysConfiguration());
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -150,8 +149,8 @@ class LateDayCalculatorTest {
 
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
-        LateDayCalculator customLateDayCalculator = new MockLateDayCalculator();
-        customLateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025", QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator customLateDayCalculator = getHolidayLateDayCalculator(
+                "12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysDiff[] fridayHolidayAndConsecutiveHolidays = {
                 // On Time
@@ -192,8 +191,8 @@ class LateDayCalculatorTest {
 
 
         // See image: days-late-with-holidays-holidays-on-weekends
-        LateDayCalculator customLateDayCalculator2 = new LateDayCalculator();
-        customLateDayCalculator2.initializePublicHolidays("09/16/2028;09/17/2028;09/18/2028;", QUIET_HOLIDAY_INIT_WARNINGS);
+        LateDayCalculator customLateDayCalculator2 = getHolidayLateDayCalculator(
+                "09/16/2028;09/17/2028;09/18/2028;");
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
         ExpectedDaysDiff[] holidaysOnWeekends = {
                 new ExpectedDaysDiff("2028-09-14 02:15:00 PM -07:00", 0), // Due date
@@ -211,8 +210,7 @@ class LateDayCalculatorTest {
     @Test
     void getNumDaysEarly() {
         // Initialize without holidays
-        LateDayCalculator lateDayCalculator = new LateDayCalculator();
-        lateDayCalculator.initializePublicHolidays();
+        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null);
 
         // See images: days-early
         String dueDateStr = "1999-11-19 11:59:00 PM -07:00";
@@ -347,7 +345,7 @@ class LateDayCalculatorTest {
                 """;
     }
     private void validateExpectedHolidays(String encodedPublicHolidays) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator();
+        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null);
         var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
@@ -369,7 +367,7 @@ class LateDayCalculatorTest {
     }
 
     @Test
-    void publicHolidayStaleConfigurationDetected() {
+    void detectsPublicHolidayStaleConfiguration() {
         Assertions.assertDoesNotThrow(
                 () -> new LateDayCalculator().initializePublicHolidays(),
                 "LateDayCalculator should accept an empty list of holidays.");
@@ -379,6 +377,14 @@ class LateDayCalculatorTest {
         Assertions.assertThrows(RuntimeException.class,
                 () -> new LateDayCalculator().initializePublicHolidays("1/1/2000"),
                 "LateDayCalculator should report when holiday configuration is stale.");
+    }
+
+    private LateDayCalculator getHolidayLateDayCalculator(String encodedPublicHolidays) {
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator();
+        if (encodedPublicHolidays != null) {
+            lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+        }
+        return lateDayCalculator;
     }
 
     private record ExpectedDaysDiff(String handInDate, int daysDiff){}
