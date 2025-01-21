@@ -370,6 +370,9 @@ class LateDayCalculatorTest {
 
     @Test
     void publicHolidayStaleConfigurationDetected() {
+        Assertions.assertDoesNotThrow(
+                () -> new LateDayCalculator().initializePublicHolidays(),
+                "LateDayCalculator should accept an empty list of holidays.");
         Assertions.assertThrows(RuntimeException.class,
                 () -> new LateDayCalculator().initializePublicHolidays(null),
                 "LateDayCalculator should throw when holidays are initialized as null. Provide empty collection instead.");
