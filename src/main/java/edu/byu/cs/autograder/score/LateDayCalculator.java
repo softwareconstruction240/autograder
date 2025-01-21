@@ -292,8 +292,36 @@ public class LateDayCalculator {
         }
 
         publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat, quietWarnings);
-        // TODO: Validate that some holidays are configured for the current calendar year and throw an error otherwise
+        assertFutureHolidaysConfigured();
         return publicHolidays;
+    }
+
+    /**
+     * Runs after interpreting public holidays to provide some sanity checks that the process works.
+     * <br>
+     * Intentionally configured to throw {@link RuntimeException}'s which will break things at startup
+     * time if proper configuration maintenance has not occurred.
+     *
+     * @throws RuntimeException When the configuration for the class is detected as improper.
+     */
+    protected void assertFutureHolidaysConfigured() throws RuntimeException {
+        // Throw errors when not initialized
+        if (publicHolidays == null) {
+            throw new RuntimeException("Public holidays were not properly configured and appear as null. " +
+                    "This is likely an issue with the coding and initialization of classes.");
+        }
+
+        // Do not throw errors when configured with an empty list. Possibly configured this way.
+        if (publicHolidays.isEmpty()) return;
+
+        // Throw errors when configured with dates, but none in the future.
+        // This represents stale data that needs to be maintained.
+        LocalDate maxDate = publicHolidays.stream().max(LocalDate::compareTo).get();
+        LocalDate now = LocalDate.now();
+        if (maxDate.isBefore(now)) {
+            throw new RuntimeException("There are public holidays configured, but none of them are in the future. " +
+                    "This likely represents a stale configuration error which results in holidays not being respected.");
+        }
     }
 
     /**
