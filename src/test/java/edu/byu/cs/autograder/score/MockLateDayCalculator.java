@@ -7,6 +7,10 @@ import java.time.ZonedDateTime;
 public class MockLateDayCalculator extends LateDayCalculator {
     private final LateDayContext fixedContext;
 
+    public MockLateDayCalculator() {
+        this(0);
+    }
+
     public MockLateDayCalculator(int daysBeforeDueDate) {
         super();
         var now = ZonedDateTime.now();
@@ -16,5 +20,11 @@ public class MockLateDayCalculator extends LateDayCalculator {
     @Override
     protected LateDayContext doFetchLateDayContext(Phase phase, String netId) {
         return fixedContext;
+    }
+
+    @Override
+    protected void assertFutureHolidaysConfigured() throws RuntimeException {
+        // Disable these checks.
+        // Do not require tests to be chronologically up-to-date.
     }
 }

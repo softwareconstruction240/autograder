@@ -78,7 +78,7 @@ class LateDayCalculatorTest {
     @Test
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
-        LateDayCalculator standardLateDayCalculator = new LateDayCalculator();
+        LateDayCalculator standardLateDayCalculator = new MockLateDayCalculator();
         standardLateDayCalculator.initializePublicHolidays(getMultilinePublicHolidaysConfiguration(), QUIET_HOLIDAY_INIT_WARNINGS);
 
         // See image: days-late-with-holidays-common
@@ -150,7 +150,7 @@ class LateDayCalculatorTest {
 
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
-        LateDayCalculator customLateDayCalculator = new LateDayCalculator();
+        LateDayCalculator customLateDayCalculator = new MockLateDayCalculator();
         customLateDayCalculator.initializePublicHolidays("12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025", QUIET_HOLIDAY_INIT_WARNINGS);
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysDiff[] fridayHolidayAndConsecutiveHolidays = {
@@ -347,7 +347,7 @@ class LateDayCalculatorTest {
                 """;
     }
     private void validateExpectedHolidays(String encodedPublicHolidays) {
-        LateDayCalculator lateDayCalculator = new LateDayCalculator();
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator();
         var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
