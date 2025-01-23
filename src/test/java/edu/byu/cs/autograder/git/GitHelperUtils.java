@@ -3,6 +3,10 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
+import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
+import edu.byu.cs.autograder.score.LateDayCalculator;
+import edu.byu.cs.autograder.score.MockLateDayCalculator;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
@@ -37,6 +41,7 @@ public class GitHelperUtils {
 
     private GradingContext gradingContext;
     private CommitVerificationResult prevVerification;
+    private int submitDaysEarly = 0;
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
@@ -75,6 +80,9 @@ public class GitHelperUtils {
     }
     public void setPrevVerification(CommitVerificationResult prevVerification) {
         this.prevVerification = prevVerification;
+    }
+    public void setSubmitDaysEarly(int submitDaysEarly) {
+        this.submitDaysEarly = submitDaysEarly;
     }
 
 
@@ -237,7 +245,10 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        return evaluateRepo(new GitHelper(gradingContext), minThreshold);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
+        CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
+        var gitHelper = new GitHelper(gradingContext, verificationStrategy);
+        return evaluateRepo(gitHelper, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
         return git -> {
