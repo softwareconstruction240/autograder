@@ -6,7 +6,9 @@ import { readableTimestamp } from "@/utils/utils";
 const showWarning = computed(() => {
   const shutdownDate = new Date(useConfigStore().public.shutdown.timestamp);
   const now = new Date();
-  const warningWindow = new Date(now.getTime() + useConfigStore().public.shutdown.warningMilliseconds);
+  const warningWindow = new Date(
+    now.getTime() + useConfigStore().public.shutdown.warningMilliseconds,
+  );
   return shutdownDate <= warningWindow;
 });
 </script>
