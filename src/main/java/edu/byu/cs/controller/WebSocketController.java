@@ -1,5 +1,6 @@
 package edu.byu.cs.controller;
 
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;
@@ -36,10 +37,15 @@ public class WebSocketController {
             return;
         }
 
-        if (!TrafficController.containsNetId(netId)) {
-            sendError(session, "You are not in the queue");
-            session.close();
-            return;
+        try {
+            if (!DaoService.getQueueDao().isAlreadyInQueue(netId)) {
+                sendError(session, "You are not in the queue");
+                session.close();
+                return;
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error("Error accessing queue", e);
+            throw new RuntimeException("Error accessing queue", e);
         }
 
         if (TrafficController.hasSession(netId, session))
