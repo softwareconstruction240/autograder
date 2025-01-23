@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.request.ConfigHolidayUpdateRequest;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.util.Serializer;
@@ -125,6 +126,17 @@ public class ConfigController {
             res.body(e.getMessage());
         }
 
+        return "";
+    };
+
+    public static final Route updateHolidays = (req, res) -> {
+        User user = req.session().attribute("user");
+
+        ConfigHolidayUpdateRequest request = Serializer.deserialize(req.body(), ConfigHolidayUpdateRequest.class);
+
+        for (var test : request.holidays()) {
+            System.out.println(test.toString());
+        }
         return "";
     };
 }
