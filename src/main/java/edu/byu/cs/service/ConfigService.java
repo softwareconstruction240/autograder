@@ -20,7 +20,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
@@ -31,10 +34,30 @@ public class ConfigService {
     private static final ConfigurationDao dao = DaoService.getConfigurationDao();
 
     public static PublicConfig getPublicConfig() throws DataAccessException {
+        String phasesString = dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class);
+
+        List<Phase> phases;
+        if (phasesString != null && !phasesString.isEmpty() && !phasesString.equals("[]")) {
+            String cleanString = phasesString
+                    .replace("[", "")
+                    .replace("]", "");
+
+            if (!cleanString.isEmpty()) {
+                phases = Arrays.stream(cleanString.split(","))
+                        .map(String::trim)
+                        .map(Phase::valueOf)
+                        .toList();
+            } else {
+                phases = new ArrayList<>();
+            }
+        } else {
+            phases = new ArrayList<>();
+        }
+
         return new PublicConfig(
                 generateBannerConfig(),
                 generateShutdownConfig(),
-                dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
+                phases
         );
     }
 

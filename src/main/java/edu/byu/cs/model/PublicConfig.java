@@ -2,11 +2,12 @@ package edu.byu.cs.model;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
 public record PublicConfig(
     BannerConfig banner,
     ShutdownConfig shutdown,
-    String livePhases
+    List<Phase> livePhases
 ) {
     public record BannerConfig(
             String message,

@@ -51,10 +51,11 @@ const handleGradingDone = async () => {
 };
 
 const isPhaseDisabled = () => {
-  return (
-    selectedPhase.value != null &&
-    !useConfigStore().phaseActivationList[Phase[selectedPhase.value] as unknown as Phase]
-  );
+  const phase = selectedPhase.value;
+  if (phase === null) return false;
+
+  const phaseName = Phase[phase];
+  return !useConfigStore().public.livePhases.includes(phaseName);
 };
 </script>
 

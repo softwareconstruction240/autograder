@@ -24,7 +24,7 @@ export type PublicConfig = {
     warningMilliseconds: number;
   };
 
-  livePhases: Array<Phase>;
+  livePhases: Array<string>;
 };
 
 /**
