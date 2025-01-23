@@ -4,9 +4,9 @@ import { useConfigStore } from "@/stores/config";
 import { readableTimestamp } from "@/utils/utils";
 
 const showWarning = computed(() => {
-  const shutdownDate = new Date(useConfigStore().shutdownSchedule);
+  const shutdownDate = new Date(useConfigStore().public.shutdown.timestamp);
   const now = new Date();
-  const warningWindow = new Date(now.getTime() + useConfigStore().shutdownWarningMilliseconds);
+  const warningWindow = new Date(now.getTime() + useConfigStore().public.shutdown.warningMilliseconds);
   return shutdownDate <= warningWindow;
 });
 </script>
