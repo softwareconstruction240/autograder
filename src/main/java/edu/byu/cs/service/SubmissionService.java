@@ -40,7 +40,6 @@ public class SubmissionService {
         LOGGER.info("User {} submitted phase {} for grading", user.netId(), request.phase());
 
         startGrader(user.netId(), request.phase(), user.repoUrl(), false);
-
     }
 
     public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
@@ -55,7 +54,6 @@ public class SubmissionService {
     private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
         QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
         DaoService.getQueueDao().add(qItem);
-
 
         try {
             Grader grader = getGrader(netId, phase, repoUrl, adminSubmission);
@@ -79,6 +77,7 @@ public class SubmissionService {
             LOGGER.error("Error getting remote head hash", e);
             throw new BadRequestException("Invalid repo url", e);
         }
+
         Submission submission = getMostRecentSubmission(user.netId(), phase);
         if (submission != null && submission.headHash().equals(headHash)) {
             throw new BadRequestException("You have already submitted this version of your code for this phase. Make a new commit before submitting again");
