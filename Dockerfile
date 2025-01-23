@@ -1,4 +1,4 @@
-FROM maven:3.9.6-amazoncorretto-21-debian-bookworm AS builder
+FROM maven:3.9.9-amazoncorretto-21-debian-bookworm AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ COPY ./src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM maven:3.9.6-amazoncorretto-21-debian-bookworm AS runner
+FROM maven:3.9.9-amazoncorretto-21-debian-bookworm AS runner
 
 RUN apt-get update && \
     apt-get install -y git

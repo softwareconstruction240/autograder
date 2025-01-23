@@ -36,9 +36,12 @@ public class Scorer {
      */
     private final float PER_DAY_LATE_PENALTY;
     private final GradingContext gradingContext;
+    private final LateDayCalculator lateDayCalculator;
 
-    public Scorer(GradingContext gradingContext) {
+    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
+        this.lateDayCalculator = lateDayCalculator;
+
         try {
             ConfigurationDao dao = DaoService.getConfigurationDao();
             PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
@@ -71,7 +74,7 @@ public class Scorer {
             return generateSubmissionObject(rubric, commitVerificationResult, 0, getScores(rubric), "");
         }
 
-        int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
+        int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
         rubric = applyLatePenalty(rubric, daysLate);
         ScorePair scores = getScores(rubric);
 

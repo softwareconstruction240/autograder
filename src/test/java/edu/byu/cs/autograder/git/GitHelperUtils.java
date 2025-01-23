@@ -3,6 +3,10 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
+import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
+import edu.byu.cs.autograder.score.LateDayCalculator;
+import edu.byu.cs.autograder.score.MockLateDayCalculator;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
@@ -16,6 +20,8 @@ import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class GitHelperUtils {
@@ -35,6 +41,7 @@ public class GitHelperUtils {
 
     private GradingContext gradingContext;
     private CommitVerificationResult prevVerification;
+    private int submitDaysEarly = 0;
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
@@ -58,6 +65,7 @@ public class GitHelperUtils {
                     prevVerification.missingTail(),
                     prevVerification.penaltyPct(),
                     prevVerification.failureMessage(),
+                    prevVerification.warningMessages(),
                     prevVerification.minAllowedThreshold(),
                     prevVerification.maxAllowedThreshold(),
                     newHeadHash,                                // REPLACE HEAD HASH!
@@ -66,12 +74,15 @@ public class GitHelperUtils {
         } else {
             prevVerification = new CommitVerificationResult(
                     false, true, 0, 0, 0, false,
-                    0, "", null, null,
+                    0, "", null, null, null,
                     newHeadHash, "");
         }
     }
     public void setPrevVerification(CommitVerificationResult prevVerification) {
         this.prevVerification = prevVerification;
+    }
+    public void setSubmitDaysEarly(int submitDaysEarly) {
+        this.submitDaysEarly = submitDaysEarly;
     }
 
 
@@ -168,17 +179,24 @@ public class GitHelperUtils {
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays) {
         return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, false);
     }
+    CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays, int numWarnings) {
+        var warnings = Collections.nCopies(numWarnings, "SOME WARNING");
+        return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, false, warnings);
+    }
     CommitVerificationResult generalCommitVerificationResult(boolean verified, int allCommitsSignificant, int numDays, boolean missingTail) {
         return generalCommitVerificationResult(verified, allCommitsSignificant, allCommitsSignificant, numDays, missingTail);
     }
+    CommitVerificationResult generalCommitVerificationResult(boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail) {
+        return generalCommitVerificationResult(verified, significantCommits, totalCommits, numDays, missingTail, null);
+    }
     CommitVerificationResult generalCommitVerificationResult(
-            boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail) {
+            boolean verified, int significantCommits, int totalCommits, int numDays, boolean missingTail, Collection<String> warnings) {
         // Note: Unfortunately, we were not able to configure Mockito to properly accept these `any` object times
         // to also accept null. We've moved a different direction now, but we're preserving the `Mockito.nullable/any()`
         // for clarity. They still work, and hopefully we can return to them.
         return new CommitVerificationResult(
                 verified, false, totalCommits, significantCommits, numDays,
-                missingTail, 0, null, null, null,
+                missingTail, 0, null, warnings, null, null,
                 "ANY_HEAD_HASH", null);
     }
 
@@ -227,7 +245,10 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        return evaluateRepo(new GitHelper(gradingContext), minThreshold);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
+        CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
+        var gitHelper = new GitHelper(gradingContext, verificationStrategy);
+        return evaluateRepo(gitHelper, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
         return git -> {
@@ -277,5 +298,9 @@ public class GitHelperUtils {
         Assertions.assertEquals(expected.numDays(), actual.numDays());
         Assertions.assertEquals(expected.missingTail(), actual.missingTail());
         Assertions.assertEquals(expected.penaltyPct(), actual.penaltyPct());
+
+        var expectWarnings = expected.warningMessages() == null ? 0 : expected.warningMessages().size();
+        var actualWarnings = actual.warningMessages() == null ? 0 : actual.warningMessages().size();
+        Assertions.assertEquals(expectWarnings, actualWarnings);
     }
 }
