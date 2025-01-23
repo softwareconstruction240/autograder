@@ -1,6 +1,8 @@
 package edu.byu.cs.autograder.git.CommitValidation;
 
 import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DataAccessException;
 
 import java.util.Collection;
 
@@ -12,7 +14,7 @@ public interface CommitVerificationStrategy {
      * @param commitContext Precompiled information relating to the passoff state of the commit history.
      * @param gradingContext Commonly used throughout the app. Represents the submission and student being graded.
      */
-    void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext);
+    void evaluate(CommitVerificationContext commitContext, GradingContext gradingContext) throws GradingException, DataAccessException;
 
     /**
      * Supplies new commit hashes which will be added to the existing exclude set.
