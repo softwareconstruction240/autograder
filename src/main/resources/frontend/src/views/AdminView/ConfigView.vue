@@ -71,7 +71,7 @@ onMounted(async () => {
         <div v-for="phase in listOfPhases()">
           <p>
             <i
-              v-if="config.public.livePhases.includes(Phase[phase])"
+              v-if="config.public.livePhases.includes(phase.toString())"
               class="fa-solid fa-circle-check"
               style="color: green"
             />
