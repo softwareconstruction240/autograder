@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { listOfPhases } from "@/types/types";
+import { listOfPhases, Phase } from "@/types/types";
 import { useConfigStore } from "@/stores/config";
 import { generateClickableLink, readableTimestamp } from "@/utils/utils";
 import ConfigSection from "@/components/config/ConfigSection.vue";
@@ -71,7 +71,7 @@ onMounted(async () => {
         <div v-for="phase in listOfPhases()">
           <p>
             <i
-              v-if="config.public.livePhases.includes(phase)"
+              v-if="config.public.livePhases.includes(Phase[phase])"
               class="fa-solid fa-circle-check"
               style="color: green"
             />

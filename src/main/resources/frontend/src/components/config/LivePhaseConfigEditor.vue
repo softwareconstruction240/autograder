@@ -20,7 +20,7 @@ onMounted(() => {
   for (const phase of listOfPhases() as Phase[]) {
     phases.value.push({
       phase: phase,
-      active: useConfigStore().public.livePhases.includes(phase),
+      active: useConfigStore().public.livePhases.includes(Phase[phase]),
     });
   }
 });
