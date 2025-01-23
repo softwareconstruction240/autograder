@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { listOfPhases, Phase } from "@/types/types";
+import { listOfPhases } from "@/types/types";
 import { useConfigStore } from "@/stores/config";
 import { generateClickableLink, readableTimestamp } from "@/utils/utils";
 import ConfigSection from "@/components/config/ConfigSection.vue";
 
 // Lazy Load Editor Components
+const HolidayConfigEditor = defineAsyncComponent(
+  () => import("@/components/config/HolidayConfigEditor.vue")
+);
 const BannerConfigEditor = defineAsyncComponent(
   () => import("@/components/config/BannerConfigEditor.vue"),
 );
@@ -98,6 +101,18 @@ onMounted(async () => {
           <span class="infoLabel">Warning duration: </span>
           {{ config.public.shutdown.warningMilliseconds / (60 * 60 * 1000) }} hours
         </p>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection
+      title="Holidays"
+      description="Days the Autograder should not count towards the late penalty"
+    >
+      <template #editor="{ closeEditor }">
+        <HolidayConfigEditor :closeEditor="closeEditor" />
+      </template>
+      <template #current>
+
       </template>
     </ConfigSection>
 
