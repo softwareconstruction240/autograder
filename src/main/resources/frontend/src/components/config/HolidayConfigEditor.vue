@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import Panel from "@/components/Panel.vue";
-import { updateHolidays } from "@/services/configService";
+import { setLivePhases, updateHolidays } from "@/services/configService";
+import { simpleDate} from "@/utils/utils";
+import { useConfigStore } from "@/stores/config";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
 }>();
 
-// Base set of holidays
 const holidaysSet = ref<Set<string>>(new Set<string>());
+
+onMounted( () => {
+  useConfigStore().admin.holidays.forEach((holiday) => {
+    holidaysSet.value.add(holiday.toString());
+  })
+})
 
 // Computed property that gives us sorted holidays
 const sortedHolidays = computed(() => {
@@ -34,8 +41,14 @@ const clearHolidayList = () => {
   holidaysSet.value = new Set();
 }
 
-const submitHolidays = () => {
-  updateHolidays([...holidaysSet.value])
+const submitHolidays = async () => {
+  try {
+    await updateHolidays([...holidaysSet.value])
+    closeEditor();
+  } catch (e) {
+    useConfigStore().updatePublicConfig();
+    alert("There was a problem while saving holidays");
+  }
 }
 </script>
 
@@ -44,7 +57,7 @@ const submitHolidays = () => {
   <div v-for="holiday in sortedHolidays"
        style="display: flex; align-items: center;"
        :key="holiday">
-    <p>{{ holiday }}</p>
+    <p>{{ simpleDate(holiday) }}</p>
     <i class="fa-solid fa-trash cursor-pointer hover:text-red-500"
        @click="removeHolidayFromList(holiday)"/>
   </div>

@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onMounted } from "vue";
 import { listOfPhases } from "@/types/types";
 import { useConfigStore } from "@/stores/config";
-import { generateClickableLink, readableTimestamp } from "@/utils/utils";
+import { generateClickableLink, readableTimestamp, simpleDate } from "@/utils/utils";
 import ConfigSection from "@/components/config/ConfigSection.vue";
 
 // Lazy Load Editor Components
@@ -112,7 +112,9 @@ onMounted(async () => {
         <HolidayConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
-
+        <p v-for="holiday in config.admin.holidays">
+          {{ simpleDate(holiday) }}
+        </p>
       </template>
     </ConfigSection>
 
