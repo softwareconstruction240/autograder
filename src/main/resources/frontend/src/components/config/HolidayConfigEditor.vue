@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import Panel from "@/components/Panel.vue";
+import { updateHolidays } from "@/services/configService";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
@@ -34,7 +35,7 @@ const clearHolidayList = () => {
 }
 
 const submitHolidays = () => {
-
+  updateHolidays([...holidaysSet.value])
 }
 </script>
 

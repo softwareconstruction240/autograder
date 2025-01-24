@@ -64,7 +64,7 @@ export const setCourseId = async (courseNumber: number) => {
   await doSetConfigItem("/api/admin/config/courseId", { courseId: courseNumber });
 };
 
-export const updateHolidays = async (dates: Date[]) => {
+export const updateHolidays = async (dates: string[]) => {
   await doSetConfigItem("/api/admin/config/holidays", {
     holidays: dates,
   })
