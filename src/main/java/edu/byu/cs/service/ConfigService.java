@@ -62,7 +62,8 @@ public class ConfigService {
         return new PrivateConfig(
                 generatePenaltyConfig(),
                 dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
-                generateAssignmentsConfig()
+                generateAssignmentsConfig(),
+                generateHolidayConfig()
         );
     }
 
@@ -105,18 +106,6 @@ public class ConfigService {
         );
     }
 
-    //
-    // CONFIG SETTERS
-    //
-    private static void clearBannerConfig() throws DataAccessException {
-        dao.setConfiguration(Configuration.BANNER_MESSAGE, "", String.class);
-        dao.setConfiguration(Configuration.BANNER_LINK, "", String.class);
-        dao.setConfiguration(Configuration.BANNER_COLOR, "", String.class);
-        dao.setConfiguration(Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
-
-        logAutomaticConfigChange("Banner message has expired");
-    }
-
     public static ArrayList<PrivateConfig.AssignmentConfig> generateAssignmentsConfig() throws DataAccessException {
         ArrayList<PrivateConfig.AssignmentConfig> assignments = new ArrayList<>();
         for (Phase phase : Phase.values()) {
@@ -128,6 +117,24 @@ public class ConfigService {
             assignments.add(new PrivateConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
         }
         return assignments;
+    }
+
+    public static String[] generateHolidayConfig() throws DataAccessException {
+        String encodedDates = dao.getConfiguration(Configuration.HOLIDAY_LIST, String.class);
+
+        return encodedDates.split(";");
+    }
+
+    //
+    // CONFIG SETTERS
+    //
+    private static void clearBannerConfig() throws DataAccessException {
+        dao.setConfiguration(Configuration.BANNER_MESSAGE, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_LINK, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_COLOR, "", String.class);
+        dao.setConfiguration(Configuration.BANNER_EXPIRATION, Instant.MAX, Instant.class);
+
+        logAutomaticConfigChange("Banner message has expired");
     }
 
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
@@ -269,11 +276,10 @@ public class ConfigService {
     }
 
     public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
         StringBuilder stringBuilder = new StringBuilder();
 
         for (LocalDate holiday : holidays) {
-            stringBuilder.append(holiday.format(formatter)).append(";");
+            stringBuilder.append(holiday).append(";");
         }
 
         String encodedHolidays = stringBuilder.toString();
