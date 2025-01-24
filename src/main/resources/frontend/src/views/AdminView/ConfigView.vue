@@ -7,7 +7,7 @@ import ConfigSection from "@/components/config/ConfigSection.vue";
 
 // Lazy Load Editor Components
 const HolidayConfigEditor = defineAsyncComponent(
-  () => import("@/components/config/HolidayConfigEditor.vue")
+  () => import("@/components/config/HolidayConfigEditor.vue"),
 );
 const BannerConfigEditor = defineAsyncComponent(
   () => import("@/components/config/BannerConfigEditor.vue"),

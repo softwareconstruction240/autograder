@@ -67,8 +67,8 @@ export const setCourseId = async (courseNumber: number) => {
 export const updateHolidays = async (dates: string[]) => {
   await doSetConfigItem("/api/admin/config/holidays", {
     holidays: dates,
-  })
-}
+  });
+};
 
 const doSetConfigItem = async (path: string, body: Object): Promise<void> => {
   await ServerCommunicator.postRequest(path, body, false);

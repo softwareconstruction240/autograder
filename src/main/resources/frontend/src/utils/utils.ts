@@ -10,20 +10,7 @@ import {
 } from "@/types/types";
 import { useAuthStore } from "@/stores/auth";
 
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const commitVerificationFailed = (submission: Submission) => {
   if (submission.admin) return false; // Admin submissions don't have commit requirements
@@ -36,9 +23,9 @@ export const commitVerificationFailed = (submission: Submission) => {
 };
 
 export const simpleDate = (date: Date | string) => {
-  const dateObj = typeof date === "string" ? new Date(date + 'T00:00:00') : date;
+  const dateObj = typeof date === "string" ? new Date(date + "T00:00:00") : date;
   return months[dateObj.getMonth()] + " " + dateObj.getDate() + " " + dateObj.getFullYear();
-}
+};
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
   if (timestampOrString === "never") {
