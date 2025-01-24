@@ -250,14 +250,14 @@ public class LateDayCalculator {
     }
     /**
      * Initializes our public holidays with a common formatting string
-     * that will accept strings matching this example: "9/16/2024"
+     * that will accept strings matching this example: "2025-12-25"
      *
      * @see #initializePublicHolidays(String, String, boolean)
      *
      * @param encodedPublicHolidays A string representing the encoded data.
      */
     public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, boolean quietWarnings) {
-        return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy", quietWarnings);
+        return initializePublicHolidays(encodedPublicHolidays, "yyyy-MM-dd", quietWarnings);
     }
 
     /**
