@@ -18,7 +18,7 @@ public class Server {
     }
 
     public int start() {
-        return start(0);
+        return start(8080);
     }
 
     public int start(int desiredPort) {
