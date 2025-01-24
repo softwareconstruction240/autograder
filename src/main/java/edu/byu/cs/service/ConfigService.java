@@ -13,10 +13,7 @@ import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -271,6 +268,19 @@ public class ConfigService {
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
     }
 
+    public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (LocalDate holiday : holidays) {
+            stringBuilder.append(holiday.format(formatter)).append(";");
+        }
+
+        String encodedHolidays = stringBuilder.toString();
+
+        setConfigItem(user, Configuration.HOLIDAY_LIST, encodedHolidays, String.class);
+    }
+
     //
     // GENERAL HELPER FUNCTIONS
     //
@@ -334,7 +344,7 @@ public class ConfigService {
         if (current.equals(value)) return;
 
         dao.setConfiguration(configKey, value, type);
-        logConfigChange("changed %s to %s".formatted(configKey.name(), value.toString()), admin.netId());
+        logConfigChange("changed %s to [%s]".formatted(configKey.name(), value.toString()), admin.netId());
     }
 
 

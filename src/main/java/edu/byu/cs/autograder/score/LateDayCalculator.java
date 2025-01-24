@@ -434,8 +434,13 @@ public class LateDayCalculator {
     }
 
     private String getEncodedPublicHolidays() {
-        // FIXME: Return from some dynamic location like a configuration file or a configurable table
-        return "1/1/2025;1/20/2025;2/17/2025;3/21/2025;5/26/2025;6/19/2025;7/4/2025;7/24/2025;9/1/2025;11/26/2025;11/27/2025;11/28/2025;12/25/2025;12/26/2025;"
-                + "1/1/2026;";
+        String encodedHolidays;
+        try {
+            encodedHolidays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error getting encoded holiday list from configuration", e);
+        }
+
+        return encodedHolidays;
     }
 }

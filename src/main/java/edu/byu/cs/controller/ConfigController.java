@@ -10,7 +10,10 @@ import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.util.Serializer;
 import spark.Route;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 import static spark.Spark.halt;
 
@@ -134,9 +137,21 @@ public class ConfigController {
 
         ConfigHolidayUpdateRequest request = Serializer.deserialize(req.body(), ConfigHolidayUpdateRequest.class);
 
-        for (var test : request.holidays()) {
-            System.out.println(test.toString());
+        List<LocalDate> holidays = new ArrayList<>();
+        try {
+            for (String date : request.holidays()) {
+                holidays.add(LocalDate.parse(date));
+            }
+
+            ConfigService.updateHolidays(user, holidays);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        } catch (DateTimeParseException e) {
+            res.status(400);
+            res.body("Invalid date format provided.");
         }
+
         return "";
     };
 }
