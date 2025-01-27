@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isPlausibleRepoUrl } from "@/utils/utils";
 import { defineEmits, reactive } from "vue";
-import { adminUpdateRepoPatch, studentUpdateRepoPatch } from "@/services/userService";
+import { adminUpdateRepo, studentUpdateRepo } from "@/services/userService";
 import type { User } from "@/types/types";
 import { useAuthStore } from "@/stores/auth";
 
@@ -25,9 +25,9 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
 
   try {
     if (useAuthStore().user?.role == "ADMIN" && user != null) {
-      await adminUpdateRepoPatch(newRepoUrl.value, user.netId);
+      await adminUpdateRepo(newRepoUrl.value, user.netId);
     } else {
-      await studentUpdateRepoPatch(newRepoUrl.value);
+      await studentUpdateRepo(newRepoUrl.value);
     }
   } catch (error) {
     if (error instanceof Error) {
