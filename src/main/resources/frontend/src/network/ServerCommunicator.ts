@@ -17,7 +17,6 @@ export const ServerCommunicator = {
   getRequest: getRequest,
   getRequestGuaranteed: getRequestGuaranteed,
   postRequest: postRequest,
-  patchRequest: patchRequest,
   doUnprocessedRequest: doUnprocessedRequest,
 };
 
@@ -118,66 +117,6 @@ function postRequest<T>(
 ): Promise<T | null> {
   return doRequest<T>("POST", endpoint, bodyObject, expectResponse);
 }
-
-/**
- * Makes a PATCH request to the specified endpoint.
- * @template T - The type of the expected response (when expectResponse is true)
- * @param {string} endpoint - The API endpoint to call
- * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
- * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
- * @returns {Promise<T | null>} Promise that resolves to:
- *   - The response data of type T when expectResponse is true
- *   - null when expectResponse is false
- * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
- * @throws {Error} when expectResponse is true but no response is received
- *
- * @example
- * // With response
- * const user = await patchRequest<User>('/api/users/123', { name: 'John' });
- *
- * // Without response
- * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
- */
-function patchRequest(
-  endpoint: string,
-  bodyObject: Object | null,
-  expectResponse: false,
-): Promise<null>;
-/**
- * Makes a PATCH request to the specified endpoint.
- * @template T - The type of the expected response (when expectResponse is true)
- * @param {string} endpoint - The API endpoint to call
- * @param {Object | null} [bodyObject=null] - The request body object to send (will be sent as JSON)
- * @param {boolean} [expectResponse=true] - Whether to expect and parse a response
- * @returns {Promise<T | null>} Promise that resolves to:
- *   - The response data of type T when expectResponse is true
- *   - null when expectResponse is false
- * @throws {ServerError} When the request fails (meaning the server returned a code other than 2XX)
- * @throws {Error} when expectResponse is true but no response is received
- *
- * @example
- * // With response
- * const user = await patchRequest<User>('/api/users/123', { name: 'John' });
- *
- * // Without response
- * await patchRequest<void>('/api/users/123/status', { status: 'active' }, false);
- */
-function patchRequest<T>(
-  endpoint: string,
-  bodyObject?: Object | null,
-  expectResponse?: boolean,
-): Promise<T>;
-async function patchRequest<T>(
-  endpoint: string,
-  bodyObject: Object | null = null,
-  expectResponse: boolean = true,
-): Promise<T | null> {
-  if (expectResponse) {
-    return doRequest<T>("PATCH", endpoint, bodyObject, true);
-  }
-  return doRequest<T>("PATCH", endpoint, bodyObject, false);
-}
-
 /**
  * Internal method to make an HTTP request.
  * @template T - The type of the expected response (when expectResponse is true)
