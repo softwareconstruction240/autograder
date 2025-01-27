@@ -8,16 +8,16 @@ export const repoHistoryGet = (netId: String): Promise<RepoUpdate[]> => {
   );
 };
 
-export const studentUpdateRepoPatch = (repoUrl: string): Promise<null> => {
-  return updateRepoPatch(repoUrl, "/api/repo");
+export const studentUpdateRepo = (repoUrl: string): Promise<null> => {
+  return updateRepoPost(repoUrl, "/api/repo");
 };
 
-export const adminUpdateRepoPatch = (repoUrl: string, netId: String): Promise<null> => {
-  return updateRepoPatch(repoUrl, "/api/admin/repo/" + netId);
+export const adminUpdateRepo = (repoUrl: string, netId: String): Promise<null> => {
+  return updateRepoPost(repoUrl, "/api/admin/repo/" + netId);
 };
 
-const updateRepoPatch = (repoUrl: string, endpoint: string): Promise<null> => {
-  return ServerCommunicator.patchRequest(
+const updateRepoPost = (repoUrl: string, endpoint: string): Promise<null> => {
+  return ServerCommunicator.postRequest(
     endpoint,
     {
       repoUrl: repoUrl,
