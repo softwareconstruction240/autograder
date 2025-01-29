@@ -58,12 +58,19 @@ const isPhaseDisabled = () => {
   return !useConfigStore().public.livePhases.includes(phaseName);
 };
 
-const isPriorPhaseSubmitted = () => {
-  return (
-      false
-      //!isPhaseDisabled() && selectedPhase.value == Phase.Phase0 //&&
-      //Git Hub Repository has a submission
-  );
+const getPriorPhase = () => {
+  const assignmentOrder = [Phase.GitHub, Phase.Phase0, Phase.Phase1, Phase.Phase3, Phase.Phase4, Phase.Phase5, Phase.Phase6];
+  if (selectedPhase.value == null || selectedPhase.value == Phase.Quality || selectedPhase.value == Phase.GitHub) return null
+  return assignmentOrder[assignmentOrder.indexOf(selectedPhase.value) -1]
+}
+
+const isPriorAssignmentSubmitted = () => {
+  const priorPhase = getPriorPhase()
+  if (priorPhase == null) return true
+  const subs = useSubmissionStore().submissionsByPhase[priorPhase]
+  if (subs == undefined || subs.length == 0) return false
+  const oneSub = subs.find( sub => sub.score > 0)
+  return oneSub != undefined;
 };
 </script>
 
@@ -84,9 +91,9 @@ const isPriorPhaseSubmitted = () => {
         <span id="submissionClosedWarning">Submissions to this phase are currently disabled</span>
       </div>
 
-      <div v-if="isPriorPhaseSubmitted()">
+      <div v-else-if="!isPriorAssignmentSubmitted()">
         <br />
-        <span id="noPriorPhase">You have not submitted the prior phase yet</span>
+        <span id="noPriorPhase">You do not have a passing submission of the previous phase</span>
       </div>
 
       <div id="submitDialog">
@@ -103,7 +110,7 @@ const isPriorPhaseSubmitted = () => {
         </select>
         <button
           :disabled="
-            selectedPhase === null || isPhaseDisabled() || isPriorPhaseSubmitted() || useSubmissionStore().currentlyGrading
+            selectedPhase === null || isPhaseDisabled() || !isPriorAssignmentSubmitted() || useSubmissionStore().currentlyGrading
           "
           class="primary"
           @click="submitSelectedPhase"
@@ -133,6 +140,14 @@ const isPriorPhaseSubmitted = () => {
 
 <style scoped>
 #submissionClosedWarning {
+  background-color: red;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+
+#noPriorPhase {
   background-color: red;
   padding: 10px;
   border-radius: 10px;
