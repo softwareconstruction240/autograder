@@ -12,7 +12,7 @@ const { closeEditor } = defineProps<{
 const holidaysSet = ref<Set<string>>(new Set<string>());
 
 onMounted(() => {
-  if (sortedHolidays.value.length > 0) {
+  if (useConfigStore().admin.holidays.length > 0) {
     useConfigStore().admin.holidays.forEach((holiday) => {
       holidaysSet.value.add(holiday.toString());
     });

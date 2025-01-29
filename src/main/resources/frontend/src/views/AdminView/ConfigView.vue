@@ -4,6 +4,7 @@ import { listOfPhases } from "@/types/types";
 import { useConfigStore } from "@/stores/config";
 import { generateClickableLink, readableTimestamp, simpleDate } from "@/utils/utils";
 import ConfigSection from "@/components/config/ConfigSection.vue";
+import { isLastDateWithinXDays } from "@/utils/utils";
 
 // Lazy Load Editor Components
 const HolidayConfigEditor = defineAsyncComponent(
@@ -26,6 +27,12 @@ const ScheduleShutdownEditor = defineAsyncComponent(
 );
 
 const config = useConfigStore();
+
+const holidayWarning = (): boolean => {
+  if (config.admin.holidays.length == 0) return true;
+
+  return isLastDateWithinXDays([...config.admin.holidays], 30);
+};
 
 onMounted(async () => {
   await useConfigStore().updateConfig();
@@ -112,6 +119,12 @@ onMounted(async () => {
         <HolidayConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
+        <div v-if="holidayWarning()">
+          <b style="background-color: red; color: white; border-radius: 5px; padding: 5px"
+            >Holidays are about to run out!</b
+          >
+          <em>Please add more holidays prompty, using the University Academic Calendar.</em>
+        </div>
         <p v-for="holiday in config.admin.holidays">
           {{ simpleDate(holiday) }}
         </p>

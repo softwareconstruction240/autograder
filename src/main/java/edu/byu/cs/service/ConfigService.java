@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
@@ -122,6 +119,9 @@ public class ConfigService {
     public static String[] generateHolidayConfig() throws DataAccessException {
         String encodedDates = dao.getConfiguration(Configuration.HOLIDAY_LIST, String.class);
 
+        if (Objects.equals(encodedDates, "")) {
+            return new String[0];
+        }
         return encodedDates.split(";");
     }
 

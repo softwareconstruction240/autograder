@@ -244,3 +244,30 @@ export const resultsScoreDisplayText = (results: RubricItemResults): string => {
     return score;
   }
 };
+
+/**
+ * Says if the last date in the list chronologically is within a set number of days.
+ * Returns true if there are no dates in the list
+ * @param dates
+ * @param days
+ */
+export const isLastDateWithinXDays = (dates: Date[] | string[], days: number) => {
+  if (!dates.length) return true;
+
+  let datesToUse: Date[];
+  if (typeof dates[0] === "string") {
+    datesToUse = dates.map((d) => new Date(d as string));
+  } else {
+    datesToUse = dates as Date[];
+  }
+
+  datesToUse.sort((a: Date, b: Date) => a.getTime() - b.getTime());
+  const lastHoliday = datesToUse[datesToUse.length - 1];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  lastHoliday.setHours(0, 0, 0, 0);
+
+  const daysInTheFuture = (lastHoliday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+
+  return daysInTheFuture < days;
+};
