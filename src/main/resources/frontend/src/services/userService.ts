@@ -8,11 +8,11 @@ export const repoHistoryGet = (netId: String): Promise<RepoUpdate[]> => {
   );
 };
 
-export const studentUpdateRepoPost = (repoUrl: string): Promise<null> => {
+export const studentUpdateRepo = (repoUrl: string): Promise<null> => {
   return updateRepoPost(repoUrl, "/api/repo");
 };
 
-export const adminUpdateRepoPost = (repoUrl: string, netId: String): Promise<null> => {
+export const adminUpdateRepo = (repoUrl: string, netId: String): Promise<null> => {
   return updateRepoPost(repoUrl, "/api/admin/repo/" + netId);
 };
 
