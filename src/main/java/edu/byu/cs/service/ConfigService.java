@@ -278,6 +278,8 @@ public class ConfigService {
     public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
         StringBuilder stringBuilder = new StringBuilder();
 
+        holidays.sort(LocalDate::compareTo);
+
         for (LocalDate holiday : holidays) {
             stringBuilder.append(holiday).append(";");
         }
