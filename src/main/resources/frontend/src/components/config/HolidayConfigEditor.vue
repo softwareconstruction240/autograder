@@ -12,9 +12,11 @@ const { closeEditor } = defineProps<{
 const holidaysSet = ref<Set<string>>(new Set<string>());
 
 onMounted(() => {
-  useConfigStore().admin.holidays.forEach((holiday) => {
-    holidaysSet.value.add(holiday.toString());
-  });
+  if (sortedHolidays.value.length > 0) {
+    useConfigStore().admin.holidays.forEach((holiday) => {
+      holidaysSet.value.add(holiday.toString());
+    });
+  }
 });
 
 // Computed property that gives us sorted holidays
