@@ -314,7 +314,7 @@ public class GitHelper {
         if (passingSubmissions == null) {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
-        if (passingSubmissions.isEmpty()) {
+        if (passingSubmissions.isEmpty() || passingSubmissions.stream().noneMatch(sub -> PhaseUtils.isPhaseGraded(sub.phase()))) {
             return MIN_COMMIT_THRESHOLD;
         }
 
