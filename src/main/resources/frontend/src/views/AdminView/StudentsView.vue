@@ -10,23 +10,23 @@ import type { User } from "@/types/types";
 import StudentInfo from "@/views/AdminView/StudentInfo.vue";
 import { renderRepoLinkCell, standardColSettings } from "@/utils/tableUtils";
 import Panel from "@/components/Panel.vue";
-import { GridApi } from 'ag-grid-community'
+import { GridApi } from "ag-grid-community";
 
 const selectedStudent = ref<User | null>(null);
 let studentData: User[] = [];
 
 // Search box functionality
 const searchTerm = ref<string>("");
-const gridApi = ref<GridApi | null>(null)
+const gridApi = ref<GridApi | null>(null);
 const onGridReady = (params: { api: GridApi }) => {
-  gridApi.value = params.api
-}
+  gridApi.value = params.api;
+};
 
 watch(searchTerm, (newValue) => {
   if (gridApi.value) {
-    gridApi.value.setGridOption('quickFilterText', newValue)
+    gridApi.value.setGridOption("quickFilterText", newValue);
   }
-})
+});
 // end of search box functionality
 
 const cellClickHandler = (event: CellClickedEvent) => {
