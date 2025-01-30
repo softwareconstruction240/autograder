@@ -64,13 +64,18 @@ const getPriorPhase = () => {
   return assignmentOrder[assignmentOrder.indexOf(selectedPhase.value) -1]
 }
 
+const priorPhase = getPriorPhase()
+
 const isPriorAssignmentSubmitted = () => {
-  const priorPhase = getPriorPhase()
-  if (priorPhase == null) return true
-  const subs = useSubmissionStore().submissionsByPhase[priorPhase]
-  if (subs == undefined || subs.length == 0) return false
-  const oneSub = subs.find( sub => sub.score > 0)
-  return oneSub != undefined;
+  //This shouldn't be a method that gets called over and over again, but should be called once when the program starts
+  //And it's stored and accessed as many times as neccessary. Speeds up the code by doing it once instead of 3+ times.
+  //Then would need to recall it whenever a submission is submitted to not invalidate the cache.
+  if (!priorPhase) return true
+  const subs = useSubmissionStore().submissionsByPhase[priorPhase] //Undefined, even after a submission
+  //const subs = useSubmissionStore().getSubmissions(priorPhase) //maybe try this? But this returns a promise
+  if (!subs || subs.length == 0) return false
+  const oneSub = subs.find( sub => sub.passed)
+  return !!oneSub;
 };
 </script>
 
