@@ -15,7 +15,7 @@ import java.util.Set;
 public class UnitTestGrader extends TestGrader {
     private static final float MIN_COVERAGE = 0.7f;
 
-    private Float score = null;
+    private Float coverageProportion = null;
 
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -48,17 +48,10 @@ public class UnitTestGrader extends TestGrader {
 
     @Override
     protected float getScore(TestOutput testOutput) throws GradingException {
-        if(score != null) {
-            return score;
-        }
-        int totalCovered = 0;
-        int totalMissed = 0;
-        for (ClassCoverageAnalysis analysis : testOutput.coverage().classAnalyses()) {
-            totalCovered += analysis.covered();
-            totalMissed += analysis.missed();
-        }
-
-        return score = (((float) totalCovered) / (totalCovered + totalMissed)) / MIN_COVERAGE;
+        float totalTests = testOutput.root().getNumTestsFailed() + testOutput.root().getNumTestsPassed();
+        if (totalTests == 0) return 0;
+        float testPassingProportion = testOutput.root().getNumTestsPassed() / totalTests;
+        return (coverageProportion(testOutput) / MIN_COVERAGE) * testPassingProportion;
     }
 
     @Override
@@ -68,15 +61,38 @@ public class UnitTestGrader extends TestGrader {
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
 
-        return switch (testResults.getNumTestsFailed()) {
+        String numPassingOutput = switch (testResults.getNumTestsFailed()) {
             case 0 -> "All tests passed";
             case 1 -> "1 test failed";
             default -> testResults.getNumTestsFailed() + " tests failed";
         };
+
+        return String.format("%s\nCoverage: %.2f%% / %.0f%%",
+                numPassingOutput, coverageProportion(testOutput) * 100, MIN_COVERAGE * 100);
     }
 
     @Override
     protected Rubric.RubricType rubricType() {
         return Rubric.RubricType.UNIT_TESTS;
+    }
+
+    private float coverageProportion(TestOutput testOutput) {
+        if(coverageProportion != null) {
+            return coverageProportion;
+        }
+
+        int totalCovered = 0;
+        int totalMissed = 0;
+        for (ClassCoverageAnalysis analysis : testOutput.coverage().classAnalyses()) {
+            totalCovered += analysis.covered();
+            totalMissed += analysis.missed();
+        }
+
+        float total = totalCovered + totalMissed;
+        if(total == 0) {
+            return 0;
+        }
+        coverageProportion = totalCovered / total;
+        return coverageProportion;
     }
 }
