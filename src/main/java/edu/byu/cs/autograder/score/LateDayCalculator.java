@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.score;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.dataAccess.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
@@ -11,68 +12,194 @@ import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Calculates late days
- * TODO: Design a more intentional DateTimeUtils API for consistently referencing methods.
+ * Calculates late days.
+ * <br>
+ * <b>Performance discussion:</b>
+ * The calculation of the late/early days requires additional information which must be requested from a network.
+ * This information is fetched and cached on a per student-phase basis so that subsequent requests requiring
+ * the details do not create a performance bottleneck.
+ * <br>
+ * It is intended that an instance of this class will be shared and reused for at least an entire grading session.
+ * Since the simple cache preserves all metadata, it would be efficient to restart the object for each new grading
+ * session to avoid a memory leak.
+ * <br>
+ * An alternative design would prepare this object to be a long-lived object by implementing a max-time
+ * limit on information in the cache. This alternative design is more complex than is necessary since
+ * the object only lives for a single submission evaluation.
  */
 public class LateDayCalculator {
 
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
-
-    /**
-     * The max number of days that the late penalty should be applied for.
-     */
-    private static final int MAX_LATE_DAYS_TO_PENALIZE = 5;
     private Set<LocalDate> publicHolidays;
+    private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
 
     public LateDayCalculator() {
         initializePublicHolidays(getEncodedPublicHolidays());
     }
 
-    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
-        if (!ApplicationProperties.useCanvas()) return 0;
+    /**
+     * Contains several pieces of information which must be queried from online sources.
+     * This information is cached to respond quickly to repeated requests for the same information.
+     *
+     * @param dueDate
+     * @param handInDate
+     * @param maxLateDaysToPenalize
+     */
+    protected record LateDayContext(
+            ZonedDateTime dueDate,
+            ZonedDateTime handInDate,
+            int maxLateDaysToPenalize
+    ) { }
 
+    /**
+     * Retrieves and returns the {@link LateDayContext}.
+     * <br>
+     * If this results in a cache-miss, then multiple calls external to the process
+     * will be made. The first lookup for each unique set of input parameters is slow.
+     * <br>
+     * After the context is retrieved, it is sufficient for all future analysis to
+     * be computed without requiring any additional external information.
+     *
+     * @param phase A primary key to looking up the context.
+     * @param netId Another primary key to looking up the context.
+     * @return The {@link LateDayContext} associated with the input parameters.
+     * @throws DataAccessException When the internal database experiences issues.
+     * @throws GradingException When other business rules are violated during the preparation of information.
+     */
+    private LateDayContext getLateDayContext(Phase phase, String netId) throws DataAccessException, GradingException {
+        // Read from local cache
+        String keyHash = hashCacheKeys(phase, netId);
+        if (lateDayContextCache.containsKey(keyHash)) {
+            return lateDayContextCache.get(keyHash);
+        }
+
+        // Fetch, cache, and return
+        LateDayContext lateDayContext = fetchLateDayContext(phase, netId);
+        lateDayContextCache.put(keyHash, lateDayContext);
+        return lateDayContext;
+    }
+
+    /**
+     * Hashes together the primary keys to identify a result in the cache.
+     *
+     * @param phase A primary key to looking up the context.
+     * @param netId Another primary key to looking up the context.
+     * @return A string that can be used to uniquely identify the composite primary key.
+     */
+    private String hashCacheKeys(Phase phase, String netId) {
+        return phase.name() + "---" + netId;
+    }
+
+    /** Called when experiencing a cache miss. Expected to run slowly. */
+    private LateDayContext fetchLateDayContext(Phase phase, String netId) throws GradingException, DataAccessException {
+        // Skip network calls when configured
+        if (!ApplicationProperties.useCanvas()) {
+            return new LateDayContext(null, null, 0);
+        }
+
+        // Request from network (expensive)
+        return doFetchLateDayContext(phase, netId);
+    }
+
+    /** Intended to be overridden for testing or otherwise. Actually fetches the information and assembles the results. Slow response. */
+    protected LateDayContext doFetchLateDayContext(Phase phase, String netId) throws GradingException, DataAccessException {
+        ZonedDateTime dueDate = getPhaseDueDateZoned(phase, netId);
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+        int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        return new LateDayContext(dueDate, handInDate, maxLateDaysToPenalize);
+    }
+
+    /** Intended to be overridden for testing or otherwise. Actually fetches the information and assembles the results. Slow response. */
+    protected ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
-        ZonedDateTime dueDate;
         try {
-            dueDate = CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            return CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }
+    }
 
-        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
-        return Math.min(getNumDaysLate(handInDate, dueDate), MAX_LATE_DAYS_TO_PENALIZE);
+    /**
+     * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
+     * the number of days late from the student-specific due date hand-in date.
+     * <br>
+     * This computation considers specific policies like:
+     * <ul>
+     *     <li>Configured holidays</li>
+     *     <li>Maximum number of late days penalized</li>
+     * </ul>
+     * <br>
+     * <b>Performance:</b> The first time this is run for a netId-phase combination will result in a cache-miss
+     * which requires a slow lookup process from multiple external sources. After the context is available, the
+     * computation is a <pre>O(n)</pre> iterative algorithm based on the number of days late.
+     *
+     * @param phase The current phase to consider.
+     * @param netId The student netId being evaluated.
+     * @return A non-negative integer indicating the number of days the assignment was submitted past the due date.
+     * @throws GradingException When other business rules are violated during processing.
+     * @throws DataAccessException When our internal database experiences issues.
+     */
+    public int calculateLateDays(Phase phase, String netId) throws GradingException, DataAccessException {
+        var context = getLateDayContext(phase, netId);
+        return Math.min(getNumDaysLate(context.handInDate, context.dueDate), context.maxLateDaysToPenalize);
+    }
+
+    /**
+     * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
+     * the number of days early from the hand-in date to the student-specific due date.
+     * <br>
+     * This does not count holidays.
+     * <br>
+     * <b>Performance:</b> The first time this is run for a netId-phase combination will result in a cache-miss
+     * which requires a slow lookup process from multiple external sources. After the context is available, the
+     * computation is a <pre>O(1)</pre> constant time operation.
+     *
+     * @param phase The current phase to consider.
+     * @param netId The student netId being evaluated.
+     * @return A non-negative integer representing the number of days the assignment was submitted early.
+     * @throws GradingException When other business rules are violated during processing.
+     * @throws DataAccessException When our internal database experiences issues.
+     */
+    public int calculateEarlyDays(Phase phase, String netId) throws GradingException, DataAccessException {
+        var context = getLateDayContext(phase, netId);
+        return getNumDaysEarly(context.handInDate, context.dueDate);
     }
 
     /**
      * Gets the number of days late the submission is. This excludes weekends and public holidays.
-     *
+     * <br>
      * In the event that the due date also happens to be a holiday, the assignment not receive
      * a late penalty until AFTER the holiday and weekends following it. While this behavior
      * may be surprising, it can be controlled by professors being careful to never assign a
      * due date on a holiday. This behavior is illustrated in the provided test cases.
+     * <br>
+     * <b>Performance:</b> <pre>O(n)</pre> where n is the number of days between the dates provided.
+     * The constant factor is minimized by performing the holiday parsing and interpretation
+     * during construction of the object.
      *
      * @param handInDate the date the submission was handed in
      * @param dueDate    the due date of the phase
      * @return the number of days late or 0 if the submission is not late
      */
-    public int getNumDaysLate(@NonNull ZonedDateTime handInDate, @NonNull ZonedDateTime dueDate) {
+    public int getNumDaysLate(@Nullable ZonedDateTime handInDate, @Nullable ZonedDateTime dueDate) {
         if (publicHolidays == null) {
             throw new RuntimeException("Public Holidays have not yet been initialized. "
                     + "Call `dateTimeUtils.initializePublicHolidays()` before attempting to count the days late.");
+        }
+        if (handInDate == null || dueDate == null) {
+            return 0;
         }
 
         int daysLate = 0;
@@ -85,6 +212,22 @@ public class LateDayCalculator {
         }
 
         return daysLate;
+    }
+
+    /**
+     * Gets the number of full 24-hour periods that fit between the hand-in date and the due date.
+     * <br>
+     * This method does not respect holidays; any 24-hour period counts as an early day.
+     * <b>Performance:</b> <pre>O(1)</pre> A constant operation no matter the interval between the dates.
+     *
+     * @param handInDate the date the submission was handed in
+     * @param dueDate    the due date of the phase
+     * @return the number of days early or 0 if the submission is not early
+     */
+    public int getNumDaysEarly(@Nullable ZonedDateTime handInDate, @Nullable ZonedDateTime dueDate) {
+        if (handInDate == null || dueDate == null) return 0; // Missing values
+        if (handInDate.isAfter(dueDate)) return 0; // Turned in late
+        return (int) (Duration.between(handInDate, dueDate).toHours() / 24);
     }
 
     /**
@@ -149,8 +292,36 @@ public class LateDayCalculator {
         }
 
         publicHolidays = interpretPublicHolidays(encodedPublicHolidays, dateEncodingFormat, quietWarnings);
-        // TODO: Validate that some holidays are configured for the current calendar year and throw an error otherwise
+        assertFutureHolidaysConfigured();
         return publicHolidays;
+    }
+
+    /**
+     * Runs after interpreting public holidays to provide some sanity checks that the process works.
+     * <br>
+     * Intentionally configured to throw {@link RuntimeException}'s which will break things at startup
+     * time if proper configuration maintenance has not occurred.
+     *
+     * @throws RuntimeException When the configuration for the class is detected as improper.
+     */
+    protected void assertFutureHolidaysConfigured() throws RuntimeException {
+        // Throw errors when not initialized
+        if (publicHolidays == null) {
+            throw new RuntimeException("Public holidays were not properly configured and appear as null. " +
+                    "This is likely an issue with the coding and initialization of classes.");
+        }
+
+        // Do not throw errors when configured with an empty list. Possibly configured this way.
+        if (publicHolidays.isEmpty()) return;
+
+        // Throw errors when configured with dates, but none in the future.
+        // This represents stale data that needs to be maintained.
+        LocalDate maxDate = publicHolidays.stream().max(LocalDate::compareTo).get();
+        LocalDate now = LocalDate.now();
+        if (maxDate.isBefore(now)) {
+            throw new RuntimeException("There are public holidays configured, but none of them are in the future. " +
+                    "This likely represents a stale configuration error which results in holidays not being respected.");
+        }
     }
 
     /**
@@ -264,8 +435,7 @@ public class LateDayCalculator {
 
     private String getEncodedPublicHolidays() {
         // FIXME: Return from some dynamic location like a configuration file or a configurable table
-        return "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;"
-                + "7/4/2024;7/24/2024;9/2/2024;11/27/2024;11/28/2024;11/29/2024;12/24/2024;12/25/2024;12/31/2024;"
-                + "1/1/2025;";
+        return "1/1/2025;1/20/2025;2/17/2025;3/21/2025;5/26/2025;6/19/2025;7/4/2025;7/24/2025;9/1/2025;11/26/2025;11/27/2025;11/28/2025;12/25/2025;12/26/2025;"
+                + "1/1/2026;";
     }
 }

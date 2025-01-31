@@ -1,62 +1,70 @@
-import { type Config, useAppConfigStore } from '@/stores/appConfig'
-import {Phase, type RubricInfo, type RubricType} from '@/types/types'
-import { useAuthStore } from '@/stores/auth'
-import { ServerCommunicator } from '@/network/ServerCommunicator'
+import { type PrivateConfig, type PublicConfig, useConfigStore } from "@/stores/config";
+import { Phase } from "@/types/types";
+import { ServerCommunicator } from "@/network/ServerCommunicator";
 
-export const getConfig = async ():Promise<Config> => {
-  let endpoint = "/api"
-  if (useAuthStore().user?.role == 'ADMIN') {
-    endpoint += "/admin"
-  }
-  endpoint += "/config"
+export const getPublicConfig = async (): Promise<PublicConfig> => {
+  return await ServerCommunicator.getRequest<PublicConfig>("/api/config");
+};
 
-  return await ServerCommunicator.getRequest<Config>(endpoint)
-}
+export const getAdminConfig = async (): Promise<PrivateConfig> => {
+  return await ServerCommunicator.getRequest<PrivateConfig>("/api/admin/config");
+};
 
-export const setBanner = async (message: String, link: String, color: String, expirationTimestamp: String): Promise<void> => {
-  await doSetConfigItem("POST", '/api/admin/config/banner', {
-    "bannerMessage": message,
-    "bannerLink": link,
-    "bannerColor": color,
-    "bannerExpiration": expirationTimestamp
-    }
-  );
-}
+export const setPenalties = async (
+  maxLateDaysPenalized: number,
+  gitCommitPenalty: number,
+  perDayLatePenalty: number,
+  linesChangedPerCommit: number,
+  clockForgivenessMinutes: number,
+) => {
+  await doSetConfigItem("/api/admin/config/penalties", {
+    maxLateDaysPenalized: maxLateDaysPenalized,
+    gitCommitPenalty: gitCommitPenalty,
+    perDayLatePenalty: perDayLatePenalty,
+    linesChangedPerCommit: linesChangedPerCommit,
+    clockForgivenessMinutes: clockForgivenessMinutes,
+  });
+};
+
+export const setBanner = async (
+  message: String,
+  link: String,
+  color: String,
+  expirationTimestamp: String,
+): Promise<void> => {
+  await doSetConfigItem("/api/admin/config/banner", {
+    bannerMessage: message,
+    bannerLink: link,
+    bannerColor: color,
+    bannerExpiration: expirationTimestamp,
+  });
+};
 
 export const setLivePhases = async (phases: Array<Phase>): Promise<void> => {
-  await doSetConfigItem("POST", '/api/admin/config/phases', {"phases": phases});
-}
+  await doSetConfigItem("/api/admin/config/phases", { phases: phases });
+};
 
-export const setCanvasCourseIds = async (): Promise<void> => {
-  await doSetConfigItem("GET", "/api/admin/config/courseIds", {});
-}
-
-const convertRubricInfoToObj = (rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>): object => {
-    let obj: any = {};
-    rubricInfo.forEach((rubricTypeMap, phase) => {
-        obj[phase] = Object.fromEntries(rubricTypeMap.entries());
-    });
-    return obj;
-}
-
-export const setCourseIds = async (
-    courseNumber: number,
-    assignmentIds: Map<Phase, number>,
-    rubricInfo: Map<Phase, Map<RubricType, RubricInfo>>
+export const setGraderShutdown = async (
+  shutdownTimestamp: string,
+  shutdownWarningHours: number,
 ): Promise<void> => {
-    const body = {
-        "courseNumber": courseNumber,
-        "assignmentIds": Object.fromEntries(assignmentIds.entries()),
-        "rubricInfo": convertRubricInfoToObj(rubricInfo)
-    };
-    await doSetConfigItem("POST", "/api/admin/config/courseIds", body);
-}
+  if (shutdownWarningHours < 0) shutdownWarningHours = 0;
 
-const doSetConfigItem = async (method: string, path: string, body: Object): Promise<void> => {
-  if (method == "GET") {
-    await ServerCommunicator.getRequest(path, false)
-  } else {
-    await ServerCommunicator.postRequest(path, body, false)
-  }
-  await useAppConfigStore().updateConfig();
-}
+  await doSetConfigItem("/api/admin/config/phases/shutdown", {
+    shutdownTimestamp: shutdownTimestamp,
+    shutdownWarningMilliseconds: Math.trunc(shutdownWarningHours * 60 * 60 * 1000), // convert to milliseconds
+  });
+};
+
+export const reloadCourseIds = async (): Promise<void> => {
+  await doSetConfigItem("/api/admin/config/reloadCourseIds", {});
+};
+
+export const setCourseId = async (courseNumber: number) => {
+  await doSetConfigItem("/api/admin/config/courseId", { courseId: courseNumber });
+};
+
+const doSetConfigItem = async (path: string, body: Object): Promise<void> => {
+  await ServerCommunicator.postRequest(path, body, false);
+  await useConfigStore().updateConfig();
+};

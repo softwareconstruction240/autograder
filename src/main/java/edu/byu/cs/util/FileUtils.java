@@ -80,7 +80,7 @@ public class FileUtils {
      * @param action the action to perform on each file
      */
     public static void modifyDirectory(File dir, Consumer<File> action) {
-        if (!dir.exists()) {
+        if (dir == null || !dir.exists()) {
             return;
         }
 

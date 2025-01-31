@@ -50,7 +50,7 @@ public class ConfigurationSqlDao implements ConfigurationDao {
             statement.setString(1, key.toString());
             var rs = statement.executeQuery();
             if (rs.next()) {
-                return getValue(rs.getString("value"), type);
+                return getValue(key, rs.getString("value"), type);
             }
             throw new DataAccessException("Configuration not found: " + key);
         } catch (Exception e) {
@@ -58,31 +58,29 @@ public class ConfigurationSqlDao implements ConfigurationDao {
         }
     }
 
-    private <T> T getValue(String value, Class<T> type) {
+    private <T> T getValue(Configuration key, String value, Class<T> type) {
+        String className = type.getSimpleName();
+
         if (value.equals(DEFAULT_VALUE)) {
-            LOGGER.warn("Using default configuration value for key: {}", type);
+            LOGGER.warn("Using default configuration value for key: {} of type {}", key, type);
 
-            if (type == String.class) {
-                return type.cast("");
-            } else if (type == Integer.class) {
-                return type.cast(0);
-            } else if (type == Boolean.class) {
-                return type.cast(false);
-            } else {
-                throw new IllegalArgumentException("Unsupported configuration type: " + type);
-            }
+            return type.cast(switch (className) {
+                case "String" -> "";
+                case "Integer" -> 0;
+                case "Boolean" -> false;
+                case "Instant" -> Instant.MAX;
+                case "Float" -> 0f;
+                default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
+            });
         }
 
-        if (type == String.class) {
-            return type.cast(value);
-        } else if (type == Integer.class) {
-            return type.cast(Integer.parseInt(value));
-        } else if (type == Boolean.class) {
-            return type.cast(Boolean.parseBoolean(value));
-        } else if (type == Instant.class) {
-            return type.cast(Instant.parse(value));
-        } else {
-            throw new IllegalArgumentException("Unsupported configuration type: " + type);
-        }
+        return type.cast(switch (className) {
+            case "String" -> value;
+            case "Integer" -> Integer.parseInt(value);
+            case "Boolean" -> Boolean.parseBoolean(value);
+            case "Instant" -> Instant.parse(value);
+            case "Float" -> Float.parseFloat(value);
+            default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
+        });
     }
 }

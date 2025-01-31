@@ -75,6 +75,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
 
 
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
@@ -112,6 +119,12 @@
             <artifactId>slf4j-api</artifactId>
             <version>2.0.13</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
 
 
     </dependencies>
@@ -142,7 +155,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>edu.byu.cs.server.Server</mainClass>
+                                    <mainClass>Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -169,7 +182,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>edu.byu.cs.server.Server</mainClass>
+                            <mainClass>Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

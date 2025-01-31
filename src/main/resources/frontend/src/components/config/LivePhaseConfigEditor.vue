@@ -1,24 +1,40 @@
 <script setup lang="ts">
 import { listOfPhases, Phase } from "@/types/types";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 import { setLivePhases } from "@/services/configService";
+import { onMounted, ref } from "vue";
 
-const appConfigStore = useAppConfigStore();
+const config = useConfigStore();
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
 }>();
 
-const setAllPhases = (setting: boolean) => {
+type PhaseSetting = {
+  phase: Phase;
+  active: boolean;
+};
+const phases = ref<PhaseSetting[]>([]);
+
+onMounted(() => {
   for (const phase of listOfPhases() as Phase[]) {
-    appConfigStore.phaseActivationList[phase] = setting;
+    phases.value.push({
+      phase: phase,
+      active: useConfigStore().public.livePhases.includes(phase.toString()),
+    });
+  }
+});
+
+const setAllPhases = (setting: boolean) => {
+  for (const phaseSetting of phases.value) {
+    phaseSetting.active = setting;
   }
 };
 const submitLivePhases = async () => {
   let livePhases: Phase[] = [];
-  for (const phase of listOfPhases() as Phase[]) {
-    if (useAppConfigStore().phaseActivationList[phase]) {
-      livePhases.push(phase);
+  for (const phaseSetting of phases.value) {
+    if (phaseSetting.active) {
+      livePhases.push(phaseSetting.phase);
     }
   }
 
@@ -26,7 +42,7 @@ const submitLivePhases = async () => {
     await setLivePhases(livePhases);
     closeEditor();
   } catch (e) {
-    appConfigStore.updateConfig();
+    config.updatePublicConfig();
     alert("There was a problem in saving live phases");
   }
 };
@@ -34,21 +50,21 @@ const submitLivePhases = async () => {
 
 <template>
   <div class="checkboxes">
-    <label v-for="(phase, index) in listOfPhases()" :key="index">
-      <span
-        ><input type="checkbox" v-model="appConfigStore.phaseActivationList[phase]" />
-        {{ phase }}</span
-      >
+    <label v-for="phaseSetting in phases" :key="phaseSetting.phase">
+      <span>
+        <input type="checkbox" v-model="phaseSetting.active" />
+        {{ phaseSetting.phase }}
+      </span>
     </label>
   </div>
 
   <div class="submitChanges">
-    <p><em>This will not effect admin submissions</em></p>
     <div>
       <button @click="setAllPhases(true)" class="small">Enable all</button>
       <button @click="setAllPhases(false)" class="small">Disable all</button>
     </div>
     <button @click="submitLivePhases">Submit</button>
+    <p><em>This will not effect admin submissions</em></p>
   </div>
 </template>
 

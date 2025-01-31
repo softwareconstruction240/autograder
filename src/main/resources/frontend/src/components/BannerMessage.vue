@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useAppConfigStore } from '@/stores/appConfig'
+import { computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
 
 const authStore = useAuthStore();
-const appConfigStore = useAppConfigStore();
+const config = useConfigStore();
 
 const bannerProps = computed(() => {
   if (authStore.isLoggedIn) {
     return {
-      message: appConfigStore.bannerMessage,
-      link: appConfigStore.bannerLink,
-      color: appConfigStore.bannerColor
+      message: config.public.banner.message,
+      link: config.public.banner.link,
+      color: config.public.banner.color,
     };
   }
   return {};
@@ -19,7 +19,7 @@ const bannerProps = computed(() => {
 
 const handleClick = () => {
   if (bannerProps.value.link) {
-    window.open(bannerProps.value.link, '_blank');
+    window.open(bannerProps.value.link, "_blank");
   }
 };
 </script>
@@ -30,11 +30,11 @@ const handleClick = () => {
     id="bannerMessage"
     :style="{
       backgroundColor: bannerProps.color,
-      cursor: bannerProps.link ? 'pointer' : 'default'
+      cursor: bannerProps.link ? 'pointer' : 'default',
     }"
     @click="handleClick"
   >
-      <span v-text="bannerProps.message"/>
+    <span v-text="bannerProps.message" />
   </div>
 </template>
 
