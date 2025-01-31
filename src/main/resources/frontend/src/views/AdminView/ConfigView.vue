@@ -123,7 +123,7 @@ onMounted(async () => {
           <b style="background-color: red; color: white; border-radius: 5px; padding: 5px"
             >Holidays are about to run out!</b
           >
-          <em>Please add more holidays prompty, using the University Academic Calendar.</em>
+          <p><em>Please add more holidays prompty, using the University Academic Calendar.</em></p>
         </div>
         <p v-for="holiday in config.admin.holidays">
           {{ simpleDate(holiday) }}
