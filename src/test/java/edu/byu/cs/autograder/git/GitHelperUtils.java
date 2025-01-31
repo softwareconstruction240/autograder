@@ -41,6 +41,8 @@ public class GitHelperUtils {
 
     private GradingContext gradingContext;
     private CommitVerificationResult prevVerification;
+    /** This is used as the minThreshold, but it only lasts for a single evaluation. */
+    private Instant prevSubmissionTimestamp;
     private int submitDaysEarly = 0;
 
     public GitHelperUtils() {
@@ -84,6 +86,9 @@ public class GitHelperUtils {
     public void setSubmitDaysEarly(int submitDaysEarly) {
         this.submitDaysEarly = submitDaysEarly;
     }
+    public void setPrevSubmissionTimestamp(Instant minThreshold) {
+        this.prevSubmissionTimestamp = minThreshold;
+    }
 
 
     // ### Testing Helpers
@@ -121,12 +126,13 @@ public class GitHelperUtils {
             CommitVerificationResult verificationResult;
             CommitThreshold minThreshold;
             for (var checkpoint : checkpoints) {
+                prevSubmissionTimestamp = Instant.MIN;
                 checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
                 minThreshold = prevVerification == null ?
                         GitHelper.MIN_COMMIT_THRESHOLD :
-                        new CommitThreshold(Instant.MIN, prevVerification.headHash());
+                        new CommitThreshold(prevSubmissionTimestamp, prevVerification.headHash());
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 

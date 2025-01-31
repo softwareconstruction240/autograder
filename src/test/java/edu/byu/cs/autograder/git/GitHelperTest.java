@@ -4,6 +4,7 @@ import edu.byu.cs.analytics.CommitThreshold;
 import org.eclipse.jgit.api.Git;
 import org.junit.jupiter.api.*;
 import java.io.File;
+import java.time.Instant;
 import java.util.*;
 
 class GitHelperTest {
@@ -292,6 +293,7 @@ class GitHelperTest {
                         utils.generalCommitVerificationResult(true, 1, 1)),
                 new VerificationCheckpoint(
                         repoContext -> {
+                            utils.setPrevSubmissionTimestamp(Instant.now().minusSeconds(5 * 60));
                             utils.makeCommit(repoContext, "Change 2", 0, 9, 10); // Before the prev commit
                             utils.makeCommit(repoContext, "Change 3", 0, 4, 10);
                         },
