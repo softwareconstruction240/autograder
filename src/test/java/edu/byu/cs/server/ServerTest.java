@@ -47,8 +47,8 @@ class ServerTest {
 
                 Arguments.of( "GET", "/api/admin/config", "getConfigAdmin"),
                 Arguments.of("POST", "/api/admin/config/banner", "updateBannerMessage"),
-                Arguments.of("POST", "/api/admin/config/courseIds", "updateCourseIdsPost"),
-                Arguments.of( "GET", "/api/admin/config/courseIds", "updateCourseIdsUsingCanvasGet"),
+                Arguments.of("POST", "/api/admin/config/courseId", "updateCourseIdPost"),
+                Arguments.of("POST", "/api/admin/config/reloadCourseIds", "reloadCourseAssignmentIds"),
                 Arguments.of("POST", "/api/admin/config/penalties", "updatePenalties"),
                 Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
                 Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),

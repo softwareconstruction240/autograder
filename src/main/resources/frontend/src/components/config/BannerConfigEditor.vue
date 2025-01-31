@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 import { setBanner } from "@/services/configService";
 import { combineDateAndTime } from "@/utils/utils";
 
@@ -8,11 +8,11 @@ const { closeEditor } = defineProps<{
   closeEditor: () => void;
 }>();
 
-const appConfigStore = useAppConfigStore();
+const config = useConfigStore();
 
-const bannerMessageToSubmit = ref<string>(appConfigStore.bannerMessage);
-const bannerColorToSubmit = ref<string>(appConfigStore.bannerColor);
-const bannerLinkToSubmit = ref<string>(appConfigStore.bannerLink);
+const bannerMessageToSubmit = ref<string>(config.public.banner.message);
+const bannerColorToSubmit = ref<string>(config.public.banner.color);
+const bannerLinkToSubmit = ref<string>(config.public.banner.link);
 const bannerWillExpire = ref<boolean>(false);
 const bannerExpirationDate = ref<string>("");
 const bannerExpirationTime = ref<string>("");
@@ -39,7 +39,7 @@ const submitBanner = async () => {
     );
     closeEditor();
   } catch (e) {
-    appConfigStore.updateConfig();
+    config.updatePublicConfig();
     alert("There was a problem in saving the updated banner message:\n" + e);
   }
 };
