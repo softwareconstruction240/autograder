@@ -344,14 +344,22 @@ public class GitHelper {
     }
     private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
         try {
-            ObjectId commitId = ObjectId.fromString(submission.headHash());
-            RevCommit commit = revWalk.parseCommit(commitId);
-            return Instant.ofEpochSecond(commit.getCommitTime());
+            return getAuthorTimestampOfCommitHash(revWalk, submission.headHash());
         } catch (MissingObjectException | IncorrectObjectTypeException ex) {
             // The commit didn't exist. It may have been garbage collected if they rebased.
             // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
             return submission.timestamp();
         }
+    }
+    static public Instant getAuthorTimestampOfCommitHash(Git git, String commitHash) throws IOException {
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            return getAuthorTimestampOfCommitHash(revWalk, commitHash);
+        }
+    }
+    static public Instant getAuthorTimestampOfCommitHash(RevWalk revWalk, String commitHash) throws IOException {
+        ObjectId commitId = ObjectId.fromString(commitHash);
+        RevCommit commit = revWalk.parseCommit(commitId);
+        return Instant.ofEpochSecond(commit.getCommitTime());
     }
 
     /**

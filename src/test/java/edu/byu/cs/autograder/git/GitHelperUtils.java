@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -124,9 +125,7 @@ public class GitHelperUtils {
                 checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
-                minThreshold = prevVerification == null ?
-                        GitHelper.MIN_COMMIT_THRESHOLD :
-                        new CommitThreshold(Instant.MIN, prevVerification.headHash());
+                minThreshold = determineMinThreshold(repoContext, prevVerification);
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
@@ -135,9 +134,25 @@ public class GitHelperUtils {
 
             // Only cleanup if it succeeded
             cleanUpTest(repoContext);
-        } catch (GitAPIException e) {
+        } catch (GitAPIException|IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private CommitThreshold determineMinThreshold(RepoContext repoContext, CommitVerificationResult prevVerification) throws IOException {
+        if (prevVerification == null) {
+            return GitHelper.MIN_COMMIT_THRESHOLD;
+        }
+
+        // Assume that the phase was submitted in the same minute the last commit was authored.
+        // Simulate the behavior of the actual submission system.
+        Instant prevSubmissionTime;
+        try {
+            prevSubmissionTime = GitHelper.getAuthorTimestampOfCommitHash(repoContext.git(), prevVerification.headHash());
+        } catch (Exception e) {
+            prevSubmissionTime = Instant.MIN;
+        }
+        return new CommitThreshold(prevSubmissionTime, prevVerification.headHash());
     }
 
     RepoContext initializeTest(String testName, String changeFileName) throws GitAPIException {
