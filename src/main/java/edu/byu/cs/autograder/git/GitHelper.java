@@ -314,19 +314,21 @@ public class GitHelper {
         if (passingSubmissions == null) {
             throw new GradingException("Cannot extract previous submission date before passingSubmissions are loaded.");
         }
-        if (passingSubmissions.isEmpty() || passingSubmissions.stream().noneMatch(sub -> PhaseUtils.isPhaseGraded(sub.phase()))) {
+        if (passingSubmissions.isEmpty()) {
             return MIN_COMMIT_THRESHOLD;
         }
 
         Instant latestTimestamp = null;
         String latestCommitHash = null;
         Repository repo = git.getRepository();
+        boolean hasCandidateSubmission = false;
 
         Instant effectiveSubmissionTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
             for (Submission submission : passingSubmissions) {
                 if (!PhaseUtils.isPhaseGraded(submission.phase())) continue;
 
+                hasCandidateSubmission = true;
                 effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
                 if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
@@ -336,6 +338,9 @@ public class GitHelper {
             }
         }
 
+        if (!hasCandidateSubmission) {
+            return MIN_COMMIT_THRESHOLD;
+        }
         if (latestTimestamp == null) {
             throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
         }
