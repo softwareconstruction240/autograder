@@ -104,9 +104,7 @@ public class GitHelperUtils {
                 checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
-                minThreshold = prevSubmissionHeadHash == null ?
-                        GitHelper.MIN_COMMIT_THRESHOLD :
-                        new CommitThreshold(prevSubmissionTimestamp, prevSubmissionHeadHash);
+                minThreshold = new CommitThreshold(prevSubmissionTimestamp, prevSubmissionHeadHash);
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
