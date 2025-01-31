@@ -12,9 +12,13 @@ public class StaticFilesVerifier implements StudentCodeVerifier {
 
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
-        if(context.phase()!=Phase.Phase1&&context.phase()!=Phase.Phase0){
-            String filePath = "server/src/main/resources";
-            System.out.println(reader.filesMatching(filePath).count());
+        if(context.phase()==Phase.Phase3){
+            String filePath = "server/src/main/resources/web";
+            File staticFiles = new File(context.stageRepo(), filePath);
+            if(!staticFiles.exists() || !staticFiles.isDirectory()){
+                context.observer().notifyWarning("It looks like you won't pass the static files test. " +
+                        "Are the static files located in %s?".formatted(filePath));
+            }
         }
     }
 }
