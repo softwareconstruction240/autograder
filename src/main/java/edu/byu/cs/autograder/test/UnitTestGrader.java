@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.model.TestNode;
@@ -12,6 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class UnitTestGrader extends TestGrader {
+    private static final float MIN_COVERAGE = 0.7f;
+
+    private Float score = null;
+
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
     }
@@ -43,16 +48,17 @@ public class UnitTestGrader extends TestGrader {
 
     @Override
     protected float getScore(TestOutput testOutput) throws GradingException {
-        TestNode testResults = testOutput.root();
-        float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
+        if(score != null) {
+            return score;
+        }
+        int totalCovered = 0;
+        int totalMissed = 0;
+        for (ClassCoverageAnalysis analysis : testOutput.coverage().classAnalyses()) {
+            totalCovered += analysis.covered();
+            totalMissed += analysis.missed();
+        }
 
-        if (totalTests == 0) return 0;
-
-        int minTests = PhaseUtils.minUnitTests(gradingContext.phase());
-
-        if (totalTests < minTests) return (float) testResults.getNumTestsPassed() / minTests;
-
-        return testResults.getNumTestsPassed() / totalTests;
+        return score = (((float) totalCovered) / (totalCovered + totalMissed)) / MIN_COVERAGE;
     }
 
     @Override
