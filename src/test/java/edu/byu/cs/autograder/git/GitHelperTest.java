@@ -282,4 +282,20 @@ class GitHelperTest {
                 utils.generalCommitVerificationResult(true, 4, 2, 2)) // Has warnings
         );
     }
+
+    @Test
+    void earlyCommitsExcludedButDoNotError() {
+        utils.setGradingContext(utils.generateGradingContext(1, 1, 10, 1));
+        utils.evaluateTest("commits-before-previous-submission", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 1", 0, 6, 10),
+                        utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            utils.makeCommit(repoContext, "Change 2", 0, 9, 10); // Before the prev commit
+                            utils.makeCommit(repoContext, "Change 3", 0, 4, 10);
+                        },
+                        utils.generalCommitVerificationResult(true, 1, 1, 2))
+        ));
+    }
 }
