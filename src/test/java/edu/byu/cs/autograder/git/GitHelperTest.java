@@ -261,7 +261,7 @@ class GitHelperTest {
 
                         // NOTE: I tried putting in an *obviously* incorrect head hash for testing, but it JGit rejected
                         // it with an InvalidObjectIdException. Apparently the ObjectIds cannot be any alphanumeric string.
-                        utils.setPrevVerification("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
+                        utils.setPrevSubmissionHeadHash("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
                     },
                     // Since the tail hash doesn't exist, it will evaluate the entire repository resulting in 2 commits on two days.
                     // It will be flagged as potentially incorrect and require manual intervention.
