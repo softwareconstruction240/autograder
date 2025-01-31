@@ -1,5 +1,6 @@
 import { useAdminStore } from "@/stores/admin";
 import {
+  type CoverageAnalysis,
   Phase,
   type RubricItem,
   type RubricItemResults,
@@ -152,6 +153,29 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
 
   return result;
 };
+
+const proportionToColor = (proportion: number) => {
+  return (240 * proportion);
+}
+
+export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysis) => {
+  coverage.classAnalyses.sort((a, b) => {
+    if(a.packageName === b.packageName) {
+      return a.className.localeCompare(b.className);
+    }
+    return a.packageName.localeCompare(b.packageName);
+  });
+
+  let out = "<br>Coverage:<br>";
+  for (const classAnalysis of coverage.classAnalyses) {
+    const total = classAnalysis.covered + classAnalysis.missed;
+    if (total > 0) {
+      const coveredProportion = classAnalysis.covered / total;
+      out += `<span style="color: rgb(${proportionToColor(1 - coveredProportion)}, ${proportionToColor(coveredProportion)}, 0)">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`
+    }
+  }
+  return out;
+}
 
 export const phaseString = (phase: Phase | "Quality" | "GitHub") => {
   if (phase == "Quality") {
