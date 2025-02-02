@@ -5,7 +5,7 @@ import { loadUser, logoutPost } from "@/services/authService";
 import router from "@/router";
 import "@/assets/fontawesome/css/fontawesome.css";
 import "@/assets/fontawesome/css/solid.css";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 import BannerMessage from "@/components/BannerMessage.vue";
 import PopUp from "@/components/PopUp.vue";
 import RepoEditor from "@/components/RepoEditor.vue";
@@ -33,7 +33,7 @@ const logOut = async () => {
 };
 
 onMounted(async () => {
-  await useAppConfigStore().updateConfig();
+  await useConfigStore().updateConfig();
 });
 
 const openRepoEditor = ref<boolean>(false);

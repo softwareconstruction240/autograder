@@ -112,8 +112,8 @@ public class Server {
                     post("/phases/shutdown", provider.scheduleShutdown());
                     post("/banner", provider.updateBannerMessage());
 
-                    post("/courseIds", provider.updateCourseIdsPost());
-                    get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
+                    post("/courseId", provider.updateCourseIdPost());
+                    post("/reloadCourseIds", provider.reloadCourseAssignmentIds());
 
                     post("/penalties", provider.updatePenalties());
                 });
