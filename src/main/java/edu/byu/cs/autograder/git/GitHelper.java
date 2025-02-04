@@ -322,6 +322,7 @@ public class GitHelper {
         String latestCommitHash = null;
         Repository repo = git.getRepository();
         boolean hasCandidateSubmission = false;
+        boolean missingLatestHash = false;
 
         EffectiveTimestamp effectiveTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
@@ -334,8 +335,10 @@ public class GitHelper {
 
                 if (latestTimestamp == null || effectiveTimestamp.timestamp.isAfter(latestTimestamp)) {
                     latestTimestamp = effectiveTimestamp.timestamp;
+                    missingLatestHash = true;
                     if (effectiveTimestamp.commitExists) {
                         latestCommitHash = submission.headHash();
+                        missingLatestHash = false;
                     }
                 }
             }
@@ -346,6 +349,11 @@ public class GitHelper {
         }
         if (latestTimestamp == null) {
             throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
+        }
+        if (missingLatestHash) {
+            gradingContext.observer().notifyWarning("The latest commit hash could not be found, "
+                    + " even though passing & graded submissions exist."
+                    + "This is expected if you recently nuked your repository.");
         }
 
         return new CommitThreshold(latestTimestamp, latestCommitHash);
