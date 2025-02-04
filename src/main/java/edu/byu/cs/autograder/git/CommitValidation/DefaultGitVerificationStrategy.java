@@ -45,10 +45,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
                         commitsByDay.commitsInFuture(),
-                        "Suspicious commit history. Some commits are authored after the hand in date."),
-                new CV(
-                        commitsByDay.commitsInPast(),
-                        "Suspicious commit history. Some commits are authored before the previous phase hash."),
+                        "Suspicious commit history. Some commits are authored after the hand in date. Is your clock set incorrectly?"),
                 new CV(
                         commitsByDay.commitsBackdated(),
                         "Suspicious commit history. Some commits have been backdated."),
@@ -67,6 +64,9 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         commitsByDay.commitTimestampsDuplicated(),
                         commitsByDay.getErroringCommitsSet("commitTimestampsDuplicatedSubsequentOnly"),
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
+                new CV(
+                        commitsByDay.commitsInPast(),
+                        "Some commits excluded. Commits authored before the previous phase hash were not counted."),
         };
 
         // Preserve the first set of messages (preserve the original warnings about amending commits)

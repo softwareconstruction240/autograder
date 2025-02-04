@@ -30,6 +30,7 @@ class GitHelperTest {
      * If the repository doesn't exist, this test does nothing.
      */
     @Test
+    @Disabled
     void arbitraryRepoFileTest() {
         String repoPath;
         repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
@@ -269,7 +270,7 @@ class GitHelperTest {
 
                         // NOTE: I tried putting in an *obviously* incorrect head hash for testing, but it JGit rejected
                         // it with an InvalidObjectIdException. Apparently the ObjectIds cannot be any alphanumeric string.
-                        utils.setPrevVerification("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
+                        utils.setPrevSubmissionHeadHash("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
                     },
                     // Since the tail hash doesn't exist, it will evaluate the entire repository resulting in 2 commits on two days.
                     // It will be flagged as potentially incorrect and require manual intervention.
@@ -290,5 +291,22 @@ class GitHelperTest {
                 },
                 utils.generalCommitVerificationResult(true, 4, 2, 2)) // Has warnings
         );
+    }
+
+    @Test
+    void earlyCommitsExcludedButDoNotError() {
+        utils.setGradingContext(utils.generateGradingContext(1, 1, 10, 1));
+        utils.evaluateTest("commits-before-previous-submission", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 1", 0, 6, 10),
+                        utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            utils.setPrevSubmissionTimestamp(Instant.now().minusSeconds(5 * 60));
+                            utils.makeCommit(repoContext, "Change 2", 0, 9, 10); // Before the prev commit
+                            utils.makeCommit(repoContext, "Change 3", 0, 4, 10);
+                        },
+                        utils.generalCommitVerificationResult(true, 1, 1, 2))
+        ));
     }
 }

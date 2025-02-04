@@ -102,8 +102,8 @@ public class CommitAnalytics {
             if (commitTimes.seconds <= lowerTimeBoundSecs) {
                 groupCommitsByKey(erroringCommits, "commitsInPast", commitHash);
                 commitsInPast = true;
-                // Actually, we want to just skip these commits since these could legitimately
-                // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
+                // Actually, we want to just skip these commits since these could
+                // legitimately occur when rebasing or otherwise.
                 continue;
             }
             if (commitTimes.seconds > upperTimeBoundSecs) {
