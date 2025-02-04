@@ -323,17 +323,20 @@ public class GitHelper {
         Repository repo = git.getRepository();
         boolean hasCandidateSubmission = false;
 
-        Instant effectiveSubmissionTimestamp;
+        EffectiveTimestamp effectiveTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
             for (Submission submission : passingSubmissions) {
                 if (!PhaseUtils.isPhaseGraded(submission.phase())) continue;
 
                 hasCandidateSubmission = true;
-                effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
+                effectiveTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
-                if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
-                    latestTimestamp = effectiveSubmissionTimestamp;
-                    latestCommitHash = submission.headHash();
+
+                if (latestTimestamp == null || effectiveTimestamp.timestamp.isAfter(latestTimestamp)) {
+                    latestTimestamp = effectiveTimestamp.timestamp;
+                    if (effectiveTimestamp.commitExists) {
+                        latestCommitHash = submission.headHash();
+                    }
                 }
             }
         }
@@ -347,17 +350,22 @@ public class GitHelper {
 
         return new CommitThreshold(latestTimestamp, latestCommitHash);
     }
-    private Instant getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
+    private EffectiveTimestamp getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) throws IOException {
         try {
             ObjectId commitId = ObjectId.fromString(submission.headHash());
             RevCommit commit = revWalk.parseCommit(commitId);
-            return Instant.ofEpochSecond(commit.getCommitTime());
+            return new EffectiveTimestamp(true, Instant.ofEpochSecond(commit.getCommitTime()));
         } catch (MissingObjectException | IncorrectObjectTypeException ex) {
             // The commit didn't exist. It may have been garbage collected if they rebased.
             // The hash may not have been valid. This shouldn't happen, but if it does, we'll continue.
-            return submission.timestamp();
+            return new EffectiveTimestamp(false, submission.timestamp());
         }
     }
+
+    private record EffectiveTimestamp(
+            boolean commitExists,
+            Instant timestamp
+    ) { }
 
     /**
      * Constructs the current threshold for the grading.
