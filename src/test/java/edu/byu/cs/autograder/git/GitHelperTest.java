@@ -4,6 +4,7 @@ import edu.byu.cs.analytics.CommitThreshold;
 import org.eclipse.jgit.api.Git;
 import org.junit.jupiter.api.*;
 import java.io.File;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -217,16 +218,23 @@ class GitHelperTest {
     void amendedCommitsCountedOnce() {
         utils.setGradingContext(utils.generateGradingContext(3, 0, 0, 0));
         utils.evaluateTest("amended-commits-counted-once", new VerificationCheckpoint(repoContext -> {
-            utils.makeCommit(repoContext, "Change 1 (initial)", 0, 5, 10);
-            utils.makeCommit(repoContext, "Change 1 (amend 1)", 0, 5, 10);
-            utils.makeCommit(repoContext, "Change 1 (amend 2)", 0, 5, 10);
-            utils.makeCommit(repoContext, "Change 2 (initial)", 0, 4, 10);
-            utils.makeCommit(repoContext, "Change 2 (amend 1)", 0, 4, 10);
-            utils.makeCommit(repoContext, "Change 2 (amend 2)", 0, 4, 10);
-            utils.makeCommit(repoContext, "Change 3 (initial)", 0, 3, 10);
-            utils.makeCommit(repoContext, "Change 3 (amend 1)", 0, 3, 10);
-            utils.makeCommit(repoContext, "Change 3 (amend 2)", 0, 3, 10);
-            utils.makeCommit(repoContext, "Change 3 (amend 3)", 0, 3, 10);
+            Instant now = Instant.now();
+
+            Instant commitTime1 = now.minus(Duration.ofMinutes(5));
+            utils.makeCommit(repoContext, "Change 1 (initial)", commitTime1, 10, true);
+            utils.makeCommit(repoContext, "Change 1 (amend 1)", commitTime1, 10, true);
+            utils.makeCommit(repoContext, "Change 1 (amend 2)", commitTime1, 10, true);
+
+            Instant commitTime2 = now.minus(Duration.ofMinutes(4));
+            utils.makeCommit(repoContext, "Change 2 (initial)", commitTime2, 10, true);
+            utils.makeCommit(repoContext, "Change 2 (amend 1)", commitTime2, 10, true);
+            utils.makeCommit(repoContext, "Change 2 (amend 2)", commitTime2, 10, true);
+
+            Instant commitTime3 = now.minus(Duration.ofMinutes(3));
+            utils.makeCommit(repoContext, "Change 3 (initial)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 1)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 2)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 3)", commitTime3, 10, true);
         }, utils.generalCommitVerificationResult(true, 3, 1, 2)));
     }
 
