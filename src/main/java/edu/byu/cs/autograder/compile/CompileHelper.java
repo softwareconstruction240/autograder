@@ -22,7 +22,7 @@ public class CompileHelper {
 
     private final Collection<StudentCodeVerifier> currentVerifiers =
             List.of(new ProjectStructureVerifier(), new ModuleIndependenceVerifier(), new ModifiedTestFilesVerifier(),
-                    new TestLocationVerifier(), new ServerFacadeTestPortVerifier(), new StaticFilesVerifier());
+                    new TestLocationVerifier(), new ServerFacadeTestPortVerifier());
 
 
     private final Collection<StudentCodeModifier> currentModifiers =
