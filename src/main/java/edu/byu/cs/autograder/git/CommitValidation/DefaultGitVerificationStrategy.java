@@ -66,7 +66,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         "Mistaken history manipulation. Multiple commits have the exact same timestamp. Likely, commits were pushed and amended and merged together."),
                 new CV(
                         commitsByDay.commitsInPast(),
-                        "Some commits excluded. Commits authored before the previous phase hash were not counted."),
+                        "Some commits excluded. Commits authored before the previous phase submission were not counted."),
         };
 
         // Preserve the first set of messages (preserve the original warnings about amending commits)
