@@ -258,6 +258,7 @@ class GitHelperTest {
     @Test
     void passoffMissingTailHash() {
         utils.setGradingContext(utils.generateGradingContext(1, 1, 10,  1));
+        Collection<String> submissionWarnings = List.of("Missing tail hash", "Additional warning");
         utils.evaluateTest("missing-tail-commit", List.of(
                 new VerificationCheckpoint(
                     repoContext -> {
@@ -270,12 +271,12 @@ class GitHelperTest {
 
                         // NOTE: I tried putting in an *obviously* incorrect head hash for testing, but it JGit rejected
                         // it with an InvalidObjectIdException. Apparently the ObjectIds cannot be any alphanumeric string.
-                        utils.setPrevSubmissionHeadHash(null); // Commit wasn't found during processing
+                        utils.setPrevSubmissionHeadHash("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
                         utils.setPrevSubmissionTimestamp(Instant.now().minus(Duration.ofMinutes(30))); // Submitted between the two phases
                     },
-                    // Since the tail hash doesn't exist, it will evaluate the entire repository. On the resulting in 2 commits on two days.
-                    // It will be flagged as potentially incorrect and require manual intervention.
-                    utils.generalCommitVerificationResult(true, 1, 1, true))
+                    // Since the tail hash doesn't exist, it will evaluate the entire repository.
+                    // Only the commits since the last pass-off are counted, and the submission will not be blocked.
+                    utils.generalCommitVerificationResult(true, 1, 1, 1, true, submissionWarnings))
         ));
     }
 
