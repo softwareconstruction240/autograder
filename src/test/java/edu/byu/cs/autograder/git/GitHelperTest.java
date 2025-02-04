@@ -30,6 +30,7 @@ class GitHelperTest {
      * If the repository doesn't exist, this test does nothing.
      */
     @Test
+    @Disabled
     void arbitraryRepoFileTest() {
         String repoPath;
         repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
