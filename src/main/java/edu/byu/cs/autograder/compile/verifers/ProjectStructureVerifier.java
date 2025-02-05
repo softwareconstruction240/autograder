@@ -15,8 +15,8 @@ import java.util.Set;
  * which is checked by looking for a pom.xml file
  */
 public class ProjectStructureVerifier implements StudentCodeVerifier {
-    private static final HashMap<String, String> customMessages = new HashMap<>();
-    private static final Set<String> filePaths = new HashSet<>();
+    private final HashMap<String, String> customMessages = new HashMap<>();
+    private final Set<String> filePaths = new HashSet<>();
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         verifyRootPom(context);
