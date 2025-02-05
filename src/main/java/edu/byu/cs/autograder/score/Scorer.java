@@ -462,6 +462,8 @@ public class Scorer {
                 rubric,
                 gradingContext.admin(),
                 verifiedStatus,
+                null, // TODO: Hydrate this value with actual data
+                commitVerificationResult,
                 null
         );
     }

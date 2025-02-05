@@ -1,5 +1,7 @@
 package edu.byu.cs.model;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
@@ -40,6 +42,11 @@ import java.util.Objects;
  *                       <p>Old submissions will have a `null` value;
  *                       in this case, verification is assumed to equal
  *                       the {@link Submission#passed} field.</p>
+ * @param commitContext Debug. Holds the raw information provided to the
+ *                      <pre>GitVerificationStrategy</pre> for approval or denial.
+ *                      This notably contains the <pre>CommitsByDay</pre> which lists
+ *                      the exact hash codes of commits grouped by the warnings they generated.
+ * @param commitResult Debug. Holds the raw commit verification results including computed values.
  * @param verification Represents the approval of the submission.
  *                     Added only after the submission is approved manually.
  */
@@ -56,6 +63,8 @@ public record Submission(
         Rubric rubric,
         Boolean admin,
         @Nullable VerifiedStatus verifiedStatus,
+        @Nullable CommitVerificationContext commitContext,
+        @Nullable CommitVerificationResult commitResult,
         @Nullable ScoreVerification verification
 ) {
 
