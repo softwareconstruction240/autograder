@@ -48,7 +48,7 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
                 addFilePaths("server/src/test/java");
                 addFilePaths("server/src/main/resources");
                 addFilePaths("server/src/main/resources/web",
-                        " This may lead to the autograder giving different results for the \"static files\" test." +
+                        "This may lead to the autograder giving different results for the \"static files\" test." +
                                 " Ensure the files are in the specified location and committed and pushed to your repository.");
             default:
                 addFilePaths("shared/src/main/java");
@@ -60,8 +60,10 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
         for(String filePath : filePaths) {
             File file = new File(context.stageRepo(), filePath);
             if(!file.exists() || !file.isDirectory()) {
-                context.observer().notifyWarning("Directory %s could not be found.".formatted(filePath)
-                        + customMessages.get(filePath));
+                String errorMessage = "Directory %s could not be found.".formatted(filePath);
+                String customErrorMessage = customMessages.get(filePath);
+                errorMessage += (customErrorMessage.isEmpty() ? "" : " " + customErrorMessage);
+                context.observer().notifyWarning(errorMessage);
             }
         }
     }
