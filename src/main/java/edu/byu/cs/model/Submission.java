@@ -142,8 +142,18 @@ public record Submission(
         return serializeScoreVerification(submission.verification);
     }
     public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
-        if (scoreVerification == null) return null;
-        return Serializer.serialize(scoreVerification);
+        return serializeObject(scoreVerification);
+    }
+
+    public static String serializeCommitContext(@NonNull Submission submission) {
+        return serializeObject(submission.commitContext);
+    }
+    public static String serializeCommitResult(@NonNull Submission submission) {
+        return  serializeObject(submission.commitResult);
+    }
+    private static String serializeObject(@Nullable Object obj) {
+        if (obj == null) return null;
+        return Serializer.serialize(obj);
     }
 
     public static String serializeVerifiedStatus(@NonNull Submission submission) {

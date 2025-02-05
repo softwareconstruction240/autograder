@@ -1,5 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -37,6 +39,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("rubric", s -> Serializer.serialize(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin),
             new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
+            new ColumnDefinition<Submission>("commit_context", Submission::serializeCommitContext),
+            new ColumnDefinition<Submission>("commit_result", Submission::serializeCommitResult),
             new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
     };
 
@@ -54,16 +58,23 @@ public class SubmissionSqlDao implements SubmissionDao {
         Boolean admin = rs.getBoolean("admin");
 
         String verifiedStatusStr = rs.getString("verified_status");
+        String commitContextJson = rs.getString("commit_context");
+        String commitResultJson = rs.getString("commit_result");
+        String verificationJson = rs.getString("verification");
+
         Submission.VerifiedStatus verifiedStatus = verifiedStatusStr == null ? null :
                 Submission.VerifiedStatus.valueOf(verifiedStatusStr);
-        String verificationJson = rs.getString("verification");
+        CommitVerificationContext commitContext = commitContextJson == null ? null :
+                Serializer.deserialize(commitContextJson, CommitVerificationContext.class);
+        CommitVerificationResult commitResult = commitResultJson == null ? null :
+                Serializer.deserialize(commitContextJson, CommitVerificationResult.class);
         Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
                 Serializer.deserialize(verificationJson, Submission.ScoreVerification.class);
 
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
                 passed, score, rawScore, notes, rubric,
-                admin, verifiedStatus, scoreVerification);
+                admin, verifiedStatus, commitContext, commitResult, scoreVerification);
     }
 
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
