@@ -62,7 +62,7 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
             if(!file.exists() || !file.isDirectory()) {
                 String errorMessage = "Directory %s could not be found.".formatted(filePath);
                 String customErrorMessage = customMessages.get(filePath);
-                errorMessage += (customErrorMessage.isEmpty() ? "" : " " + customErrorMessage);
+                if(!customErrorMessage.isEmpty()) errorMessage += " " + customErrorMessage;
                 context.observer().notifyWarning(errorMessage);
             }
         }
