@@ -17,6 +17,7 @@ import java.util.Set;
 public class ProjectStructureVerifier implements StudentCodeVerifier {
     private final HashMap<String, String> customMessages = new HashMap<>();
     private final Set<String> filePaths = new HashSet<>();
+
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         verifyRootPom(context);
@@ -48,8 +49,8 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
                 addFilePaths("server/src/test/java");
                 addFilePaths("server/src/main/resources");
                 addFilePaths("server/src/main/resources/web",
-                        "This may lead to the autograder giving different results for the \"static files\" test." +
-                                " Ensure the files are in the specified location and committed and pushed to your repository.");
+                        "This may lead to the autograder giving different results for the \"static files\" test."
+                                + " Ensure the files are in the specified location and committed and pushed to your repository.");
             default:
                 addFilePaths("shared/src/main/java");
                 addFilePaths("shared/src/test/java");
@@ -57,12 +58,12 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
                 addFilePaths("client/src/main/java");
         }
 
-        for(String filePath : filePaths) {
+        for (String filePath : filePaths) {
             File file = new File(context.stageRepo(), filePath);
-            if(!file.exists() || !file.isDirectory()) {
+            if (!file.exists() || !file.isDirectory()) {
                 String errorMessage = "Directory %s could not be found.".formatted(filePath);
                 String customErrorMessage = customMessages.get(filePath);
-                if(!customErrorMessage.isEmpty()) errorMessage += " " + customErrorMessage;
+                if (!customErrorMessage.isEmpty()) errorMessage += " " + customErrorMessage;
                 context.observer().notifyWarning(errorMessage);
             }
         }
