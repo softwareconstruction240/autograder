@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/stores/auth";
 import { ServerError } from "@/network/ServerError";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 
 /**
  * Utility for making authenticated HTTP requests to the server with automatic error handling
@@ -177,7 +177,9 @@ async function doRequest<T>(
   bodyObject: Object | null = null,
   expectResponse: boolean = true,
 ): Promise<T | null> {
+  console.log("doRequest", method, bodyObject, expectResponse);
   const response = await doUnprocessedRequest(method, endpoint, bodyObject);
+  console.log("response", response);
 
   if (!expectResponse) {
     return null;
@@ -210,7 +212,7 @@ async function doUnprocessedRequest(
 ): Promise<Response> {
   const authToken = useAuthStore().token ?? "";
 
-  const response = await fetch(useAppConfigStore().backendUrl + endpoint, {
+  const response = await fetch(useConfigStore().backendUrl + endpoint, {
     method: method,
     credentials: "include",
     headers: {

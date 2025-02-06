@@ -8,7 +8,7 @@ import LiveStatus from "@/views/StudentView/LiveStatus.vue";
 import SubmissionHistory from "@/views/StudentView/SubmissionHistory.vue";
 import InfoPanel from "@/components/InfoPanel.vue";
 import ResultsPreview from "@/views/StudentView/ResultsPreview.vue";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 import ShutdownWarning from "@/components/ShutdownWarning.vue";
 
 // periodically check if grading is happening
@@ -51,10 +51,11 @@ const handleGradingDone = async () => {
 };
 
 const isPhaseDisabled = () => {
-  return (
-    selectedPhase.value != null &&
-    !useAppConfigStore().phaseActivationList[Phase[selectedPhase.value] as unknown as Phase]
-  );
+  const phase = selectedPhase.value;
+  if (phase === null) return false;
+
+  const phaseName = Phase[phase];
+  return !useConfigStore().public.livePhases.includes(phaseName);
 };
 </script>
 

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 
 const authStore = useAuthStore();
-const appConfigStore = useAppConfigStore();
+const config = useConfigStore();
 
 const bannerProps = computed(() => {
   if (authStore.isLoggedIn) {
     return {
-      message: appConfigStore.bannerMessage,
-      link: appConfigStore.bannerLink,
-      color: appConfigStore.bannerColor,
+      message: config.public.banner.message,
+      link: config.public.banner.link,
+      color: config.public.banner.color,
     };
   }
   return {};
