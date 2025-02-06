@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,6 +81,10 @@ public class SubmissionSqlDao implements SubmissionDao {
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
             "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
 
+    private final String optimizedGetAllSubmissionsSelect =
+            SqlReader.joinColumnNames(Arrays.stream(sqlReader.allColumnNames).map(s -> "s." + s));
+
+
     @Override
     public void insertSubmission(Submission submission) throws DataAccessException {
         sqlReader.insertItem(submission);
@@ -130,7 +135,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             var statement = connection.prepareStatement(
                     """
-                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.raw_score, s.head_hash, s.notes, s.rubric, s.admin, s.verification, s.verified_status
+                            SELECT %s
                             FROM submission s
                             INNER JOIN (
                                 SELECT net_id, phase, MAX(timestamp) AS max_timestamp
@@ -138,7 +143,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                                 GROUP BY net_id, phase
                             ) s2 ON s.net_id = s2.net_id AND s.phase = s2.phase AND s.timestamp = s2.max_timestamp
                             ORDER BY s2.max_timestamp DESC
-                            """ +
+                            """.formatted(optimizedGetAllSubmissionsSelect) +
                             (batchSize >= 0 ? "LIMIT ?" : "")
             );
             if (batchSize >= 0) {
