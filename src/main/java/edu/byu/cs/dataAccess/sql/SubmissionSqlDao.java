@@ -63,14 +63,15 @@ public class SubmissionSqlDao implements SubmissionDao {
         String commitResultJson = rs.getString("commit_result");
         String verificationJson = rs.getString("verification");
 
-        Submission.VerifiedStatus verifiedStatus = verifiedStatusStr == null ? null :
+        Submission.VerifiedStatus verifiedStatus =
+                verifiedStatusStr == null ? null :
                 Submission.VerifiedStatus.valueOf(verifiedStatusStr);
-        CommitVerificationContext commitContext = commitContextJson == null ? null :
-                Serializer.deserialize(commitContextJson, CommitVerificationContext.class);
-        CommitVerificationResult commitResult = commitResultJson == null ? null :
-                Serializer.deserialize(commitContextJson, CommitVerificationResult.class);
-        Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
-                Serializer.deserialize(verificationJson, Submission.ScoreVerification.class);
+        CommitVerificationContext commitContext =
+                Serializer.deserializeSafely(commitContextJson, CommitVerificationContext.class);
+        CommitVerificationResult commitResult =
+                Serializer.deserializeSafely(commitResultJson, CommitVerificationResult.class);
+        Submission.ScoreVerification scoreVerification =
+                Serializer.deserializeSafely(verificationJson, Submission.ScoreVerification.class);
 
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
