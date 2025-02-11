@@ -110,6 +110,33 @@ public record Submission(
         return verifiedStatus.isApproved();
     }
 
+    /**
+     * Generates a new {@link Submission} object with certain fields updated to reflect a change in score verification.
+     * @param newScore The new score to overwrite.
+     * @param newStatus The new {@link VerifiedStatus} to overwrite.
+     * @param newVerification The new {@link ScoreVerification} to overwrite.
+     * @return {@link Submission} A new object
+     */
+    public Submission updateApproval(Float newScore, VerifiedStatus newStatus, ScoreVerification newVerification) {
+        return new Submission(
+                this.netId(),
+                this.repoUrl(),
+                this.headHash(),
+                this.timestamp(),
+                this.phase(),
+                this.passed(),
+                newScore,
+                this.rawScore(),
+                this.notes(),
+                this.rubric(),
+                this.admin(),
+                newStatus,
+                this.commitContext(),
+                this.commitResult(),
+                newVerification
+        );
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
