@@ -147,6 +147,8 @@ public class SubmissionMemoryDao implements SubmissionDao {
                     submission.rubric(),
                     submission.admin(),
                     Submission.VerifiedStatus.ApprovedManually,     // Changed
+                    submission.commitContext(),
+                    submission.commitResult(),
                     scoreVerification                               // Changed
             ));
             return; // We found it!
