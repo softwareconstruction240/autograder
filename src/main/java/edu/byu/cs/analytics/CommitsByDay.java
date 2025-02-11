@@ -30,6 +30,7 @@ import java.util.*;
  */
 public record CommitsByDay(
         Map<String, Integer> dayMap,
+        // TODO: Save a direct relationship between commits and num changes
         List<Integer> changesPerCommit,
         Map<String, List<String>> erroringCommits,
         int totalCommits,
