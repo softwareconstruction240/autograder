@@ -6,6 +6,7 @@ import edu.byu.cs.autograder.compile.StudentCodeReader;
 import edu.byu.cs.autograder.compile.StudentCodeVerifier;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +15,9 @@ import java.util.Set;
  * which is checked by looking for a pom.xml file
  */
 public class ProjectStructureVerifier implements StudentCodeVerifier {
+    private final HashMap<String, String> customMessages = new HashMap<>();
+    private final Set<String> filePaths = new HashSet<>();
+
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         verifyRootPom(context);
@@ -27,25 +31,40 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
         }
     }
 
+    private void addFilePaths(String filePath, String customMessage){
+        filePaths.add(filePath);
+        customMessages.put(filePath, customMessage);
+    }
+
+    private void addFilePaths(String filePath){
+        addFilePaths(filePath, "");
+    }
+
     private void verifyDirectoryStructure(GradingContext context) {
-        Set<String> filePaths = new HashSet<>();
+
         switch (context.phase()) {
             case Phase5, Phase6:
-                filePaths.add("client/src/test/java");
+                addFilePaths("client/src/test/java");
             case Phase3, Phase4:
-                filePaths.add("server/src/test/java");
-                filePaths.add("server/src/main/resources");
+                addFilePaths("server/src/test/java");
+                addFilePaths("server/src/main/resources");
+                addFilePaths("server/src/main/resources/web",
+                        "This may lead to the autograder giving different results for the \"static files\" test."
+                                + " Ensure the files are in the specified location and committed and pushed to your repository.");
             default:
-                filePaths.add("shared/src/main/java");
-                filePaths.add("shared/src/test/java");
-                filePaths.add("server/src/main/java");
-                filePaths.add("client/src/main/java");
+                addFilePaths("shared/src/main/java");
+                addFilePaths("shared/src/test/java");
+                addFilePaths("server/src/main/java");
+                addFilePaths("client/src/main/java");
         }
 
-        for(String filePath : filePaths) {
+        for (String filePath : filePaths) {
             File file = new File(context.stageRepo(), filePath);
-            if(!file.exists() || !file.isDirectory()) {
-                context.observer().notifyWarning("Directory %s could not be found".formatted(filePath));
+            if (!file.exists() || !file.isDirectory()) {
+                String errorMessage = "Directory %s could not be found.".formatted(filePath);
+                String customErrorMessage = customMessages.get(filePath);
+                if (!customErrorMessage.isEmpty()) errorMessage += " " + customErrorMessage;
+                context.observer().notifyWarning(errorMessage);
             }
         }
     }

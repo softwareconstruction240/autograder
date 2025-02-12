@@ -3,6 +3,7 @@ package edu.byu.cs.controller;
 import com.google.gson.JsonObject;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.UnauthorizedException;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
@@ -14,14 +15,21 @@ import java.util.ArrayList;
 
 public class ConfigController {
 
-    public static final Handler getConfigAdmin = ctx -> {
-        JsonObject configJsonObj = ConfigService.getPrivateConfig();
-        ctx.result(configJsonObj.toString());
+    public static final Handler getConfigAdmin = (ctx) -> {
+        try {
+            PrivateConfig config = ConfigService.getPrivateConfig();
+            ctx.status(200);
+            ctx.result(Serializer.serialize(config));
+        } catch (DataAccessException e) {
+            ctx.status(500);
+            ctx.result(e.getMessage());
+        }
     };
 
     public static final Handler getConfigStudent = ctx -> {
-        JsonObject configJsonObj = ConfigService.getPublicConfig();
-        ctx.result(configJsonObj.toString());
+        PublicConfig config = ConfigService.getPublicConfig();
+        ctx.status(200);
+        ctx.result(Serializer.serialize(config));
     };
 
     public static final Handler updateLivePhases = ctx -> {
@@ -67,19 +75,23 @@ public class ConfigController {
             throw new BadRequestException(e.getMessage(), e);
         }
     };
-
-    public static final Handler updateCourseIdsPost = ctx -> {
-        SetCourseIdsRequest setCourseIdsRequest = ctx.bodyAsClass(SetCourseIdsRequest.class);
-
+    
+    public static final Handler updateCourseIdPost = ctx -> {
         User user = ctx.sessionAttribute("user");
 
-        // Course Number
+        JsonObject jsonObject = Serializer.deserialize(ctx.body(), JsonObject.class);
+        Integer courseId = Serializer.deserialize(jsonObject.get("courseId"), Integer.class);
+
         try {
-            ConfigService.updateCourseIds(user, setCourseIdsRequest);
+            ConfigService.setCourseId(user, courseId);
         } catch (DataAccessException e) {
-            ctx.status(400);
+            ctx.status(500);
             ctx.result(e.getMessage());
+        } catch (CanvasException e) {
+            ctx.status(400);
+            ctx.result("Canvas Error:\nEither the Canvas Course #%d doesn't exist, the Autograder doesn't have access to the course, or Canvas was unable to be reached.".formatted(courseId));
         }
+        ctx.result("");
     };
 
     public static final Handler updateCourseIdsUsingCanvasGet = ctx -> {

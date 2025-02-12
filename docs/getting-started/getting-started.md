@@ -1,5 +1,8 @@
 # Getting Started
 
+> [!TIP]
+> Read through the [Contribution Guide](../CONTRIBUTING.md) before making contributions to the project.
+
 ## Pre-requisites
 
 > [!IMPORTANT]
@@ -66,11 +69,11 @@ cd src/main/resources/frontend
 yarn
 ```
 
-### 4. Setup "Server" _Run Configuration_
+### 4. Setup "Main" _Run Configuration_
 
 Do the following steps:
-1. Navigate to the server file: `src/main/java/edu/byu/cs/server/Server.java`
-2. Click the "Run" button to run `Server.main()`
+1. Navigate to the main file: `src/main/java/Main.java`
+2. Click the "Run" button to run `Main.main()`
 3. This will give you a _Run Configuration_ that you can modify in the following steps.
   
 

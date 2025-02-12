@@ -4,6 +4,8 @@ import edu.byu.cs.analytics.CommitThreshold;
 import org.eclipse.jgit.api.Git;
 import org.junit.jupiter.api.*;
 import java.io.File;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 class GitHelperTest {
@@ -28,6 +30,7 @@ class GitHelperTest {
      * If the repository doesn't exist, this test does nothing.
      */
     @Test
+    @Disabled
     void arbitraryRepoFileTest() {
         String repoPath;
         repoPath = "/Users/frozenfrank/Documents/College/Spring_2024/CS_240_TA/student_repos/dant329";
@@ -58,7 +61,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 9", 21, 31, 10);
                             utils.makeCommit(repoContext, "Change 10", 20, 30, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
@@ -73,7 +76,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 19", 11, 21, 10);
                             utils.makeCommit(repoContext, "Change 20", 10, 20, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 ),
                 new VerificationCheckpoint(
                         repoContext -> {
@@ -88,7 +91,7 @@ class GitHelperTest {
                             utils.makeCommit(repoContext, "Change 39", 1, 11, 10);
                             utils.makeCommit(repoContext, "Change 40", 0, 10, 10);
                         },
-                        utils.generalCommitVerificationResult(true, 10, 5)
+                        utils.generalCommitVerificationResult(true, 10, 5, 0)
                 )
         ));
     }
@@ -148,7 +151,7 @@ class GitHelperTest {
                     utils.makeCommit(repoContext, "Change 9", 0, 31, 10);
                     utils.makeCommit(repoContext, "Change 10", 0, 30, 10);
                 },
-                utils.generalCommitVerificationResult(false, 10, 3)
+                utils.generalCommitVerificationResult(true, 10, 3, 2)
         ));
     }
 
@@ -189,7 +192,7 @@ class GitHelperTest {
      * <h1>Important Note!</h1>
      * This test is not actually evaluating the logic in the app that performs this test.
      * <br>
-     * The logic currently occurs in {@link GitHelper#constructCurrentThreshold(Git)} which is bypassed when we directly
+     * The logic currently occurs in <code>GitHelper#constructCurrentThreshold(Git)</code> which is bypassed when we directly
      * call {@link GitHelper#verifyRegularCommits(Git, CommitThreshold, CommitThreshold)}.
      * Normal calls to {@link GitHelper#verifyCommitRequirements(File)} will evaluate the rules.
      * <br>
@@ -213,6 +216,30 @@ class GitHelperTest {
     }
 
     @Test
+    void amendedCommitsCountedOnce() {
+        utils.setGradingContext(utils.generateGradingContext(3, 0, 0, 0));
+        utils.evaluateTest("amended-commits-counted-once", new VerificationCheckpoint(repoContext -> {
+            Instant now = Instant.now();
+
+            Instant commitTime1 = now.minus(Duration.ofMinutes(5));
+            utils.makeCommit(repoContext, "Change 1 (initial)", commitTime1, 10, true);
+            utils.makeCommit(repoContext, "Change 1 (amend 1)", commitTime1, 10, true);
+            utils.makeCommit(repoContext, "Change 1 (amend 2)", commitTime1, 10, true);
+
+            Instant commitTime2 = now.minus(Duration.ofMinutes(4));
+            utils.makeCommit(repoContext, "Change 2 (initial)", commitTime2, 10, true);
+            utils.makeCommit(repoContext, "Change 2 (amend 1)", commitTime2, 10, true);
+            utils.makeCommit(repoContext, "Change 2 (amend 2)", commitTime2, 10, true);
+
+            Instant commitTime3 = now.minus(Duration.ofMinutes(3));
+            utils.makeCommit(repoContext, "Change 3 (initial)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 1)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 2)", commitTime3, 10, true);
+            utils.makeCommit(repoContext, "Change 3 (amend 3)", commitTime3, 10, true);
+        }, utils.generalCommitVerificationResult(true, 3, 1, 2)));
+    }
+
+    @Test
     @Disabled
     void verifyCommitRequirements() {
         // Verify status preservation on repeat submissions
@@ -231,23 +258,57 @@ class GitHelperTest {
     @Test
     void passoffMissingTailHash() {
         utils.setGradingContext(utils.generateGradingContext(1, 1, 10,  1));
+        Collection<String> submissionWarnings = List.of("Missing tail hash", "Additional warning");
         utils.evaluateTest("missing-tail-commit", List.of(
                 new VerificationCheckpoint(
                     repoContext -> {
-                        utils.makeCommit(repoContext, "Change 1", 24, 39, 20);
+                        utils.makeCommit(repoContext, "Change 1", 1, 9, 20);
                     },
                     utils.generalCommitVerificationResult(true, 1, 1)),
                 new VerificationCheckpoint(
                     repoContext -> {
-                        utils.makeCommit(repoContext, "Change 2", 23, 38, 10);
+                        utils.makeCommit(repoContext, "Change 2", 0, 3, 10);
 
                         // NOTE: I tried putting in an *obviously* incorrect head hash for testing, but it JGit rejected
                         // it with an InvalidObjectIdException. Apparently the ObjectIds cannot be any alphanumeric string.
-                        utils.setPrevVerification("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
+                        utils.setPrevSubmissionHeadHash("f6fbf36bd4f932177df1bc70fbd5a32da288c6d7"); // Commit doesn't exist
+                        utils.setPrevSubmissionTimestamp(Instant.now().minus(Duration.ofMinutes(30))); // Submitted between the two phases
                     },
-                    // Since the tail hash doesn't exist, it will evaluate the entire repository resulting in 2 commits on two days.
-                    // It will be flagged as potentially incorrect and require manual intervention.
-                    utils.generalCommitVerificationResult(false, 2, 2, true))
+                    // Since the tail hash doesn't exist, it will evaluate the entire repository.
+                    // Only the commits since the last pass-off are counted, and the submission will not be blocked.
+                    utils.generalCommitVerificationResult(true, 1, 1, 1, true, submissionWarnings))
+        ));
+    }
+
+    @Test
+    void passoffEarlyInsufficientDays() {
+        utils.setGradingContext(utils.generateGradingContext(1, 3, 10, 1));
+        utils.setSubmitDaysEarly(1);
+        utils.evaluateTest("passoff-early-insufficient-days", new VerificationCheckpoint(
+                repoContext -> {
+                        utils.makeCommit(repoContext, "Change 1", 5, 2, 20);
+                        utils.makeCommit(repoContext, "Change 2", 5, 1, 20);
+                        utils.makeCommit(repoContext, "Change 3", 4, 2, 20);
+                        utils.makeCommit(repoContext, "Change 4", 4, 1, 20);
+                },
+                utils.generalCommitVerificationResult(true, 4, 2, 2)) // Has warnings
+        );
+    }
+
+    @Test
+    void earlyCommitsExcludedButDoNotError() {
+        utils.setGradingContext(utils.generateGradingContext(1, 1, 10, 1));
+        utils.evaluateTest("commits-before-previous-submission", List.of(
+                new VerificationCheckpoint(
+                        repoContext -> utils.makeCommit(repoContext, "Change 1", 0, 6, 10),
+                        utils.generalCommitVerificationResult(true, 1, 1)),
+                new VerificationCheckpoint(
+                        repoContext -> {
+                            utils.setPrevSubmissionTimestamp(Instant.now().minusSeconds(5 * 60));
+                            utils.makeCommit(repoContext, "Change 2", 0, 9, 10); // Before the prev commit
+                            utils.makeCommit(repoContext, "Change 3", 0, 4, 10);
+                        },
+                        utils.generalCommitVerificationResult(true, 1, 1, 2))
         ));
     }
 }

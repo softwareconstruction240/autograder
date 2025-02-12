@@ -3,6 +3,7 @@ package edu.byu.cs.util;
 import edu.byu.cs.autograder.GradingException;
 import org.eclipse.jgit.annotations.Nullable;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,11 +11,40 @@ public class RepoUrlValidator {
 
     public static boolean isValid(@Nullable String repoUrl) {
         try {
-            clean(repoUrl);
-            return true;
+            var validator = new RepoUrlValidator();
+            var parts = validator.extractRepoParts(repoUrl);
+            return isNotFork(parts.username, parts.repoName);
         } catch (InvalidRepoUrlException e) {
             return false;
         }
+    }
+
+    public static boolean canClean(@Nullable String repoUrl) {
+        try {
+            clean(repoUrl);
+            return true;
+        } catch (GradingException e) {
+            return false;
+        }
+    }
+
+    public static boolean isNotFork(@Nullable String githubUsername, @Nullable String repoName) {
+        if (githubUsername == null || repoName == null) {
+            return false; // Invalid to have NULL
+        }
+
+        String apiUrl = String.format("https://api.github.com/repos/%s/%s", githubUsername, repoName);
+        var apiJSON = NetworkUtils.readGetRequestBody(apiUrl);
+
+        var jsonObj = Serializer.deserialize(apiJSON, Map.class);
+        if (jsonObj == null || jsonObj.isEmpty()) {
+            return false; // Error response, empty response. Could indicate network error.
+        }
+
+        // The repo exists and is not a fork.
+        // `True` values are obvious failures.
+        // `null` can also occur, but are not acceptable for our purposes.
+        return jsonObj.containsKey("fork") && jsonObj.get("fork").equals(false);
     }
 
     public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
@@ -32,6 +62,24 @@ public class RepoUrlValidator {
      * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
     public String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
+        var parts = extractRepoParts(repoUrl);
+        return assembleCleanedRepoUrl(parts);
+    }
+
+    private record RepoUrlParts(String domainName, String username, String repoName) { }
+
+    private String assembleCleanedRepoUrl(RepoUrlParts parts) {
+        return String.format("https://%s/%s/%s", parts.domainName, parts.username, parts.repoName);
+    }
+
+    /**
+     * Decides if a repo URL is valid, and returns the extracted parts from the URL when the URL is valid.
+     *
+     * @param repoUrl A string repo URL to parse.
+     * @return {@link RepoUrlParts} When the URL is valid.
+     * @throws InvalidRepoUrlException When the URL in invalid.
+     */
+    private RepoUrlParts extractRepoParts(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }
@@ -50,7 +98,7 @@ public class RepoUrlValidator {
                 domainName = matcher.group(1).toLowerCase();
                 githubUsername = matcher.group(2);
                 repositoryName = matcher.group(3);
-                return String.format("https://%s/%s/%s", domainName, githubUsername, repositoryName);
+                return new RepoUrlParts(domainName, githubUsername, repositoryName);
             }
         }
 

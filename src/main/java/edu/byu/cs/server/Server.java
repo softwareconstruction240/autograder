@@ -22,10 +22,18 @@ public class Server {
         this.provider = endpointProvider;
     }
 
+    public int start() {
+        return start(8080);
+    }
+
     public int start(int desiredPort) {
         int chosenPort = setupEndpoints(desiredPort);
         LOGGER.info("Server started on port {}", chosenPort);
         return chosenPort;
+    }
+
+    public void stop() {
+        app.stop();
     }
 
     private int setupEndpoints(int port) {
@@ -50,7 +58,7 @@ public class Server {
                                 if (ctx.method() != HandlerType.OPTIONS) provider.verifyAuthenticatedMiddleware().handle(ctx);
                             });
 
-                            patch("/repo", provider.repoPatch());
+                            post("/repo", provider.setRepoUrl());
 
                             get("/submit", provider.submitGet());
                             post("/submit", provider.submitPost());
@@ -69,7 +77,7 @@ public class Server {
                                     if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
                                 });
 
-                                patch("/repo/{netId}", provider.repoPatchAdmin());
+                                post("/repo/{netId}", provider.setRepoUrlAdmin());
 
                                 get("/repo/history", provider.repoHistoryAdminGet());
 
@@ -109,8 +117,8 @@ public class Server {
 
                                     post("/banner", provider.updateBannerMessage());
 
-                                    post("/courseIds", provider.updateCourseIdsPost());
-                                    get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
+                                    post("/courseId", provider.updateCourseIdPost());
+                                    post("/reloadCourseIds", provider.reloadCourseAssignmentIds());
 
                                     post("/penalties", provider.updatePenalties());
                                 });

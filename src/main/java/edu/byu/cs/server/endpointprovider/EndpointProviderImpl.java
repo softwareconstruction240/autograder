@@ -130,12 +130,12 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
-    public Handler updateCourseIdsPost() {
-        return ConfigController.updateCourseIdsPost;
+    public Handler updateCourseIdPost() {
+        return ConfigController.updateCourseIdPost;
     }
 
     @Override
-    public Handler updateCourseIdsUsingCanvasGet() {
+    public Handler reloadCourseAssignmentIds() {
         return ConfigController.updateCourseIdsUsingCanvasGet;
     }
 
@@ -199,13 +199,13 @@ public class EndpointProviderImpl implements EndpointProvider {
     // UserController
 
     @Override
-    public Handler repoPatch() {
-        return UserController.repoPatch;
+    public Handler setRepoUrl() {
+        return UserController.setRepoUrl;
     }
 
     @Override
-    public Handler repoPatchAdmin() {
-        return UserController.repoPatchAdmin;
+    public Handler setRepoUrlAdmin() {
+        return UserController.setRepoUrlAdmin;
     }
 
     @Override

@@ -2,9 +2,11 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
+import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
+import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.test.GitHubAssignmentGrader;
 import edu.byu.cs.autograder.test.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
@@ -46,6 +48,7 @@ public class Grader implements Runnable {
     protected final GradingContext gradingContext;
 
     protected GradingObserver observer;
+    private final Scorer scorer;
 
     /**
      * Creates a new grader
@@ -74,9 +77,12 @@ public class Grader implements Runnable {
                     cvConfig, observer, admin);
 
         // Init helpers
+        LateDayCalculator lateDayCalculator = new LateDayCalculator();
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
-        this.gitHelper = new GitHelper(gradingContext);
+        this.gitHelper = new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator));
         this.compileHelper = new CompileHelper(gradingContext);
+
+        this.scorer = new Scorer(gradingContext, lateDayCalculator);
     }
 
     public void run() {
@@ -95,7 +101,7 @@ public class Grader implements Runnable {
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
             Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationResult);
 
-            Submission submission = new Scorer(gradingContext).score(rubric, commitVerificationResult);
+            Submission submission = scorer.score(rubric, commitVerificationResult);
             DaoService.getSubmissionDao().insertSubmission(submission);
 
             observer.notifyDone(submission);
@@ -144,7 +150,7 @@ public class Grader implements Runnable {
             return;
         }
         try {
-            Submission submission = new Scorer(gradingContext).generateSubmissionObject(ge.asRubric(), cvr, 0, new Scorer.ScorePair(0f, 0f), ge.getMessage());
+            Submission submission = scorer.generateSubmissionObject(ge.asRubric(), cvr, 0, new Scorer.ScorePair(0f, 0f), ge.getMessage());
             DaoService.getSubmissionDao().insertSubmission(submission);
             observer.notifyError(ge.getMessage(), submission);
         } catch (Exception ex) {

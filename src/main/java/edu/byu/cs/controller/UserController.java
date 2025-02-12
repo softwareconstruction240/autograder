@@ -9,28 +9,23 @@ import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+import edu.byu.cs.util.Serializer;
+import io.javalin.http.*;
 
 import java.util.Collection;
 
 public class UserController {
-    public static final Handler repoPatch = ctx -> {
+
+    public static final Handler setRepoUrl = ctx -> {
         User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        applyRepoPatch(user.netId(), null, ctx);
-        ctx.result("Successfully updated repoUrl");
+        setRepoUrl(user.netId(), null, ctx);
+        ctx.result( "Successfully updated repoUrl");
     };
 
-    public static final Handler repoPatchAdmin = ctx -> {
+    public static final Handler setRepoUrlAdmin = ctx -> {
         User admin = ctx.sessionAttribute("user");
-        if (admin == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        String studentNetId = ctx.pathParam("netId");
-        applyRepoPatch(studentNetId, admin.netId(), ctx);
+        String studentNetId = ctx.pathParam(":netId");
+        setRepoUrl(studentNetId, admin.netId(), ctx);
         ctx.result("Successfully updated repoUrl for user: " + studentNetId);
     };
 
@@ -38,14 +33,32 @@ public class UserController {
         String repoUrl = ctx.queryParam("repoUrl");
         String netId = ctx.queryParam("netId");
 
-        Collection<RepoUpdate> updates = UserService.adminGetRepoHistory(repoUrl, netId);
-        ctx.json(updates);
+        Collection<RepoUpdate> updates;
+        try {
+            updates = UserService.adminGetRepoHistory(repoUrl, netId);
+        } catch (InternalServerException e) {
+            throw new InternalServerErrorResponse("There was an internal server error getting repo updates");
+        }
+        ctx.status(200);
+        ctx.contentType("application/json");
+        ctx.result(Serializer.serialize(updates));
     };
 
-    private static void applyRepoPatch(String studentNetId, String adminNetId, Context ctx)
-            throws WordOfWisdomViolationException, InternalServerException, BadRequestException {
+
+    private static void setRepoUrl(String studentNetId, String adminNetId, Context ctx) {
         JsonObject jsonObject = new Gson().fromJson(ctx.body(), JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
-        UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
+
+        try {
+            UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
+        } catch (BadRequestException e) {
+            throw new BadRequestResponse(e.getMessage());
+        }  catch (InternalServerException e) {
+            throw new InternalServerErrorResponse(e.getMessage());
+        } catch (WordOfWisdomViolationException e) {
+            throw new ImATeapotResponse(e.getMessage());
+        }
+
+        ctx.status(200);
     }
 }

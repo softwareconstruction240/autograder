@@ -82,7 +82,8 @@ class ScorerTest {
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
-                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS, new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId"),
+                new EnumMap<>(Map.of(Rubric.RubricType.PASSOFF_TESTS,
+                        new RubricConfig.RubricConfigItem("testCategory", "testCriteria", PASSOFF_POSSIBLE_POINTS, "testRubricId"),
                         Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory2", "testCriteria2", 0, "testRubricId2")
                 )));
         RubricConfig phase3RubricConfig = new RubricConfig(
@@ -148,7 +149,7 @@ class ScorerTest {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, new EnumMap<>(Rubric.RubricType.class));
         setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        var scorer = new Scorer(gradingContext);
+        var scorer = constructScorer();
         var rubric = constructRubric(1f);
         assertThrows(GradingException.class, () -> scorer.score(rubric, PASSING_COMMIT_VERIFICATION));
     }
@@ -291,6 +292,9 @@ class ScorerTest {
 
     // Helper Methods for constructing
 
+    private Scorer constructScorer() {
+        return new Scorer(gradingContext, new LateDayCalculator());
+    }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
      *
@@ -330,7 +334,7 @@ class ScorerTest {
         return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
     }
     private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
-        Scorer scorer = new Scorer(gradingContext);
+        Scorer scorer = constructScorer();
         return scoreRubric(scorer, rubric, commitVerification);
     }
     private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
@@ -349,7 +353,7 @@ class ScorerTest {
 
         return new CommitVerificationResult(
                 verified, isCached, 0, 0, 0, false, 0,
-                "", null, null,
+                "", null, null, null,
                 headHash, null);
     }
 
