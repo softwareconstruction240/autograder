@@ -33,6 +33,11 @@ public class TestHelper {
      */
     private static final String junitJupiterApiJarPath;
 
+    /**
+     * Constant value for trimming error outputs
+     */
+    private static final int MAX_ERROR_OUTPUT_CHARS = 10000;
+
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
@@ -146,7 +151,7 @@ public class TestHelper {
             TestAnalyzer testAnalyzer = new TestAnalyzer();
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
-            return testAnalyzer.parse(junitXmlOutput, extraCreditTests, removeSparkLines(error));
+            return testAnalyzer.parse(junitXmlOutput, extraCreditTests, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
@@ -175,5 +180,13 @@ public class TestHelper {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
         return String.join("\n", lines);
+    }
+
+    private static String trimErrorOutput(String errorOutput) {
+        errorOutput = removeSparkLines(errorOutput);
+        if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
+            return errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS);
+        }
+        return errorOutput;
     }
 }
