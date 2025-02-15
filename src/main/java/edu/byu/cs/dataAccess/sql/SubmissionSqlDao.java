@@ -4,7 +4,7 @@ import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
-import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;
@@ -19,10 +19,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 public class SubmissionSqlDao implements SubmissionDao {
 

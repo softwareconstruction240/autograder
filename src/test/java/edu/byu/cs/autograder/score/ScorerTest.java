@@ -12,7 +12,7 @@ import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;

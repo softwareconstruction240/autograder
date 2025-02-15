@@ -9,7 +9,7 @@ import edu.byu.cs.autograder.git.CommitValidation.*;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
