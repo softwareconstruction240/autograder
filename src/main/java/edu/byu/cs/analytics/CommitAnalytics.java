@@ -73,7 +73,7 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         int singleParentCommits = 0;
         int mergeCommits = 0;
-        List<Integer> changesPerCommit = new LinkedList<>();
+        Map<String, Integer> lineChangesPerCommit = new HashMap<>();
         Map<String, List<String>> erroringCommits = new HashMap<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
@@ -91,6 +91,7 @@ public class CommitAnalytics {
         // Iteration helpers
         CommitTimestamps commitTimes;
         String commitHash;
+        int numLineChanges;
         for (RevCommit rc : commitsBetweenBounds.commits()) {
             commitHash = rc.getName();
             if (excludeCommits.contains(commitHash)) {
@@ -132,7 +133,8 @@ public class CommitAnalytics {
             }
 
             // Count changes in each commit
-            changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+            numLineChanges = getNumChangesInCommit(diffFormatter, rc);
+            lineChangesPerCommit.put(commitHash, numLineChanges);
             groupCommitsByKey(commitsByTimestamp, commitTimes.seconds, commitHash);
 
             // Add the commit to results
@@ -150,7 +152,7 @@ public class CommitAnalytics {
         }
 
         return new CommitsByDay(
-                days, changesPerCommit, erroringCommits,
+                days, lineChangesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
                 commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
