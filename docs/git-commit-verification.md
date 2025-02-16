@@ -144,7 +144,7 @@ Grader-->>-Grader: void
 
 ```mermaid
 classDiagram
-direction RL
+direction TB
 
 namespace Git {
     class GitHelper {
@@ -165,7 +165,7 @@ namespace Git {
         +verifyCommitRequirements(File stageRepo) CommitVerificationReport
         %% -preserveOriginalVerification() CommitVerificationReport
         %% -generateFailureMessage(boolean verified, Submission firstPassingSubmission) String
-        +verifyRegularCommits(Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold) CommitVerificationReport
+        +verifyRegularCommits(git, lowerThreshold, upperThreshold) CommitVerificationReport
         %% -getMostRecentPassingSubmission(Git git, Collection~Submission~ passingSubmissions) CommitThreshold
         %% -getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) Instant
         %% -constructCurrentThreshold(Git git) CommitThreshold
@@ -229,7 +229,7 @@ namespace CommitValidation {
         +Collection~String~ messages
         +Set~String~ commitsAffected
         +boolean isEmpty
-        +evaluateConditions(Array~CV~ conditions, MessageTerminatedVisitor visitor) Result$
+        +evaluateConditions(conditions, visitor) Result$
     }
 
     class CV {
@@ -280,7 +280,7 @@ CommitVerificationContext o-- CommitVerificationConfig
 CommitVerificationResult --> CommitVerificationReport : toReport()
 
 GradingContext <-- GitHelper
-Logger <-- GitHelper : LOGGER
+Logger <-- GitHelper
 
 %% Package CommitValidation
 CommitVerificationStrategy <|.. DefaultGitVerificationStrategy
