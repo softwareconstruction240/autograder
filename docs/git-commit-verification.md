@@ -147,6 +147,7 @@ classDiagram
 direction TB
 
 namespace Git {
+
     class GitHelper {
         <<Service>>
         -Logger LOGGER$
@@ -207,6 +208,7 @@ namespace Git {
 }
 
 namespace CommitValidation {
+
     class CommitVerificationStrategy {
         <<Interface>>
         +evaluate(commitContext, gradingContext) void
@@ -239,9 +241,11 @@ namespace CommitValidation {
         +String errorMsg
         +CV(boolean fails, String errorMsg)$
     }
+
 }
 
 namespace Analytics {
+
     class CommitsByDay {
         +Map~String, Integer~ dayMap
         +Map~String, Integer~ lineChangesPerCommit
@@ -276,6 +280,7 @@ namespace Analytics {
         +Iterable~RevCommit~ commits
         +boolean missingTail
     }
+
 }
 
 %% Package GIT
