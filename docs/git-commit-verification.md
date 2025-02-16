@@ -158,21 +158,21 @@ namespace Git {
         +verifyCommitHistory() CommitVerificationReport
         %% -shouldVerifyCommits() boolean
         %% -fetchRepo(File intoDirectory) void
-        +fetchRepoFromUrl(String repoUrl) File
-        +fetchRepoFromUrl(String repoUrl, File intoDirectory) void
+        +fetchRepoFromUrl(String repoUrl) File$
+        +fetchRepoFromUrl(String repoUrl, File intoDirectory) void$
         %% -skipCommitVerification(boolean verified, File stageRepo) CommitVerificationReport
         %% -skipCommitVerification(boolean verified, String headHash, String failureMessage) CommitVerificationReport
-        +verifyCommitRequirements(File stageRepo) CommitVerificationReport
+        %% #verifyCommitRequirements(File stageRepo) CommitVerificationReport
         %% -preserveOriginalVerification() CommitVerificationReport
         %% -generateFailureMessage(boolean verified, Submission firstPassingSubmission) String
-        +verifyRegularCommits(git, lowerThreshold, upperThreshold) CommitVerificationReport
+        %% #verifyRegularCommits(git, lowerThreshold, upperThreshold) CommitVerificationReport
         %% -getMostRecentPassingSubmission(Git git, Collection~Submission~ passingSubmissions) CommitThreshold
         %% -getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) Instant
         %% -constructCurrentThreshold(Git git) CommitThreshold
         %% -getPassingSubmissions() Collection~Submission~
         %% -getFirstPassingSubmission() Submission
         %% -getHeadHash(File stageRepo) String
-        +getHeadHash(Git git) String$
+        %% #getHeadHash(Git git) String$
     }
 
     class CommitVerificationReport {
@@ -232,14 +232,16 @@ namespace CommitValidation {
         +evaluateConditions(conditions, visitor) Result$
     }
 
+    class CV["CV (CommitValidation)"]
     class CV {
         +boolean fails
         +Collection~String~ commitsAffected
         +String errorMsg
+        +CV(boolean fails, String errorMsg)$
     }
 }
 
-namespace CommitAnalytics {
+namespace Analytics {
     class CommitsByDay {
         +Map~String, Integer~ dayMap
         +Map~String, Integer~ lineChangesPerCommit
@@ -260,6 +262,11 @@ namespace CommitAnalytics {
         +getErroringCommitsSet(String groupId) Collection~String~ 
     }
 
+    class CommitAnalytics {
+        +countCommitsByDay(git, lowerBound, upperBound, excludeCommits) CommitsByDay$
+        +generateCSV() String$
+    }
+
     class CommitThreshold {
         +Instant timestamp
         +String commitHash
@@ -273,6 +280,8 @@ namespace CommitAnalytics {
 
 %% Package GIT
 GitHelper o-- CommitVerificationStrategy
+%% GitHelper -- CommitAnalytics
+
 CommitVerificationReport o-- CommitVerificationContext
 CommitVerificationReport o-- CommitVerificationResult
 CommitVerificationContext o-- CommitVerificationConfig
@@ -292,4 +301,6 @@ CV "*" .. Result: summarizes
 
 %% Package Commit Analytics
 CommitThreshold --o CommitsByDay
+CommitAnalytics ..> CommitsBetweenBounds : Uses
+CommitAnalytics ..> CommitsByDay : Produces
 ```
