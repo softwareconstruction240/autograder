@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.git.CommitValidation;
 
 import edu.byu.cs.analytics.CommitsByDay;
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
 
 /**
  * Represents the context used to evaluate git commits.

@@ -197,14 +197,6 @@ namespace Git {
         +toReport(context) CommitVerificationReport
     }
 
-    class CommitVerificationConfig {
-        +int requiredCommits
-        +int requiredDaysWithCommits
-        +int minimumChangedLinesPerCommit
-        +int commitVerificationPenaltyPct
-        +int forgivenessMinutesHead
-    }
-
 }
 
 namespace CommitValidation {
@@ -242,9 +234,22 @@ namespace CommitValidation {
         +CV(boolean fails, String errorMsg)$
     }
 
+    class CommitVerificationConfig {
+        +int requiredCommits
+        +int requiredDaysWithCommits
+        +int minimumChangedLinesPerCommit
+        +int commitVerificationPenaltyPct
+        +int forgivenessMinutesHead
+    }
+
 }
 
 namespace Analytics {
+
+    class CommitAnalytics {
+        +countCommitsByDay(git, lowerBound, upperBound, excludeCommits) CommitsByDay$
+        +generateCSV() String$
+    }
 
     class CommitsByDay {
         +Map~String, Integer~ dayMap
@@ -264,11 +269,6 @@ namespace Analytics {
         +CommitThreshold lowerThreshold
         +CommitThreshold upperThreshold
         +getErroringCommitsSet(String groupId) Collection~String~ 
-    }
-
-    class CommitAnalytics {
-        +countCommitsByDay(git, lowerBound, upperBound, excludeCommits) CommitsByDay$
-        +generateCSV() String$
     }
 
     class CommitThreshold {

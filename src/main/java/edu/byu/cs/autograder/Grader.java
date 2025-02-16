@@ -3,7 +3,7 @@ package edu.byu.cs.autograder;
 import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
