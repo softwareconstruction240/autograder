@@ -1,6 +1,5 @@
 package edu.byu.cs.analytics;
 
-import edu.byu.cs.autograder.git.CommitsBetweenBounds;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
