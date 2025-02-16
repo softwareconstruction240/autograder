@@ -139,3 +139,157 @@ Grader->>Observer: notifyDone(submission)
 
 Grader-->>-Grader: void
 ```
+
+## Class Diagram
+
+```mermaid
+classDiagram
+direction RL
+
+namespace Git {
+    class GitHelper {
+        <<Service>>
+        -Logger LOGGER$
+        -GradingContext gradingContext
+        -CommitVerificationStrategy commitVerificationStrategy
+        -String headHash
+        +setUpAndVerifyHistory() CommitVerificationReport
+        +setUp() void
+        +verifyCommitHistory() CommitVerificationReport
+        %% -shouldVerifyCommits() boolean
+        %% -fetchRepo(File intoDirectory) void
+        +fetchRepoFromUrl(String repoUrl) File
+        +fetchRepoFromUrl(String repoUrl, File intoDirectory) void
+        %% -skipCommitVerification(boolean verified, File stageRepo) CommitVerificationReport
+        %% -skipCommitVerification(boolean verified, String headHash, String failureMessage) CommitVerificationReport
+        +verifyCommitRequirements(File stageRepo) CommitVerificationReport
+        %% -preserveOriginalVerification() CommitVerificationReport
+        %% -generateFailureMessage(boolean verified, Submission firstPassingSubmission) String
+        +verifyRegularCommits(Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold) CommitVerificationReport
+        %% -getMostRecentPassingSubmission(Git git, Collection~Submission~ passingSubmissions) CommitThreshold
+        %% -getEffectiveTimestampOfSubmission(RevWalk revWalk, Submission submission) Instant
+        %% -constructCurrentThreshold(Git git) CommitThreshold
+        %% -getPassingSubmissions() Collection~Submission~
+        %% -getFirstPassingSubmission() Submission
+        %% -getHeadHash(File stageRepo) String
+        +getHeadHash(Git git) String$
+    }
+
+    class CommitVerificationReport {
+        +CommitVerificationContext context
+        +CommitVerificationResult result
+    }
+
+    class CommitVerificationResult {
+        +boolean verified
+        +boolean isCachedResponse
+        +int totalCommits
+        +int significantCommits
+        +int numDays
+        +boolean missingTail
+        +int penaltyPct
+        +String failureMessage
+        +Instant minAllowedThreshold
+        +Instant maxAllowedThreshold
+        +String headHash
+        +String tailHash
+        +toReport(context) CommitVerificationReport
+    }
+
+    class CommitVerificationConfig {
+        +int requiredCommits
+        +int requiredDaysWithCommits
+        +int minimumChangedLinesPerCommit
+        +int commitVerificationPenaltyPct
+        +int forgivenessMinutesHead
+    }
+
+}
+
+namespace CommitValidation {
+    class CommitVerificationStrategy {
+        <<Interface>>
+        +evaluate(commitContext, gradingContext) void
+        +extendExcludeSet() Collection~String~
+        +getWarnings() Result
+        +getErrors() Result
+    }
+
+    class DefaultGitVerificationStrategy
+
+    class CommitVerificationContext {
+        +CommitVerificationConfig config
+        +CommitsByDay commitsByDay
+        +int numCommits
+        +int daysWithCommits
+        +long significantCommits
+    }
+
+    class Result {
+        +Collection~String~ messages
+        +Set~String~ commitsAffected
+        +boolean isEmpty
+        +evaluateConditions(Array~CV~ conditions, MessageTerminatedVisitor visitor) Result$
+    }
+
+    class CV {
+        +boolean fails
+        +Collection~String~ commitsAffected
+        +String errorMsg
+    }
+}
+
+namespace CommitAnalytics {
+    class CommitsByDay {
+        +Map~String, Integer~ dayMap
+        +Map~String, Integer~ lineChangesPerCommit
+        %% NOTE: Mermaid cannot represent nested generics with multiple types.
+        %% That is why we use the square brackets instead of angled brackets.
+        %% https://mermaid.js.org/syntax/classDiagram.html#generic-types
+        +Map~String, List[String]~ erroringCommits
+        +int totalCommits
+        +int mergeCommits
+        +boolean commitsInOrder
+        +boolean commitsInFuture
+        +boolean commitsInPast
+        +boolean commitsBackdated
+        +boolean commitTimestampsDuplicated
+        +boolean missingTailHash
+        +CommitThreshold lowerThreshold
+        +CommitThreshold upperThreshold
+        +getErroringCommitsSet(String groupId) Collection~String~ 
+    }
+
+    class CommitThreshold {
+        +Instant timestamp
+        +String commitHash
+    }
+
+    class CommitsBetweenBounds {
+        +Iterable~RevCommit~ commits
+        +boolean missingTail
+    }
+}
+
+%% Package GIT
+GitHelper o-- CommitVerificationStrategy
+CommitVerificationReport o-- CommitVerificationContext
+CommitVerificationReport o-- CommitVerificationResult
+CommitVerificationContext o-- CommitVerificationConfig
+
+CommitVerificationResult --> CommitVerificationReport : toReport()
+
+GradingContext <-- GitHelper
+Logger <-- GitHelper : LOGGER
+
+%% Package CommitValidation
+CommitVerificationStrategy <|.. DefaultGitVerificationStrategy
+CommitsByDay --o CommitVerificationContext
+
+DefaultGitVerificationStrategy *-- "*" CV : Defines
+DefaultGitVerificationStrategy <-- "*" Result
+CV "*" .. Result: summarizes
+
+%% Package Commit Analytics
+CommitThreshold --o CommitsByDay
+```
