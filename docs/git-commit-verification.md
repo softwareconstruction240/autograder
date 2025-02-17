@@ -45,7 +45,8 @@ The files are organized into three packages which represent layers of responsibi
 
 ```mermaid
 classDiagram
-direction TB
+%% direction TB
+direction LR
 
 namespace Git {
 
@@ -148,6 +149,7 @@ namespace CommitValidation {
 namespace Analytics {
 
     class CommitAnalytics {
+        <<Service>>
         +countCommitsByDay(git, lowerBound, upperBound, excludeCommits) CommitsByDay$
         +generateCSV() String$
     }
@@ -186,7 +188,10 @@ namespace Analytics {
 
 %% Package GIT
 GitHelper o-- CommitVerificationStrategy
+%% NOTE: Actually drawing this line introduces too much chaos into the chart
 %% GitHelper -- CommitAnalytics
+note for GitHelper "Calls CommitAnalytics.countCommitsByDay()"
+%% CommitVerificationReport <-- GitHelper
 
 CommitVerificationReport o-- CommitVerificationContext
 CommitVerificationReport o-- CommitVerificationResult
@@ -194,8 +199,8 @@ CommitVerificationContext o-- CommitVerificationConfig
 
 CommitVerificationResult --> CommitVerificationReport : toReport()
 
-GradingContext <-- GitHelper
-Logger <-- GitHelper
+GradingContext --o GitHelper
+Logger --* GitHelper
 
 %% Package CommitValidation
 CommitVerificationStrategy <|.. DefaultGitVerificationStrategy
