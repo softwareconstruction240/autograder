@@ -174,7 +174,7 @@ namespace Analytics {
         +boolean missingTailHash
         +CommitThreshold lowerThreshold
         +CommitThreshold upperThreshold
-        +getErroringCommitsSet(String groupId) Collection~String~ 
+        +getErroringCommitsSet(String groupId) Collection~String~
     }
 
     class CommitThreshold {
@@ -223,7 +223,7 @@ CommitAnalytics ..> CommitsByDay : Produces
 
 This Sequence Diagram is provided to help put each of the internal methods
 in their proper context in the bigger picture. Minor details are omitted,
-but emphasis is placed on actions that directly affect the user 
+but emphasis is placed on actions that directly affect the user
 (like sending notifications to `Grader`), and network calls to DAOs.
 Emphasis is placed on showing where system requirements are calculated in the logical flow.
 
