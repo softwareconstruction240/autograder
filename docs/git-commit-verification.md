@@ -37,9 +37,12 @@ between public entities related to the commit verification system.
 ### Package Overview
 
 The files are organized into three packages which represent layers of responsibility:
-1. **`git`** The entry point layer for this sub-system. Represents the final result data and implements the driving algorithm for the behavior.
-2. **`CommitValidation`** A subpackage of `git`. Represents several entities specific to commit verification and provides the `DefaultGitVerificationStrategy`.
-3. **`Analytics`** Predates the commit verification system. Directly implements the iteration over commits in a repository along with other direct implementations.
+
+| Package | Description |
+| :-----: | :---------- |
+| **`git`** |  The entry point layer for this sub-system. Represents the final result data and implements the driving algorithm for the behavior. May also contain functions not directly related to commit verification.|
+| **`CommitValidation`** |  A subpackage of `git`. Represents several entities specific to commit verification and provides the `DefaultGitVerificationStrategy`. |
+| **`Analytics`** |  Predates the commit verification system. Directly implements the iteration over commits in a repository along with other direct implementations. |
 
 ### Class Diagram
 
