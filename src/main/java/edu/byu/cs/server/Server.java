@@ -38,115 +38,119 @@ public class Server {
 
     private int setupEndpoints(int port) {
         app = Javalin.create(config -> {
-                    config.staticFiles.add("/frontend/dist");
+            if(getClass().getClassLoader().getResource("frontend/dist") != null) {
+                config.staticFiles.add("/frontend/dist");
+            } else {
+                LOGGER.warn("Resource folder frontend/dist not found, not including static files");
+            }
 
-                    config.jsonMapper(new SerializerAdapter());
+            config.jsonMapper(new SerializerAdapter());
 
-                    config.router.apiBuilder(() -> {
-                        before(provider.beforeAll());
+            config.router.apiBuilder(() -> {
+                before(provider.beforeAll());
 
-                        path("/auth", () -> {
-                            get("/callback", provider.callbackGet());
-                            get("/login", provider.loginGet());
+                path("/auth", () -> {
+                    get("/callback", provider.callbackGet());
+                    get("/login", provider.loginGet());
 
-                            // all routes after this point require authentication
-                            post("/logout", provider.logoutPost());
-                        });
+                    // all routes after this point require authentication
+                    post("/logout", provider.logoutPost());
+                });
 
-                        path("/api", () -> {
-                            before("/*", ctx -> {
-                                if (ctx.method() != HandlerType.OPTIONS) provider.verifyAuthenticatedMiddleware().handle(ctx);
-                            });
-
-                            post("/repo", provider.setRepoUrl());
-
-                            get("/submit", provider.submitGet());
-                            post("/submit", provider.submitPost());
-
-                            get("/latest", provider.latestSubmissionForMeGet());
-
-                            get("/submission", provider.submissionXGet());
-                            get("/submission/{phase}", provider.submissionXGet());
-
-                            get("/me", provider.meGet());
-
-                            get("/config", provider.getConfigStudent());
-
-                            path("/admin", () -> {
-                                before("/*", ctx -> {
-                                    if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
-                                });
-
-                                post("/repo/{netId}", provider.setRepoUrlAdmin());
-
-                                get("/repo/history", provider.repoHistoryAdminGet());
-
-                                get("/users", provider.usersGet());
-
-                                post("/submit", provider.adminRepoSubmitPost());
-
-                                path("/submissions", () -> {
-                                    post("/approve", provider.approveSubmissionPost());
-
-                                    get("/latest", provider.latestSubmissionsGet());
-
-                                    get("/latest/{count}", provider.latestSubmissionsGet());
-
-                                    get("/active", provider.submissionsActiveGet());
-
-                                    get("/student/{netId}", provider.studentSubmissionsGet());
-
-                                    post("/rerun", provider.submissionsReRunPost());
-                                });
-
-                                get("/test_mode", provider.testModeGet());
-
-                                get("/analytics/commit", provider.commitAnalyticsGet());
-
-                                get("/analytics/commit/{option}", provider.commitAnalyticsGet());
-
-                                get("/honorChecker/zip/{section}", provider.honorCheckerZipGet());
-
-                                get("/sections", provider.sectionsGet());
-
-                                path("/config", () -> {
-                                    get("", provider.getConfigAdmin());
-
-                                    post("/phases", provider.updateLivePhases());
-                                    post("/phases/shutdown", provider.scheduleShutdown());
-
-                                    post("/banner", provider.updateBannerMessage());
-
-                                    post("/courseId", provider.updateCourseIdPost());
-                                    post("/reloadCourseIds", provider.reloadCourseAssignmentIds());
-
-                                    post("/penalties", provider.updatePenalties());
-                                });
-                            });
-                        });
-
-                        get("/*", provider.defaultGet());
-
-                        after(provider.afterAll());
+                path("/api", () -> {
+                    before("/*", ctx -> {
+                        if (ctx.method() != HandlerType.OPTIONS) provider.verifyAuthenticatedMiddleware().handle(ctx);
                     });
-                })
 
-                .options("/*", provider.defaultOptions())
+                    post("/repo", provider.setRepoUrl());
 
-                .ws("/ws", (wsConfig) -> {
-                    wsConfig.onError(WebSocketController::onError);
-                    wsConfig.onMessage(WebSocketController::onMessage);
-                })
+                    get("/submit", provider.submitGet());
+                    post("/submit", provider.submitPost());
 
-                .exception(BadRequestException.class, haltWithCode(400))
-                .exception(UnauthorizedException.class, haltWithCode(401))
-                .exception(ResourceForbiddenException.class, haltWithCode(403))
-                .exception(ResourceNotFoundException.class, haltWithCode(404))
-                .exception(WordOfWisdomViolationException.class, haltWithCode(418))
-                .exception(UnprocessableEntityException.class, haltWithCode(422))
-                .exception(Exception.class, haltWithCode(500))
+                    get("/latest", provider.latestSubmissionForMeGet());
 
-                .start(port);
+                    get("/submission", provider.submissionXGet());
+                    get("/submission/{phase}", provider.submissionXGet());
+
+                    get("/me", provider.meGet());
+
+                    get("/config", provider.getConfigStudent());
+
+                    path("/admin", () -> {
+                        before("/*", ctx -> {
+                            if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
+                        });
+
+                        post("/repo/{netId}", provider.setRepoUrlAdmin());
+
+                        get("/repo/history", provider.repoHistoryAdminGet());
+
+                        get("/users", provider.usersGet());
+
+                        post("/submit", provider.adminRepoSubmitPost());
+
+                        path("/submissions", () -> {
+                            post("/approve", provider.approveSubmissionPost());
+
+                            get("/latest", provider.latestSubmissionsGet());
+
+                            get("/latest/{count}", provider.latestSubmissionsGet());
+
+                            get("/active", provider.submissionsActiveGet());
+
+                            get("/student/{netId}", provider.studentSubmissionsGet());
+
+                            post("/rerun", provider.submissionsReRunPost());
+                        });
+
+                        get("/test_mode", provider.testModeGet());
+
+                        get("/analytics/commit", provider.commitAnalyticsGet());
+
+                        get("/analytics/commit/{option}", provider.commitAnalyticsGet());
+
+                        get("/honorChecker/zip/{section}", provider.honorCheckerZipGet());
+
+                        get("/sections", provider.sectionsGet());
+
+                        path("/config", () -> {
+                            get("", provider.getConfigAdmin());
+
+                            post("/phases", provider.updateLivePhases());
+                            post("/phases/shutdown", provider.scheduleShutdown());
+
+                            post("/banner", provider.updateBannerMessage());
+
+                            post("/courseId", provider.updateCourseIdPost());
+                            post("/reloadCourseIds", provider.reloadCourseAssignmentIds());
+
+                            post("/penalties", provider.updatePenalties());
+                        });
+                    });
+                });
+
+                get("/*", provider.defaultGet());
+
+                after(provider.afterAll());
+            });
+        })
+
+        .options("/*", provider.defaultOptions())
+
+        .ws("/ws", (wsConfig) -> {
+            wsConfig.onError(WebSocketController::onError);
+            wsConfig.onMessage(WebSocketController::onMessage);
+        })
+
+        .exception(BadRequestException.class, haltWithCode(400))
+        .exception(UnauthorizedException.class, haltWithCode(401))
+        .exception(ResourceForbiddenException.class, haltWithCode(403))
+        .exception(ResourceNotFoundException.class, haltWithCode(404))
+        .exception(WordOfWisdomViolationException.class, haltWithCode(418))
+        .exception(UnprocessableEntityException.class, haltWithCode(422))
+        .exception(Exception.class, haltWithCode(500))
+
+        .start(port);
 
         return app.port();
     }
