@@ -293,7 +293,7 @@ class ScorerTest {
     // Helper Methods for constructing
 
     private Scorer constructScorer() {
-        return new Scorer(gradingContext, new LateDayCalculator());
+        return new Scorer(gradingContext, new MockLateDayCalculator());
     }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS

@@ -12,6 +12,7 @@ public class MockLateDayCalculator extends LateDayCalculator {
     }
 
     public MockLateDayCalculator(int daysBeforeDueDate) {
+        super(null);
         initializePublicHolidays(); // Initialize as blank; without reading default values
         var now = ZonedDateTime.now();
         fixedContext = new LateDayContext(now, now.minusDays(daysBeforeDueDate), 0);

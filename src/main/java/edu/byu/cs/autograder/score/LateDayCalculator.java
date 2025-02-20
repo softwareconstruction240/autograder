@@ -44,7 +44,15 @@ public class LateDayCalculator {
     private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
 
     public LateDayCalculator() {
+        System.out.println("Initializing standard LateDayCalculator");
         initializePublicHolidays(getEncodedPublicHolidays());
+    }
+    protected LateDayCalculator(@Nullable String encodedHolidays) {
+        if (encodedHolidays == null) {
+            initializePublicHolidays();
+        } else {
+            initializePublicHolidays(encodedHolidays);
+        }
     }
 
     /**
