@@ -149,14 +149,14 @@ class ScorerTest {
         RubricConfig emptyRubricConfig = new RubricConfig(Phase.Phase0, new EnumMap<>(Rubric.RubricType.class));
         setRubricConfig(Phase.Phase0, emptyRubricConfig);
 
-        var scorer = constructScorer();
+        var scorer = constructScorer(0, 0);
         var rubric = constructRubric(1f);
         assertThrows(GradingException.class, () -> scorer.score(rubric, PASSING_COMMIT_VERIFICATION));
     }
 
     @Test
     void score__commitVerification__verified__repeat() {
-        Submission submission = scoreRubric(constructRubric(1.0f), PASSING_CACHED_COMMIT_VERIFICATION);
+        Submission submission = scoreRubric(constructRubric(1.0f), PASSING_CACHED_COMMIT_VERIFICATION, 0, 0);
         assertCommitVerificationResults(submission, VerifiedStatus.PreviouslyApproved, false);
     }
 
@@ -292,8 +292,8 @@ class ScorerTest {
 
     // Helper Methods for constructing
 
-    private Scorer constructScorer() {
-        return new Scorer(gradingContext, new MockLateDayCalculator());
+    private Scorer constructScorer(int daysLate, int maxLateDaysToPenalize) {
+        return new Scorer(gradingContext, new MockLateDayCalculator(daysLate, maxLateDaysToPenalize));
     }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
@@ -331,10 +331,16 @@ class ScorerTest {
     }
 
     private Submission scoreRubric(Rubric rubric) {
-        return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
+        return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION, 0, 0);
+    }
+    private Submission scoreRubric(Rubric rubric, int daysLate, int maxLateDaysToPenalize) {
+        return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION, daysLate, maxLateDaysToPenalize);
     }
     private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
-        Scorer scorer = constructScorer();
+        return scoreRubric(rubric, commitVerification, 0, 0);
+    }
+    private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification, int daysLate, int maxLateDaysToPenalize) {
+        Scorer scorer = constructScorer(daysLate, maxLateDaysToPenalize);
         return scoreRubric(scorer, rubric, commitVerification);
     }
     private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
@@ -374,7 +380,7 @@ class ScorerTest {
             Rubric rubric =  constructRubric(value.passoffPoints() / PASSOFF_POSSIBLE_POINTS,
                     value.qualityPoints() / CODE_QUALITY_POSSIBLE_POINTS,
                     value.unitTestPoints() / UNIT_TESTS_POSSIBLE_POINTS);
-            Submission submission = scoreRubric(rubric);
+            Submission submission = scoreRubric(rubric, - value.daysLate, 5);
 
             if (i == values.length - 1) {
                 return submission;
