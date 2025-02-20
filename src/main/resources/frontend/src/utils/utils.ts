@@ -261,8 +261,7 @@ export const isLastDateWithinXDays = (dates: Date[] | string[], days: number) =>
     datesToUse = dates as Date[];
   }
 
-  datesToUse.sort((a: Date, b: Date) => a.getTime() - b.getTime());
-  const lastHoliday = datesToUse[datesToUse.length - 1];
+  const lastHoliday = datesToUse.reduce((latest, current) => (current > latest ? current : latest));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   lastHoliday.setHours(0, 0, 0, 0);

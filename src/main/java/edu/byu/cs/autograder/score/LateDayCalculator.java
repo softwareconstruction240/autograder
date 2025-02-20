@@ -443,13 +443,11 @@ public class LateDayCalculator {
     }
 
     private String getEncodedPublicHolidays() {
-        String encodedHolidays;
         try {
-            encodedHolidays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
+            return DaoService.getConfigurationDao()
+                    .getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
         } catch (DataAccessException e) {
             throw new RuntimeException("Error getting encoded holiday list from configuration", e);
         }
-
-        return encodedHolidays;
     }
 }

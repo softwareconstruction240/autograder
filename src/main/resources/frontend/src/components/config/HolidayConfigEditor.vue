@@ -79,6 +79,9 @@ const submitHolidays = async () => {
       every Saturday and Sunday as a "holiday", so it is only necessary to add BYU specific
       holidays.
     </p>
+    <p>
+      See the <a href="https://academiccalendar.byu.edu/" target="_blank">BYU Academic Calendar</a>
+    </p>
   </Panel>
 </template>
 
