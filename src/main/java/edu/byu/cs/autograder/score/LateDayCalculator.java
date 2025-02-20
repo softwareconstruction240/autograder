@@ -38,6 +38,7 @@ import java.util.logging.Logger;
  */
 public class LateDayCalculator {
 
+    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
     private Set<LocalDate> publicHolidays;
@@ -265,7 +266,7 @@ public class LateDayCalculator {
      * @param encodedPublicHolidays A string representing the encoded data.
      */
     public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, boolean quietWarnings) {
-        return initializePublicHolidays(encodedPublicHolidays, "yyyy-MM-dd", quietWarnings);
+        return initializePublicHolidays(encodedPublicHolidays, DEFAULT_DATE_FORMAT, quietWarnings);
     }
 
     /**

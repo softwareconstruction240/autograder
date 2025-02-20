@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.function.BiFunction;
 
 class LateDayCalculatorTest {
@@ -18,6 +19,7 @@ class LateDayCalculatorTest {
      * Disable during debugging.
      */
     private static final boolean QUIET_HOLIDAY_INIT_WARNINGS = true;
+    private static final String AMERICAN_DATE_FORMAT = "M/d/yyyy";
 
     @Test
     void getNumDaysLateWithoutHolidays() {
@@ -78,7 +80,7 @@ class LateDayCalculatorTest {
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
         LateDayCalculator standardLateDayCalculator = getHolidayLateDayCalculator(
-                getMultilinePublicHolidaysConfiguration());
+                getMultilinePublicHolidaysConfiguration(), true);
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -298,7 +300,7 @@ class LateDayCalculatorTest {
     @Test
     void initializePublicHolidaysSingleLine() {
         String encodedPublicHolidays = getSinglelinePublicHolidaysConfiguration();
-        validateExpectedHolidays(encodedPublicHolidays);
+        validateExpectedHolidays(encodedPublicHolidays, false);
     }
     private String getSinglelinePublicHolidaysConfiguration() {
         return " " // Leading whitespace
@@ -313,7 +315,7 @@ class LateDayCalculatorTest {
     @Test
     void initializePublicHolidaysMultiLine() {
         String encodedPublicHolidays = getMultilinePublicHolidaysConfiguration();
-        validateExpectedHolidays(encodedPublicHolidays);
+        validateExpectedHolidays(encodedPublicHolidays, true);
     }
     private String getMultilinePublicHolidaysConfiguration() {
         return
@@ -344,9 +346,9 @@ class LateDayCalculatorTest {
                 1/1/2025        New Years Holiday
                 """;
     }
-    private void validateExpectedHolidays(String encodedPublicHolidays) {
-        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null);
-        var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+    private void validateExpectedHolidays(String encodedPublicHolidays, boolean multilineFormat) {
+        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null, multilineFormat);
+        var initializedPublicHolidays = initHolidays(lateDayCalculator, encodedPublicHolidays, multilineFormat);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
                 "Set does not have the right number of public holidays");
@@ -380,11 +382,21 @@ class LateDayCalculatorTest {
     }
 
     private LateDayCalculator getHolidayLateDayCalculator(String encodedPublicHolidays) {
+        return getHolidayLateDayCalculator(encodedPublicHolidays, false);
+    }
+    private LateDayCalculator getHolidayLateDayCalculator(String encodedPublicHolidays, boolean multilineFormat) {
         LateDayCalculator lateDayCalculator = new MockLateDayCalculator();
         if (encodedPublicHolidays != null) {
-            lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+            initHolidays(lateDayCalculator, encodedPublicHolidays, multilineFormat);
         }
         return lateDayCalculator;
+    }
+    private Collection<LocalDate> initHolidays(LateDayCalculator lateDayCalculator, String encodedPublicHolidays, boolean americanFormat) {
+        if (americanFormat) {
+            return lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, AMERICAN_DATE_FORMAT, QUIET_HOLIDAY_INIT_WARNINGS);
+        } else {
+            return lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+        }
     }
 
     private record ExpectedDaysDiff(String handInDate, int daysDiff){}
