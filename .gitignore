@@ -41,3 +41,4 @@ build/
 /logs/
 /phases/
 /commit-cache/
+src/test/resources/gitTestRepos/
