@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.function.BiFunction;
 
 class LateDayCalculatorTest {
@@ -18,6 +19,7 @@ class LateDayCalculatorTest {
      * Disable during debugging.
      */
     private static final boolean QUIET_HOLIDAY_INIT_WARNINGS = true;
+    private static final String AMERICAN_DATE_FORMAT = "M/d/yyyy";
 
     @Test
     void getNumDaysLateWithoutHolidays() {
@@ -78,7 +80,7 @@ class LateDayCalculatorTest {
     void getNumDaysLateWithHolidays() {
         // Initialize with holidays
         LateDayCalculator standardLateDayCalculator = getHolidayLateDayCalculator(
-                getMultilinePublicHolidaysConfiguration());
+                getMultilinePublicHolidaysConfiguration(), true);
 
         // See image: days-late-with-holidays-common
         String commonDueDate = "2024-03-07 11:59:00 PM -07:00";
@@ -150,7 +152,7 @@ class LateDayCalculatorTest {
 
         // See image: days-late-with-holidays-friday-holiday-and-consecutive-holidays
         LateDayCalculator customLateDayCalculator = getHolidayLateDayCalculator(
-                "12/20/2024;12/24/2024;12/25/2024;12/31/2024;1/1/2025");
+                "2024-12-20;2024-12-24;2024-12-25;2024-12-31;2025-01-01");
         String fridayHolidayDueDate = "2024-12-20 11:59:00 PM -07:00";
         ExpectedDaysDiff[] fridayHolidayAndConsecutiveHolidays = {
                 // On Time
@@ -192,7 +194,7 @@ class LateDayCalculatorTest {
 
         // See image: days-late-with-holidays-holidays-on-weekends
         LateDayCalculator customLateDayCalculator2 = getHolidayLateDayCalculator(
-                "09/16/2028;09/17/2028;09/18/2028;");
+                "2028-09-16;2028-09-17;2028-09-18;");
         String holidaysOnWeekendsDueDate = "2028-09-14 02:15:00 PM -07:00";
         ExpectedDaysDiff[] holidaysOnWeekends = {
                 new ExpectedDaysDiff("2028-09-14 02:15:00 PM -07:00", 0), // Due date
@@ -298,22 +300,22 @@ class LateDayCalculatorTest {
     @Test
     void initializePublicHolidaysSingleLine() {
         String encodedPublicHolidays = getSinglelinePublicHolidaysConfiguration();
-        validateExpectedHolidays(encodedPublicHolidays);
+        validateExpectedHolidays(encodedPublicHolidays, false);
     }
     private String getSinglelinePublicHolidaysConfiguration() {
         return " " // Leading whitespace
-                + "1/1/2024;1/15/2024;2/19/2024;3/15/2024;4/25/2024;5/27/2024;6/19/2024;" // Delimited with ";"
+                + "2024-01-01;2024-01-15;2024-02-19;2024-03-15;2024-04-25;2024-05-27;2024-06-19;" // Delimited with ";"
                 + "This isn't a date, you silly goose! " // Invalid date should be skipped
-                + "7/4/2024,7/24/2024,9/2/2024,11/27/2024,11/28/2024,11/29/2024," // Delimited with ","
+                + "2024-07-04,2024-07-24,2024-09-02,2024-11-27,2024-11-28,2024-11-29," // Delimited with ","
                 + "16 sep 2024," // This date shouldn't be accepted since it's in the wrong format
                 + ";, " // Multiple consecutive delimiters
-                + "12/24/2024 12/25/2024 12/31/2024 " // Delimited with " "
-                + "1/1/2025;"; // Has trailing delimiter
+                + "2024-12-24 2024-12-25 2024-12-31 " // Delimited with " "
+                + "2025-01-01;"; // Has trailing delimiter
     }
     @Test
     void initializePublicHolidaysMultiLine() {
         String encodedPublicHolidays = getMultilinePublicHolidaysConfiguration();
-        validateExpectedHolidays(encodedPublicHolidays);
+        validateExpectedHolidays(encodedPublicHolidays, true);
     }
     private String getMultilinePublicHolidaysConfiguration() {
         return
@@ -344,9 +346,9 @@ class LateDayCalculatorTest {
                 1/1/2025        New Years Holiday
                 """;
     }
-    private void validateExpectedHolidays(String encodedPublicHolidays) {
-        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null);
-        var initializedPublicHolidays = lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+    private void validateExpectedHolidays(String encodedPublicHolidays, boolean multilineFormat) {
+        LateDayCalculator lateDayCalculator = getHolidayLateDayCalculator(null, multilineFormat);
+        var initializedPublicHolidays = initHolidays(lateDayCalculator, encodedPublicHolidays, multilineFormat);
 
         Assertions.assertEquals(17, initializedPublicHolidays.size(),
                 "Set does not have the right number of public holidays");
@@ -369,22 +371,32 @@ class LateDayCalculatorTest {
     @Test
     void detectsPublicHolidayStaleConfiguration() {
         Assertions.assertDoesNotThrow(
-                () -> new LateDayCalculator().initializePublicHolidays(),
+                () -> new LateDayCalculator(null).initializePublicHolidays(),
                 "LateDayCalculator should accept an empty list of holidays.");
         Assertions.assertThrows(RuntimeException.class,
-                () -> new LateDayCalculator().initializePublicHolidays(null),
+                () -> new LateDayCalculator(null).initializePublicHolidays(null),
                 "LateDayCalculator should throw when holidays are initialized as null. Provide empty collection instead.");
         Assertions.assertThrows(RuntimeException.class,
-                () -> new LateDayCalculator().initializePublicHolidays("1/1/2000"),
+                () -> new LateDayCalculator(null).initializePublicHolidays("2000-01-01"),
                 "LateDayCalculator should report when holiday configuration is stale.");
     }
 
     private LateDayCalculator getHolidayLateDayCalculator(String encodedPublicHolidays) {
+        return getHolidayLateDayCalculator(encodedPublicHolidays, false);
+    }
+    private LateDayCalculator getHolidayLateDayCalculator(String encodedPublicHolidays, boolean multilineFormat) {
         LateDayCalculator lateDayCalculator = new MockLateDayCalculator();
         if (encodedPublicHolidays != null) {
-            lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+            initHolidays(lateDayCalculator, encodedPublicHolidays, multilineFormat);
         }
         return lateDayCalculator;
+    }
+    private Collection<LocalDate> initHolidays(LateDayCalculator lateDayCalculator, String encodedPublicHolidays, boolean americanFormat) {
+        if (americanFormat) {
+            return lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, AMERICAN_DATE_FORMAT, QUIET_HOLIDAY_INIT_WARNINGS);
+        } else {
+            return lateDayCalculator.initializePublicHolidays(encodedPublicHolidays, QUIET_HOLIDAY_INIT_WARNINGS);
+        }
     }
 
     private record ExpectedDaysDiff(String handInDate, int daysDiff){}
