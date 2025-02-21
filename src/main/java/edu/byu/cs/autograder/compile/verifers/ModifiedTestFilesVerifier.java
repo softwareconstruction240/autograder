@@ -15,6 +15,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Verifies that the test files have not been modified.
+ */
 public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
 
     private static final Set<String> IGNORED_FILES = Set.of(

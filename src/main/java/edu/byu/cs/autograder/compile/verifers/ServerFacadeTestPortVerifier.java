@@ -9,6 +9,9 @@ import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Verifies that the port number isn't hardcoded anywhere in the client tests.
+ */
 public class ServerFacadeTestPortVerifier implements StudentCodeVerifier {
     private static final String DYNAMIC_PORT_LINE = "port = server.run(0)";
     private static final int CHECK_HARDCODED_PORT = 8080;

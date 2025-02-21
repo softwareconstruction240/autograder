@@ -34,6 +34,11 @@ public class CompileHelper {
         packageRepo();
     }
 
+    /**
+     * Verifies the structure and files of the student's project
+     *
+     * @throws GradingException if project structure or files are improperly placed or modified
+     */
     public void verify() throws GradingException {
         try {
             gradingContext.observer().update("Verifying code...");
