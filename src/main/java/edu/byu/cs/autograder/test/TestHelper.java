@@ -144,7 +144,7 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(runCommands);
 
-        String serverClassFiles = uberJar.getParentFile().getParentFile().getParent() + "/server/target/classes";
+        String serverClassFiles = uberJar.getParentFile().getParentFile().getParent() + "server/target/classes";
         List<String> reportCommands = List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
                 "--classfiles", serverClassFiles, "--csv", "test-output/coverage.csv");
 
