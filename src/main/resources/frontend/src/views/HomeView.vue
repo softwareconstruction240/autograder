@@ -66,13 +66,13 @@ const getPriorPhase = () => {
 
 const priorPhase = getPriorPhase()
 
-const isPriorAssignmentSubmitted = () => {
+const isPriorAssignmentSubmitted = async () => {
   //This shouldn't be a method that gets called over and over again, but should be called once when the program starts
   //And it's stored and accessed as many times as neccessary. Speeds up the code by doing it once instead of 3+ times.
   //Then would need to recall it whenever a submission is submitted to not invalidate the cache.
   if (!priorPhase) return true
-  const subs = useSubmissionStore().submissionsByPhase[priorPhase] //Undefined, even after a submission
-  //const subs = useSubmissionStore().getSubmissions(priorPhase) //maybe try this? But this returns a promise
+  await useSubmissionStore().getSubmissions(priorPhase) //maybe try this? But this returns a promise
+  const submissionByPhase = useSubmissionStore().submissionsByPhase[priorPhase] //Undefined, even after a submission
   if (!subs || subs.length == 0) return false
   const oneSub = subs.find( sub => sub.passed)
   return !!oneSub;

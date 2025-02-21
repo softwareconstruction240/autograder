@@ -12,6 +12,7 @@ import { AgGridVue } from "ag-grid-vue3";
 import PopUp from "@/components/PopUp.vue";
 import type { CellClickedEvent } from "ag-grid-community";
 import SubmissionInfo from "@/views/StudentView/SubmissionInfo.vue";
+import {useSubmissionStore} from "@/stores/submissions";
 
 onMounted(async () => {
   await loadSubmissions();

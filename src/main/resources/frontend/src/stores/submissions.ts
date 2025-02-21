@@ -16,6 +16,16 @@ export const useSubmissionStore = defineStore("submission", () => {
     submissionsByPhase.value[phase] = await submissionsGet(phase);
   };
 
+  const getAllSubmissions = async () => {
+    const submissions = await submissionsGet(null);
+
+    submissions.forEach((submission) => {
+        submissionsByPhase.value[submission.phase].push(submission);
+    });
+
+    return submissionsByPhase;
+  };
+
   const currentlyGrading = ref(false);
   const checkGrading = async () => {
     currentlyGrading.value = await submitGet();
@@ -26,6 +36,7 @@ export const useSubmissionStore = defineStore("submission", () => {
   return {
     submissionsByPhase,
     getSubmissions,
+    getAllSubmissions,
     currentlyGrading,
     checkGrading,
     getLastSubmission,
