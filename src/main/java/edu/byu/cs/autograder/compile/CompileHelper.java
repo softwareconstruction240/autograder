@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Performs the necessary checks for compiling the student's code,
+ * then compiles the code for grading.
+ */
 public class CompileHelper {
     private final GradingContext gradingContext;
 
@@ -28,6 +32,12 @@ public class CompileHelper {
     private final Collection<StudentCodeModifier> currentModifiers =
             List.of(new PomModifier(), new PassoffJarModifier(), new TestFactoryModifier());
 
+    /**
+     * Verifies the code in the student repo, modifies its contents for grading,
+     * then compiles the code into a jar
+     *
+     * @throws GradingException if there was a failure in verifying, modifying, or compiling the code
+     */
     public void compile() throws GradingException {
         verify();
         modify();
