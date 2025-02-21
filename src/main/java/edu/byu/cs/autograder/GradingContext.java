@@ -1,6 +1,6 @@
 package edu.byu.cs.autograder;
 
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.model.Phase;
 
 import java.io.File;
