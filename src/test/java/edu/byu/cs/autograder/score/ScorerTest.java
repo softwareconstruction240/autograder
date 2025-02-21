@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -46,13 +47,13 @@ class ScorerTest {
 
     private static final CommitVerificationConfig standardCVConfig = new CommitVerificationConfig(10, 3, 0, 10, 3);
 
-    private static final CommitVerificationResult PASSING_COMMIT_VERIFICATION =
+    private static final CommitVerificationReport PASSING_COMMIT_VERIFICATION =
             constructCommitVerificationResult(true, false);
-    private static final CommitVerificationResult FAILING_COMMIT_VERIFICATION =
+    private static final CommitVerificationReport FAILING_COMMIT_VERIFICATION =
             constructCommitVerificationResult(false, false);
-    private static final CommitVerificationResult PASSING_CACHED_COMMIT_VERIFICATION =
+    private static final CommitVerificationReport PASSING_CACHED_COMMIT_VERIFICATION =
             constructCommitVerificationResult(true, true);
-    private static final CommitVerificationResult FAILING_CACHED_COMMIT_VERIFICATION =
+    private static final CommitVerificationReport FAILING_CACHED_COMMIT_VERIFICATION =
             constructCommitVerificationResult(false, true);
 
 
@@ -333,11 +334,11 @@ class ScorerTest {
     private Submission scoreRubric(Rubric rubric) {
         return scoreRubric(rubric, PASSING_COMMIT_VERIFICATION);
     }
-    private Submission scoreRubric(Rubric rubric, CommitVerificationResult commitVerification) {
+    private Submission scoreRubric(Rubric rubric, CommitVerificationReport commitVerification) {
         Scorer scorer = constructScorer();
         return scoreRubric(scorer, rubric, commitVerification);
     }
-    private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationResult commitVerification) {
+    private Submission scoreRubric(Scorer scorer, Rubric rubric, CommitVerificationReport commitVerification) {
         try {
             return scorer.score(rubric, commitVerification);
         } catch (Exception e) {
@@ -346,7 +347,7 @@ class ScorerTest {
         return null;
     }
 
-    private static CommitVerificationResult constructCommitVerificationResult(boolean verified, boolean isCached) {
+    private static CommitVerificationReport constructCommitVerificationResult(boolean verified, boolean isCached) {
         String statusStr = verified ? "PASSING" : "FAILING";
         if (isCached) statusStr += "_CACHED";
         String headHash = "<" + statusStr + "_COMMIT_VERIFICATION>";
@@ -354,7 +355,8 @@ class ScorerTest {
         return new CommitVerificationResult(
                 verified, isCached, 0, 0, 0, false, 0,
                 "", null, null, null,
-                headHash, null);
+                headHash, null)
+                .toReport(null);
     }
 
     record Phase3SubmissionValues(float passoffPoints, float qualityPoints, float unitTestPoints, int daysLate) {}

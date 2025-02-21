@@ -1,5 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.SubmissionDao;
@@ -18,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,6 +40,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("rubric", s -> Serializer.serialize(s.rubric())),
             new ColumnDefinition<Submission>("admin", Submission::admin),
             new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
+            new ColumnDefinition<Submission>("commit_context", Submission::serializeCommitContext),
+            new ColumnDefinition<Submission>("commit_result", Submission::serializeCommitResult),
             new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
     };
 
@@ -54,20 +59,32 @@ public class SubmissionSqlDao implements SubmissionDao {
         Boolean admin = rs.getBoolean("admin");
 
         String verifiedStatusStr = rs.getString("verified_status");
-        Submission.VerifiedStatus verifiedStatus = verifiedStatusStr == null ? null :
-                Submission.VerifiedStatus.valueOf(verifiedStatusStr);
+        String commitContextJson = rs.getString("commit_context");
+        String commitResultJson = rs.getString("commit_result");
         String verificationJson = rs.getString("verification");
-        Submission.ScoreVerification scoreVerification = verificationJson == null ? null :
-                Serializer.deserialize(verificationJson, Submission.ScoreVerification.class);
+
+        Submission.VerifiedStatus verifiedStatus =
+                verifiedStatusStr == null ? null :
+                Submission.VerifiedStatus.valueOf(verifiedStatusStr);
+        CommitVerificationContext commitContext =
+                Serializer.deserializeSafely(commitContextJson, CommitVerificationContext.class);
+        CommitVerificationResult commitResult =
+                Serializer.deserializeSafely(commitResultJson, CommitVerificationResult.class);
+        Submission.ScoreVerification scoreVerification =
+                Serializer.deserializeSafely(verificationJson, Submission.ScoreVerification.class);
 
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
                 passed, score, rawScore, notes, rubric,
-                admin, verifiedStatus, scoreVerification);
+                admin, verifiedStatus, commitContext, commitResult, scoreVerification);
     }
 
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(
             "submission", COLUMN_DEFINITIONS, SubmissionSqlDao::readSubmission);
+
+    private final String optimizedGetAllSubmissionsSelect =
+            SqlReader.joinColumnNames(Arrays.stream(sqlReader.allColumnNames).map(s -> "s." + s));
+
 
     @Override
     public void insertSubmission(Submission submission) throws DataAccessException {
@@ -119,7 +136,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         try (var connection = SqlDb.getConnection()) {
             var statement = connection.prepareStatement(
                     """
-                            SELECT s.net_id, s.repo_url, s.timestamp, s.phase, s.passed, s.score, s.raw_score, s.head_hash, s.notes, s.rubric, s.admin, s.verification, s.verified_status
+                            SELECT %s
                             FROM submission s
                             INNER JOIN (
                                 SELECT net_id, phase, MAX(timestamp) AS max_timestamp
@@ -127,7 +144,7 @@ public class SubmissionSqlDao implements SubmissionDao {
                                 GROUP BY net_id, phase
                             ) s2 ON s.net_id = s2.net_id AND s.phase = s2.phase AND s.timestamp = s2.max_timestamp
                             ORDER BY s2.max_timestamp DESC
-                            """ +
+                            """.formatted(optimizedGetAllSubmissionsSelect) +
                             (batchSize >= 0 ? "LIMIT ?" : "")
             );
             if (batchSize >= 0) {

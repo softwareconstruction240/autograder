@@ -51,7 +51,7 @@ public class GitHelper {
     }
 
     // ## Entry Point ##
-    public CommitVerificationResult setUpAndVerifyHistory() throws GradingException {
+    public CommitVerificationReport setUpAndVerifyHistory() throws GradingException {
         setUp();
         return verifyCommitHistory();
     }
@@ -62,7 +62,7 @@ public class GitHelper {
         headHash = getHeadHash(stageRepo);
     }
 
-    public CommitVerificationResult verifyCommitHistory() {
+    public CommitVerificationReport verifyCommitHistory() {
         if (headHash == null) {
             throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
         }
@@ -70,16 +70,17 @@ public class GitHelper {
         gradingContext.observer().update("Verifying commits...");
 
         try {
-            CommitVerificationResult result = shouldVerifyCommits() ?
+            CommitVerificationReport report = shouldVerifyCommits() ?
                     verifyCommitRequirements(gradingContext.stageRepo()) :
                     skipCommitVerification(true, headHash, null);
 
+            CommitVerificationResult result = report.result();
             if (result.warningMessages() != null) {
                 var observer = gradingContext.observer();
                 result.warningMessages().forEach(observer::notifyWarning);
             }
 
-            return result;
+            return report;
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
             String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
@@ -148,11 +149,11 @@ public class GitHelper {
     }
 
     // Early decisions
-    private CommitVerificationResult skipCommitVerification(boolean verified, File stageRepo) throws GradingException {
+    private CommitVerificationReport skipCommitVerification(boolean verified, File stageRepo) throws GradingException {
         String headHash = getHeadHash(stageRepo);
         return skipCommitVerification(verified, headHash, null);
     }
-    private CommitVerificationResult skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
+    private CommitVerificationReport skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
         if (headHash == null) {
             throw new IllegalArgumentException("Head hash cannot be null");
         }
@@ -162,7 +163,7 @@ public class GitHelper {
                 0, 0, 0, false, 0, failureMessage, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
-        );
+        ).toReport(null);
     }
 
     // Decision Logic
@@ -171,10 +172,10 @@ public class GitHelper {
      * Decides whether a git repo passes the requirements and returns the evaluation results.
      *
      * @param stageRepo A {@link File} pointing to a directory on the local machine with the repo to evaluate.
-     * @return A {@link CommitVerificationResult} with the results.
+     * @return A {@link CommitVerificationReport} with the results.
      * @throws GradingException When certain assumptions are not met.
      */
-    CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+    CommitVerificationReport verifyCommitRequirements(File stageRepo) throws GradingException {
         try {
             var potentialResult = preserveOriginalVerification();
             if (potentialResult != null) {
@@ -199,9 +200,9 @@ public class GitHelper {
      * Performs the explicit remembering of the authorization of previous phases.
      *
      * @return Null if no decision is made. If a previous submission exists for the given phase,
-     * returns a special `CommitVerificationResult` that represents the state.
+     * returns a special {@link CommitVerificationReport} that represents the state.
      */
-    private CommitVerificationResult preserveOriginalVerification() throws DataAccessException {
+    private CommitVerificationReport preserveOriginalVerification() throws DataAccessException {
         Submission firstPassingSubmission = getFirstPassingSubmission();
         if (firstPassingSubmission == null || firstPassingSubmission.verifiedStatus() == null) {
             return null;
@@ -215,7 +216,7 @@ public class GitHelper {
                 verified, true,
                 0, 0, 0, false, originalPenaltyPct, failureMessage, null,
                 null, null, headHash, null
-        );
+        ).toReport(null);
     }
 
     private static String generateFailureMessage(boolean verified, Submission firstPassingSubmission) {
@@ -237,9 +238,9 @@ public class GitHelper {
     /**
      * Analyzes the commits in the given directory within the bounds provided.
      *
-     * @return {@link CommitVerificationResult} Representing the verification results
+     * @return {@link CommitVerificationReport} Representing the verification results and context used to generate it
      */
-    CommitVerificationResult verifyRegularCommits(
+    CommitVerificationReport verifyRegularCommits(
             Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
             throws GitAPIException, IOException, DataAccessException, GradingException {
 
@@ -252,7 +253,8 @@ public class GitHelper {
 
             int numCommits = commitsByDay.totalCommits();
             int daysWithCommits = commitsByDay.dayMap().size();
-            long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
+            long significantCommits = commitsByDay.lineChangesPerCommit().values()
+                    .stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
             CommitVerificationContext context = new CommitVerificationContext(
                     gradingContext.verificationConfig(),
@@ -275,7 +277,7 @@ public class GitHelper {
             String errorMessage = errorResults == null ? "" : String.join("\n", errorResults.messages());
             boolean hasErrors = errorResults != null && !errorResults.isEmpty();
 
-            return new CommitVerificationResult(
+            var result = new CommitVerificationResult(
                     !hasErrors,
                     false,
                     numCommits,
@@ -290,6 +292,7 @@ public class GitHelper {
                     commitsByDay.upperThreshold().commitHash(),
                     commitsByDay.lowerThreshold().commitHash()
             );
+            return new CommitVerificationReport(context, result);
         } while (true);
 
     }

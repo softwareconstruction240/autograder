@@ -134,21 +134,8 @@ public class SubmissionMemoryDao implements SubmissionDao {
             if (!targetSubmission.equals(submission)) continue;
 
             iterator.remove();
-            submissions.add(new Submission(
-                    submission.netId(),
-                    submission.repoUrl(),
-                    submission.headHash(),
-                    submission.timestamp(),
-                    submission.phase(),
-                    submission.passed(),
-                    newScore,                                       // Changed
-                    submission.rawScore(),
-                    submission.notes(),
-                    submission.rubric(),
-                    submission.admin(),
-                    Submission.VerifiedStatus.ApprovedManually,     // Changed
-                    scoreVerification                               // Changed
-            ));
+            submissions.add(submission.updateApproval(
+                    newScore, Submission.VerifiedStatus.ApprovedManually, scoreVerification));
             return; // We found it!
         }
 

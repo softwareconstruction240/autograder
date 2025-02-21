@@ -11,7 +11,8 @@ import java.util.*;
  *
  * @param dayMap Represents each of the calendar days,
  *               with the number of commits on that day.
- * @param changesPerCommit One entry for each commit processed, representing the number of lines changed in the commit.
+ * @param lineChangesPerCommit One entry for each commit processed, representing the full commit hash
+ *                            and the number of lines changed in the commit.
  * @param erroringCommits Reports commit hashes that triggered any of the failure conditions,
  *                        grouped by a natural key into the kinds of conditions that they failed.
  *                        This will be empty when there are no erroring commits.
@@ -30,7 +31,7 @@ import java.util.*;
  */
 public record CommitsByDay(
         Map<String, Integer> dayMap,
-        List<Integer> changesPerCommit,
+        Map<String, Integer> lineChangesPerCommit,
         Map<String, List<String>> erroringCommits,
         int totalCommits,
         int mergeCommits,

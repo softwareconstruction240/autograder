@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.compile.CompileHelper;
 import edu.byu.cs.autograder.database.DatabaseHelper;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitVerificationConfig;
+import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.score.LateDayCalculator;
@@ -87,11 +88,11 @@ public class Grader implements Runnable {
 
     public void run() {
         observer.notifyStarted();
-        CommitVerificationResult commitVerificationResult = null;
+        CommitVerificationReport commitVerificationReport = null;
         try {
             // FIXME: remove this sleep. currently the grader is too quick for the client to keep up
             Thread.sleep(1000);
-            commitVerificationResult = gitHelper.setUpAndVerifyHistory();
+            commitVerificationReport = gitHelper.setUpAndVerifyHistory();
             dbHelper.setUp();
             if (RUN_COMPILATION && gradingContext.phase() != Phase.GitHub) {
                 compileHelper.compile();
@@ -99,15 +100,15 @@ public class Grader implements Runnable {
             }
 
             RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
-            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationResult);
+            Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationReport.result());
 
-            Submission submission = scorer.score(rubric, commitVerificationResult);
+            Submission submission = scorer.score(rubric, commitVerificationReport);
             DaoService.getSubmissionDao().insertSubmission(submission);
 
             observer.notifyDone(submission);
         } catch (Exception e) {
             GradingException ge = e instanceof GradingException ? (GradingException) e : new GradingException(e);
-            handleException(ge, commitVerificationResult);
+            handleException(ge, commitVerificationReport);
             LOGGER.error("Error running grader for user {} and repository {}", gradingContext.netId(),
                     gradingContext.repoUrl(), e);
         } finally {
@@ -144,7 +145,7 @@ public class Grader implements Runnable {
         return new Rubric(rubricItems, false, "");
     }
 
-    private void handleException(GradingException ge, CommitVerificationResult cvr) {
+    private void handleException(GradingException ge, CommitVerificationReport cvr) {
         if(cvr == null) {
             observer.notifyError(ge.getMessage());
             return;
