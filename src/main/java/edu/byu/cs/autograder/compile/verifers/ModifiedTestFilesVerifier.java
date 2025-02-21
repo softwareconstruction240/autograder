@@ -16,7 +16,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Verifies that the test files have not been modified.
+ * Verifies that the test files have not been modified or are missing. Provides a warning to the observer
+ * of any files found to be modified or missing.
  */
 public class ModifiedTestFilesVerifier implements StudentCodeVerifier {
 
