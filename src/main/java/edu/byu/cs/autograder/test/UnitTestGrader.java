@@ -73,4 +73,9 @@ public class UnitTestGrader extends TestGrader {
     protected Rubric.RubricType rubricType() {
         return Rubric.RubricType.UNIT_TESTS;
     }
+
+    @Override
+    protected Set<String> modulesToCheckCoverage() throws GradingException {
+        return PhaseUtils.unitTestModulesToCheckCoverage(gradingContext.phase());
+    }
 }

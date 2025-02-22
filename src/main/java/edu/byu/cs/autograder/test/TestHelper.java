@@ -131,7 +131,7 @@ public class TestHelper {
      * @return A TestNode object containing the results of the tests.
      */
     TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                             Set<String> extraCreditTests) throws GradingException {
+                             Set<String> extraCreditTests, Set<String> coverageModules) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -144,24 +144,31 @@ public class TestHelper {
                 .directory(compiledTests)
                 .command(runCommands);
 
-        List<String> reportCommands = List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
-                "--classfiles", uberJar.getParent() + "/classes", "--csv", "test-output/coverage.csv");
-
-        ProcessBuilder reportProcessBuilder = new ProcessBuilder()
-                .command(reportCommands)
-                .directory(compiledTests);
-
         try {
             ProcessUtils.ProcessOutput processOutput = ProcessUtils.runProcess(runProcessBuilder);
             String error = processOutput.stdErr();
-            ProcessUtils.runProcess(reportProcessBuilder);
+
+            if(coverageModules != null && !coverageModules.isEmpty()) {
+                List<String> reportCommands = new ArrayList<>(List.of("java", "-jar", jacocoCliJarPath, "report", "jacoco.exec",
+                        "--csv", "test-output/coverage.csv"));
+                for(String module : coverageModules) {
+                    reportCommands.add("--classfiles");
+                    reportCommands.add(uberJar.getParentFile().getParentFile().getParent() +  "/" + module + "/target/classes");
+                }
+
+                ProcessBuilder reportProcessBuilder = new ProcessBuilder()
+                        .command(reportCommands)
+                        .directory(compiledTests);
+
+                ProcessUtils.runProcess(reportProcessBuilder);
+            }
 
             TestAnalyzer testAnalyzer = new TestAnalyzer();
             File testOutputDirectory = new File(compiledTests, "test-output");
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
-            CoverageAnalysis coverage = new CoverageAnalyzer().parse(coverageOutput);
+            CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
             TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, extraCreditTests);
 
             return new TestOutput(testAnalysis.root(), testAnalysis.extraCredit(), coverage, removeSparkLines(error));

@@ -94,4 +94,9 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
     protected Rubric.RubricType rubricType() {
         return Rubric.RubricType.GRADING_ISSUE;
     }
+
+    @Override
+    protected Set<String> modulesToCheckCoverage() {
+        return Set.of();
+    }
 }

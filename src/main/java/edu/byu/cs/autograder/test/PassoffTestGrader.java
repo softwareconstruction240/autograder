@@ -111,4 +111,9 @@ public class PassoffTestGrader extends TestGrader {
 
         return scores;
     }
+
+    @Override
+    protected Set<String> modulesToCheckCoverage() {
+        return Set.of();
+    }
 }
