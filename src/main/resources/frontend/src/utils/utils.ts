@@ -155,7 +155,15 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
 };
 
 const proportionToColor = (proportion: number) => {
-  return (240 * proportion);
+  /*
+  Was having a grand old time with math functions for this.
+  The point is that at 0% coverage it's max red, at 100% coverage it's max green
+      (although 255 green is really bright so 210 for now)
+  At 50% coverage it's 50% green but still about 70% red
+  */
+  const red = 255 * Math.cos((proportion) * Math.PI / 2);
+  const green = 210 * proportion;
+  return `rgb(${red}, ${green}, 0)`;
 }
 
 export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysis) => {
@@ -171,7 +179,7 @@ export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysi
     const total = classAnalysis.covered + classAnalysis.missed;
     if (total > 0) {
       const coveredProportion = classAnalysis.covered / total;
-      out += `<span style="color: rgb(${proportionToColor(1 - coveredProportion)}, ${proportionToColor(coveredProportion)}, 0)">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`
+      out += `<span style="color: ${proportionToColor(coveredProportion)}">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`
     }
   }
   return out;

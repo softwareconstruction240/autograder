@@ -25,7 +25,7 @@ const areErrorDetailsOpen = ref<boolean>(false);
   />
   <span
     id="testResults"
-    v-if="testResults?.coverage"
+    v-if="testResults?.coverage && testResults!.coverage.classAnalyses && testResults!.coverage.classAnalyses.length > 0"
     v-html="generateCoverageHtmlStringFromCoverage(testResults.coverage)"
   />
   <span id="textResults" v-else-if="textResults" v-html="sanitizeHtml(textResults)" />
