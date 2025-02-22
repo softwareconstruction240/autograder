@@ -14,11 +14,11 @@ public record PrivateConfig(
         int maxLateDaysPenalized,
         int linesChangedPerCommit,
         int clockForgivenessMinutes
-    ){}
+    ){ }
 
     public record AssignmentConfig(
             Phase phase,
             int assignmentId,
             Map<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricItems
-    ){}
+    ){ }
 }
