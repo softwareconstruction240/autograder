@@ -31,8 +31,8 @@ const areErrorDetailsOpen = ref<boolean>(false);
     id="testResults"
     v-if="
       testResults?.coverage &&
-      testResults!.coverage.classAnalyses &&
-      testResults!.coverage.classAnalyses.length > 0
+      testResults?.coverage.classAnalyses &&
+      testResults?.coverage.classAnalyses.length > 0
     "
     v-html="generateCoverageHtmlStringFromCoverage(testResults.coverage)"
   />
