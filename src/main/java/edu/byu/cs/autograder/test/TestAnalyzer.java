@@ -41,6 +41,7 @@ public class TestAnalyzer {
             throw new GradingException("Error parsing test output", e);
         }
 
+        int uniqueTestIndex = 0;
         for (TestSuite.TestCase testCase : suite.getTestcase()) {
             TestNode base = root;
             String ecCategory = null;
@@ -65,7 +66,8 @@ public class TestAnalyzer {
             TestNode node = new TestNode();
             node.setTestName(name);
             TestNode parent = nodeForClass(base, testCase.getClassname());
-            parent.getChildren().put(name, node);
+            String uniqueTestNameKey = String.format("%s - %d", name, uniqueTestIndex++);
+            parent.getChildren().put(uniqueTestNameKey, node);
 
             node.setPassed(testCase.getFailure() == null);
             if (testCase.getFailure() != null) {
