@@ -161,14 +161,14 @@ const proportionToColor = (proportion: number) => {
       (although 255 green is really bright so 210 for now)
   At 50% coverage it's 50% green but still about 70% red
   */
-  const red = 255 * Math.cos((proportion) * Math.PI / 2);
+  const red = 255 * Math.cos((proportion * Math.PI) / 2);
   const green = 210 * proportion;
   return `rgb(${red}, ${green}, 0)`;
-}
+};
 
 export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysis) => {
   coverage.classAnalyses.sort((a, b) => {
-    if(a.packageName === b.packageName) {
+    if (a.packageName === b.packageName) {
       return a.className.localeCompare(b.className);
     }
     return a.packageName.localeCompare(b.packageName);
@@ -179,11 +179,11 @@ export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysi
     const total = classAnalysis.covered + classAnalysis.missed;
     if (total > 0) {
       const coveredProportion = classAnalysis.covered / total;
-      out += `<span style="color: ${proportionToColor(coveredProportion)}">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`
+      out += `<span style="color: ${proportionToColor(coveredProportion)}">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`;
     }
   }
   return out;
-}
+};
 
 export const phaseString = (phase: Phase | "Quality" | "GitHub") => {
   if (phase == "Quality") {

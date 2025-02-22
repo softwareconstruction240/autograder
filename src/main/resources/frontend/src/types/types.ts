@@ -37,11 +37,11 @@ export type ClassCoverageAnalysis = {
   packageName: string;
   covered: number;
   missed: number;
-}
+};
 
 export type CoverageAnalysis = {
   classAnalyses: ClassCoverageAnalysis[];
-}
+};
 
 export type TestResult = {
   root: TestNode;

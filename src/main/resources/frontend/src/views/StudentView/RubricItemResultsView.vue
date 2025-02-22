@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { generateResultsHtmlStringFromTestNode, sanitizeHtml, generateCoverageHtmlStringFromCoverage } from "@/utils/utils";
+import {
+  generateResultsHtmlStringFromTestNode,
+  sanitizeHtml,
+  generateCoverageHtmlStringFromCoverage,
+} from "@/utils/utils";
 import type { TestResult } from "@/types/types";
 import PopUp from "@/components/PopUp.vue";
 import { ref } from "vue";
@@ -25,7 +29,11 @@ const areErrorDetailsOpen = ref<boolean>(false);
   />
   <span
     id="testResults"
-    v-if="testResults?.coverage && testResults!.coverage.classAnalyses && testResults!.coverage.classAnalyses.length > 0"
+    v-if="
+      testResults?.coverage &&
+      testResults!.coverage.classAnalyses &&
+      testResults!.coverage.classAnalyses.length > 0
+    "
     v-html="generateCoverageHtmlStringFromCoverage(testResults.coverage)"
   />
   <span id="textResults" v-else-if="textResults" v-html="sanitizeHtml(textResults)" />
