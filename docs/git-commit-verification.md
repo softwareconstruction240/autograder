@@ -384,8 +384,8 @@ In order to avoid storing too much information, this data structure does not rep
 | Error Key | Description | `DefaultGitVerificationStrategy` Response |
 | :-------- | :---------- | :---------------------------------------- |
 | `missingTailHash` | This is the hash from the previous submission that was expected, but not found. | ⚠️ Warning message |
-| `excludedCommits` | The `CommitVerificationStrategy` signalled that the evaluation should be re-performed with these commits excluded for all effective purposes. | ℹ️ None; informational result only |
-| `mergeCommits` | These are merge commits. | ❌ Exclude from analysis |
+| `excludedCommits` | The `CommitVerificationStrategy` signalled that the evaluation should be re-performed with these commits excluded for all effective purposes. | ⏩ Exclude from analysis |
+| `mergeCommits` | These are merge commits. | ⏩ Exclude from analysis |
 | `commitsInPast` | These commits were authored before the tail threshold. | ⏩ Exclude from analysis |
 | `commitsInFuture` | These commits were authored after the head threshold. | ❌ Error message |
 | `commitsOutOfOrder` | These commits were not authored strictly _after_ all of their parents. | ⚠️ Warning message |
