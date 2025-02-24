@@ -75,7 +75,7 @@ public class CommitAnalytics {
         List<String> linearizedCommits = new LinkedList<>();
         List<Integer> linearizedLineChanges = new LinkedList<>();
         Map<String, List<String>> erroringCommits = new HashMap<>();
-        boolean commitsInOrder = true;
+        boolean commitsOutOfOrder = false;
         boolean commitsInFuture = false;
         boolean commitsInPast = false;
         boolean commitsBackdated = false;
@@ -121,7 +121,7 @@ public class CommitAnalytics {
                 if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
                     groupCommitsByKey(erroringCommits, "commitsOutOfOrder", commitHash);
-                    commitsInOrder = false;
+                    commitsOutOfOrder = true;
                     break;
                 }
             }
@@ -160,7 +160,7 @@ public class CommitAnalytics {
         return new CommitsByDay(
                 days, linearizedCommits, linearizedLineChanges, erroringCommits,
                 singleParentCommits, mergeCommits,
-                !commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
+                commitsOutOfOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
     }
 
