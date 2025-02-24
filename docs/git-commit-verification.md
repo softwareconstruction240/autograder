@@ -381,14 +381,16 @@ In order to avoid storing too much information, this data structure does not rep
 
 #### Possible Error Keys
 
+These errors are presented in the order they are detected in the algorithm. This order has implications because "⏩ Exclude from analysis" also skips over subsequent verification checks.
+
 | Error Key | Description | `DefaultGitVerificationStrategy` Response |
 | :-------- | :---------- | :---------------------------------------- |
 | `missingTailHash` | This is the hash from the previous submission that was expected, but not found. | ⚠️ Warning message |
 | `excludedCommits` | The `CommitVerificationStrategy` signalled that the evaluation should be re-performed with these commits excluded for all effective purposes. | ⏩ Exclude from analysis |
-| `mergeCommits` | These are merge commits. | ⏩ Exclude from analysis |
 | `commitsInPast` | These commits were authored before the tail threshold. | ⏩ Exclude from analysis |
 | `commitsInFuture` | These commits were authored after the head threshold. | ❌ Error message |
 | `commitsOutOfOrder` | These commits were not authored strictly _after_ all of their parents. | ⚠️ Warning message |
+| `mergeCommits` | These are merge commits. | ⏩ Exclude from analysis |
 | `commitsBackdated` | These commits were detected as being manually backdated. | ❌ Error message |
 | `commitTimestampsDuplicated` | These commits have the exact same timestamp as some other commit. | ℹ️ None; see below |
 | `commitTimestampsDuplicated`&shy;`SubsequentOnly` | Same as the above category, except that the first commit with each timestamp is not included. | ↪️ Re-evaluate, but exclude all of these commits |
