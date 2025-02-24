@@ -18,7 +18,7 @@ import java.util.*;
  *                        This will be empty when there are no erroring commits.
  * @param totalCommits The total number of commits processed, excluding merge commits.
  * @param mergeCommits The total number of merge commits.
- * @param commitsInOrder Reports whether all commits were authored strictly after their parents.
+ * @param commitsOutOfOrder Reports whether any commits were not authored strictly after their parents.
  * @param commitsInPast Reports whether any commits were found before the tail hash chronologically.
  *                      This flag has been deemed unhelpful and intentionally ignored.
  *                      Therefore, these are NOT counted as erroring commits.
@@ -35,7 +35,7 @@ public record CommitsByDay(
         Map<String, List<String>> erroringCommits,
         int totalCommits,
         int mergeCommits,
-        boolean commitsInOrder,
+        boolean commitsOutOfOrder,
         boolean commitsInFuture,
         boolean commitsInPast,
         boolean commitsBackdated,

@@ -166,7 +166,7 @@ namespace Analytics {
         +Map~String, List[String]~ erroringCommits
         +int totalCommits
         +int mergeCommits
-        +boolean commitsInOrder
+        +boolean commitsOutOfOrder
         +boolean commitsInFuture
         +boolean commitsInPast
         +boolean commitsBackdated

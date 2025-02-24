@@ -114,7 +114,7 @@ public class CommitAnalytics {
             for (var pc : getCommitParents(git, rc)) {
                 if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
-                    groupCommitsByKey(erroringCommits, "commitsInOrder", commitHash);
+                    groupCommitsByKey(erroringCommits, "commitsOutOfOrder", commitHash);
                     commitsInOrder = false;
                     break;
                 }
@@ -153,7 +153,7 @@ public class CommitAnalytics {
         return new CommitsByDay(
                 days, lineChangesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
+                !commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
     }
 
