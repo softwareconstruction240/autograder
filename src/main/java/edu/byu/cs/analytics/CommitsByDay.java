@@ -11,8 +11,13 @@ import java.util.*;
  *
  * @param dayMap Represents each of the calendar days,
  *               with the number of commits on that day.
- * @param lineChangesPerCommit One entry for each commit processed, representing the full commit hash
- *                            and the number of lines changed in the commit.
+ * @param linearizedCommits The linearized order of all commits evaluated where earlier commits appear sooner.
+ *                          This order generally corresponds to author time, but may not match exactly
+ *                          when branches and merging occurs.
+ * @param linearizedLineChanges A corresponding list to {@link CommitsByDay#linearizedCommits()} which provides
+ *                              a single number for every commit representing the number of line changes.
+ *                              If the line changes for some commit were never computed, it will be included
+ *                              with the value of <b>-1</b>.
  * @param erroringCommits Reports commit hashes that triggered any of the failure conditions,
  *                        grouped by a natural key into the kinds of conditions that they failed.
  *                        This will be empty when there are no erroring commits.
@@ -31,7 +36,8 @@ import java.util.*;
  */
 public record CommitsByDay(
         Map<String, Integer> dayMap,
-        Map<String, Integer> lineChangesPerCommit,
+        List<String> linearizedCommits,
+        List<Integer> linearizedLineChanges,
         Map<String, List<String>> erroringCommits,
         int totalCommits,
         int mergeCommits,

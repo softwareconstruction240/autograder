@@ -159,7 +159,8 @@ namespace Analytics {
 
     class CommitsByDay {
         +Map~String, Integer~ dayMap
-        +Map~String, Integer~ lineChangesPerCommit
+        List~String~ linearizedCommits
+        List~Integer~ linearizedLineChanges
         %% NOTE: Mermaid cannot represent nested generics with multiple types.
         %% That is why we use the square brackets instead of angled brackets.
         %% https://mermaid.js.org/syntax/classDiagram.html#generic-types
