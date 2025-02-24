@@ -123,6 +123,7 @@ public class CommitAnalytics {
             // Skip merge commits
             if (rc.getParentCount() > 1) {
                 ++mergeCommits;
+                groupCommitsByKey(erroringCommits, "mergeCommits", commitHash);
                 continue;
             }
 
