@@ -361,3 +361,26 @@ Grader->>Observer: notifyDone(submission)
 
 Grader-->>-Grader: void
 ```
+
+## Implementation Details
+
+These implementation details are included here because they do not contribute to a high-level understanding of the overall system behavior.
+
+### `CommitsByDay::erroringCommits`
+
+The `CommitsByDay` result object contains a data structure with the following declaration: `Map<String, List<String>> erroringCommits`. This makes it a general-purpose and extensible data structure which can represent many different things.
+
+This data structure is intended to represent many _groups_ of commits which caused a particular error. The error code is the key of the `Map`, and all the full, 40-character commit hashes of every commit which triggered the error are included in the `List<String>`. If no commits trigger a particular error, the key is not inserted into the map.
+
+| Error Key | Description | `DefaultGitVerificationStrategy` Response |
+| :-------- | :---------- | :---------------------------------------- |
+| `missingTailHash` | This is the hash from the previous submission that was expected, but not found. | ⚠️ Warning message |
+| `excludedCommits` | The `CommitVerificationStrategy` signalled that the evaluation should be re-performed with these commits excluded for all effective purposes. | ℹ️ None; informational result only |
+| `mergeCommits` | These are merge commits. | ❌ Exclude from analysis |
+| `commitsInPast` | These commits were authored before the tail threshold. | ⏩ Exclude from analysis |
+| `commitsInFuture` | These commits were authored after the head threshold. | ❌ Error message |
+| `commitsOutOfOrder` | These commits were not authored strictly _after_ all of their parents. | ⚠️ Warning message |
+| `commitsBackdated` | These commits were detected as being manually backdated. | ❌ Error message |
+| `commitTimestampsDuplicated` | These commits have the exact same timestamp as some other commit. | ℹ️ None; see below |
+| `commitTimestampsDuplicated`&shy;`SubsequentOnly` | Same as the above category, except that the first commit with each timestamp is not included. | ↪️ Re-evaluate, but exclude all of these commits |
+
