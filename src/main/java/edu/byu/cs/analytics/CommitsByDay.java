@@ -6,7 +6,7 @@ import java.util.*;
  * Contains the results of a commit analytics parse,
  * including the parameters used to generate it.
  * <br>
- * This data structure is stored alongside ever {@link edu.byu.cs.model.Submission} entry.
+ * This data structure is stored alongside every {@link edu.byu.cs.model.Submission} entry.
  * Therefore, this data model is more concerned about stringified storage space and use in
  * back-end detection of errors than in user presentation. Presenting the information contained
  * within will likely require converting the data into a more friendly format.
