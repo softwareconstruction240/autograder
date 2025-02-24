@@ -371,23 +371,15 @@ These implementation details are included here because they do not contribute to
 
 The `CommitsByDay` result object contains a data structure with the following declaration: `Map<String, List<String>> erroringCommits`. This makes it a general-purpose and extensible data structure which can represent many different things.
 
+#### Design Discussion
+
 This data structure is intended to represent many _groups_ of commits which caused a particular error. The error code is the key of the `Map`, and all the full, 40-character commit hashes of every commit which triggered the error are included in the `List<String>`. If no commits trigger a particular error, the key is not inserted into the map.
 
 In order to avoid storing too much information, this data structure does not represent every commit. However, if a commit is treated special or causes a warning in some way, it will be mentioned somewhere in here.
 
 `CommitAnalytics` is responsible for producing the `CommitsByDay` record and surfacing all of this information. The behavior of "⏩ Exclude from analysis" (not marking as `excludedCommits`) is implemented by `CommitAnalytics`, but all other decisions are higher-level responses driven by the acting `CommitVerificationStrategy`. By replacing or modifying the `CommitVerficationStrategy`, users of this data can provide different responses than the defaults.
 
-When presenting this information, it is recommended to do the following:
-* Represent all error categories, potentially excluding a limited _blacklist_. This will give future errors the best chance at correct representation.
-* Combine the commit hash with the `repoUrl` to create a direct link to the commit in a new tab.
-* Focus on each group of errors:
-    * Show each group of raised errors/warnings
-    * List each commit that triggered it
-* AND/OR Focus on the linearized commit history
-    * Iterate over `linearizedCommits`
-    * Show each commit with key information in a dense format:
-        * Number of line changes
-        * All errors/warnings associated with the commit hash
+#### Possible Error Keys
 
 | Error Key | Description | `DefaultGitVerificationStrategy` Response |
 | :-------- | :---------- | :---------------------------------------- |
