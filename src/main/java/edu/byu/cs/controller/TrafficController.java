@@ -6,10 +6,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.QueueItem;
 import org.eclipse.jetty.websocket.api.Session;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,7 +19,39 @@ public class TrafficController {
     /**
      * A map of netIds to sessions that are subscribed to updates for that netId
      */
-    public static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<Session>> sessions = new ConcurrentHashMap<>();
+
+    public static void addNetId(String netId){
+        sessions.putIfAbsent(netId, new ArrayList<>());
+    }
+
+    public static List<Session> getSessions(String netId){
+        return Collections.unmodifiableList(sessions.getOrDefault(netId, Collections.emptyList()));
+    }
+
+    public static boolean hasSession(String netId, Session session){
+        List<Session> sessionList = sessions.get(netId);
+        return sessionList != null && sessionList.contains(session);
+    }
+
+    public static void addSession(String netId, Session session){
+        addNetId(netId);
+        List<Session> sessionList = sessions.get(netId);
+        sessionList.add(session);
+    }
+
+    public static void clearSessions(String netId){
+        List<Session> sessionList = sessions.get(netId);
+        if(sessionList==null) return;
+        for(Session session : sessionList){
+            session.close();
+        }
+        sessions.remove(netId);
+    }
+
+    public static boolean containsNetId(String netId) {
+        return sessions.containsKey(netId);
+    }
 
     /**
      * The executor service that runs the graders

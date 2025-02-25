@@ -1,12 +1,11 @@
 package edu.byu.cs.analytics;
 
-import edu.byu.cs.autograder.git.CommitsBetweenBounds;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
@@ -46,10 +45,13 @@ public class CommitAnalytics {
      * @param git An open git object for use
      * @param lowerBound The last commit in this log, exclusive
      * @param upperBound The first commit in this log, inclusive
+     * @param excludeCommits A non-null set of commit hashes which will be skipped during analysis
      * @return A {@link CommitsByDay} record with the results
      */
     public static CommitsByDay countCommitsByDay(
-            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound)
+            Git git, @NonNull CommitThreshold lowerBound, @NonNull CommitThreshold upperBound,
+            Set<String> excludeCommits
+    )
             throws GitAPIException, IOException {
 
         // Verify arguments
@@ -70,7 +72,7 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         int singleParentCommits = 0;
         int mergeCommits = 0;
-        List<Integer> changesPerCommit = new LinkedList<>();
+        Map<String, Integer> lineChangesPerCommit = new HashMap<>();
         Map<String, List<String>> erroringCommits = new HashMap<>();
         boolean commitsInOrder = true;
         boolean commitsInFuture = false;
@@ -88,14 +90,20 @@ public class CommitAnalytics {
         // Iteration helpers
         CommitTimestamps commitTimes;
         String commitHash;
+        int numLineChanges;
         for (RevCommit rc : commitsBetweenBounds.commits()) {
-            commitTimes = getCommitTime(rc);
             commitHash = rc.getName();
+            if (excludeCommits.contains(commitHash)) {
+                groupCommitsByKey(erroringCommits, "excludedCommits", commitHash);
+                continue;
+            }
+
+            commitTimes = getCommitTime(rc);
             if (commitTimes.seconds <= lowerTimeBoundSecs) {
                 groupCommitsByKey(erroringCommits, "commitsInPast", commitHash);
                 commitsInPast = true;
-                // Actually, we want to just skip these commits since these could legitimately
-                // occur when rebasing or otherwise. No need to flag them as "suspicious histories."
+                // Actually, we want to just skip these commits since these could
+                // legitimately occur when rebasing or otherwise.
                 continue;
             }
             if (commitTimes.seconds > upperTimeBoundSecs) {
@@ -124,7 +132,8 @@ public class CommitAnalytics {
             }
 
             // Count changes in each commit
-            changesPerCommit.add(getNumChangesInCommit(diffFormatter, rc));
+            numLineChanges = getNumChangesInCommit(diffFormatter, rc);
+            lineChangesPerCommit.put(commitHash, numLineChanges);
             groupCommitsByKey(commitsByTimestamp, commitTimes.seconds, commitHash);
 
             // Add the commit to results
@@ -137,11 +146,12 @@ public class CommitAnalytics {
         var duplicatedTimestampCommits = analyzeDuplicatedTimestamps(commitsByTimestamp);
         if (!duplicatedTimestampCommits.isEmpty()) {
             commitsWithSameTimestamp = true;
-            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits);
+            erroringCommits.put("commitTimestampsDuplicated", duplicatedTimestampCommits.allEffectedCommits());
+            erroringCommits.put("commitTimestampsDuplicatedSubsequentOnly", duplicatedTimestampCommits.duplicatedCommitsOnly());
         }
 
         return new CommitsByDay(
-                days, changesPerCommit, erroringCommits,
+                days, lineChangesPerCommit, erroringCommits,
                 singleParentCommits, mergeCommits,
                 commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
@@ -151,14 +161,35 @@ public class CommitAnalytics {
         dataMap.putIfAbsent(groupId, new LinkedList<>());
         dataMap.get(groupId).add(commitHash);
     }
-    private static List<String> analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
-        List<String> out = new LinkedList<>();
+    private static DuplicatedTimestamps analyzeDuplicatedTimestamps(Map<Long, List<String>> dataMap) {
+        List<String> allEffectedCommits = new ArrayList<>();
+        List<String> duplicatedCommitsOnly = new ArrayList<>();
         for (var commitsAtTimestamp : dataMap.values()) {
             if (commitsAtTimestamp.size() > 1) {
-                out.addAll(commitsAtTimestamp);
+                allEffectedCommits.addAll(commitsAtTimestamp);
+                duplicatedCommitsOnly.addAll(commitsAtTimestamp.subList(0, commitsAtTimestamp.size()-1));
             }
         }
-        return out;
+        return new DuplicatedTimestamps(allEffectedCommits, duplicatedCommitsOnly);
+    }
+
+    /**
+     * Contains an analyzed view of the commits which have been discovered to have the exact same timestamp.
+     *
+     * @param allEffectedCommits The commit hashes of all affected commits.
+     *                           This set of results could be displayed to a user for understanding the problem.
+     * @param duplicatedCommitsOnly The commit hashes of only the duplicating commits.
+     *                              The first commit of each bucket of duplicated timestamps is excluded.
+     *                              This set of results could be used to identify commits to skip in a re-evaluation
+     *                              of the repo while still honoring the first of each of the commits.
+     */
+    private record DuplicatedTimestamps(
+            List<String> allEffectedCommits,
+            List<String> duplicatedCommitsOnly
+    ) {
+        public boolean isEmpty() {
+            return allEffectedCommits.isEmpty();
+        }
     }
 
 
@@ -200,11 +231,11 @@ public class CommitAnalytics {
     /**
      * Responsible for providing an iterable of the commits to analyze for this phase,
      * along with some status flags indicating how they were retrieved.
-     *
+     * <br>
      * Generally, this will result in only the new commits since the last submission being evaluated.
      * However, if the previous submission commit is missing, or if this is the first submission,
      * then the entire history will be provided.
-     *
+     * <br>
      * If a tail commit was expected, but not found, that will be reported as a flag.
      *
      * @param git An open Git repo

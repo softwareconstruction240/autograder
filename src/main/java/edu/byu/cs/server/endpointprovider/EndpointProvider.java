@@ -39,8 +39,8 @@ public interface EndpointProvider {
     Route updateLivePhases();
     Route scheduleShutdown();
     Route updateBannerMessage();
-    Route updateCourseIdsPost();
-    Route updateCourseIdsUsingCanvasGet();
+    Route updateCourseIdPost();
+    Route reloadCourseAssignmentIds();
     Route updatePenalties();
 
     // SubmissionController
@@ -58,7 +58,7 @@ public interface EndpointProvider {
 
     // UserController
 
-    Route repoPatch();
-    Route repoPatchAdmin();
+    Route setRepoUrl();
+    Route setRepoUrlAdmin();
     Route repoHistoryAdminGet();
 }

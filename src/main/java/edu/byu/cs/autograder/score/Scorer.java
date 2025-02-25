@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
@@ -9,10 +10,10 @@ import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
@@ -36,9 +37,12 @@ public class Scorer {
      */
     private final float PER_DAY_LATE_PENALTY;
     private final GradingContext gradingContext;
+    private final LateDayCalculator lateDayCalculator;
 
-    public Scorer(GradingContext gradingContext) {
+    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
+        this.lateDayCalculator = lateDayCalculator;
+
         try {
             ConfigurationDao dao = DaoService.getConfigurationDao();
             PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
@@ -56,33 +60,36 @@ public class Scorer {
      * When appropriate, it will save the score the grade-book,
      * but it always returns a {@link Submission} that can be
      * @param rubric A freshly generated {@link Rubric} from the grading system.
-     * @param commitVerificationResult The associated {@link CommitVerificationResult} from the verification system.
+     * @param commitVerificationReport The report from the verification system.
      * @return A {@link Submission} ready to save in the database.
      * @throws GradingException When pre-conditions are not met.
      * @throws DataAccessException When the database cannot be accessed.
      */
-    public Submission score(Rubric rubric, CommitVerificationResult commitVerificationResult) throws GradingException, DataAccessException {
+    public Submission score(Rubric rubric, CommitVerificationReport commitVerificationReport) throws GradingException, DataAccessException {
         gradingContext.observer().update("Grading...");
 
         rubric = transformRubric(rubric);
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            return generateSubmissionObject(rubric, commitVerificationResult, 0, getScores(rubric), "");
+            return generateSubmissionObject(rubric, commitVerificationReport, 0, getScores(rubric), "");
         }
 
-        int daysLate = new LateDayCalculator().calculateLateDays(gradingContext.phase(), gradingContext.netId());
+        int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
         rubric = applyLatePenalty(rubric, daysLate);
         ScorePair scores = getScores(rubric);
 
         // Validate several conditions before submitting to the grade-book
         if (!rubric.passed()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, "");
-        } else if (!commitVerificationResult.verified()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, commitVerificationResult.failureMessage());
+            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, "");
+        }
+
+        CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
+        if (!commitVerificationResult.verified()) {
+            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, commitVerificationResult.failureMessage());
         } else {
             // The student (may) receive a score in canvas!
-            return successfullyProcessSubmission(rubric, commitVerificationResult, daysLate, scores);
+            return successfullyProcessSubmission(rubric, commitVerificationReport, daysLate, scores);
         }
     }
 
@@ -108,7 +115,7 @@ public class Scorer {
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
      *
      * @param rubric                   The rubric for the submission
-     * @param commitVerificationResult Required when originally creating a submission.
+     * @param commitVerificationReport Required when originally creating a submission.
      *                                 Can be null when sending scores to Canvas; this will disable
      *                                 any automatic point deductions for verification, and also result in
      *                                 <code>null</code> being returned instead of a {@link Submission}.
@@ -119,16 +126,17 @@ public class Scorer {
      * @throws DataAccessException When the database can't be reached.
      * @throws GradingException    When other conditions fail.
      */
-    private Submission successfullyProcessSubmission(Rubric rubric, CommitVerificationResult commitVerificationResult,
+    private Submission successfullyProcessSubmission(Rubric rubric, CommitVerificationReport commitVerificationReport,
                                                      int daysLate, ScorePair scores) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
-            return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores,
+            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores,
                     "Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
+        CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
         AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult);
-        return generateSubmissionObject(rubric, commitVerificationResult, daysLate, scores, submittalRemnants.notes);
+        return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, submittalRemnants.notes);
     }
 
     /**
@@ -410,7 +418,7 @@ public class Scorer {
      * Other objects are constructed independently for that purpose.
      *
      * @param rubric A fully transformed and populated Rubric.
-     * @param commitVerificationResult Results from the commit verification system.
+     * @param commitVerificationReport Results from the commit verification system.
      *                                 If this value is null, the function will return null.
      * @param numDaysLate The number of days late this submission was handed-in.
      *                    For note generating purposes only; this is not used to
@@ -419,13 +427,14 @@ public class Scorer {
      * @param notes Any notes that are associated with the submission.
      *              More comments may be added to this string while preparing the Submission.
      */
-    public Submission generateSubmissionObject(Rubric rubric, CommitVerificationResult commitVerificationResult,
+    public Submission generateSubmissionObject(Rubric rubric, CommitVerificationReport commitVerificationReport,
                                                 int numDaysLate, ScorePair scores, String notes)
             throws GradingException, DataAccessException {
-        if (commitVerificationResult == null) {
+        if (commitVerificationReport == null) {
             return null; // This is allowed.
         }
 
+        CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
@@ -459,6 +468,8 @@ public class Scorer {
                 rubric,
                 gradingContext.admin(),
                 verifiedStatus,
+                commitVerificationReport.context(),
+                commitVerificationResult,
                 null
         );
     }

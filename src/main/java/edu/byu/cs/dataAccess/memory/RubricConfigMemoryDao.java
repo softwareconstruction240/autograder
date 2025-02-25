@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
-import edu.byu.cs.dataAccess.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;

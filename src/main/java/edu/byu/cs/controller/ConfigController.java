@@ -1,6 +1,7 @@
 package edu.byu.cs.controller;
 
 import com.google.gson.JsonObject;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
@@ -16,9 +17,9 @@ public class ConfigController {
 
     public static final Route getConfigAdmin = (req, res) -> {
         try {
-            JsonObject response = ConfigService.getPrivateConfig();
+            PrivateConfig config = ConfigService.getPrivateConfig();
             res.status(200);
-            return response;
+            return Serializer.serialize(config);
         } catch (DataAccessException e) {
             res.status(500);
             res.body(e.getMessage());
@@ -27,10 +28,10 @@ public class ConfigController {
     };
 
     public static final Route getConfigStudent = (req, res) -> {
-        String response = ConfigService.getPublicConfig().toString();
+        PublicConfig config = ConfigService.getPublicConfig();
 
         res.status(200);
-        return response;
+        return Serializer.serialize(config);
     };
 
     public static final Route updateLivePhases = (req, res) -> {
@@ -87,21 +88,21 @@ public class ConfigController {
         return "";
     };
 
-    public static final Route updateCourseIdsPost = (req, res) -> {
-        SetCourseIdsRequest setCourseIdsRequest = Serializer.deserialize(req.body(), SetCourseIdsRequest.class);
-
+    public static final Route updateCourseIdPost = (req, res) -> {
         User user = req.session().attribute("user");
 
-        // Course Number
-        try {
-            ConfigService.updateCourseIds(user, setCourseIdsRequest);
-        } catch (DataAccessException e) {
-            res.status(400);
-            res.body(e.getMessage());
-            return res;
-        }
+        JsonObject jsonObject = Serializer.deserialize(req.body(), JsonObject.class);
+        Integer courseId = Serializer.deserialize(jsonObject.get("courseId"), Integer.class);
 
-        res.status(200);
+        try {
+            ConfigService.setCourseId(user, courseId);
+        } catch (DataAccessException e) {
+            res.status(500);
+            res.body(e.getMessage());
+        } catch (CanvasException e) {
+            res.status(400);
+            res.body("Canvas Error:\nEither the Canvas Course #%d doesn't exist, the Autograder doesn't have access to the course, or Canvas was unable to be reached.".formatted(courseId));
+        }
         return "";
     };
 

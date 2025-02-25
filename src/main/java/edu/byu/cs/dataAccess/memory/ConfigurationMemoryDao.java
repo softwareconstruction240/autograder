@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 
 import java.util.HashMap;
 import java.util.Map;

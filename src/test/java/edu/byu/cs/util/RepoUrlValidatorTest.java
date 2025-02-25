@@ -2,9 +2,13 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 
@@ -13,7 +17,7 @@ public class RepoUrlValidatorTest {
     @Test
     @Tag("cleanRepoUrl")
     @DisplayName("Should strip off trailing characters after repo name when given repo URL")
-        void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() throws GradingException {
+    void should_stripOffTrailingCharactersAfterRepoName_when_givenRepoUrl() throws GradingException {
         // Should strip off characters after repo name
         String expectedUrl = "https://github.com/USERNAME/REPO_NAME";
         String[] urlVariants = {
@@ -83,8 +87,8 @@ public class RepoUrlValidatorTest {
                 "https://github.com/valid-username-0123456789/valid-repo-name.git/",
                 "https://github.com/valid-username-0123456789/1_2_3_4_5_6_7_8_9_0.git/",
         };
-        for (String badUrl: goodUrls) {
-            assertDoesNotThrow(() -> RepoUrlValidator.clean(badUrl));
+        for (String url : goodUrls) {
+            assertDoesNotThrow(() -> RepoUrlValidator.clean(url));
         }
     }
 
@@ -119,15 +123,16 @@ public class RepoUrlValidatorTest {
                 "github.com:8080/USERNAME/REPO_NAME.git",
                 "https://github.com:443/softwareconstruction240/autograder",
         };
-        for (String badUrl : badUrls) {
+        for (String url : badUrls) {
             assertThrows(RepoUrlValidator.InvalidRepoUrlException.class,
-                    () -> RepoUrlValidator.clean(badUrl),
-                    "Did not reject input: " + badUrl);
+                    () -> RepoUrlValidator.clean(url),
+                    "Did not reject input: " + url);
         }
     }
 
     @Test
     @Tag("cleanRepoUrl")
+    @Disabled
     @DisplayName("Admin submissions are not cleaned")
     void adminSubmissionsAreNotCleaned() throws GradingException, IOException {
         String originalUrl = "https://github.com/USERNAME/REPO_NAME/tree/main/0-chess-moves/starter-code/chess";
@@ -135,6 +140,29 @@ public class RepoUrlValidatorTest {
         // As this point, we are not spending the time to make `Grader` into a more testable format.
 //        var grader = new Grader(originalUrl, "student_id", null, null , true);
 //        Assertions.assertEquals(originalUrl, grader.gradingContext.repoUrl());
+    }
+
+    @ParameterizedTest
+    @Tag("isNotFork")
+    @CsvSource({
+            "softwareconstruction240, chess, true",
+            "softwareconstruction240, invalid-repo-name, false",
+            "invalid-username, chess, false"
+    })
+    @DisplayName("Test RepoUrlValidator.isNotFork with various inputs")
+    void isNotForkTests(String username, String repoName, boolean expectedResult) {
+        assertEquals(expectedResult, RepoUrlValidator.isNotFork(username, repoName));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "git@github.com:softwareconstruction240/chess.git, true",
+            "git@github.com:softwareconstruction240/missing-repo-name.git, false",
+            "git@github.com:missing-username/chess.git, false"
+    })
+    @DisplayName("Test RepoUrlValidator.isValid with various inputs")
+    void isValidRepoUrlTests(String url, boolean expectedResult) {
+        assertEquals(expectedResult, RepoUrlValidator.isValid(url));
     }
 
 }

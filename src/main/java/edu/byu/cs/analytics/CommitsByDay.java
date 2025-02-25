@@ -1,7 +1,6 @@
 package edu.byu.cs.analytics;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Contains the results of a commit analytics parse,
@@ -12,7 +11,8 @@ import java.util.Map;
  *
  * @param dayMap Represents each of the calendar days,
  *               with the number of commits on that day.
- * @param changesPerCommit One entry for each commit processed, representing the number of lines changed in the commit.
+ * @param lineChangesPerCommit One entry for each commit processed, representing the full commit hash
+ *                            and the number of lines changed in the commit.
  * @param erroringCommits Reports commit hashes that triggered any of the failure conditions,
  *                        grouped by a natural key into the kinds of conditions that they failed.
  *                        This will be empty when there are no erroring commits.
@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public record CommitsByDay(
         Map<String, Integer> dayMap,
-        List<Integer> changesPerCommit,
+        Map<String, Integer> lineChangesPerCommit,
         Map<String, List<String>> erroringCommits,
         int totalCommits,
         int mergeCommits,
@@ -43,4 +43,21 @@ public record CommitsByDay(
         boolean missingTailHash,
         CommitThreshold lowerThreshold,
         CommitThreshold upperThreshold
-) { }
+) {
+    /**
+     * Safely retrieves a read-only {@link Collection<String>} of any erroring commits within the <code>groupId</code> group.
+     *
+     * @param groupId String identifying the group to view
+     * @return A non-empty collection of commit hashes corresponding to <code>groupId</code>, or <code>null</code>.
+     */
+    public Collection<String> getErroringCommitsSet(String groupId) {
+        if (groupId == null) {
+            throw new IllegalArgumentException("groupId should not be null");
+        }
+        var initialList = erroringCommits.get(groupId);
+        if (initialList == null || initialList.isEmpty()) {
+            return null;
+        }
+        return List.copyOf(initialList);
+    }
+}

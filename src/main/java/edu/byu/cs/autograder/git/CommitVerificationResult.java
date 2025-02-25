@@ -1,8 +1,11 @@
 package edu.byu.cs.autograder.git;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
 import org.eclipse.jgit.annotations.NonNull;
+import org.eclipse.jgit.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.Collection;
 
 /**
  * An in-memory model that reports the decisions, a few key details,
@@ -18,6 +21,7 @@ import java.time.Instant;
  * @param missingTail Error flag indicates when a tail hash was expected but not found during evaluation.
  * @param penaltyPct A reduction to the phase, if any, when a TA approved an unapproved score. [0-100]
  * @param failureMessage A string that will be presented to the use when this the result is not verified.
+ * @param warningMessages A nullable, potentially empty collection of warning messages that should be presented to the user.
  * @param minAllowedThreshold Debug purposes. The min timestamp considered.
  * @param maxAllowedThreshold Debug. The maximum timestamp considered.
  * @param headHash Debug. The head hash evaluated. Not null.
@@ -32,10 +36,15 @@ public record CommitVerificationResult(
         boolean missingTail,
         int penaltyPct,
         @NonNull String failureMessage,
+        @Nullable Collection<String> warningMessages,
 
         // Debug info
         Instant minAllowedThreshold,
         Instant maxAllowedThreshold,
         @NonNull String headHash,
         String tailHash
-) { }
+) {
+    public CommitVerificationReport toReport(CommitVerificationContext context) {
+        return new CommitVerificationReport(context, this);
+    }
+}
