@@ -5,9 +5,9 @@ import java.util.EnumMap;
 /**
  * Represents the rubric for a Canvas assignment. Some rubrics may have null values for some fields.
  *
- * @param items
- * @param passed
- * @param notes
+ * @param items the map of rubric items for a Canvas assignment
+ * @param passed the result of the grading process. Determines whether the rubric items get updated in canvas
+ * @param notes the notes resulting from the grading process
  */
 public record Rubric(
         EnumMap<RubricType, RubricItem> items,
@@ -18,7 +18,7 @@ public record Rubric(
     /**
      * Represents a single rubric item
      *
-     * @param category
+     * @param category The category of the rubric item
      * @param results  The results of the rubric item
      * @param criteria The criteria of the rubric item
      */
@@ -31,11 +31,11 @@ public record Rubric(
     /**
      * Represents the results of a rubric item. textResults or testResults may be null, but not both
      *
-     * @param notes
-     * @param score
+     * @param notes The notes for the rubric item
+     * @param score The score for the rubric item
      * @param testResults
      * @param textResults
-     * @param possiblePoints
+     * @param possiblePoints The amount of possible points for the rubric item
      */
     public record Results(
             String notes,
