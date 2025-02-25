@@ -209,4 +209,14 @@ const adminSubmit = async () => {
 #loadMore {
   font-size: medium;
 }
+
+#reloadLatest {
+  font-size: medium;
+  width: fit-content;
+}
+
+.reload {
+  display: grid;
+  grid-template-columns: 1fr 9fr;
+}
 </style>
