@@ -143,10 +143,15 @@ const adminSubmit = async () => {
   <div class="container">
     <p v-if="allSubmissionsLoaded">All latest submissions are loaded</p>
     <p v-else>Currently only the {{DEFAULT_SUBMISSIONS_TO_LOAD}} most recent latest submissions are loaded</p>
-    <button id="loadMore" @click="loadAllSubmissions">
-      <span v-if="allSubmissionsLoaded">Reload submissions list</span>
-      <span v-else>Load all latest submissions</span>
-    </button>
+    <div class="reload">
+      <button id="reloadLatest" @click="refreshSubmissions">
+        <i class="fa-solid fa-arrows-rotate" />
+      </button>
+      <button id="loadMore" @click="loadAllSubmissions">
+        <span v-if="allSubmissionsLoaded">Reload submissions list</span>
+        <span v-else>Load all latest submissions</span>
+      </button>
+    </div>
   </div>
 
   <PopUp
