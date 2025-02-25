@@ -45,7 +45,7 @@ const resetPage = async () => {
   selectedSubmission.value = null;
   allSubmissionsLoaded = false;
   await refreshSubmissions();
-}
+};
 
 const refreshSubmissions = async () => {
   if (allSubmissionsLoaded) {
@@ -171,7 +171,9 @@ const adminSubmit = async () => {
 
   <div class="container">
     <p v-if="allSubmissionsLoaded">All latest submissions are loaded</p>
-    <p v-else>Currently only the {{DEFAULT_SUBMISSIONS_TO_LOAD}} most recent latest submissions are loaded</p>
+    <p v-else>
+      Currently only the {{ DEFAULT_SUBMISSIONS_TO_LOAD }} most recent latest submissions are loaded
+    </p>
     <div class="reload">
       <button id="reloadLatest" @click="refreshSubmissions">
         <i class="fa-solid fa-arrows-rotate" />
