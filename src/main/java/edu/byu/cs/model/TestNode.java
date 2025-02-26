@@ -89,17 +89,14 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
     }
 
     public static void countTests(TestNode node) {
+        node.numTestsPassed = 0;
+        node.numTestsFailed = 0;
         if (node.passed != null) {
             if (node.passed) {
-                node.numTestsPassed = 1;
-                node.numTestsFailed = 0;
+                node.numTestsPassed++;
             } else {
-                node.numTestsFailed = 1;
-                node.numTestsPassed = 0;
+                node.numTestsFailed++;
             }
-        } else {
-            node.numTestsPassed = 0;
-            node.numTestsFailed = 0;
         }
 
         for (TestNode child : node.children.values()) {
@@ -110,9 +107,9 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
     }
 
     public static void collapsePackages(TestNode node) {
-        while(node.getChildren().size() == 1) {
+        while (node.getChildren().size() == 1) {
             TestNode child = node.getChildren().values().iterator().next();
-            if(child.passed != null) return;
+            if (child.passed != null) return;
             node.testName = String.format("%s.%s", node.testName, child.testName);
             node.children = child.children;
         }
