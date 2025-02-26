@@ -47,7 +47,7 @@ import java.util.Objects;
  *                      This notably contains the <pre>CommitsByDay</pre> which lists
  *                      the exact hash codes of commits grouped by the warnings they generated.
  * @param commitResult Debug. Holds the raw commit verification results including computed values.
- * @param verification Represents the approval of the submission.
+ * @param verification Represents the manual approval of the submission.
  *                     Added only after the submission is approved manually.
  */
 public record Submission(
