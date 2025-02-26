@@ -72,9 +72,10 @@ public class CommitAnalytics {
         Map<String, Integer> days = new TreeMap<>();
         int singleParentCommits = 0;
         int mergeCommits = 0;
-        Map<String, Integer> lineChangesPerCommit = new HashMap<>();
+        List<String> linearizedCommits = new LinkedList<>();
+        List<Integer> linearizedLineChanges = new LinkedList<>();
         Map<String, List<String>> erroringCommits = new HashMap<>();
-        boolean commitsInOrder = true;
+        boolean commitsOutOfOrder = false;
         boolean commitsInFuture = false;
         boolean commitsInPast = false;
         boolean commitsBackdated = false;
@@ -93,6 +94,11 @@ public class CommitAnalytics {
         int numLineChanges;
         for (RevCommit rc : commitsBetweenBounds.commits()) {
             commitHash = rc.getName();
+
+            // Commits are processed in a linearized format starting from most recent
+            linearizedCommits.addFirst(commitHash);
+            linearizedLineChanges.addFirst(-1);
+
             if (excludeCommits.contains(commitHash)) {
                 groupCommitsByKey(erroringCommits, "excludedCommits", commitHash);
                 continue;
@@ -114,8 +120,8 @@ public class CommitAnalytics {
             for (var pc : getCommitParents(git, rc)) {
                 if (commitTimes.seconds < getCommitTime(pc).seconds) {
                     // Verifies that all parents are older than the child
-                    groupCommitsByKey(erroringCommits, "commitsInOrder", commitHash);
-                    commitsInOrder = false;
+                    groupCommitsByKey(erroringCommits, "commitsOutOfOrder", commitHash);
+                    commitsOutOfOrder = true;
                     break;
                 }
             }
@@ -123,6 +129,7 @@ public class CommitAnalytics {
             // Skip merge commits
             if (rc.getParentCount() > 1) {
                 ++mergeCommits;
+                groupCommitsByKey(erroringCommits, "mergeCommits", commitHash);
                 continue;
             }
 
@@ -133,7 +140,7 @@ public class CommitAnalytics {
 
             // Count changes in each commit
             numLineChanges = getNumChangesInCommit(diffFormatter, rc);
-            lineChangesPerCommit.put(commitHash, numLineChanges);
+            linearizedLineChanges.set(0, numLineChanges); // A placeholder was already created for this commit
             groupCommitsByKey(commitsByTimestamp, commitTimes.seconds, commitHash);
 
             // Add the commit to results
@@ -151,9 +158,9 @@ public class CommitAnalytics {
         }
 
         return new CommitsByDay(
-                days, lineChangesPerCommit, erroringCommits,
+                days, linearizedCommits, linearizedLineChanges, erroringCommits,
                 singleParentCommits, mergeCommits,
-                commitsInOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
+                commitsOutOfOrder, commitsInFuture, commitsInPast, commitsBackdated, commitsWithSameTimestamp, missingTailHash,
                 lowerBound, upperBound);
     }
 
