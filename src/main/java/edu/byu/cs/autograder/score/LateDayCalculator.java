@@ -38,13 +38,22 @@ import java.util.logging.Logger;
  */
 public class LateDayCalculator {
 
+    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     private static final Logger LOGGER = Logger.getLogger(LateDayCalculator.class.getName());
 
     private Set<LocalDate> publicHolidays;
     private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
 
     public LateDayCalculator() {
+        System.out.println("Initializing standard LateDayCalculator");
         initializePublicHolidays(getEncodedPublicHolidays());
+    }
+    protected LateDayCalculator(@Nullable String encodedHolidays) {
+        if (encodedHolidays == null) {
+            initializePublicHolidays();
+        } else {
+            initializePublicHolidays(encodedHolidays);
+        }
     }
 
     /**
@@ -250,14 +259,14 @@ public class LateDayCalculator {
     }
     /**
      * Initializes our public holidays with a common formatting string
-     * that will accept strings matching this example: "9/16/2024"
+     * that will accept strings matching this example: "2025-12-25"
      *
      * @see #initializePublicHolidays(String, String, boolean)
      *
      * @param encodedPublicHolidays A string representing the encoded data.
      */
     public Set<LocalDate> initializePublicHolidays(@NonNull String encodedPublicHolidays, boolean quietWarnings) {
-        return initializePublicHolidays(encodedPublicHolidays, "M/d/yyyy", quietWarnings);
+        return initializePublicHolidays(encodedPublicHolidays, DEFAULT_DATE_FORMAT, quietWarnings);
     }
 
     /**
@@ -434,8 +443,11 @@ public class LateDayCalculator {
     }
 
     private String getEncodedPublicHolidays() {
-        // FIXME: Return from some dynamic location like a configuration file or a configurable table
-        return "1/1/2025;1/20/2025;2/17/2025;3/21/2025;5/26/2025;6/19/2025;7/4/2025;7/24/2025;9/1/2025;11/26/2025;11/27/2025;11/28/2025;12/25/2025;12/26/2025;"
-                + "1/1/2026;";
+        try {
+            return DaoService.getConfigurationDao()
+                    .getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error getting encoded holiday list from configuration", e);
+        }
     }
 }

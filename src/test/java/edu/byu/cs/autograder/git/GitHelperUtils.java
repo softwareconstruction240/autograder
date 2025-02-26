@@ -224,7 +224,7 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly, 0);
         CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
         var gitHelper = new GitHelper(gradingContext, verificationStrategy);
         return evaluateRepo(gitHelper, minThreshold);
