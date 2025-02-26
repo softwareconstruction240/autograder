@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.sql.Types.NULL;
 
@@ -21,7 +22,7 @@ public class SqlReader <T> {
     private final String tableName;
     /** Represents all the columns in the table. */
     private final ColumnDefinition<T>[] columnDefinitions;
-    private final String[] allColumnNames;
+    public final String[] allColumnNames;
     private final ItemBuilder<T> itemBuilder;
 
     private final String allColumnNamesStmt;
@@ -73,11 +74,18 @@ public class SqlReader <T> {
         this.itemBuilder = itemBuilder;
 
         // Several pre-constructed statement fragments
-        this.allColumnNamesStmt = String.join(", ", allColumnNames);
+        this.allColumnNamesStmt = joinColumnNames(allColumnNames);
         this.selectAllColumnsStmt = "SELECT " + allColumnNamesStmt + " FROM " + this.tableName + " ";
 
         this.insertStatement = buildInsertStatement();
         this.insertWildCardIndexPositions = this.prepareWildcardIndices(columnDefinitions);
+    }
+
+    public static String joinColumnNames(Stream<String> columNames) {
+        return joinColumnNames(columNames.toArray(String[]::new));
+    }
+    public static String joinColumnNames(String[] columnNames) {
+        return String.join(", ", columnNames);
     }
 
     private String buildInsertStatement() {

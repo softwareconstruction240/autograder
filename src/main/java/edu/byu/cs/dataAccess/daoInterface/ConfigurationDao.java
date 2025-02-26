@@ -1,4 +1,6 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.daoInterface;
+
+import edu.byu.cs.dataAccess.DataAccessException;
 
 public interface ConfigurationDao {
     <T> void setConfiguration(Configuration key, T value, Class<T> type) throws DataAccessException;

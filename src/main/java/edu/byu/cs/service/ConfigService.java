@@ -2,9 +2,8 @@ package edu.byu.cs.service;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
-import edu.byu.cs.canvas.model.CanvasAssignment;
-import edu.byu.cs.dataAccess.ConfigurationDao;
-import edu.byu.cs.dataAccess.ConfigurationDao.Configuration;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao.Configuration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
@@ -17,7 +16,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;

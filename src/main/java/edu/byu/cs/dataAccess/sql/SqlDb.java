@@ -58,6 +58,8 @@ public class SqlDb {
                                 `notes` TEXT,
                                 `rubric` JSON,
                                 `verified_status` VARCHAR(30),
+                                `commit_context` JSON,
+                                `commit_result` JSON,
                                 `verification` JSON,
                                 `admin` BOOL NOT NULL,
                                 PRIMARY KEY (`id`),
