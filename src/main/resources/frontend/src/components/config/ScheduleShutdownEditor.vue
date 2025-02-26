@@ -3,7 +3,7 @@ import { ref } from "vue";
 import Panel from "@/components/Panel.vue";
 import { combineDateAndTime } from "@/utils/utils";
 import { setGraderShutdown } from "@/services/configService";
-import { useAppConfigStore } from "@/stores/appConfig";
+import { useConfigStore } from "@/stores/config";
 
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
@@ -19,17 +19,21 @@ const submitShutdown = async () => {
       combineDateAndTime(shutdownDate.value, shutdownTime.value),
       shutdownWarningHours.value,
     );
+    closeEditor();
   } catch (e) {
     alert("There was a problem scheduling the shutdown\n" + e);
   }
-  closeEditor();
 };
 
 const cancelShutdown = async () => {
   const confirm = window.confirm("Are you sure you want to cancel the already scheduled shutdown?");
   if (confirm) {
-    await setGraderShutdown("", 0);
-    closeEditor();
+    try {
+      await setGraderShutdown("", 0);
+      closeEditor();
+    } catch (e) {
+      alert("Something went wrong while canceling the shutdown");
+    }
   }
 };
 </script>
@@ -56,7 +60,7 @@ const cancelShutdown = async () => {
 
     <div class="section">
       <button :disabled="!shutdownDate" @click="submitShutdown">Submit</button>
-      <button v-if="useAppConfigStore().shutdownSchedule != 'never'" @click="cancelShutdown">
+      <button v-if="useConfigStore().public.shutdown.timestamp != 'never'" @click="cancelShutdown">
         Cancel Shutdown
       </button>
     </div>

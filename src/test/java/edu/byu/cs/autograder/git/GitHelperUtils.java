@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.score.LateDayCalculator;
@@ -40,7 +41,10 @@ public class GitHelperUtils {
     private static final String COMMIT_AUTHOR_EMAIL = "cosmo@cs.byu.edu";
 
     private GradingContext gradingContext;
-    private CommitVerificationResult prevVerification;
+    /** This is used as the tail hash when evaluating the next checkpoint; it lasts for only a single evaluation. */
+    private String prevSubmissionHeadHash;
+    /** This is used as the minThreshold, but it only lasts for a single evaluation. */
+    private Instant prevSubmissionTimestamp;
     private int submitDaysEarly = 0;
 
     public GitHelperUtils() {
@@ -51,38 +55,14 @@ public class GitHelperUtils {
         this.gradingContext = gradingContext;
     }
 
-    public CommitVerificationResult getPrevVerification() {
-        return prevVerification;
-    }
-    public void setPrevVerification(String newHeadHash) {
-        if (prevVerification != null) {
-            prevVerification = new CommitVerificationResult(
-                    prevVerification.verified(),
-                    prevVerification.isCachedResponse(),
-                    prevVerification.totalCommits(),
-                    prevVerification.significantCommits(),
-                    prevVerification.numDays(),
-                    prevVerification.missingTail(),
-                    prevVerification.penaltyPct(),
-                    prevVerification.failureMessage(),
-                    prevVerification.warningMessages(),
-                    prevVerification.minAllowedThreshold(),
-                    prevVerification.maxAllowedThreshold(),
-                    newHeadHash,                                // REPLACE HEAD HASH!
-                    prevVerification.tailHash()
-            );
-        } else {
-            prevVerification = new CommitVerificationResult(
-                    false, true, 0, 0, 0, false,
-                    0, "", null, null, null,
-                    newHeadHash, "");
-        }
-    }
-    public void setPrevVerification(CommitVerificationResult prevVerification) {
-        this.prevVerification = prevVerification;
+    public void setPrevSubmissionHeadHash(String newHeadHash) {
+        prevSubmissionHeadHash = newHeadHash;
     }
     public void setSubmitDaysEarly(int submitDaysEarly) {
         this.submitDaysEarly = submitDaysEarly;
+    }
+    public void setPrevSubmissionTimestamp(Instant minThreshold) {
+        this.prevSubmissionTimestamp = minThreshold;
     }
 
 
@@ -115,22 +95,21 @@ public class GitHelperUtils {
      * @param checkpoints A list of checkpoints to evaluate in the same directory, sequentially
      */
     void evaluateTest(String testName, List<VerificationCheckpoint> checkpoints) {
-        prevVerification = null;
+        prevSubmissionHeadHash = null;
 
         try (RepoContext repoContext = initializeTest(testName, "file.txt")) {
             CommitVerificationResult verificationResult;
             CommitThreshold minThreshold;
             for (var checkpoint : checkpoints) {
+                prevSubmissionTimestamp = Instant.MIN;
                 checkpoint.setupCommands().setup(repoContext);
 
                 // Evaluate repo
-                minThreshold = prevVerification == null ?
-                        GitHelper.MIN_COMMIT_THRESHOLD :
-                        new CommitThreshold(Instant.MIN, prevVerification.headHash());
+                minThreshold = new CommitThreshold(prevSubmissionTimestamp, prevSubmissionHeadHash);
                 verificationResult = withTestRepo(repoContext.directory(), evaluateRepo(minThreshold));
                 assertCommitVerification(checkpoint.expectedVerification(), verificationResult);
 
-                prevVerification = verificationResult;
+                prevSubmissionHeadHash = verificationResult.headHash();
             }
 
             // Only cleanup if it succeeded
@@ -245,7 +224,7 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly, 0);
         CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
         var gitHelper = new GitHelper(gradingContext, verificationStrategy);
         return evaluateRepo(gitHelper, minThreshold);
@@ -255,7 +234,8 @@ public class GitHelperUtils {
             String currentHeadHash = GitHelper.getHeadHash(git);
             var maxTimeThreshold = Instant.now().plusSeconds(gradingContext.verificationConfig().forgivenessMinutesHead() * 60L);
             CommitThreshold maxThreshold = new CommitThreshold(maxTimeThreshold, currentHeadHash);
-            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            var report = gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            return report.result();
         };
     }
 

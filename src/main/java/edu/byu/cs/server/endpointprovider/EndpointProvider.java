@@ -39,9 +39,10 @@ public interface EndpointProvider {
     Route updateLivePhases();
     Route scheduleShutdown();
     Route updateBannerMessage();
-    Route updateCourseIdsPost();
-    Route updateCourseIdsUsingCanvasGet();
+    Route updateCourseIdPost();
+    Route reloadCourseAssignmentIds();
     Route updatePenalties();
+    Route updateHolidays();
 
     // SubmissionController
 

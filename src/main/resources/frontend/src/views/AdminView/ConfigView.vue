@@ -1,27 +1,41 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
 import { listOfPhases } from "@/types/types";
-import { useAppConfigStore } from "@/stores/appConfig";
-import { generateClickableLink, readableTimestamp } from "@/utils/utils";
+import { useConfigStore } from "@/stores/config";
+import { generateClickableLink, readableTimestamp, simpleDate } from "@/utils/utils";
 import ConfigSection from "@/components/config/ConfigSection.vue";
-import ScheduleShutdownEditor from "@/components/config/ScheduleShutdownEditor.vue";
-import PenaltyConfigEditor from "@/components/config/PenaltyConfigEditor.vue";
+import { isLastDateWithinXDays } from "@/utils/utils";
 
 // Lazy Load Editor Components
+const HolidayConfigEditor = defineAsyncComponent(
+  () => import("@/components/config/HolidayConfigEditor.vue"),
+);
 const BannerConfigEditor = defineAsyncComponent(
   () => import("@/components/config/BannerConfigEditor.vue"),
 );
 const LivePhaseConfigEditor = defineAsyncComponent(
   () => import("@/components/config/LivePhaseConfigEditor.vue"),
 );
-const CourseIdConfigEditor = defineAsyncComponent(
-  () => import("@/components/config/CourseIdConfigEditor.vue"),
+const PenaltyConfigEditor = defineAsyncComponent(
+  () => import("@/components/config/PenaltyConfigEditor.vue"),
+);
+const CourseConfigEditor = defineAsyncComponent(
+  () => import("@/components/config/CourseConfigEditor.vue"),
+);
+const ScheduleShutdownEditor = defineAsyncComponent(
+  () => import("@/components/config/ScheduleShutdownEditor.vue"),
 );
 
-const appConfigStore = useAppConfigStore();
+const config = useConfigStore();
+
+const holidayWarning = (): boolean => {
+  if (config.admin.holidays.length == 0) return true;
+
+  return isLastDateWithinXDays([...config.admin.holidays], 30);
+};
 
 onMounted(async () => {
-  await useAppConfigStore().updateConfig();
+  await useConfigStore().updateConfig();
 });
 </script>
 
@@ -35,21 +49,21 @@ onMounted(async () => {
         <BannerConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
-        <div v-if="appConfigStore.bannerMessage">
+        <div v-if="config.public.banner.message">
           <p>
-            <span class="infoLabel">Message: </span><span v-text="appConfigStore.bannerMessage" />
+            <span class="infoLabel">Message: </span><span v-text="config.public.banner.message" />
           </p>
           <p>
             <span class="infoLabel">Link: </span>
             <span
-              v-if="appConfigStore.bannerLink"
-              v-html="generateClickableLink(appConfigStore.bannerLink)"
+              v-if="config.public.banner.link"
+              v-html="generateClickableLink(config.public.banner.link)"
             />
             <span v-else>none</span>
           </p>
           <p>
             <span class="infoLabel">Expires: </span
-            ><span v-text="readableTimestamp(appConfigStore.bannerExpiration)" />
+            ><span v-text="readableTimestamp(config.public.banner.expiration)" />
           </p>
         </div>
         <p v-else>There is currently no banner message</p>
@@ -67,7 +81,7 @@ onMounted(async () => {
         <div v-for="phase in listOfPhases()">
           <p>
             <i
-              v-if="appConfigStore.phaseActivationList[phase]"
+              v-if="config.public.livePhases.includes(phase.toString())"
               class="fa-solid fa-circle-check"
               style="color: green"
             />
@@ -88,11 +102,31 @@ onMounted(async () => {
       <template #current>
         <p>
           <span class="infoLabel">Scheduled to shutdown: </span>
-          {{ readableTimestamp(appConfigStore.shutdownSchedule) }}
+          {{ readableTimestamp(config.public.shutdown.timestamp) }}
         </p>
-        <p v-if="appConfigStore.shutdownSchedule != 'never'">
+        <p v-if="config.public.shutdown.timestamp != 'never'">
           <span class="infoLabel">Warning duration: </span>
-          {{ appConfigStore.shutdownWarningMilliseconds / (60 * 60 * 1000) }} hours
+          {{ config.public.shutdown.warningMilliseconds / (60 * 60 * 1000) }} hours
+        </p>
+      </template>
+    </ConfigSection>
+
+    <ConfigSection
+      title="Holidays"
+      description="Days the Autograder should not count towards the late penalty"
+    >
+      <template #editor="{ closeEditor }">
+        <HolidayConfigEditor :closeEditor="closeEditor" />
+      </template>
+      <template #current>
+        <div v-if="holidayWarning()">
+          <b style="background-color: red; color: white; border-radius: 5px; padding: 5px"
+            >Holidays are about to run out!</b
+          >
+          <p><em>Please add more holidays prompty, using the University Academic Calendar.</em></p>
+        </div>
+        <p v-for="holiday in config.admin.holidays">
+          {{ simpleDate(holiday) }}
         </p>
       </template>
     </ConfigSection>
@@ -104,38 +138,34 @@ onMounted(async () => {
       <template #current>
         <p>
           <span class="infoLabel">Late Penalty: </span
-          >{{ Math.round(appConfigStore.perDayLatePenalty * 100) }}%
+          >{{ Math.round(config.admin.penalty.perDayLatePenalty * 100) }}%
         </p>
         <p>
           <span class="infoLabel">Max Days Penalized: </span
-          >{{ appConfigStore.maxLateDaysPenalized }} days
+          >{{ config.admin.penalty.maxLateDaysPenalized }} days
         </p>
 
         <p>
           <span class="infoLabel">Git Commit Penalty: </span
-          >{{ Math.round(appConfigStore.gitCommitPenalty * 100) }}%
+          >{{ Math.round(config.admin.penalty.gitCommitPenalty * 100) }}%
         </p>
         <p>
           <span class="infoLabel">Lines Per Commit: </span
-          >{{ appConfigStore.linesChangedPerCommit }} lines
+          >{{ config.admin.penalty.linesChangedPerCommit }} lines
         </p>
         <p>
           <span class="infoLabel">Clock Forgiveness: </span
-          >{{ appConfigStore.clockForgivenessMinutes }} minutes
+          >{{ config.admin.penalty.clockForgivenessMinutes }} minutes
         </p>
       </template>
     </ConfigSection>
 
-    <ConfigSection
-      title="Course IDs"
-      description="Phase assignment ID numbers, rubric IDs, and rubric points"
-    >
+    <ConfigSection title="Courses" description="Manage Canvas course connections">
       <template #editor="{ closeEditor }">
-        <CourseIdConfigEditor :closeEditor="closeEditor" />
+        <CourseConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
-        <p><span class="infoLabel">Course ID:</span> {{ appConfigStore.courseNumber }}</p>
-        <p><em>Open editor to see the rest of the values</em></p>
+        <p><span class="infoLabel">Course ID: </span>{{ config.admin.courseNumber }}</p>
       </template>
     </ConfigSection>
   </div>

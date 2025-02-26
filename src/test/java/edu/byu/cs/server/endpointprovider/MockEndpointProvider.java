@@ -145,18 +145,23 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
-    public Route updateCourseIdsPost() {
-        return (req, res) -> extractRequestInfo("updateCourseIdsPost", req, res);
+    public Route updateCourseIdPost() {
+        return (req, res) -> extractRequestInfo("updateCourseIdPost", req, res);
     }
 
     @Override
-    public Route updateCourseIdsUsingCanvasGet() {
-        return (req, res) -> extractRequestInfo("updateCourseIdsUsingCanvasGet", req, res);
+    public Route reloadCourseAssignmentIds() {
+        return (req, res) -> extractRequestInfo("reloadCourseAssignmentIds", req, res);
     }
 
     @Override
     public Route updatePenalties() {
         return (req, res) -> extractRequestInfo("updatePenalties", req, res);
+    }
+
+    @Override
+    public Route updateHolidays() {
+        return (req, res) -> extractRequestInfo("updateHolidays", req, res);
     }
 
     @Override

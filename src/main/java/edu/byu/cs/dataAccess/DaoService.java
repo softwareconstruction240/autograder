@@ -1,5 +1,6 @@
 package edu.byu.cs.dataAccess;
 
+import edu.byu.cs.dataAccess.daoInterface.*;
 import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.dataAccess.sql.*;
 
