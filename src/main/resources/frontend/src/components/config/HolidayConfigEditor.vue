@@ -52,6 +52,17 @@ const submitHolidays = async () => {
     alert("There was a problem while saving holidays");
   }
 };
+
+const noFutureHolidays = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to beginning of today
+
+  // Return true if there are NO future holidays (which would be an error)
+  return !sortedHolidays.value.some((holiday) => {
+    const holidayDate = new Date(holiday);
+    return holidayDate > today;
+  });
+};
 </script>
 
 <template>
@@ -72,7 +83,33 @@ const submitHolidays = async () => {
       <i class="fa-solid fa-plus" />
     </button>
   </div>
-  <button @click="submitHolidays" style="margin-top: 10px">Submit</button>
+  <button
+    @click="submitHolidays"
+    :disabled="holidaysSet.size > 0 && noFutureHolidays()"
+    style="margin-top: 10px"
+  >
+    Submit
+  </button>
+  <div
+    v-if="noFutureHolidays()"
+    style="
+      background-color: red;
+      color: white;
+      padding: 5px;
+      margin: 5px;
+      border-radius: 5px;
+      max-width: 400px;
+      text-align: center;
+      align-self: center;
+    "
+  >
+    <p><b>There must be at least one future holiday</b></p>
+    <p>
+      The Autograder will throw an error and refuse to grade submissions if there are some holidays
+      scheduled but none in the future. Having only holidays in the past implies that the system
+      config is not up to date
+    </p>
+  </div>
   <Panel style="max-width: 400px">
     <p>
       Holidays don't count towards the late-day count for submissions. The Autograder already treats
