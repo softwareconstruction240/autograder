@@ -1,6 +1,9 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestAnalysis;
 import edu.byu.cs.util.FileUtils;
@@ -36,7 +39,27 @@ public class TestHelper {
     /**
      * Constant value for trimming error outputs
      */
-    private static final int MAX_ERROR_OUTPUT_CHARS = 10000;
+    private static int MAX_ERROR_OUTPUT_CHARS;
+    static {
+        // TODO: This value is only refreshed on class load;
+        // it may be helpful to refresh it on every grading cycle
+        // to respect changes in the database.
+        refreshConfigValues();
+    }
+
+    private static void refreshConfigValues() {
+        MAX_ERROR_OUTPUT_CHARS = 10000;
+        ConfigurationDao configurationDao = DaoService.getConfigurationDao();
+        try {
+            Integer maxErrorOutputChars = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_ERROR_OUTPUT_CHARS, Integer.class);
+            if (maxErrorOutputChars > 0) {
+                MAX_ERROR_OUTPUT_CHARS = maxErrorOutputChars;
+            }
+        } catch (DataAccessException e) {
+            // Swallow this error. We don't want this file to ever fail while reading this config value.
+            // The value isn't important.
+        }
+    }
 
 
     static {
