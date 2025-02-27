@@ -27,6 +27,7 @@ public interface ConfigurationDao {
         GIT_COMMIT_PENALTY,
         LINES_PER_COMMIT_REQUIRED,
         CLOCK_FORGIVENESS_MINUTES,
+        MAX_ERROR_OUTPUT_CHARS,
         HOLIDAY_LIST
     }
 }
