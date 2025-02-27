@@ -54,8 +54,8 @@ public class TestHelper {
                 MAX_ERROR_OUTPUT_CHARS = maxErrorOutputChars;
             }
         } catch (DataAccessException e) {
-            // Swallow this error. We don't want this file to ever fail while reading this config value.
-            // The value isn't important.
+            // Warn only because a reasonable default value is already configured.
+            LOGGER.warn("Skipped refresh of config values because of an error", e);
         }
     }
 
