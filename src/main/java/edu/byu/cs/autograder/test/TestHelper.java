@@ -39,15 +39,13 @@ public class TestHelper {
     /**
      * Constant value for trimming error outputs
      */
-    private static int MAX_ERROR_OUTPUT_CHARS;
-    static {
-        // TODO: This value is only refreshed on class load;
-        // it may be helpful to refresh it on every grading cycle
-        // to respect changes in the database.
+    private int MAX_ERROR_OUTPUT_CHARS;
+
+    public TestHelper() {
         refreshConfigValues();
     }
 
-    private static void refreshConfigValues() {
+    private void refreshConfigValues() {
         MAX_ERROR_OUTPUT_CHARS = 10000;
         ConfigurationDao configurationDao = DaoService.getConfigurationDao();
         try {
@@ -205,7 +203,7 @@ public class TestHelper {
         return String.join("\n", lines);
     }
 
-    private static String trimErrorOutput(String errorOutput) {
+    private String trimErrorOutput(String errorOutput) {
         errorOutput = removeSparkLines(errorOutput);
         if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
             errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...\n(Error Output Truncated)";
