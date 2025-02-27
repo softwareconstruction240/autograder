@@ -185,7 +185,7 @@ public class TestHelper {
     private static String trimErrorOutput(String errorOutput) {
         errorOutput = removeSparkLines(errorOutput);
         if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
-            errorOutput =  "Error Output Truncated to " + MAX_ERROR_OUTPUT_CHARS + " characters:\n" + errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS);
+            errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...(Error Output Truncated)";
         }
         return errorOutput;
     }
