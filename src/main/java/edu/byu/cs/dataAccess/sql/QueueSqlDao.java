@@ -1,7 +1,7 @@
 package edu.byu.cs.dataAccess.sql;
 
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.Phase;

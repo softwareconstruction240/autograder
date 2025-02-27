@@ -140,6 +140,11 @@ public class EndpointProviderImpl implements EndpointProvider {
         return ConfigController.updatePenalties;
     }
 
+    @Override
+    public Route updateHolidays() {
+        return ConfigController.updateHolidays;
+    }
+
     // SubmissionController
 
     @Override

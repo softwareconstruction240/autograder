@@ -1,4 +1,4 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.analytics;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 

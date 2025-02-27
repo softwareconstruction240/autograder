@@ -7,7 +7,7 @@ import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
 import org.slf4j.Logger;
