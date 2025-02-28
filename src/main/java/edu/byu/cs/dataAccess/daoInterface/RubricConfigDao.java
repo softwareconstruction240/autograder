@@ -1,5 +1,6 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.daoInterface;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;

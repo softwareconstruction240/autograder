@@ -1,4 +1,4 @@
-package edu.byu.cs.autograder.git;
+package edu.byu.cs.autograder.git.CommitValidation;
 
 /**
  * Represents several configurable values about the

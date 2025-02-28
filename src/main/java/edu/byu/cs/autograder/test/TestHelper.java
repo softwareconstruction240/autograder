@@ -1,6 +1,9 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestOutput;
@@ -36,6 +39,29 @@ public class TestHelper {
 
     private static final String jacocoCliJarPath;
     private static final String jacocoAgentJarPath;
+    /**
+     * Constant value for trimming error outputs
+     */
+    private int MAX_ERROR_OUTPUT_CHARS;
+
+    public TestHelper() {
+        refreshConfigValues();
+    }
+
+    private void refreshConfigValues() {
+        MAX_ERROR_OUTPUT_CHARS = 10000;
+        ConfigurationDao configurationDao = DaoService.getConfigurationDao();
+        try {
+            Integer maxErrorOutputChars = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_ERROR_OUTPUT_CHARS, Integer.class);
+            if (maxErrorOutputChars > 0) {
+                MAX_ERROR_OUTPUT_CHARS = maxErrorOutputChars;
+            }
+        } catch (DataAccessException e) {
+            // Warn only because a reasonable default value is already configured.
+            LOGGER.warn("Skipped refresh of config values because of an error", e);
+        }
+    }
+
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
@@ -171,7 +197,7 @@ public class TestHelper {
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
             TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, extraCreditTests);
 
-            return new TestOutput(testAnalysis.root(), testAnalysis.extraCredit(), coverage, removeSparkLines(error));
+            return new TestOutput(testAnalysis.root(), testAnalysis.extraCredit(), coverage, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
@@ -201,5 +227,13 @@ public class TestHelper {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
         return String.join("\n", lines);
+    }
+
+    private String trimErrorOutput(String errorOutput) {
+        errorOutput = removeSparkLines(errorOutput);
+        if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
+            errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...\n(Error Output Truncated)";
+        }
+        return errorOutput;
     }
 }

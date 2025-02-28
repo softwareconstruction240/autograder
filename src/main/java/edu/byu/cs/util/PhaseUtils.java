@@ -1,8 +1,8 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;

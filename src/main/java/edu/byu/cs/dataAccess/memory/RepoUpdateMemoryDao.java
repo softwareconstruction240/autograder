@@ -1,7 +1,7 @@
 package edu.byu.cs.dataAccess.memory;
 
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.sql.RepoUpdateDao;
+import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
 import edu.byu.cs.model.RepoUpdate;
 
 import java.util.Collection;

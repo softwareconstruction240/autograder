@@ -42,10 +42,11 @@ public class TestAnalyzer {
             throw new GradingException("Error parsing test output", e);
         }
 
+        int uniqueTestIndex = 0;
         for (TestSuite.TestCase testCase : suite.getTestcase()) {
             TestNode base = root;
             String ecCategory = null;
-            for(String category : extraCreditTests) {
+            for (String category : extraCreditTests) {
                 if (testCase.getClassname().endsWith(category)) {
                     ecCategory = category;
                     base = extraCredit;
@@ -55,10 +56,10 @@ public class TestAnalyzer {
 
             String name = testCase.getName();
             String[] systemOut = testCase.getSystemOut().getData().split("\n");
-            for(String str : systemOut) {
-                if(str.startsWith("display-name: ")) {
+            for (String str : systemOut) {
+                if (str.startsWith("display-name: ")) {
                     str = str.substring(14);
-                    if(name.contains("()")) name = str;
+                    if (name.contains("()")) name = str;
                     else name = String.format("%s %s", str, name);
                 }
             }
@@ -66,14 +67,15 @@ public class TestAnalyzer {
             TestNode node = new TestNode();
             node.setTestName(name);
             TestNode parent = nodeForClass(base, testCase.getClassname());
-            parent.getChildren().put(name, node);
+            String uniqueTestNameKey = String.format("%s - %d", name, uniqueTestIndex++);
+            parent.getChildren().put(uniqueTestNameKey, node);
 
             node.setPassed(testCase.getFailure() == null);
-            if(testCase.getFailure() != null) {
+            if (testCase.getFailure() != null) {
                 node.setErrorMessage(testCase.getFailure().getData());
             }
 
-            if(ecCategory != null) {
+            if (ecCategory != null) {
                 node.setEcCategory(ecCategory);
                 parent.setEcCategory(ecCategory);
             }
@@ -84,19 +86,19 @@ public class TestAnalyzer {
 
     private TestNode nodeForClass(TestNode base, String name) {
         String extra = null;
-        if(name.contains(".")) {
+        if (name.contains(".")) {
             int dotIndex = name.indexOf('.');
             extra = name.substring(dotIndex + 1);
             name = name.substring(0, dotIndex);
         }
         TestNode node = base.getChildren().get(name);
-        if(node == null) {
+        if (node == null) {
             node = new TestNode();
             node.setTestName(name);
             base.getChildren().put(name, node);
         }
 
-        if(extra == null) return node;
+        if (extra == null) return node;
         else return nodeForClass(node, extra);
     }
 
