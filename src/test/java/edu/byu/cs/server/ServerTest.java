@@ -141,12 +141,12 @@ class ServerTest {
         // Verify they ran in order
         InOrder inOrder = inOrder(mockedMockProvider);
         inOrder.verify(mockedMockProvider).runHandler("beforeAll");
-        inOrder.verify(mockedMockProvider).runHandler("defaultGet");
+        inOrder.verify(mockedMockProvider).runHandler("notFound");
         inOrder.verify(mockedMockProvider).runHandler("afterAll");
 
         // Verify they only ran once
         verify(mockedMockProvider, times(1)).runHandler("beforeAll");
-        verify(mockedMockProvider, times(1)).runHandler("defaultGet");
+        verify(mockedMockProvider, times(1)).runHandler("notFound");
         verify(mockedMockProvider, times(1)).runHandler("afterAll");
     }
 }

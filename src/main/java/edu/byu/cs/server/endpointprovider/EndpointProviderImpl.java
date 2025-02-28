@@ -26,7 +26,7 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
-    public Handler defaultGet() {
+    public Handler notFound() {
         return ctx -> {
             if (!ctx.path().equals("/ws")) {
                 String urlParams = ctx.queryString();
