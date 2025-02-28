@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder.git;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
 
@@ -42,4 +43,8 @@ public record CommitVerificationResult(
         Instant maxAllowedThreshold,
         @NonNull String headHash,
         String tailHash
-) { }
+) {
+    public CommitVerificationReport toReport(CommitVerificationContext context) {
+        return new CommitVerificationReport(context, this);
+    }
+}

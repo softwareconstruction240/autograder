@@ -158,6 +158,11 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
+    public Handler updateHolidays() {
+        return (ctx) -> extractRequestInfo("updateHolidays", ctx);
+    }
+
+    @Override
     public Handler updatePenalties() {
         return (ctx) -> extractRequestInfo("updatePenalties", ctx);
     }

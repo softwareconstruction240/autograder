@@ -36,6 +36,7 @@ public interface EndpointProvider {
     Handler updateCourseIdPost();
     Handler reloadCourseAssignmentIds();
     Handler updatePenalties();
+    Handler updateHolidays();
 
     // SubmissionController
     Handler submitPost();

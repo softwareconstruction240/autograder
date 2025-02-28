@@ -1,12 +1,14 @@
 package edu.byu.cs.model;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 public record PrivateConfig(
     PenaltyConfig penalty,
     int courseNumber,
-    ArrayList<AssignmentConfig> assignments
+    List<AssignmentConfig> assignments,
+    String[] holidays
 ) {
     public record PenaltyConfig(
         float perDayLatePenalty,
@@ -14,11 +16,11 @@ public record PrivateConfig(
         int maxLateDaysPenalized,
         int linesChangedPerCommit,
         int clockForgivenessMinutes
-    ){}
+    ){ }
 
     public record AssignmentConfig(
             Phase phase,
             int assignmentId,
             Map<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricItems
-    ){}
+    ){ }
 }

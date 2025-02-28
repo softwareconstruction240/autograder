@@ -6,7 +6,7 @@ import edu.byu.cs.controller.exception.ResourceForbiddenException;
 import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 import io.javalin.http.Handler;
 import org.slf4j.Logger;

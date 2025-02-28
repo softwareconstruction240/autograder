@@ -1,4 +1,4 @@
-package edu.byu.cs.dataAccess.sql;
+package edu.byu.cs.dataAccess.daoInterface;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;

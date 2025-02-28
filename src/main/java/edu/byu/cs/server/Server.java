@@ -125,8 +125,9 @@ public class Server {
                             post("/reloadCourseIds", provider.reloadCourseAssignmentIds());
 
                             post("/penalties", provider.updatePenalties());
-                        });
-                    });
+
+                    post("/holidays", provider.updateHolidays());
+                });});
                 });
 
                 get("/*", provider.defaultGet());

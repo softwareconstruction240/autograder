@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.sql;
 
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -39,6 +39,11 @@ public class Serializer {
         }
     }
 
+    public static <T> T deserializeSafely(String jsonStr, Class<T> classOfT) {
+        if (jsonStr == null) return null;
+        return deserialize(jsonStr, classOfT);
+    }
+
     public static <T> T deserialize(JsonElement jsonElement, Class<T> classOfT) {
         return deserialize(jsonElement.toString(), classOfT);
     }

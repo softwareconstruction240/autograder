@@ -1,5 +1,6 @@
 import { useAdminStore } from "@/stores/admin";
 import {
+  type CoverageAnalysis,
   Phase,
   type RubricItem,
   type RubricItemResults,
@@ -10,6 +11,8 @@ import {
 } from "@/types/types";
 import { useAuthStore } from "@/stores/auth";
 
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 export const commitVerificationFailed = (submission: Submission) => {
   if (submission.admin) return false; // Admin submissions don't have commit requirements
   if (!submission.verifiedStatus) {
@@ -18,6 +21,11 @@ export const commitVerificationFailed = (submission: Submission) => {
     return false;
   }
   return submission.verifiedStatus.toString() === VerifiedStatus[VerifiedStatus.Unapproved];
+};
+
+export const simpleDate = (date: Date | string) => {
+  const dateObj = typeof date === "string" ? new Date(date + "T00:00:00") : date;
+  return months[dateObj.getMonth()] + " " + dateObj.getDate() + " " + dateObj.getFullYear();
 };
 
 export const readableTimestamp = (timestampOrString: Date | string) => {
@@ -31,20 +39,6 @@ export const readableTimestamp = (timestampOrString: Date | string) => {
 };
 
 export const simpleTimestamp = (date: Date | string) => {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
   const time = typeof date === "string" ? new Date(date) : date;
   return (
     months[time.getMonth()] +
@@ -153,6 +147,37 @@ export const generateResultsHtmlStringFromTestNode = (node: TestNode, indent: st
   return result;
 };
 
+const proportionToColor = (proportion: number) => {
+  /*
+  Was having a grand old time with math functions for this.
+  The point is that at 0% coverage it's max red, at 100% coverage it's max green
+      (although 255 green is really bright so 210 for now)
+  At 50% coverage it's 50% green but still about 70% red
+  */
+  const red = 255 * Math.cos((proportion * Math.PI) / 2);
+  const green = 210 * proportion;
+  return `rgb(${red}, ${green}, 0)`;
+};
+
+export const generateCoverageHtmlStringFromCoverage = (coverage: CoverageAnalysis) => {
+  coverage.classAnalyses.sort((a, b) => {
+    if (a.packageName === b.packageName) {
+      return a.className.localeCompare(b.className);
+    }
+    return a.packageName.localeCompare(b.packageName);
+  });
+
+  let out = "<br>Coverage:<br>";
+  for (const classAnalysis of coverage.classAnalyses) {
+    const total = classAnalysis.covered + classAnalysis.missed;
+    if (total > 0) {
+      const coveredProportion = classAnalysis.covered / total;
+      out += `<span style="color: ${proportionToColor(coveredProportion)}">${classAnalysis.packageName}.${classAnalysis.className}: ${classAnalysis.covered} / ${total}</span><br>`;
+    }
+  }
+  return out;
+};
+
 export const phaseString = (phase: Phase | "Quality" | "GitHub") => {
   if (phase == "Quality") {
     return "Code Quality Check";
@@ -250,4 +275,30 @@ export const resultsScoreDisplayText = (results: RubricItemResults): string => {
   } else {
     return score;
   }
+};
+
+/**
+ * Says if the last date in the list chronologically is within a set number of days.
+ * Returns true if there are no dates in the list
+ * @param dates
+ * @param days
+ */
+export const isLastDateWithinXDays = (dates: Date[] | string[], days: number) => {
+  if (!dates.length) return true;
+
+  let datesToUse: Date[];
+  if (typeof dates[0] === "string") {
+    datesToUse = dates.map((d) => new Date(d as string));
+  } else {
+    datesToUse = dates as Date[];
+  }
+
+  const lastHoliday = datesToUse.reduce((latest, current) => (current > latest ? current : latest));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  lastHoliday.setHours(0, 0, 0, 0);
+
+  const daysInTheFuture = (lastHoliday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+
+  return daysInTheFuture < days;
 };
