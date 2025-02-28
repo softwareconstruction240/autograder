@@ -6,6 +6,7 @@ import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import io.javalin.Javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.HandlerType;
+import io.javalin.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,8 +132,6 @@ public class Server {
                     });
                 });
 
-                get("/*", provider.defaultGet());
-
                 after(provider.afterAll());
             });
         })
@@ -151,6 +150,8 @@ public class Server {
         .exception(WordOfWisdomViolationException.class, haltWithCode(418))
         .exception(UnprocessableEntityException.class, haltWithCode(422))
         .exception(Exception.class, haltWithCode(500))
+
+        .error(HttpStatus.NOT_FOUND, provider.notFound())
 
         .start(port);
 

@@ -58,8 +58,11 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
-    public Handler defaultGet() {
-        return (ctx) -> extractRequestInfo("defaultGet", ctx);
+    public Handler notFound() {
+        return (ctx) -> {
+            extractRequestInfo("notFound", ctx);
+            ctx.result("{}");
+        };
     }
 
     @Override
