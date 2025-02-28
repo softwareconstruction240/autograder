@@ -28,14 +28,17 @@ public record Rubric(
             String criteria
     ) { }
 
+
+
     /**
      * Represents the results of a rubric item. textResults or testResults may be null, but not both
      *
      * @param notes The notes for the rubric item
      * @param score The score for the rubric item
-     * @param testResults
-     * @param textResults
+     * @param rawScore The amount of possible points for the rubric item
      * @param possiblePoints The amount of possible points for the rubric item
+     * @param testResults The results of the tests for the rubric item
+     * @param textResults Any other results for the rubric item
      */
     public record Results(
             String notes,
@@ -57,13 +60,12 @@ public record Rubric(
             return new Results(notes, 0f, 0, null, textResults);
         }
     }
-
     public enum RubricType {
         PASSOFF_TESTS,
         UNIT_TESTS,
         QUALITY,
         GIT_COMMITS,
         GITHUB_REPO,
-        GRADING_ISSUE
+        GRADING_ISSUE;
     }
 }
