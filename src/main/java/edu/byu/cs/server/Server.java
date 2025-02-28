@@ -38,7 +38,7 @@ public class Server {
 
     private int setupEndpoints(int port) {
         app = Javalin.create(config -> {
-            if(getClass().getClassLoader().getResource("frontend/dist") != null) {
+            if (getClass().getClassLoader().getResource("frontend/dist") != null) {
                 config.staticFiles.add("/frontend/dist");
             } else {
                 LOGGER.warn("Resource folder frontend/dist not found, not including static files");
@@ -126,8 +126,9 @@ public class Server {
 
                             post("/penalties", provider.updatePenalties());
 
-                    post("/holidays", provider.updateHolidays());
-                });});
+                            post("/holidays", provider.updateHolidays());
+                        });
+                    });
                 });
 
                 get("/*", provider.defaultGet());
