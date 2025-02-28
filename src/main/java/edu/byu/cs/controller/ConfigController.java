@@ -113,10 +113,10 @@ public class ConfigController {
         ConfigService.processPenaltyUpdates(user, request);
     };
 
-    public static final Route updateHolidays = (req, res) -> {
-        User user = req.session().attribute("user");
+    public static final Handler updateHolidays = (ctx) -> {
+        User user = ctx.sessionAttribute("user");
 
-        ConfigHolidayUpdateRequest request = Serializer.deserialize(req.body(), ConfigHolidayUpdateRequest.class);
+        ConfigHolidayUpdateRequest request = Serializer.deserialize(ctx.body(), ConfigHolidayUpdateRequest.class);
 
         List<LocalDate> holidays = new ArrayList<>();
         try {
@@ -126,13 +126,13 @@ public class ConfigController {
 
             ConfigService.updateHolidays(user, holidays);
         } catch (DataAccessException e) {
-            res.status(500);
-            res.body(e.getMessage());
+            ctx.status(500);
+            ctx.result(e.getMessage());
         } catch (DateTimeParseException e) {
-            res.status(400);
-            res.body("Invalid date format provided.");
+            ctx.status(400);
+            ctx.result("Invalid date format provided.");
         }
 
-        return "";
+        ctx.result("");
     };
 }

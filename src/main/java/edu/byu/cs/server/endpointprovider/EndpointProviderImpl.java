@@ -145,7 +145,7 @@ public class EndpointProviderImpl implements EndpointProvider {
     }
 
     @Override
-    public Route updateHolidays() {
+    public Handler updateHolidays() {
         return ConfigController.updateHolidays;
     }
 
