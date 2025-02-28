@@ -35,7 +35,7 @@ public record Rubric(
      *
      * @param notes The notes for the rubric item
      * @param score The score for the rubric item
-     * @param rawScore The amount of possible points for the rubric item
+     * @param rawScore The score before penalties for the rubric item
      * @param possiblePoints The amount of possible points for the rubric item
      * @param testResults The results of the tests for the rubric item
      * @param textResults Any other results for the rubric item
