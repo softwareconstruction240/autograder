@@ -215,7 +215,8 @@ public class GitHelper {
         return new CommitVerificationResult(
                 verified, true,
                 0, 0, 0, false, originalPenaltyPct, failureMessage, null,
-                null, null, headHash, null
+                firstPassingSubmission.commitResult().minAllowedThreshold(), firstPassingSubmission.commitResult().maxAllowedThreshold(),
+                headHash, null
         ).toReport(null);
     }
 
