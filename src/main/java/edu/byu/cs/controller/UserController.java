@@ -24,7 +24,7 @@ public class UserController {
 
     public static final Handler setRepoUrlAdmin = ctx -> {
         User admin = ctx.sessionAttribute("user");
-        String studentNetId = ctx.pathParam(":netId");
+        String studentNetId = ctx.pathParam("netId");
         setRepoUrl(studentNetId, admin.netId(), ctx);
         ctx.result("Successfully updated repoUrl for user: " + studentNetId);
     };
