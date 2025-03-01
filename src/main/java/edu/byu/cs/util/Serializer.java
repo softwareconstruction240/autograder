@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
+import org.eclipse.jgit.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -120,12 +121,16 @@ public class Serializer {
     private static class InstantAdapter extends TypeAdapter<Instant> {
 
         @Override
-        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
-            jsonWriter.value(instant.toString());
+        public void write(JsonWriter jsonWriter, @Nullable Instant instant) throws IOException {
+            jsonWriter.value(instant == null ? null : instant.toString());
         }
 
         @Override
         public Instant read(JsonReader jsonReader) throws IOException {
+            if(jsonReader.peek() == JsonToken.NULL) {
+                jsonReader.nextNull();
+                return null;
+            }
             return Instant.parse(jsonReader.nextString());
         }
     }
