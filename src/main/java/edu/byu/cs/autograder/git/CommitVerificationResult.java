@@ -39,8 +39,8 @@ public record CommitVerificationResult(
         @Nullable Collection<String> warningMessages,
 
         // Debug info
-        @NonNull Instant minAllowedThreshold,
-        @NonNull Instant maxAllowedThreshold,
+        Instant minAllowedThreshold,
+        Instant maxAllowedThreshold,
         @NonNull String headHash,
         String tailHash
 ) {
