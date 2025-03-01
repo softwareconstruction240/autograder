@@ -87,14 +87,16 @@ public class SubmissionController {
     };
 
     public static final Handler submissionXGet = ctx -> {
-        String phaseString = ctx.pathParam("phase");
         Phase phase;
-
-        try {
-            phase = Phase.valueOf(phaseString);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Invalid phase", e);
-            throw new BadRequestException("Invalid phase", e);
+        if(ctx.pathParamMap().containsKey("phase")) {
+            try {
+                phase = Phase.valueOf(ctx.pathParam("phase"));
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("Invalid phase", e);
+                throw new BadRequestException("Invalid phase", e);
+            }
+        } else {
+            phase = null;
         }
 
         User user = ctx.sessionAttribute("user");
