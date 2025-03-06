@@ -4,10 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a tree of TestNodes. A TestNode may have many TestNode children.
- * For example, a TestNode may represent a package of tests with any subpackages
- * represented as children for the TestNode. A 'leaf' TestNode represents a singular
- * test case.
+ * A TestNode may represent a test package with any subpackages
+ * represented as TestNode children. A TestNode may have many TestNode
+ * children forming a tree. A 'leaf' TestNode represents a singular
+ * test case (e.g. a parent TestNode would be 'KingMoveTests',
+ * and its children would be each king move test).
  */
 public class TestNode implements Comparable<TestNode>, Cloneable {
     private String testName;
