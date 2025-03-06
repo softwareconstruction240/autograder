@@ -304,5 +304,5 @@ export const isLastDateWithinXDays = (dates: Date[] | string[], days: number) =>
 };
 
 export const isAdmin = (): boolean => {
-    return (useAuthStore().user?.role === "ADMIN");
-}
+  return useAuthStore().user?.role === "ADMIN";
+};
