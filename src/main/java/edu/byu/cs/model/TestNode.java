@@ -3,6 +3,9 @@ package edu.byu.cs.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a tree of TestNodes.
+ */
 public class TestNode implements Comparable<TestNode>, Cloneable {
     private String testName;
     private Boolean passed;
