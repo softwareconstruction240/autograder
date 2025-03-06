@@ -3,10 +3,12 @@ import {
   generateResultsHtmlStringFromTestNode,
   sanitizeHtml,
   generateCoverageHtmlStringFromCoverage,
+  isAdmin,
 } from "@/utils/utils";
 import type { TestResult } from "@/types/types";
 import PopUp from "@/components/PopUp.vue";
 import { ref } from "vue";
+import {useAuthStore} from "@/stores/auth";
 
 defineProps<{
   testResults?: TestResult;
@@ -30,6 +32,7 @@ const areErrorDetailsOpen = ref<boolean>(false);
   <span
     id="testResults"
     v-if="
+      isAdmin() &&
       testResults?.coverage &&
       testResults?.coverage.classAnalyses &&
       testResults?.coverage.classAnalyses.length > 0
