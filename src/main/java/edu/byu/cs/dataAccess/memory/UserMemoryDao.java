@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
-import edu.byu.cs.dataAccess.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 
 import java.util.Collection;

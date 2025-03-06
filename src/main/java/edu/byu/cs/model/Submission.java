@@ -1,5 +1,7 @@
 package edu.byu.cs.model;
 
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationContext;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.util.Serializer;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
@@ -40,7 +42,12 @@ import java.util.Objects;
  *                       <p>Old submissions will have a `null` value;
  *                       in this case, verification is assumed to equal
  *                       the {@link Submission#passed} field.</p>
- * @param verification Represents the approval of the submission.
+ * @param commitContext Debug. Holds the raw information provided to the
+ *                      <pre>GitVerificationStrategy</pre> for approval or denial.
+ *                      This notably contains the <pre>CommitsByDay</pre> which lists
+ *                      the exact hash codes of commits grouped by the warnings they generated.
+ * @param commitResult Debug. Holds the raw commit verification results including computed values.
+ * @param verification Represents the manual approval of the submission.
  *                     Added only after the submission is approved manually.
  */
 public record Submission(
@@ -56,6 +63,8 @@ public record Submission(
         Rubric rubric,
         Boolean admin,
         @Nullable VerifiedStatus verifiedStatus,
+        @Nullable CommitVerificationContext commitContext,
+        @Nullable CommitVerificationResult commitResult,
         @Nullable ScoreVerification verification
 ) {
 
@@ -101,6 +110,33 @@ public record Submission(
         return verifiedStatus.isApproved();
     }
 
+    /**
+     * Generates a new {@link Submission} object with certain fields updated to reflect a change in score verification.
+     * @param newScore The new score to overwrite.
+     * @param newStatus The new {@link VerifiedStatus} to overwrite.
+     * @param newVerification The new {@link ScoreVerification} to overwrite.
+     * @return {@link Submission} A new object
+     */
+    public Submission updateApproval(Float newScore, VerifiedStatus newStatus, ScoreVerification newVerification) {
+        return new Submission(
+                this.netId(),
+                this.repoUrl(),
+                this.headHash(),
+                this.timestamp(),
+                this.phase(),
+                this.passed(),
+                newScore,
+                this.rawScore(),
+                this.notes(),
+                this.rubric(),
+                this.admin(),
+                newStatus,
+                this.commitContext(),
+                this.commitResult(),
+                newVerification
+        );
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -133,8 +169,18 @@ public record Submission(
         return serializeScoreVerification(submission.verification);
     }
     public static String serializeScoreVerification(@Nullable ScoreVerification scoreVerification) {
-        if (scoreVerification == null) return null;
-        return Serializer.serialize(scoreVerification);
+        return serializeObject(scoreVerification);
+    }
+
+    public static String serializeCommitContext(@NonNull Submission submission) {
+        return serializeObject(submission.commitContext);
+    }
+    public static String serializeCommitResult(@NonNull Submission submission) {
+        return  serializeObject(submission.commitResult);
+    }
+    private static String serializeObject(@Nullable Object obj) {
+        if (obj == null) return null;
+        return Serializer.serialize(obj);
     }
 
     public static String serializeVerifiedStatus(@NonNull Submission submission) {

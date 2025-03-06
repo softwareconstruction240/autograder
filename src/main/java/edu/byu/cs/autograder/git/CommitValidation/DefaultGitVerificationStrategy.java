@@ -55,7 +55,7 @@ public class DefaultGitVerificationStrategy implements CommitVerificationStrateg
                         !insufficientDaysWithCommits && daysWithCommits < requiredDaysWithCommits && daysSubmittedEarly > 0,
                         String.format("Committed %d of %d required days, but early completion made up the difference.", daysWithCommits, requiredDaysWithCommits)),
                 new CV(
-                        !commitsByDay.commitsInOrder(),
+                        commitsByDay.commitsOutOfOrder(),
                         "Congratulations! You have changed the order of some of your commits. You won a medal for manipulating your git history in advanced ways🏅"),
                 new CV(
                         commitsByDay.commitTimestampsDuplicated(),

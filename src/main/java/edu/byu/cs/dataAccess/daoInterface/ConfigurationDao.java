@@ -1,4 +1,6 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.daoInterface;
+
+import edu.byu.cs.dataAccess.DataAccessException;
 
 public interface ConfigurationDao {
     <T> void setConfiguration(Configuration key, T value, Class<T> type) throws DataAccessException;
@@ -24,6 +26,8 @@ public interface ConfigurationDao {
         PER_DAY_LATE_PENALTY,
         GIT_COMMIT_PENALTY,
         LINES_PER_COMMIT_REQUIRED,
-        CLOCK_FORGIVENESS_MINUTES
+        CLOCK_FORGIVENESS_MINUTES,
+        MAX_ERROR_OUTPUT_CHARS,
+        HOLIDAY_LIST
     }
 }

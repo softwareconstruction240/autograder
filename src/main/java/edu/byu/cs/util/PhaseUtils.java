@@ -1,8 +1,8 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.git.CommitVerificationConfig;
-import edu.byu.cs.dataAccess.ConfigurationDao;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
@@ -144,6 +144,15 @@ public class PhaseUtils {
             case Phase3 -> 13;
             case Phase4 -> 18;
             case Phase5 -> 12;
+        };
+    }
+
+    public static Set<String> unitTestModulesToCheckCoverage(Phase phase) throws GradingException {
+        return switch (phase) {
+            case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
+            case Phase3, Phase4 -> Set.of("server");
+            case Phase5 -> Set.of("client"); //In case anyone tries this in the future, Jacoco won't like
+                                                // trying to get the server and client at the same time
         };
     }
 

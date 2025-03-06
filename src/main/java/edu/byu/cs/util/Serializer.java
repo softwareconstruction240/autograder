@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -31,12 +32,33 @@ public class Serializer {
         }
     }
 
+    public static String serialize(Object obj, Type type) {
+        try {
+            return GSON.toJson(obj, type);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static <T> T deserializeSafely(String jsonStr, Class<T> classOfT) {
+        if (jsonStr == null) return null;
+        return deserialize(jsonStr, classOfT);
+    }
+
     public static <T> T deserialize(JsonElement jsonElement, Class<T> classOfT) {
         return deserialize(jsonElement.toString(), classOfT);
     }
     public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
         try {
             return GSON.fromJson(jsonStr, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static <T> T deserialize(String jsonStr, Type targetType) {
+        try {
+            return GSON.fromJson(jsonStr, targetType);
         } catch (Exception e) {
             throw new SerializationException(e);
         }
@@ -56,22 +78,6 @@ public class Serializer {
         }
     }
 
-    private static class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
-        @Override
-        public void write(JsonWriter jsonWriter, ZonedDateTime zonedDateTime) {
-        }
-
-        @Override
-        public ZonedDateTime read(JsonReader jsonReader) throws IOException {
-            if (jsonReader.peek() == JsonToken.NULL) {
-                jsonReader.nextNull();
-                return null;
-            }
-            ZonedDateTime utc = ZonedDateTime.parse(jsonReader.nextString());
-            // TODO: Read timezone from dynamic location
-            return utc.withZoneSameInstant(ZoneId.of("America/Denver"));
-        }
-    }
 
     private static class RubricAssessmentAdapter implements JsonDeserializer<CanvasRubricAssessment> {
         @Override
@@ -96,16 +102,41 @@ public class Serializer {
         }
     }
 
-    private static class InstantAdapter extends TypeAdapter<Instant> {
-
+    private abstract static class NullSafeTypeAdapter<T> extends TypeAdapter<T> {
         @Override
-        public void write(JsonWriter jsonWriter, Instant instant) throws IOException {
-            jsonWriter.value(instant.toString());
+        public void write(JsonWriter jsonWriter, T t) throws IOException {
+            jsonWriter.value(t == null ? null : writeNotNull(t));
+        }
+
+        private String writeNotNull(@NotNull T t) {
+            return t.toString();
         }
 
         @Override
-        public Instant read(JsonReader jsonReader) throws IOException {
+        public T read(JsonReader jsonReader) throws IOException {
+            if (jsonReader.peek() == JsonToken.NULL) {
+                jsonReader.nextNull();
+                return null;
+            }
+            return readNotNull(jsonReader);
+        }
+
+        protected abstract T readNotNull(JsonReader jsonReader) throws IOException;
+    }
+
+    private static class InstantAdapter extends NullSafeTypeAdapter<Instant> {
+        @Override
+        protected Instant readNotNull(JsonReader jsonReader) throws IOException {
             return Instant.parse(jsonReader.nextString());
+        }
+    }
+
+    private static class ZonedDateTimeAdapter extends NullSafeTypeAdapter<ZonedDateTime> {
+        @Override
+        protected ZonedDateTime readNotNull(JsonReader jsonReader) throws IOException {
+            ZonedDateTime utc = ZonedDateTime.parse(jsonReader.nextString());
+            // TODO: Read timezone from dynamic location
+            return utc.withZoneSameInstant(ZoneId.of("America/Denver"));
         }
     }
 }

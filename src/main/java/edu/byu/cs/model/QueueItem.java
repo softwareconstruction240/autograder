@@ -15,6 +15,4 @@ public record QueueItem(
         Phase phase,
         Instant timeAdded,
         boolean started
-) {
-
-}
+) { }

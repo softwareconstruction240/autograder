@@ -3,6 +3,7 @@ package edu.byu.cs.autograder.git;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.score.LateDayCalculator;
@@ -223,7 +224,7 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly, 0);
         CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
         var gitHelper = new GitHelper(gradingContext, verificationStrategy);
         return evaluateRepo(gitHelper, minThreshold);
@@ -233,7 +234,8 @@ public class GitHelperUtils {
             String currentHeadHash = GitHelper.getHeadHash(git);
             var maxTimeThreshold = Instant.now().plusSeconds(gradingContext.verificationConfig().forgivenessMinutesHead() * 60L);
             CommitThreshold maxThreshold = new CommitThreshold(maxTimeThreshold, currentHeadHash);
-            return gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            var report = gitHelper.verifyRegularCommits(git, minThreshold, maxThreshold);
+            return report.result();
         };
     }
 
