@@ -6,6 +6,7 @@ import java.time.Instant;
 
 /**
  * Represents an update to a student's repo url so that changes can be logged in the database
+ *
  * @param timestamp When the repo url was updated
  * @param netId The netId of the student whose repo url was changed
  * @param repoUrl The new repoUrl
