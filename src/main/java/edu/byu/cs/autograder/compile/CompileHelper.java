@@ -34,7 +34,7 @@ public class CompileHelper {
 
     /**
      * Verifies the code in the student repo, modifies its contents for grading,
-     * then compiles the code into a jar
+     * then compiles the code into a jar for each module
      *
      * @throws GradingException if there was a failure in verifying, modifying, or compiling the code
      */
@@ -70,7 +70,7 @@ public class CompileHelper {
 
 
     /**
-     * Packages the student repo into a jar
+     * Packages the student repo into a jar for each module
      */
     private void packageRepo() throws GradingException {
         gradingContext.observer().update("Compiling code...");

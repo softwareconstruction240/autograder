@@ -3,7 +3,7 @@ package edu.byu.cs.model;
 import java.util.List;
 
 /**
- * Represents the config table that contains information that anyone can see
+ * Represents the configuration values that can be read by any user
  *
  * @param banner A {@link BannerConfig} containing information to display
  *               a dynamic message to be displayed at the top of the AutoGrader

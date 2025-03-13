@@ -1,11 +1,10 @@
 package edu.byu.cs.model;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Represents the config table that contains information that only admins can see
+ * Represents the configuration values that only admins should see
  *
  * @param penalty A {@link PenaltyConfig} containing information about penalties
  *                students may receive
