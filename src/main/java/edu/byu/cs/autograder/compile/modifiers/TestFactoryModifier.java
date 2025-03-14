@@ -7,6 +7,9 @@ import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
 
+/**
+ * Modifies the <code>getMessageTime()</code> method in the test factory for phase 6
+ */
 public class TestFactoryModifier implements StudentCodeModifier {
 
     private static final String GET_MESSAGE_TIME_REGEX = "return \\d+[Ll];";
