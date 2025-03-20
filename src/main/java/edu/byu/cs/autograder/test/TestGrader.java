@@ -13,6 +13,16 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * {@code TestGrader} is the abstract base class responsible for running the
+ * tests and giving a score based on the output of the tests. In addition to the
+ * normal tests, the {@code TestGrader} will also run any extra credit tests and
+ * will also check for code coverage if any subclass defines it. The {@code TestGrader}
+ * will only run tests for one module, which is defined at instantiation.
+ * <br>
+ * What tests run, what score to apply, and what code coverage is tested for is determined
+ * by the subclass extending the {@code TestGrader}.
+ */
 public abstract class TestGrader {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestGrader.class);
 
@@ -43,6 +53,13 @@ public abstract class TestGrader {
     }
 
 
+    /**
+     * Compiles, runs, and scores the tests provided to the {@code TestGrader}
+     *
+     * @return the results as a {@link Rubric.Results}
+     * @throws GradingException if there was an issue compiling, running, or scoring the tests
+     * @throws DataAccessException if there was an issue getting the rubric config for the phase
+     */
     public Rubric.Results runTests() throws GradingException, DataAccessException {
         compileTests();
         gradingContext.observer().update("Running " + name() + " tests...");
