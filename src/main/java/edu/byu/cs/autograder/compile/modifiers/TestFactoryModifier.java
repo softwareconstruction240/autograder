@@ -9,6 +9,7 @@ import java.io.File;
 
 /**
  * Modifies the <code>getMessageTime()</code> method in the test factory for phase 6
+ * so the WebSocketTests only wait 1 second
  */
 public class TestFactoryModifier implements StudentCodeModifier {
 
