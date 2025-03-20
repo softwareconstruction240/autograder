@@ -20,10 +20,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Verifies that the packages used for testing are placed in the right location. Provides a warning
+ * Verifies that the packages used for testing are placed in the correct location. Provides a warning
  * to the observer if not and scans the directory for any 'unrecognized' packages and notifies the observer
- * of any found files or directories. If the packages are in the right place, then it verifies that they have
- * the correct
+ * of any found files or directories.
  */
 public class TestLocationVerifier implements StudentCodeVerifier {
 

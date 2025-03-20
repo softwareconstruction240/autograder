@@ -3,6 +3,13 @@ package edu.byu.cs.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A TestNode may represent a test package with any subpackages
+ * represented as TestNode children. A TestNode may have many TestNode
+ * children forming a tree. A 'leaf' TestNode represents a singular
+ * test case (e.g. a parent TestNode would be 'KingMoveTests',
+ * and its children would be each king move test).
+ */
 public class TestNode implements Comparable<TestNode>, Cloneable {
     private String testName;
     private Boolean passed;

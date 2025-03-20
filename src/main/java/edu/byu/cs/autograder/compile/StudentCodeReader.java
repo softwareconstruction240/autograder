@@ -9,6 +9,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Finds all files for each module in the student's repo and reads their contents.
+ */
 public class StudentCodeReader {
     private final Set<File> files;
     private final Map<File, List<String>> fileContents = new HashMap<>();
@@ -17,6 +20,14 @@ public class StudentCodeReader {
         return new StudentCodeReader(moduleFiles(context.stageRepo(), "shared", "server", "client"));
     }
 
+    /**
+     * Traverses all the files for each module and returns the files as a set.
+     *
+     * @param stageRepo the file where the student's repo is located
+     * @param modules a list of modules to traverse
+     * @return the set of files found from traversing each module
+     * @throws IOException if a module isn't located in the student's repo
+     */
     private static Set<File> moduleFiles(File stageRepo, String... modules) throws IOException {
         Set<File> files = new HashSet<>();
         for(String module: modules) {

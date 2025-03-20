@@ -29,6 +29,7 @@ import java.util.Objects;
  *              to an external source.</p>
  *              <p>While the AutoGrader is storing scores and updating them,
  *              the real source of truth is the grade-book.</p>
+ * @param rawScore The score of the submission before penalties
  * @param notes Additional notes displayed to the user.
  *              These usually represent the status of their score, or
  *              provide remarks about why a passing score was not given.
