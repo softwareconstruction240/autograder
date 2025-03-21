@@ -12,6 +12,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Runs and scores the passoff tests for all the phases previous to the phase
+ * a submission is graded for
+ */
 public class PreviousPhasePassoffTestGrader extends TestGrader {
     private static final String ERROR_MESSAGE = "Failed previous phases' tests. Cannot pass off until previous tests pass.";
 
@@ -39,6 +43,18 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
         return allPreviousPhases(PhaseUtils::extraCreditTests);
     }
 
+    /**
+     * Takes a {@link PhaseFunction}, runs it's <code>apply</code> method for every phase
+     * previous to the phase stored in the grading context and returns a set of {@code T}
+     * resulted by running the <code>apply</code> method for those phases.
+     *
+     * @param func the {@link FunctionalInterface} that runs the <code>apply</code> method
+     * @return A set of {@code T} resulted by running the <code>apply</code> method
+     * @param <T> The type the previous phase tests are returned as
+     * @throws GradingException if the {@link PhaseFunction} has trouble accessing the tests
+     * for the phase or if {@link DaoService} is unable to get the {@link RubricConfig} for
+     * the previous phase
+     */
     private <T> Set<T> allPreviousPhases(PhaseFunction<T> func) throws GradingException {
         try {
             Set<T> set = new HashSet<>();
