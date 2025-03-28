@@ -8,6 +8,10 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 
+/**
+ * Grades the student's code for quality using the {@link QualityAnalyzer}
+ * and returns the results as a Rubric item
+ */
 public class QualityGrader {
     private final GradingContext gradingContext;
 

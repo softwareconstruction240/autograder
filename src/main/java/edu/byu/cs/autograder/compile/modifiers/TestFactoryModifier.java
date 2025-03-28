@@ -7,6 +7,11 @@ import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
 
+/**
+ * Modifies the <code>getMessageTime()</code> method in the test factory in the student's
+ * code for phase 6 so the WebSocketTests only wait 1 second, but keeps the student's
+ * <code>getGsonBuilder()</code> implementation the same
+ */
 public class TestFactoryModifier implements StudentCodeModifier {
 
     private static final String GET_MESSAGE_TIME_REGEX = "return \\d+[Ll];";

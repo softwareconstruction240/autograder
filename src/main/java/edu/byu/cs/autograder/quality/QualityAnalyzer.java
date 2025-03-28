@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Runs quality checks for a repository, performing an analysis of the code quality and
+ * returning the results from running those checks as a {@link QualityAnalysis} object.
+ */
 public class QualityAnalyzer {
 
     /**

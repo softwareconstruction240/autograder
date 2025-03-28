@@ -9,6 +9,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+/**
+ * A helper class used while processing a submission and during scoring
+ */
 public class ScorerHelper {
     /**
      * Returns the HandInDate of the provided student as an {@link Instant}.
