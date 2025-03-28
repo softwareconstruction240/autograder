@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Runs and scores the units tests for the phase a submission is graded for
+ * Runs and scores the unit tests for the phase a submission is graded for
  */
 public class UnitTestGrader extends TestGrader {
     public UnitTestGrader(GradingContext gradingContext) {

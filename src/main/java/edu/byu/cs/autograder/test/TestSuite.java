@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A deserialization target for the output of running the Junit tests, since the output
+ * A deserialization target for the output of running the JUnit tests, since the output
  * is printed into an XML file.
  * <p>
  * This is because printing the results out to the terminal may cause some tests to be
