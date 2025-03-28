@@ -86,6 +86,9 @@ public class Grader implements Runnable {
         this.scorer = new Scorer(gradingContext, lateDayCalculator);
     }
 
+    /**
+     * The main entry point for the {@code Grader} and the high-level grading process of the AutoGrader
+     */
     public void run() {
         observer.notifyStarted();
         CommitVerificationReport commitVerificationReport = null;
