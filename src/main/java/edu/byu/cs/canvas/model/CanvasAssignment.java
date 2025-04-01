@@ -19,11 +19,13 @@ public record CanvasAssignment(
 ) {
     /** A rubric item for a canvas assignment
      *
-     * @param id the id of the rubric item stored internally in Canvas
-     *           (generally something like '_1234')
+     * @param id the id of the rubric item stored internally in Canvas (generally something like '_1234').
+     *           This is stored in the rubric_config table in the autograder under the 'rubric_id' column.
+     *
      * @param points the amount of possible points for the rubric
-     * @param description a description of the rubric item
-     *                    (generally something like 'Passes passoff test cases')
+     * @param description a description of the rubric item (generally something like 'Passes passoff test cases').
+     *                    This is stored in the rubric_config table in the autograder under the 'criteria' column.
+     *
      */
     public record CanvasRubric(
             String id,
