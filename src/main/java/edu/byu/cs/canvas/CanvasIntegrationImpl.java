@@ -24,6 +24,9 @@ import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+/**
+ * The implementation of the {@link CanvasIntegration} interface allowing communication with Canvas.
+ */
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
@@ -218,10 +221,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 CanvasAssignment[].class
         ).body()[0];
 
-        if (assignment == null || assignment.due_at() == null)
+        if (assignment == null || assignment.dueAt() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
-        return assignment.due_at();
+        return assignment.dueAt();
     }
 
     @Override
