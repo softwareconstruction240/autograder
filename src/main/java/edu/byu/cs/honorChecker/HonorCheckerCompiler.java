@@ -48,10 +48,8 @@ public class HonorCheckerCompiler {
                 File repoPath = new File(tmpDir, String.join("_", student.firstName().replace(' ', '_'),
                         student.lastName().replace(' ', '_'), student.netId()));
 
-                User dbStudent = DaoService.getUserDao().getUser(student.netId());
-                if(dbStudent == null) continue;
                 CloneCommand cloneCommand = Git.cloneRepository()
-                        .setURI(dbStudent.repoUrl())
+                        .setURI(student.repoUrl())
                         .setDirectory(repoPath);
 
                 try {
