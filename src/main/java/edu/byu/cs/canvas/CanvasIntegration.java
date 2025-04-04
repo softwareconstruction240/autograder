@@ -20,7 +20,7 @@ public interface CanvasIntegration {
      */
     User getUser(String netId) throws CanvasException;
 
-    Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException;
+    Collection<String> getAllStudentNetIdsBySection(int sectionID) throws CanvasException;
 
 
     /**
