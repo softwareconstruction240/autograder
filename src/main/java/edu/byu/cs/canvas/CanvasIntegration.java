@@ -9,6 +9,9 @@ import org.eclipse.jgit.annotations.Nullable;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
+/**
+ * The {@code CanvasIntegration} interface provides the methods needed to communicate with Canvas
+ */
 public interface CanvasIntegration {
 
     /**

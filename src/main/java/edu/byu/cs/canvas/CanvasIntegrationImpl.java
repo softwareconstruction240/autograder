@@ -24,6 +24,9 @@ import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+/**
+ * The implementation of the {@link CanvasIntegration} interface allowing communication with Canvas.
+ */
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
