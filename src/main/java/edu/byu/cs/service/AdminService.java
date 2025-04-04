@@ -130,7 +130,7 @@ public class AdminService {
         };
     }
 
-    public static void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException {
+    public static void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException, DataAccessException {
         String filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
 
         try (FileInputStream fis = new FileInputStream(filePath)) {

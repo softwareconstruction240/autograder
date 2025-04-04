@@ -1,3 +1,7 @@
 package edu.byu.cs.canvas.model;
 
-public record CanvasSection (Integer id, String name) {}
+import java.util.Collection;
+
+public record CanvasSection (Integer id, String name, Collection<CanvasSectionStudent> students) {
+    public record CanvasSectionStudent (String login_id) {}
+}

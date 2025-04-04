@@ -471,23 +471,25 @@ public class CommitAnalytics {
      *
      * @return A map section to map of netID to list of timestamp
      */
-    private static Map<String, Map<String, ArrayList<Integer>>> compile() throws CanvasException {
+    private static Map<String, Map<String, ArrayList<Integer>>> compile() throws CanvasException, DataAccessException {
 
         Map<String, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
         CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
         for (CanvasSection section: sections) {
 
-            Collection<User> students;
+            Collection<String> studentNetIds;
             Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
 
             try {
-                students = CanvasService.getCanvasIntegration().getAllStudentsBySection(section.id());
+                studentNetIds = CanvasService.getCanvasIntegration().getAllStudentNetIdsBySection(section.id());
             } catch (CanvasException e) {
                 throw new RuntimeException("Canvas Exception: " + e.getMessage());
             }
 
-            for (User student : students) {
+            for (String netId : studentNetIds) {
+                User student = DaoService.getUserDao().getUser(netId);
+                if (student == null || student.repoUrl() == null) continue;
                 File repoPath = new File("./tmp-" + student.repoUrl().hashCode());
 
                 CloneCommand cloneCommand = Git.cloneRepository()
