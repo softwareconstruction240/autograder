@@ -26,10 +26,6 @@ public class FakeCanvasIntegration implements CanvasIntegration {
         return user;
     }
 
-    @Override
-    public Collection<User> getAllStudents() {
-        return new HashSet<>();
-    }
 
     @Override
     public Collection<User> getAllStudentsBySection(int sectionID) {

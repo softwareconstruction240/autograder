@@ -72,12 +72,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     }
 
     @Override
-    public Collection<User> getAllStudents() throws CanvasException {
-        return getMultipleStudents("/courses/" + getCourseNumber() + "/assignments/" +
-                getGitHubAssignmentNumber() + "/submissions?include[]=user");
-    }
-
-    @Override
     public Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
         return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
                 getGitHubAssignmentNumber() + "/submissions?include[]=user");

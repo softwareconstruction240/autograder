@@ -20,14 +20,6 @@ public interface CanvasIntegration {
      */
     User getUser(String netId) throws CanvasException;
 
-    /**
-     * Queries Canvas for every student with a Git repo URL submission
-     *
-     * @return A set of user objects
-     * @throws CanvasException If there is an error with Canvas' response
-     */
-    Collection<User> getAllStudents() throws CanvasException;
-
     Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException;
 
 
