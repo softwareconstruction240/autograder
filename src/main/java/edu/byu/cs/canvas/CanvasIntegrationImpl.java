@@ -73,8 +73,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     @Override
     public Collection<String> getAllStudentNetIdsBySection(int sectionID) throws CanvasException {
         return makeCanvasRequest("GET",
-                "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
-                CanvasSection.class)
+                    "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
+                    CanvasSection.class)
                 .body().students().stream()
                 .map(CanvasSection.CanvasSectionStudent::login_id)
                 .collect(Collectors.toCollection(HashSet::new));
