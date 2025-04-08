@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public record CanvasRubricAssessment(Map<String, CanvasRubricItem> items) {
     /**
-     * Adds a {@link CanvasRubricItem} to the {@code CanvasRubricAssessment}
+     * Inserts a {@link CanvasRubricItem} into the {@code CanvasRubricAssessment}
      *
      * @param itemId the rubric id for the rubric item
      * @param rubricItem the rubric item being scored

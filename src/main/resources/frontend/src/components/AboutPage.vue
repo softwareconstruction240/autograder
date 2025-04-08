@@ -146,7 +146,7 @@ onUnmounted(() => {
           name="Melvin Whitaker"
           url="https://github.com/Maillman"
           tenure="Apr 2024-Apr 2026"
-          contributions="Added Javadoc comments to the backend"
+          contributions="Cleaned up and added Javadoc comments to the backend"
           fa-icon="fa-solid fa-envelope"
         />
         <AboutPagePerson
