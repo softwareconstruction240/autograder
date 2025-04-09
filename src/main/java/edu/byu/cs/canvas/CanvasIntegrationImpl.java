@@ -221,10 +221,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 CanvasAssignment[].class
         ).body()[0];
 
-        if (assignment == null || assignment.dueAt() == null)
+        if (assignment == null || assignment.due_at() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
-        return assignment.dueAt();
+        return assignment.due_at();
     }
 
     @Override

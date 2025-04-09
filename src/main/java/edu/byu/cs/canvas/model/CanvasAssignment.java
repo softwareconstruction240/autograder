@@ -8,13 +8,13 @@ import java.util.List;
  *
  * @param id the id of the assignment in Canvas
  * @param name the name of the assignment in Canvas
- * @param dueAt the date the assignment is due
+ * @param due_at the date the assignment is due
  * @param rubric the rubric for the assignment
  */
 public record CanvasAssignment(
         Integer id,
         String name,
-        ZonedDateTime dueAt,
+        ZonedDateTime due_at,
         List<CanvasRubric> rubric
 ) {
     /**
