@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
@@ -33,8 +34,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private record Enrollment(EnrollmentType type) {}
 
     private record CanvasUser(int id, String sortable_name, String login_id, Enrollment[] enrollments) {}
-
-    private record CanvasSubmissionUser(String url, CanvasUser user) {}
 
     private record CanvasResponse<T>(
             T body,
@@ -72,31 +71,13 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     }
 
     @Override
-    public Collection<User> getAllStudents() throws CanvasException {
-        return getMultipleStudents("/courses/" + getCourseNumber() + "/assignments/" +
-                getGitHubAssignmentNumber() + "/submissions?include[]=user");
-    }
-
-    @Override
-    public Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException {
-        return getMultipleStudents("/sections/" + sectionID + "/assignments/" +
-                getGitHubAssignmentNumber() + "/submissions?include[]=user");
-    }
-
-    private static Collection<User> getMultipleStudents(String baseUrl) throws CanvasException {
-        List<CanvasSubmissionUser> allSubmissions = makePaginatedCanvasRequest(baseUrl, CanvasSubmissionUser.class);
-
-        Set<User> allStudents = new HashSet<>();
-        for (CanvasSubmissionUser sub : allSubmissions) {
-            if (sub.url == null) continue;
-            CanvasUser user = sub.user;
-            String[] names = user.sortable_name().split(",");
-            String firstName = ((names.length >= 2) ? names[1] : "").trim();
-            String lastName = ((names.length >= 1) ? names[0] : "").trim();
-            allStudents.add(new User(user.login_id, user.id, firstName, lastName, sub.url, User.Role.STUDENT));
-        }
-
-        return allStudents;
+    public Collection<String> getAllStudentNetIdsBySection(int sectionID) throws CanvasException {
+        return makeCanvasRequest("GET",
+                    "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
+                    CanvasSection.class)
+                .body().students().stream()
+                .map(CanvasSection.CanvasSectionStudent::login_id)
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     /**
@@ -325,15 +306,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     Integer.class);
         } catch (DataAccessException e) {
             throw new CanvasException("Error when trying to retrieve the Course Number from the database:" + e);
-        }
-    }
-
-    private static Integer getGitHubAssignmentNumber() throws CanvasException {
-        try {
-            return PhaseUtils.getPhaseAssignmentNumber(Phase.GitHub);
-        } catch (DataAccessException e) {
-            throw new CanvasException("Error when trying to retrieve the GitHub Assignment Number from the database:"
-                    + e);
         }
     }
 
