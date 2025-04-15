@@ -29,13 +29,9 @@ public class FakeCanvasIntegration implements CanvasIntegration {
         return user;
     }
 
-    @Override
-    public Collection<User> getAllStudents() {
-        return new HashSet<>();
-    }
 
     @Override
-    public Collection<User> getAllStudentsBySection(int sectionID) {
+    public Collection<String> getAllStudentNetIdsBySection(int sectionID) {
         return new HashSet<>();
     }
 
@@ -67,6 +63,6 @@ public class FakeCanvasIntegration implements CanvasIntegration {
 
     @Override
     public CanvasSection[] getAllSections() throws CanvasException {
-        return new CanvasSection[]{new CanvasSection(0, "Fake Section")};
+        return new CanvasSection[]{new CanvasSection(0, "Fake Section", new HashSet<>())};
     }
 }
