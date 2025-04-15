@@ -14,6 +14,9 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A utility class providing helper methods to convert grading data for Canvas integration
+ */
 public class CanvasUtils {
 
     /**
@@ -56,6 +59,15 @@ public class CanvasUtils {
         );
     }
 
+    /**
+     * Converts rubric items to properly integrate with Canvas
+     *
+     * @param rubric the rubric items to be converted
+     * @param config the configuration for the rubric items
+     * @param phase the phase the rubric items are a part of
+     * @return a converted map of {@link CanvasRubricItem} objects
+     * @throws GradingException if there was an issue getting the Canvas rubric id
+     */
     public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config, Phase phase)
             throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();

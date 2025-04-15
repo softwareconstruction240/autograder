@@ -145,9 +145,16 @@ onUnmounted(() => {
         <AboutPagePerson
           name="Melvin Whitaker"
           url="https://github.com/Maillman"
-          tenure="Sep 2024-Dec 2025"
-          contributions="Helped clean up some backend code"
+          tenure="Apr 2024-Apr 2026"
+          contributions="Cleaned up and added Javadoc comments to the backend"
           fa-icon="fa-solid fa-envelope"
+        />
+        <AboutPagePerson
+          name="Alden Kim"
+          url="https://github.com/AldenKim"
+          tenure="Jun 2024-Apr 2026"
+          contributions="Truncated and tested error output"
+          fa-icon="fa-solid fa-ice-cream"
         />
         <!--
         New Autograder Developers!
