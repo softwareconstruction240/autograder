@@ -1,5 +1,7 @@
 package edu.byu.cs.canvas.model;
 
+import java.util.Collection;
+
 
 /**
  * Represents a section in Canvas
@@ -9,5 +11,10 @@ package edu.byu.cs.canvas.model;
  * @param students the collection of the students in that section
  */
 public record CanvasSection (Integer id, String name, Collection<CanvasSectionStudent> students) {
+    /**
+     * Represents a student for the section in Canvas
+     *
+     * @param login_id The netId of the student
+     */
     public record CanvasSectionStudent (String login_id) {}
 }
