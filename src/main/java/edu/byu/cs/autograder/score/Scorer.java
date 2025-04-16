@@ -28,6 +28,11 @@ import java.util.Map;
 
 import static edu.byu.cs.model.Submission.VerifiedStatus;
 
+/**
+ * Scores a submission, applying appropriate penalties before attempting to send the score to Canvas.
+ * The penalties applied are for late days and commit penalties due to insufficient commits. A score
+ * will never send to Canvas if it doesn't improve the score already recorded in Canvas.
+ */
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
 
@@ -57,8 +62,9 @@ public class Scorer {
      * This method takes in a rubric and a commit verification result
      * and scores them together.
      * <br>
-     * When appropriate, it will save the score the grade-book,
-     * but it always returns a {@link Submission} that can be
+     * When appropriate, it will save the score in the grade-book,
+     * but it always returns a {@link Submission} that will be saved in the database.
+     *
      * @param rubric A freshly generated {@link Rubric} from the grading system.
      * @param commitVerificationReport The report from the verification system.
      * @return A {@link Submission} ready to save in the database.

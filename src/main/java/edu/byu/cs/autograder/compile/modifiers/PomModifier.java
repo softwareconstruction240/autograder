@@ -6,6 +6,11 @@ import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
 
+/**
+ * Replaces the pom files in the staged repo with the pom files stored locally.
+ * This ensures that the pom files haven't been modified or deleted problematically
+ * and that no external dependencies have been installed.
+ */
 public class PomModifier implements StudentCodeModifier {
     @Override
     public void modify(GradingContext context) {

@@ -2,6 +2,12 @@ package edu.byu.cs.autograder;
 
 import edu.byu.cs.model.Submission;
 
+/**
+ * Following the <a href="https://en.wikipedia.org/wiki/Observer_pattern">Observer Pattern</a>,
+ * The {@code GradingObserver} interface allows the user to be notified of updates, errors, and
+ * warnings during the grading process. Implementing classes must define how the user will be
+ * notified of these events.
+ */
 public interface GradingObserver {
     /**
      * Initializes the student grading process by marking the student queue item as "started",

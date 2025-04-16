@@ -5,6 +5,10 @@ import edu.byu.cs.model.Rubric;
 import java.util.EnumMap;
 import java.util.Map;
 
+/**
+ * Thrown during the grading process whenever an issue arises that prevents further grading
+ * of the submission
+ */
 public class GradingException extends Exception {
     private static final String CATEGORY = "Grading Issue";
     private static final String CRITERIA = "An issue arose while grading this submission";
