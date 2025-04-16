@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { useSubmissionStore } from "@/stores/submissions";
-import { Phase, type Submission } from "@/types/types";
-import { uiConfig } from "@/stores/uiConfig";
-import { submissionPost } from "@/services/submissionService";
+import {onMounted, ref} from "vue";
+import {useSubmissionStore} from "@/stores/submissions";
+import {listOfPhases, Phase, type Submission} from "@/types/types";
+import {uiConfig} from "@/stores/uiConfig";
+import {submissionPost} from "@/services/submissionService";
 import LiveStatus from "@/views/StudentView/LiveStatus.vue";
 import SubmissionHistory from "@/views/StudentView/SubmissionHistory.vue";
 import InfoPanel from "@/components/InfoPanel.vue";
 import ResultsPreview from "@/views/StudentView/ResultsPreview.vue";
-import { useConfigStore } from "@/stores/config";
+import {useConfigStore} from "@/stores/config";
 import ShutdownWarning from "@/components/ShutdownWarning.vue";
 
 // periodically check if grading is happening
@@ -16,6 +16,7 @@ onMounted(async () => {
   setInterval(async () => {
     if (!useSubmissionStore().currentlyGrading) await useSubmissionStore().checkGrading();
   }, 5000);
+  await useSubmissionStore().loadAllSubmissions();
 });
 
 const selectedPhase = ref<Phase | null>(null);
@@ -48,6 +49,10 @@ const handleGradingDone = async () => {
   useSubmissionStore().currentlyGrading = false;
   lastSubmission.value = await useSubmissionStore().getLastSubmission();
   showResults.value = true;
+
+  //Add this last submission to allSubmissions
+  if (lastSubmission.value)
+    useSubmissionStore().addSubmission(lastSubmission.value);
 };
 
 const isPhaseDisabled = () => {
@@ -58,24 +63,32 @@ const isPhaseDisabled = () => {
   return !useConfigStore().public.livePhases.includes(phaseName);
 };
 
-const getPriorPhase = () => {
-  const assignmentOrder = [Phase.GitHub, Phase.Phase0, Phase.Phase1, Phase.Phase3, Phase.Phase4, Phase.Phase5, Phase.Phase6];
-  if (selectedPhase.value == null || selectedPhase.value == Phase.Quality || selectedPhase.value == Phase.GitHub) return null
-  return assignmentOrder[assignmentOrder.indexOf(selectedPhase.value) -1]
+/**
+ * If this phase should be submitted after another Phase, returns that dependency.
+ * It forces GitHub to the front of the Phase assignmentOrder sequence.
+ * @param selectedPhase the intended Phase to grade.
+ * @returns the Phase that should have submissions, or null if no prior phase is required.
+ */
+const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
+  const assignmentOrder = listOfPhases().filter(p => p != Phase.GitHub && p != Phase.Quality)
+  assignmentOrder.unshift(Phase.GitHub);
+
+  const currentPhaseIndex = assignmentOrder.indexOf(selectedPhase);
+  return currentPhaseIndex > 0 ? assignmentOrder[currentPhaseIndex - 1] : null;
 }
 
-const priorPhase = getPriorPhase()
+/**
+ * indicates if the currently selected phase has an unmet requirement
+ * For example:
+ *    - GitHub requirement does not have a prior phase so it will return false
+ *    - If Phase 0 has no passing submissions, Phase 1 will return true
+ */
+const hasUnmetPriorPhaseRequirement = () => {
+  const priorPhase = getPriorRequiredPhase(selectedPhase.value!);
+  if (priorPhase == null) { return false; }
 
-const isPriorAssignmentSubmitted = async () => {
-  //This shouldn't be a method that gets called over and over again, but should be called once when the program starts
-  //And it's stored and accessed as many times as neccessary. Speeds up the code by doing it once instead of 3+ times.
-  //Then would need to recall it whenever a submission is submitted to not invalidate the cache.
-  if (!priorPhase) return true
-  await useSubmissionStore().getSubmissions(priorPhase) //maybe try this? But this returns a promise
-  const submissionByPhase = useSubmissionStore().submissionsByPhase[priorPhase] //Undefined, even after a submission
-  if (!subs || subs.length == 0) return false
-  const oneSub = subs.find( sub => sub.passed)
-  return !!oneSub;
+  let priorPhaseSubmissions = useSubmissionStore().submissionsByPhase[priorPhase];
+  return !priorPhaseSubmissions.some(s => s.passed)
 };
 </script>
 
@@ -96,9 +109,9 @@ const isPriorAssignmentSubmitted = async () => {
         <span id="submissionClosedWarning">Submissions to this phase are currently disabled</span>
       </div>
 
-      <div v-else-if="!isPriorAssignmentSubmitted()">
+      <div v-else-if="hasUnmetPriorPhaseRequirement()">
         <br />
-        <span id="noPriorPhase">You do not have a passing submission of the previous phase</span>
+        <span id="hasUnmetPriorSubmissions">You do not have a passing submission of the previous phase</span>
       </div>
 
       <div id="submitDialog">
@@ -115,7 +128,7 @@ const isPriorAssignmentSubmitted = async () => {
         </select>
         <button
           :disabled="
-            selectedPhase === null || isPhaseDisabled() || !isPriorAssignmentSubmitted() || useSubmissionStore().currentlyGrading
+            selectedPhase === null || isPhaseDisabled() || hasUnmetPriorPhaseRequirement() || useSubmissionStore().currentlyGrading
           "
           class="primary"
           @click="submitSelectedPhase"
@@ -152,7 +165,7 @@ const isPriorAssignmentSubmitted = async () => {
   font-weight: bold;
 }
 
-#noPriorPhase {
+#hasUnmetPriorSubmissions {
   background-color: red;
   padding: 10px;
   border-radius: 10px;
