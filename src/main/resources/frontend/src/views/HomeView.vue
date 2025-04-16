@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import {useSubmissionStore} from "@/stores/submissions";
-import {listOfPhases, Phase, type Submission} from "@/types/types";
+import {compareEnumValues, listOfPhases, Phase, type Submission} from "@/types/types";
 import {uiConfig} from "@/stores/uiConfig";
 import {submissionPost} from "@/services/submissionService";
 import LiveStatus from "@/views/StudentView/LiveStatus.vue";
@@ -70,11 +70,12 @@ const isPhaseDisabled = () => {
  * @returns the Phase that should have submissions, or null if no prior phase is required.
  */
 const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
-  const assignmentOrder = listOfPhases().filter(p => p != Phase.GitHub && p != Phase.Quality)
-  assignmentOrder.unshift(Phase.GitHub);
+  const assignmentOrder = (listOfPhases() as Array<Phase|string>)
+      .filter(p => !compareEnumValues(p, Phase[Phase.GitHub])  && !compareEnumValues(p, Phase[Phase.Quality]))
+  assignmentOrder.unshift(Phase[Phase.GitHub]);
 
-  const currentPhaseIndex = assignmentOrder.indexOf(selectedPhase);
-  return currentPhaseIndex > 0 ? assignmentOrder[currentPhaseIndex - 1] : null;
+  const currentPhaseIndex = assignmentOrder.indexOf(Phase[selectedPhase]);
+  return currentPhaseIndex > 0 ? assignmentOrder[currentPhaseIndex - 1] as Phase : null;
 }
 
 /**
