@@ -70,6 +70,9 @@ const isPhaseDisabled = () => {
  * @returns the Phase that should have submissions, or null if no prior phase is required.
  */
 const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
+  if (compareEnumValues(Phase[selectedPhase], Phase[Phase.Quality])) {
+    return Phase[Phase.GitHub] as unknown as Phase;
+  }
   const assignmentOrder = (listOfPhases() as Array<Phase|string>)
       .filter(p => !compareEnumValues(p, Phase[Phase.GitHub])  && !compareEnumValues(p, Phase[Phase.Quality]))
   assignmentOrder.unshift(Phase[Phase.GitHub]);
