@@ -161,15 +161,7 @@ const hasUnmetPriorPhaseRequirement = () => {
 </template>
 
 <style scoped>
-#submissionClosedWarning {
-  background-color: red;
-  padding: 10px;
-  border-radius: 10px;
-  color: white;
-  font-weight: bold;
-}
-
-#hasUnmetPriorSubmissions {
+#submissionClosedWarning, #hasUnmetPriorSubmissions {
   background-color: red;
   padding: 10px;
   border-radius: 10px;
