@@ -233,7 +233,7 @@ public class TestHelper {
         return String.join("\n", lines);
     }
 
-    public String trimErrorOutput(String errorOutput) {
+     String trimErrorOutput(String errorOutput) {
         errorOutput = removeSparkLines(errorOutput);
         if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
             errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...\n(Error Output Truncated)";
