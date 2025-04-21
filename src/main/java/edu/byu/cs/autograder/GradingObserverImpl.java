@@ -11,6 +11,10 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The implementation of the {@link GradingObserver} interface. This notifies the user
+ * through the use of the {@link TrafficController}.
+ */
 public class GradingObserverImpl implements GradingObserver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GradingObserverImpl.class);

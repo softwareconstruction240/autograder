@@ -253,7 +253,7 @@ public class GitHelper {
 
             int numCommits = commitsByDay.totalCommits();
             int daysWithCommits = commitsByDay.dayMap().size();
-            long significantCommits = commitsByDay.lineChangesPerCommit().values()
+            long significantCommits = commitsByDay.linearizedLineChanges()
                     .stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
 
             CommitVerificationContext context = new CommitVerificationContext(

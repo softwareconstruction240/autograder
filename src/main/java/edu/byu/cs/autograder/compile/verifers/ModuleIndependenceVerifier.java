@@ -13,6 +13,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Verifies that the modules for the server and the client are independent. Code should not import from packages
+ * existing in separate modules.
+ */
 public class ModuleIndependenceVerifier implements StudentCodeVerifier {
 
     private static final Pattern IMPORT_REGEX = Pattern.compile("^import(\\s+static)?\\s+(\\w+\\.)+\\w+;.*$");
