@@ -226,7 +226,8 @@ const adminSubmit = async () => {
   align-items: center;
 }
 
-#loadMore, #reloadLatest {
+#loadMore,
+#reloadLatest {
   font-size: medium;
 }
 
