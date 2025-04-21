@@ -226,12 +226,11 @@ const adminSubmit = async () => {
   align-items: center;
 }
 
-#loadMore {
+#loadMore, #reloadLatest {
   font-size: medium;
 }
 
 #reloadLatest {
-  font-size: medium;
   width: fit-content;
 }
 
