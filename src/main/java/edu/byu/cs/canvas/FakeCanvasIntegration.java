@@ -11,6 +11,9 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * A fake {@link CanvasIntegration} if using Canvas is disabled
+ */
 public class FakeCanvasIntegration implements CanvasIntegration {
     @Override
     public User getUser(String netId) throws CanvasException {

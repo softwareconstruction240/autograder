@@ -25,6 +25,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The implementation of the {@link CanvasIntegration} interface allowing communication with Canvas.
+ */
 public class CanvasIntegrationImpl implements CanvasIntegration {
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
