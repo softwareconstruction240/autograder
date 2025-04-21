@@ -48,6 +48,10 @@ public class TestHelper {
         refreshConfigValues();
     }
 
+    public int GET_MAX_ERROR_OUTPUT_CHARS() {
+        return MAX_ERROR_OUTPUT_CHARS;
+    }
+
     private void refreshConfigValues() {
         MAX_ERROR_OUTPUT_CHARS = 10000;
         ConfigurationDao configurationDao = DaoService.getConfigurationDao();
@@ -56,7 +60,7 @@ public class TestHelper {
             if (maxErrorOutputChars > 0) {
                 MAX_ERROR_OUTPUT_CHARS = maxErrorOutputChars;
             }
-        } catch (DataAccessException e) {
+        } catch (Exception e) {
             // Warn only because a reasonable default value is already configured.
             LOGGER.warn("Skipped refresh of config values because of an error", e);
         }
@@ -223,13 +227,13 @@ public class TestHelper {
         return commands;
     }
 
-    private static String removeSparkLines(String errorOutput) {
+    static String removeSparkLines(String errorOutput) {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
         return String.join("\n", lines);
     }
 
-    private String trimErrorOutput(String errorOutput) {
+     String trimErrorOutput(String errorOutput) {
         errorOutput = removeSparkLines(errorOutput);
         if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
             errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...\n(Error Output Truncated)";
