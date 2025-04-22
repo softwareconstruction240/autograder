@@ -51,7 +51,9 @@ const handleGradingDone = async () => {
   showResults.value = true;
 
   //Add this last submission to allSubmissions
-  if (lastSubmission.value) useSubmissionStore().addSubmission(lastSubmission.value);
+  if (lastSubmission.value) {
+    useSubmissionStore().addSubmission(lastSubmission.value);
+  }
 };
 
 const isPhaseDisabled = () => {
@@ -118,9 +120,9 @@ const hasUnmetPriorPhaseRequirement = () => {
 
       <div v-else-if="hasUnmetPriorPhaseRequirement()">
         <br />
-        <span id="hasUnmetPriorSubmissions"
-          >You do not have a passing submission of the previous phase</span
-        >
+        <span id="hasUnmetPriorSubmissions">
+          You do not have a passing submission of the previous phase
+        </span>
       </div>
 
       <div id="submitDialog">
