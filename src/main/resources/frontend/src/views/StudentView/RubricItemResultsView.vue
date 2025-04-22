@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { generateResultsHtmlStringFromTestNode, sanitizeHtml } from "@/utils/utils";
+import {
+  generateResultsHtmlStringFromTestNode,
+  sanitizeHtml,
+  generateCoverageHtmlStringFromCoverage,
+  isAdmin,
+} from "@/utils/utils";
 import type { TestResult } from "@/types/types";
 import PopUp from "@/components/PopUp.vue";
 import { ref } from "vue";
@@ -22,6 +27,16 @@ const areErrorDetailsOpen = ref<boolean>(false);
     id="testResults"
     v-if="testResults?.extraCredit"
     v-html="generateResultsHtmlStringFromTestNode(testResults.extraCredit, '')"
+  />
+  <span
+    id="testResults"
+    v-if="
+      isAdmin() && //TODO: Remove this line when we start grading students on coverage
+      testResults?.coverage &&
+      testResults?.coverage.classAnalyses &&
+      testResults?.coverage.classAnalyses.length > 0
+    "
+    v-html="generateCoverageHtmlStringFromCoverage(testResults.coverage)"
   />
   <span id="textResults" v-else-if="textResults" v-html="sanitizeHtml(textResults)" />
 

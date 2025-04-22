@@ -4,17 +4,25 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.RubricConfig;
-import edu.byu.cs.model.TestAnalysis;
-import edu.byu.cs.model.TestNode;
+import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This abstract base class is responsible for running the tests and giving a score
+ * based on the output of the tests. In addition to the normal tests, the
+ * {@code TestGrader} will also run any extra credit tests and will also check a specified
+ * set of tests for code coverage. The {@code TestGrader} will only run tests for one module,
+ * which is defined at instantiation.
+ * <br>
+ * What tests run, what score to apply, and what set of tests code coverage is tested for
+ * is determined and must be defined by the subclass extending the {@code TestGrader}.
+ */
 public abstract class TestGrader {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestGrader.class);
 
@@ -45,22 +53,29 @@ public abstract class TestGrader {
     }
 
 
+    /**
+     * Compiles, runs, and scores the tests provided to the {@code TestGrader}
+     *
+     * @return the results as a {@link Rubric.Results}
+     * @throws GradingException if there was an issue compiling, running, or scoring the tests
+     * @throws DataAccessException if there was an issue getting the rubric config for the phase
+     */
     public Rubric.Results runTests() throws GradingException, DataAccessException {
         compileTests();
         gradingContext.observer().update("Running " + name() + " tests...");
 
-        TestAnalysis results;
+        TestOutput results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
-            results = new TestAnalysis(new TestNode(), null, null);
+            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), null);
             TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), extraCreditTests());
+                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage());
         }
 
         if (results.root() == null) {
-            results = new TestAnalysis(new TestNode(), null, results.error());
+            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), results.error());
             TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
@@ -68,7 +83,7 @@ public abstract class TestGrader {
 
         results.root().setTestName(testName());
         if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
-            results = new TestAnalysis(results.root(), null, results.error());
+            results = new TestOutput(results.root(), null, results.coverage(), results.error());
         }
         else {
             results.extraCredit().setTestName("Extra Credit");
@@ -98,10 +113,12 @@ public abstract class TestGrader {
 
     protected abstract String testName();
 
-    protected abstract float getScore(TestAnalysis testResults) throws GradingException;
+    protected abstract float getScore(TestOutput testResults) throws GradingException;
 
-    protected abstract String getNotes(TestAnalysis testResults) throws GradingException;
+    protected abstract String getNotes(TestOutput testResults) throws GradingException;
 
     protected abstract Rubric.RubricType rubricType();
+
+    protected abstract Set<String> modulesToCheckCoverage() throws GradingException;
 
 }

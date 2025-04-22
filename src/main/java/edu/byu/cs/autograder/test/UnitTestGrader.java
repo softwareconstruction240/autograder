@@ -3,7 +3,7 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.TestAnalysis;
+import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
@@ -11,6 +11,9 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Runs and scores the unit tests for the phase a submission is graded for
+ */
 public class UnitTestGrader extends TestGrader {
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -42,8 +45,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestAnalysis testAnalysis) throws GradingException {
-        TestNode testResults = testAnalysis.root();
+    protected float getScore(TestOutput testOutput) throws GradingException {
+        TestNode testResults = testOutput.root();
         float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
 
         if (totalTests == 0) return 0;
@@ -56,8 +59,8 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected String getNotes(TestAnalysis testAnalysis) throws GradingException {
-        TestNode testResults = testAnalysis.root();
+    protected String getNotes(TestOutput testOutput) throws GradingException {
+        TestNode testResults = testOutput.root();
         if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
@@ -72,5 +75,10 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected Rubric.RubricType rubricType() {
         return Rubric.RubricType.UNIT_TESTS;
+    }
+
+    @Override
+    protected Set<String> modulesToCheckCoverage() throws GradingException {
+        return PhaseUtils.unitTestModulesToCheckCoverage(gradingContext.phase());
     }
 }

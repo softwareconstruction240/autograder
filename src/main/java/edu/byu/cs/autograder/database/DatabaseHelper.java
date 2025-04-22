@@ -15,6 +15,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
+/**
+ * Sets up a MySQL database to test students' database management.
+ */
 public class DatabaseHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
     private static final String HOST;
@@ -43,12 +46,21 @@ public class DatabaseHelper {
         this.studentPass = "dbPass" + salt;
     }
 
+    /**
+     * Creates a user and a db config file
+     *
+     * @throws GradingException if there is a failure either creating the user
+     * or the db config file
+     */
     public void setUp() throws GradingException {
         createUser();
         grantPrivileges();
         injectDatabaseConfig(gradingContext.stageRepo());
     }
 
+    /**
+     * Cleans up the database and user
+     */
     public void cleanUp() {
         try {
             cleanupDatabase();
@@ -59,6 +71,12 @@ public class DatabaseHelper {
         }
     }
 
+    /**
+     * Creates a db config file in the staged repo
+     *
+     * @param stageRepo the file where the student's repo is located
+     * @throws GradingException if the db config file could not be created
+     */
     private void injectDatabaseConfig(File stageRepo) throws GradingException {
         File dbPropertiesFile = new File(stageRepo, "server/src/main/resources/db.properties");
         if (dbPropertiesFile.exists() && !dbPropertiesFile.delete())

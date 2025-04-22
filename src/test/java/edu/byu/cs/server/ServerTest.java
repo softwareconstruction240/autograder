@@ -21,12 +21,12 @@ class ServerTest {
 
     public static Stream<Arguments> getPathParamEndpoints() {
         return Stream.of(
-                Arguments.of( "GET", "/api/submission", "submissionXGet", ":phase"),
-                Arguments.of( "GET", "/api/admin/analytics/commit", "commitAnalyticsGet", ":option"),
-                Arguments.of("POST", "/api/admin/repo", "setRepoUrlAdmin", ":netid"),
-                Arguments.of( "GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", ":section"),
-                Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet", ":count"),
-                Arguments.of( "GET", "/api/admin/submissions/student", "studentSubmissionsGet", ":netid")
+                Arguments.of( "GET", "/api/submission", "submissionXGet", "phase"),
+                Arguments.of( "GET", "/api/admin/analytics/commit", "commitAnalyticsGet", "option"),
+                Arguments.of("POST", "/api/admin/repo", "setRepoUrlAdmin", "netId"),
+                Arguments.of( "GET", "/api/admin/honorChecker/zip", "honorCheckerZipGet", "section"),
+                Arguments.of( "GET", "/api/admin/submissions/latest", "latestSubmissionsGet", "count"),
+                Arguments.of( "GET", "/api/admin/submissions/student", "studentSubmissionsGet", "netId")
         );
         // api/admin/config/penalties
     }
@@ -52,6 +52,7 @@ class ServerTest {
                 Arguments.of("POST", "/api/admin/config/penalties", "updatePenalties"),
                 Arguments.of("POST", "/api/admin/config/phases", "updateLivePhases"),
                 Arguments.of("POST", "/api/admin/config/phases/shutdown", "scheduleShutdown"),
+                Arguments.of("POST", "/api/admin/config/holidays", "updateHolidays"),
 
                 Arguments.of( "GET", "/api/admin/submissions/active", "submissionsActiveGet"),
                 Arguments.of("POST", "/api/admin/submissions/approve", "approveSubmissionPost"),
@@ -140,12 +141,12 @@ class ServerTest {
         // Verify they ran in order
         InOrder inOrder = inOrder(mockedMockProvider);
         inOrder.verify(mockedMockProvider).runHandler("beforeAll");
-        inOrder.verify(mockedMockProvider).runHandler("defaultGet");
+        inOrder.verify(mockedMockProvider).runHandler("notFound");
         inOrder.verify(mockedMockProvider).runHandler("afterAll");
 
         // Verify they only ran once
         verify(mockedMockProvider, times(1)).runHandler("beforeAll");
-        verify(mockedMockProvider, times(1)).runHandler("defaultGet");
+        verify(mockedMockProvider, times(1)).runHandler("notFound");
         verify(mockedMockProvider, times(1)).runHandler("afterAll");
     }
 }

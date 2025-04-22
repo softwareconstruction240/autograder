@@ -1,6 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
-import edu.byu.cs.dataAccess.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.QueueItem;
 
 import java.util.ArrayList;

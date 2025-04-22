@@ -1,5 +1,15 @@
 package edu.byu.cs.model;
 
+/**
+ * Represents a user using the AutoGrader
+ *
+ * @param netId the netId of the user
+ * @param canvasUserId the id of the user in Canvas
+ * @param firstName the first name of the user
+ * @param lastName the last name of the user
+ * @param repoUrl the url for that user's repository stored in the AutoGrader
+ * @param role the role of the user (student or admin)
+ */
 public record User(
         String netId,
         int canvasUserId,

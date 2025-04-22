@@ -1,5 +1,8 @@
 package edu.byu.cs.canvas;
 
+/**
+ * Thrown whenever an error arises communicating with Canvas
+ */
 public class CanvasException extends Exception {
 
     public CanvasException() {
