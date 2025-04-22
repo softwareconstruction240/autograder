@@ -18,21 +18,20 @@ export const useSubmissionStore = defineStore("submission", () => {
 
   const loadAllSubmissions = async () => {
     const submissions = await submissionsGet(null);
-    if (!submissions)
-        return;
+    if (!submissions) return;
 
     for (const value of Object.values(Phase)) {
-        submissionsByPhase.value[value] ||= [];
+      submissionsByPhase.value[value] ||= [];
     }
 
     submissions.forEach((submission) => {
-        submissionsByPhase.value[submission.phase].push(submission);
+      submissionsByPhase.value[submission.phase].push(submission);
     });
   };
 
-  const addSubmission =  (sub: Submission) => {
-      submissionsByPhase.value[sub.phase].push(sub);
-  }
+  const addSubmission = (sub: Submission) => {
+    submissionsByPhase.value[sub.phase].push(sub);
+  };
 
   const currentlyGrading = ref(false);
   const checkGrading = async () => {

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
-import {useSubmissionStore} from "@/stores/submissions";
-import {compareEnumValues, listOfPhases, Phase, type Submission} from "@/types/types";
-import {uiConfig} from "@/stores/uiConfig";
-import {submissionPost} from "@/services/submissionService";
+import { onMounted, ref } from "vue";
+import { useSubmissionStore } from "@/stores/submissions";
+import { compareEnumValues, listOfPhases, Phase, type Submission } from "@/types/types";
+import { uiConfig } from "@/stores/uiConfig";
+import { submissionPost } from "@/services/submissionService";
 import LiveStatus from "@/views/StudentView/LiveStatus.vue";
 import SubmissionHistory from "@/views/StudentView/SubmissionHistory.vue";
 import InfoPanel from "@/components/InfoPanel.vue";
 import ResultsPreview from "@/views/StudentView/ResultsPreview.vue";
-import {useConfigStore} from "@/stores/config";
+import { useConfigStore } from "@/stores/config";
 import ShutdownWarning from "@/components/ShutdownWarning.vue";
 
 // periodically check if grading is happening
@@ -51,8 +51,7 @@ const handleGradingDone = async () => {
   showResults.value = true;
 
   //Add this last submission to allSubmissions
-  if (lastSubmission.value)
-    useSubmissionStore().addSubmission(lastSubmission.value);
+  if (lastSubmission.value) useSubmissionStore().addSubmission(lastSubmission.value);
 };
 
 const isPhaseDisabled = () => {
@@ -73,13 +72,15 @@ const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
   if (compareEnumValues(Phase[selectedPhase], Phase[Phase.Quality])) {
     return Phase[Phase.GitHub] as unknown as Phase;
   }
-  const assignmentOrder = (listOfPhases() as Array<Phase|string>)
-      .filter(p => !compareEnumValues(p, Phase[Phase.GitHub])  && !compareEnumValues(p, Phase[Phase.Quality]))
+  const assignmentOrder = (listOfPhases() as Array<Phase | string>).filter(
+    (p) =>
+      !compareEnumValues(p, Phase[Phase.GitHub]) && !compareEnumValues(p, Phase[Phase.Quality]),
+  );
   assignmentOrder.unshift(Phase[Phase.GitHub]);
 
   const currentPhaseIndex = assignmentOrder.indexOf(Phase[selectedPhase]);
-  return currentPhaseIndex > 0 ? assignmentOrder[currentPhaseIndex - 1] as Phase : null;
-}
+  return currentPhaseIndex > 0 ? (assignmentOrder[currentPhaseIndex - 1] as Phase) : null;
+};
 
 /**
  * indicates if the currently selected phase has an unmet requirement
@@ -89,10 +90,12 @@ const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
  */
 const hasUnmetPriorPhaseRequirement = () => {
   const priorPhase = getPriorRequiredPhase(selectedPhase.value!);
-  if (priorPhase == null) { return false; }
+  if (priorPhase == null) {
+    return false;
+  }
 
   let priorPhaseSubmissions = useSubmissionStore().submissionsByPhase[priorPhase];
-  return !priorPhaseSubmissions.some(s => s.passed)
+  return !priorPhaseSubmissions.some((s) => s.passed);
 };
 </script>
 
@@ -115,7 +118,9 @@ const hasUnmetPriorPhaseRequirement = () => {
 
       <div v-else-if="hasUnmetPriorPhaseRequirement()">
         <br />
-        <span id="hasUnmetPriorSubmissions">You do not have a passing submission of the previous phase</span>
+        <span id="hasUnmetPriorSubmissions"
+          >You do not have a passing submission of the previous phase</span
+        >
       </div>
 
       <div id="submitDialog">
@@ -132,7 +137,10 @@ const hasUnmetPriorPhaseRequirement = () => {
         </select>
         <button
           :disabled="
-            selectedPhase === null || isPhaseDisabled() || hasUnmetPriorPhaseRequirement() || useSubmissionStore().currentlyGrading
+            selectedPhase === null ||
+            isPhaseDisabled() ||
+            hasUnmetPriorPhaseRequirement() ||
+            useSubmissionStore().currentlyGrading
           "
           class="primary"
           @click="submitSelectedPhase"
@@ -161,7 +169,8 @@ const hasUnmetPriorPhaseRequirement = () => {
 </template>
 
 <style scoped>
-#submissionClosedWarning, #hasUnmetPriorSubmissions {
+#submissionClosedWarning,
+#hasUnmetPriorSubmissions {
   background-color: red;
   padding: 10px;
   border-radius: 10px;
