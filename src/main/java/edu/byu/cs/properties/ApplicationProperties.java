@@ -1,6 +1,9 @@
 package edu.byu.cs.properties;
 import java.util.Properties;
 
+/**
+ * Used for storing and retrieving the properties of the AutoGrader backend application
+ */
 public class ApplicationProperties {
     private static final ApplicationProperties INSTANCE = new ApplicationProperties();
     private final Properties properties;
