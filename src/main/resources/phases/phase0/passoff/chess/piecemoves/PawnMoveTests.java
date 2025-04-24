@@ -1,8 +1,9 @@
-package passoff.chess.piece;
+package passoff.chess.piecemoves;
 
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import passoff.chess.TestUtilities;
 
@@ -412,6 +413,7 @@ public class PawnMoveTests {
     private static void validatePromotion(String boardText, ChessPosition startingPosition, int[][] endPositions) {
         var board = TestUtilities.loadBoard(boardText);
         var testPiece = board.getPiece(startingPosition);
+        Assertions.assertNotNull(testPiece, "Could not find piece on board");
         var validMoves = new ArrayList<ChessMove>();
         for (var endPosition : endPositions) {
             var end = new ChessPosition(endPosition[0], endPosition[1]);

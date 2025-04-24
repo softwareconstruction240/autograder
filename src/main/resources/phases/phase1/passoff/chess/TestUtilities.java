@@ -12,14 +12,16 @@ public class TestUtilities {
     public static void validateMoves(String boardText, ChessPosition startPosition, int[][] endPositions) {
         var board = loadBoard(boardText);
         var testPiece = board.getPiece(startPosition);
+        Assertions.assertNotNull(testPiece, "Could not find piece on board");
         var validMoves = loadMoves(startPosition, endPositions);
         validateMoves(board, testPiece, startPosition, validMoves);
     }
 
     public static void validateMoves(ChessBoard board, ChessPiece testPiece, ChessPosition startPosition,
                                      List<ChessMove> validMoves) {
-        var pieceMoves = new ArrayList<>(testPiece.pieceMoves(board, startPosition));
-        validateMoves(validMoves, pieceMoves);
+        var pieceMoves = testPiece.pieceMoves(board, startPosition);
+        Assertions.assertNotNull(pieceMoves, "pieceMoves returned null");
+        validateMoves(validMoves, new ArrayList<>(pieceMoves));
     }
 
     public static void validateMoves(List<ChessMove> expected, List<ChessMove> actual) {
