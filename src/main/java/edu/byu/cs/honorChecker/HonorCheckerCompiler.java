@@ -14,6 +14,10 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * A class used to compile students' repos into a .zip file to check
+ * their code for plagiarism
+ */
 public class HonorCheckerCompiler {
 
     /**
