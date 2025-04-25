@@ -9,6 +9,9 @@ export enum Phase {
   GitHub,
 }
 
+/**
+ * Returns the string representation of all the Phases in order.
+ */
 export const listOfPhases = (): Array<Phase> => {
   const result = [];
   for (const phase in Phase) {
@@ -120,3 +123,7 @@ export type RepoUpdate = {
   adminUpdate: boolean;
   adminNetId: string | null;
 };
+
+export function compareEnumValues<T>(val1: T, val2: T): boolean {
+  return String(val1) === String(val2);
+}

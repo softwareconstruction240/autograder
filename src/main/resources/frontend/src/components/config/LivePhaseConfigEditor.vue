@@ -17,7 +17,7 @@ type PhaseSetting = {
 const phases = ref<PhaseSetting[]>([]);
 
 onMounted(() => {
-  for (const phase of listOfPhases() as Phase[]) {
+  for (const phase of listOfPhases()) {
     phases.value.push({
       phase: phase,
       active: useConfigStore().public.livePhases.includes(phase.toString()),

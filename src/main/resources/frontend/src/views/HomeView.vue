@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useSubmissionStore } from "@/stores/submissions";
-import { Phase, type Submission } from "@/types/types";
+import { compareEnumValues, listOfPhases, Phase, type Submission } from "@/types/types";
 import { uiConfig } from "@/stores/uiConfig";
 import { submissionPost } from "@/services/submissionService";
 import LiveStatus from "@/views/StudentView/LiveStatus.vue";
@@ -16,6 +16,7 @@ onMounted(async () => {
   setInterval(async () => {
     if (!useSubmissionStore().currentlyGrading) await useSubmissionStore().checkGrading();
   }, 5000);
+  await useSubmissionStore().loadAllSubmissions();
 });
 
 const selectedPhase = ref<Phase | null>(null);
@@ -48,6 +49,11 @@ const handleGradingDone = async () => {
   useSubmissionStore().currentlyGrading = false;
   lastSubmission.value = await useSubmissionStore().getLastSubmission();
   showResults.value = true;
+
+  //Add this last submission to allSubmissions
+  if (lastSubmission.value) {
+    useSubmissionStore().addSubmission(lastSubmission.value);
+  }
 };
 
 const isPhaseDisabled = () => {
@@ -56,6 +62,42 @@ const isPhaseDisabled = () => {
 
   const phaseName = Phase[phase];
   return !useConfigStore().public.livePhases.includes(phaseName);
+};
+
+/**
+ * If this phase should be submitted after another Phase, returns that dependency.
+ * It forces GitHub to the front of the Phase assignmentOrder sequence.
+ * @param selectedPhase the intended Phase to grade.
+ * @returns the Phase that should have submissions, or null if no prior phase is required.
+ */
+const getPriorRequiredPhase = (selectedPhase: Phase): Phase | null => {
+  if (compareEnumValues(Phase[selectedPhase], Phase[Phase.Quality])) {
+    return Phase[Phase.GitHub] as unknown as Phase;
+  }
+  const assignmentOrder = (listOfPhases() as Array<Phase | string>).filter(
+    (p) =>
+      !compareEnumValues(p, Phase[Phase.GitHub]) && !compareEnumValues(p, Phase[Phase.Quality]),
+  );
+  assignmentOrder.unshift(Phase[Phase.GitHub]);
+
+  const currentPhaseIndex = assignmentOrder.indexOf(Phase[selectedPhase]);
+  return currentPhaseIndex > 0 ? (assignmentOrder[currentPhaseIndex - 1] as Phase) : null;
+};
+
+/**
+ * indicates if the currently selected phase has an unmet requirement
+ * For example:
+ *    - GitHub requirement does not have a prior phase so it will return false
+ *    - If Phase 0 has no passing submissions, Phase 1 will return true
+ */
+const hasUnmetPriorPhaseRequirement = () => {
+  const priorPhase = getPriorRequiredPhase(selectedPhase.value!);
+  if (priorPhase == null) {
+    return false;
+  }
+
+  let priorPhaseSubmissions = useSubmissionStore().submissionsByPhase[priorPhase];
+  return !priorPhaseSubmissions.some((s) => s.passed);
 };
 </script>
 
@@ -76,6 +118,13 @@ const isPhaseDisabled = () => {
         <span id="submissionClosedWarning">Submissions to this phase are currently disabled</span>
       </div>
 
+      <div v-else-if="hasUnmetPriorPhaseRequirement()">
+        <br />
+        <span id="hasUnmetPriorSubmissions">
+          You do not have a passing submission of the previous phase
+        </span>
+      </div>
+
       <div id="submitDialog">
         <select v-model="selectedPhase" @change="useSubmissionStore().checkGrading()">
           <option :value="null" selected disabled>Select a phase</option>
@@ -90,7 +139,10 @@ const isPhaseDisabled = () => {
         </select>
         <button
           :disabled="
-            selectedPhase === null || isPhaseDisabled() || useSubmissionStore().currentlyGrading
+            selectedPhase === null ||
+            isPhaseDisabled() ||
+            hasUnmetPriorPhaseRequirement() ||
+            useSubmissionStore().currentlyGrading
           "
           class="primary"
           @click="submitSelectedPhase"
@@ -119,7 +171,8 @@ const isPhaseDisabled = () => {
 </template>
 
 <style scoped>
-#submissionClosedWarning {
+#submissionClosedWarning,
+#hasUnmetPriorSubmissions {
   background-color: red;
   padding: 10px;
   border-radius: 10px;

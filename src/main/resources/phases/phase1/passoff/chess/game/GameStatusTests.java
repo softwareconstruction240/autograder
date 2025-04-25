@@ -13,7 +13,8 @@ public class GameStatusTests {
     static final String INCORRECT_WHITE_CHECKMATE = "White is not in checkmate but isInCheckmate returned true";
     static final String INCORRECT_BLACK_STALEMATE = "Black is not in stalemate but isInStalemate returned true";
     static final String INCORRECT_WHITE_STALEMATE = "White is not in stalemate but isInStalemate returned true";
-    static final String MISSING_BLACK_CHECK = "White is in check but isInCheck returned false";
+    static final String MISSING_WHITE_CHECK = "White is in check but isInCheck returned false";
+    static final String MISSING_BLACK_CHECK = "Black is in check but isInCheck returned false";
     static final String MISSING_BLACK_CHECKMATE = "Black is in checkmate but isInCheckmate returned false";
     static final String MISSING_WHITE_CHECKMATE = "White is in checkmate but isInCheckmate returned false";
     static final String MISSING_WHITE_STALEMATE = "White is in stalemate but isInStalemate returned false";
@@ -58,7 +59,7 @@ public class GameStatusTests {
                 | | | | | | | | |
                 """));
 
-        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.WHITE), MISSING_BLACK_CHECK);
+        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.WHITE), MISSING_WHITE_CHECK);
         Assertions.assertFalse(game.isInCheck(ChessGame.TeamColor.BLACK), INCORRECT_BLACK_CHECK);
     }
 
@@ -78,8 +79,7 @@ public class GameStatusTests {
                 | | | | | | | | |
                 """));
 
-        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.BLACK),
-                "Black is in check but isInCheck returned false");
+        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.BLACK), MISSING_BLACK_CHECK);
         Assertions.assertFalse(game.isInCheck(ChessGame.TeamColor.WHITE), INCORRECT_WHITE_CHECK);
     }
 
