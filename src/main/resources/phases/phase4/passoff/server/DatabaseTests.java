@@ -7,7 +7,9 @@ import server.Server;
 
 import java.lang.reflect.Method;
 import java.sql.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DatabaseTests {
@@ -88,6 +90,55 @@ public class DatabaseTests {
         executeForAllTables(this::checkTableForPassword);
     }
 
+    @Test
+    @DisplayName("Database Error Handling")
+    @Order(3)
+    public void databaseErrorHandling() throws ReflectiveOperationException {
+        /*
+        This test simulates an interruption in connecting to MySQL after the server is already running (it started with 
+        MySQL working normally). If this happens, this should be considered an "Internal Server Error" and the response 
+        code for any endpoint which no longer can do what it needs to do (which for this project should be all of them) 
+        should be 500. The body of each of these responses should include a reasonable, relevant error message.
+         */
+        Properties fakeDbProperties = new Properties();
+        fakeDbProperties.setProperty("db.name", UUID.randomUUID().toString());
+        fakeDbProperties.setProperty("db.user", UUID.randomUUID().toString());
+        fakeDbProperties.setProperty("db.password", UUID.randomUUID().toString());
+        fakeDbProperties.setProperty("db.host", "localhost");
+        fakeDbProperties.setProperty("db.port", "100000");
+
+        Class<?> databaseManagerClass = findDatabaseManager();
+        Method loadPropertiesMethod = databaseManagerClass.getDeclaredMethod("loadProperties", Properties.class);
+        loadPropertiesMethod.setAccessible(true);
+        Object obj = databaseManagerClass.getDeclaredConstructor().newInstance();
+        loadPropertiesMethod.invoke(obj, fakeDbProperties);
+
+        List<Supplier<TestResult>> operations = List.of(
+                () -> serverFacade.clear(),
+                () -> serverFacade.register(TEST_USER),
+                () -> serverFacade.login(TEST_USER),
+                () -> serverFacade.logout(UUID.randomUUID().toString()),
+                () -> serverFacade.createGame(new TestCreateRequest("inaccessible"), UUID.randomUUID().toString()),
+                () -> serverFacade.listGames(UUID.randomUUID().toString()),
+                () -> serverFacade.joinPlayer(new TestJoinRequest(ChessGame.TeamColor.WHITE, 1), UUID.randomUUID().toString())
+        );
+
+        try {
+            for (Supplier<TestResult> operation : operations) {
+                TestResult result = operation.get();
+                Assertions.assertEquals(500, serverFacade.getStatusCode(),
+                        "Server response code was not 500 Internal Error");
+                Assertions.assertNotNull(result.getMessage(), "Invalid Request didn't return an error message");
+                Assertions.assertTrue(result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
+                        "Error message didn't contain the word \"Error\"");
+            }
+        } finally {
+            Method loadFromResources = databaseManagerClass.getDeclaredMethod("loadPropertiesFromResources");
+            loadFromResources.setAccessible(true);
+            loadFromResources.invoke(obj);
+        }
+    }
+
     private int getDatabaseRows() {
         AtomicInteger rows = new AtomicInteger();
         executeForAllTables((tableName, connection) -> {
@@ -165,7 +216,7 @@ public class DatabaseTests {
     }
 
     @FunctionalInterface
-    private static interface TableAction {
+    private interface TableAction {
         void execute(String tableName, Connection connection) throws SQLException;
     }
 

@@ -1,62 +1,52 @@
-package passoff.chess.piece;
+package passoff.chess.piecemoves;
 
 import chess.ChessPosition;
 import org.junit.jupiter.api.Test;
 import passoff.chess.TestUtilities;
 
-public class RookMoveTests {
+public class KingMoveTests {
 
     @Test
-    public void rookMoveUntilEdge() {
-
+    public void kingMiddleOfBoard() {
         TestUtilities.validateMoves("""
                         | | | | | | | | |
                         | | | | | | | | |
                         | | | | | | | | |
                         | | | | | | | | |
                         | | | | | | | | |
+                        | | | | | |K| | |
                         | | | | | | | | |
-                        | | |R| | | | | |
                         | | | | | | | | |
                         """,
-                new ChessPosition(2, 3),
-                new int[][]{
-                        {2, 4}, {2, 5}, {2, 6}, {2, 7}, {2, 8},
-                        {2, 2}, {2, 1},
-                        {1, 3},
-                        {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 3}, {8, 3},
-                }
+                new ChessPosition(3, 6),
+                new int[][]{{4, 6}, {4, 7}, {3, 7}, {2, 7}, {2, 6}, {2, 5}, {3, 5}, {4, 5}}
         );
     }
 
 
     @Test
-    public void rookCaptureEnemy() {
+    public void kingCaptureEnemy() {
         TestUtilities.validateMoves("""
                         | | | | | | | | |
                         | | | | | | | | |
                         | | | | | | | | |
-                        |N| | | | | | | |
-                        |r| | | | |B| | |
                         | | | | | | | | |
-                        |q| | | | | | | |
+                        | | | |N|n| | | |
+                        | | | |k| | | | |
+                        | | |P|b|p| | | |
                         | | | | | | | | |
                         """,
-                new ChessPosition(4, 1),
-                new int[][]{
-                        {5, 1},
-                        {3, 1},
-                        {4, 2}, {4, 3}, {4, 4}, {4, 5}, {4, 6},
-                }
+                new ChessPosition(3, 4),
+                new int[][]{{4, 4}, {3, 5}, {2, 3}, {3, 3}, {4, 3}}
         );
     }
 
 
     @Test
-    public void rookBlocked() {
+    public void kingBlocked() {
         TestUtilities.validateMoves("""
-                        | | | | | | |n|r|
-                        | | | | | | | |p|
+                        | | | | | | |r|k|
+                        | | | | | | |p|p|
                         | | | | | | | | |
                         | | | | | | | | |
                         | | | | | | | | |
