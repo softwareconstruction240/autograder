@@ -44,8 +44,7 @@ const resetPage = async () => {
   runningAdminRepo.value = false;
   selectedSubmission.value = null;
   allSubmissionsLoaded = false;
-  const submissionsData = await submissionsLatestGet(DEFAULT_SUBMISSIONS_TO_LOAD);
-  loadSubmissionsToTable(submissionsData);
+  await refreshSubmissions();
 };
 
 const refreshSubmissions = async () => {
@@ -173,12 +172,18 @@ const adminSubmit = async () => {
   <div class="container">
     <p v-if="allSubmissionsLoaded">All latest submissions are loaded</p>
     <p v-else>
-      Currently only the {{ DEFAULT_SUBMISSIONS_TO_LOAD }} most recent latest submssions are loaded
+      Currently only the {{ DEFAULT_SUBMISSIONS_TO_LOAD }} most recent latest submissions are loaded
     </p>
-    <button id="loadMore" @click="loadAllSubmissions">
-      <span v-if="allSubmissionsLoaded">Reload submissions list</span>
-      <span v-else>Load all latest submissions</span>
-    </button>
+
+    <div class="reload">
+      <button id="reloadLatest" @click="refreshSubmissions">
+        <i class="fa-solid fa-arrows-rotate" />
+      </button>
+      <button id="loadMore" @click="loadAllSubmissions">
+        <span v-if="allSubmissionsLoaded">Reload submissions list</span>
+        <span v-else>Load all latest submissions</span>
+      </button>
+    </div>
   </div>
 
   <PopUp v-if="selectedSubmission" @closePopUp="selectedSubmission = null">
@@ -207,10 +212,12 @@ const adminSubmit = async () => {
   padding: 10px;
   margin-right: 10px;
 }
+
 .adminSubmission {
   display: flex;
   padding: 10px;
 }
+
 .container {
   padding: 10px;
   display: grid;
@@ -222,7 +229,17 @@ const adminSubmit = async () => {
   align-items: center;
 }
 
-#loadMore {
+#loadMore,
+#reloadLatest {
   font-size: medium;
+}
+
+#reloadLatest {
+  width: fit-content;
+}
+
+.reload {
+  display: grid;
+  grid-template-columns: 1fr 9fr;
 }
 </style>
