@@ -29,7 +29,7 @@ Read the [Getting Started Guide](docs/getting-started/getting-started.md) to get
    │  │  │  ├─ Grader.java                    Central class governing (and delegating) all grading functionality
    │  │  │  └─ GradingContext.java            POJO record for items relevant to the particular submission as it's being graded
    │  │  ├─ canvas                            Code governing the contacting of Canvas for things like retreiving course users, retrieving due dates, sending scores, etc.
-   │  │  ├─ controller                        HTTP endpoints. In chess we would usually call this a "handler" but Paul initlaly called them "controller"'s (before they were split from services) and nobody ever changed it
+   │  │  ├─ controller                        HTTP endpoints. In chess we would usually call this a "handler" but Paul initially called them "controller"'s (before they were split from services) and nobody ever changed it
    │  │  ├─ dataAccess                        Accesses the MySQL database (you should be able to figure this one out)
    │  │  ├─ honorChecker                      Downloads and zips up student code for professors to run by the honor checker
    │  │  ├─ model                             POJO model object classes (should be self-explanatory)
@@ -41,16 +41,16 @@ Read the [Getting Started Guide](docs/getting-started/getting-started.md) to get
    │  └─ resources
    │     ├─ frontend                          Code for the frontend of the autograder (written in TypeScript and Vue)
    │     │  └─ src                            Main frontend source code
-   │     │     ├─ components                  Contins some Vue components, generally smaller components or components reused in multiple places
+   │     │     ├─ components                  Contains some Vue components, generally smaller components or components reused in multiple places
    │     │     ├─ network                     Generic Typescript code for contacting the backend server
    │     │     ├─ router                      Main router for the app frontend (determines if the page should go to /login, /admin, etc.
    │     │     ├─ services                    Specific code for contacting the backend server (delegated to 'network')
    │     │     ├─ stores                      Caches items like app config and past submissions so they don't need to be retreived again the next time they're needed 
    │     │     ├─ types                       Typescript type definitions (similar to 'model' in the backend)
    │     │     ├─ utils                       Utility methods, generally used in multiple unrelated contexts
-   │     │     └─ views                       Contins some Vue components, generally larger components meant to take up a large portion of the screen and only used in one place.
-   │     │        ├─ AdminView                Contins larger Vue components only shown to admins (TAs and instructors)
-   │     │        └─ StudentView              Contins larger Vue components relevant to students, although most are reused for admins as well
+   │     │     └─ views                       Contains some Vue components, generally larger components meant to take up a large portion of the screen and only used in one place.
+   │     │        ├─ AdminView                Contains larger Vue components only shown to admins (TAs and instructors)
+   │     │        └─ StudentView              Contains larger Vue components relevant to students, although most are reused for admins as well
    │     └─ phases                            Contains raw files used by the autograder backend
    │        ├─ libs                           Necessary jar files (junit, quality checker), and a quality rubric for what to look for
    │        ├─ phase[x]                       Contains the test cases for the phase
