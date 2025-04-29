@@ -90,7 +90,7 @@ public class FullGameTest {
                 |P|P|P|P| |P|P|P|
                 |R|N|B| |K| |N|R|
          */
-        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.BLACK), GameStatusTests.INCORRECT_BLACK_CHECK);
+        Assertions.assertTrue(game.isInCheck(ChessGame.TeamColor.BLACK), GameStatusTests.MISSING_BLACK_CHECK);
         Assertions.assertFalse(game.isInCheck(ChessGame.TeamColor.WHITE), GameStatusTests.INCORRECT_WHITE_CHECK);
         Assertions.assertTrue(game.isInCheckmate(ChessGame.TeamColor.BLACK), GameStatusTests.MISSING_BLACK_CHECKMATE);
         Assertions.assertFalse(game.isInCheckmate(ChessGame.TeamColor.WHITE), GameStatusTests.INCORRECT_WHITE_CHECKMATE);

@@ -9,13 +9,29 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * Parses the code coverage output stored in a JaCoCo CSV file into a
+ * {@link CoverageAnalysis} containing the appropriate coverage results
+ */
 public class CoverageAnalyzer {
+    /**
+     * The type of coverage to be tested for. This is the only value that should be
+     * updated if coverage requirements change.
+     */
     private static final String COVERAGE_TESTED = "BRANCH";
     private static final String COVERAGE_MISSED_HEADER = COVERAGE_TESTED + "_MISSED";
     private static final String COVERAGE_COVERED_HEADER = COVERAGE_TESTED + "_COVERED";
     private static final String PACKAGE_HEADER = "PACKAGE";
     private static final String CLASS_HEADER = "CLASS";
 
+    /**
+     * Parses the output of a JaCoCo CSV file, if it exists,
+     * and returns the coverage results as a {@link CoverageAnalysis}
+     *
+     * @param jacocoCsvOutput the file storing the coverage results from running the tests
+     * @return a {@link CoverageAnalysis} containing the code coverage results
+     * @throws GradingException if an issue arose parsing the coverage results
+     */
     public CoverageAnalysis parse(File jacocoCsvOutput) throws GradingException {
         Collection<ClassCoverageAnalysis> classAnalyses = new HashSet<>();
         if(!jacocoCsvOutput.exists()) {

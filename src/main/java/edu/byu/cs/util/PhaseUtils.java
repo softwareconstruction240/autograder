@@ -210,8 +210,8 @@ public class PhaseUtils {
         }
 
         return switch (phase) {
-            case Phase0, Phase1 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
-            case Phase3, Phase4, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+            case Phase0, Phase1, Phase4 -> new CommitVerificationConfig(8, 2, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
+            case Phase3, Phase5, Phase6 -> new CommitVerificationConfig(12, 3, minimumLinesChanged, penaltyPct, forgivenessMinutesHead);
             case GitHub -> new CommitVerificationConfig(2, 0, 0, 0, forgivenessMinutesHead);
             case Quality, Commits -> throw new GradingException("No commit verification for this phase");
         };

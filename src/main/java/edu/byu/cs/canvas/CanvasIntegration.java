@@ -9,6 +9,9 @@ import org.eclipse.jgit.annotations.Nullable;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
+/**
+ * The {@code CanvasIntegration} interface provides the methods needed to communicate with Canvas
+ */
 public interface CanvasIntegration {
 
     /**
@@ -20,15 +23,7 @@ public interface CanvasIntegration {
      */
     User getUser(String netId) throws CanvasException;
 
-    /**
-     * Queries Canvas for every student with a Git repo URL submission
-     *
-     * @return A set of user objects
-     * @throws CanvasException If there is an error with Canvas' response
-     */
-    Collection<User> getAllStudents() throws CanvasException;
-
-    Collection<User> getAllStudentsBySection(int sectionID) throws CanvasException;
+    Collection<String> getAllStudentNetIdsBySection(int sectionID) throws CanvasException;
 
 
     /**
