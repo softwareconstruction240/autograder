@@ -211,10 +211,12 @@ const adminSubmit = async () => {
   padding: 10px;
   margin-right: 10px;
 }
+
 .adminSubmission {
   display: flex;
   padding: 10px;
 }
+
 .container {
   padding: 10px;
   display: grid;
