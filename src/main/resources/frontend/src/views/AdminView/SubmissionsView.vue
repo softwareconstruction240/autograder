@@ -174,6 +174,7 @@ const adminSubmit = async () => {
     <p v-else>
       Currently only the {{ DEFAULT_SUBMISSIONS_TO_LOAD }} most recent latest submissions are loaded
     </p>
+
     <div class="reload">
       <button id="reloadLatest" @click="refreshSubmissions">
         <i class="fa-solid fa-arrows-rotate" />
