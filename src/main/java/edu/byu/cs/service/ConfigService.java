@@ -20,6 +20,9 @@ import java.util.*;
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.ConfigController}
+ */
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
