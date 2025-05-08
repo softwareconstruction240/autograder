@@ -18,6 +18,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.CasController}. <br> View the
+ * <a href="https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works">Berkeley CAS docs</a>
+ * to understand how CAS, or <em>Central Authentication Service</em>, works, if needed
+ */
 public class CasService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
