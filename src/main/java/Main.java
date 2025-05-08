@@ -15,6 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+/**
+ * The main entry point for starting the application for the AutoGrader
+ */
 public class Main {
     private static Logger LOGGER = LoggerFactory.getLogger(Main.class);
 

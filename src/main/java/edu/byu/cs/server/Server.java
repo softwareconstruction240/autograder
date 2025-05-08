@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
+/**
+ * The main server the AutoGrader runs on
+ */
 public class Server {
 
     private Javalin app;

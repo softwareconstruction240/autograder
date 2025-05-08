@@ -2,6 +2,9 @@ package edu.byu.cs.server.endpointprovider;
 
 import io.javalin.http.Handler;
 
+/**
+ * An interface that describes what endpoints to provide a handler/controller for
+ */
 public interface EndpointProvider {
 
     // Wildcard endpoints
