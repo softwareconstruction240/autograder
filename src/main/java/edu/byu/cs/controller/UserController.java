@@ -14,6 +14,9 @@ import io.javalin.http.*;
 
 import java.util.Collection;
 
+/**
+ * Handles user/repo-related HTTP endpoints
+ */
 public class UserController {
 
     public static final Handler setRepoUrl = ctx -> {
