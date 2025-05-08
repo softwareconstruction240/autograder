@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.UserController}
+ */
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
