@@ -27,6 +27,9 @@ import java.util.*;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.SubmissionController}
+ */
 public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
