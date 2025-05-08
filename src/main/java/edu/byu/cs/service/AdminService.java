@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.AdminController}
+ */
 public class AdminService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminService.class);
