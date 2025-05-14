@@ -21,12 +21,29 @@ import java.io.OutputStream;
 import java.util.Collection;
 
 /**
- * Contains service logic for the {@link edu.byu.cs.controller.AdminController}
+ * Contains service logic for the {@link edu.byu.cs.controller.AdminController}.
+ * <br><br>
+ * The {@code AdminService} provides the following features:
+ * <ul>
+ *     <li>Getting a collection of users</li>
+ *     <li>Updating information for a user</li>
+ *     <li>Update and get the test student</li>
+ *     <li>Get the commit analytics. See {@link edu.byu.cs.analytics.CommitAnalytics}
+ *     for more information on commit analytics</li>
+ *     <li>Compile and get a .zip file of students' code in a section for the Honor Checker</li>
+ *     <li>Gets all sections and all students in each section</li>
+ * </ul>
  */
 public class AdminService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminService.class);
 
+    /**
+     * Gets all users stored in database of the AutoGrader
+     *
+     * @return the collection of users
+     * @throws DataAccessException if there was an issue accessing the database
+     */
     public static Collection<User> getUsers() throws DataAccessException {
         UserDao userDao = DaoService.getUserDao();
 
@@ -41,6 +58,13 @@ public class AdminService {
         return users;
     }
 
+    /**
+     * Update the information (first name, last name, repo URL, role) of a user via their netId.
+     *
+     * @param user the updated user
+     * @throws DataAccessException if there was an issue accessing the database
+     * @throws ResourceNotFoundException if the user could not be found in the database
+     */
     public static void updateUser(User user) throws DataAccessException, ResourceNotFoundException {
         UserDao userDao = DaoService.getUserDao();
         User existingUser;
@@ -80,6 +104,14 @@ public class AdminService {
 
     }
 
+    /**
+     * Get the test student from Canvas, update the test student information in the
+     * database, then return the test student
+     *
+     * @return the test student
+     * @throws CanvasException if there was an issue getting the test student from Canvas
+     * @throws DataAccessException if there was an issue accessing the database
+     */
     public static User updateTestStudent() throws CanvasException, DataAccessException {
         User latestTestStudent;
         try {
@@ -124,6 +156,17 @@ public class AdminService {
 
     }
 
+    /**
+     * Gets the commit analytics
+     *
+     * @param option a string indicating what option to choose from to return (1) updating
+     *               and getting the csv file commit data, (2) getting the most recently
+     *               cached commit data, and (3) getting the timestamp of the most recently
+     *               cached commit data
+     * @return the commit data, or the timestamp of the most recently cached commit data
+     * @throws CanvasException if there was an issue getting students from Canvas
+     * @throws DataAccessException if there was an issue getting students in the database
+     */
     public static String getCommitAnalytics(String option) throws CanvasException, DataAccessException {
         return switch (option) {
             case "update" -> CommitAnalyticsRouter.update();
@@ -133,6 +176,16 @@ public class AdminService {
         };
     }
 
+    /**
+     * Compile and return a .zip file of students' code in a section for the Honor Checker
+     *
+     * @param sectionStr the section of student's to create a .zip file for
+     * @param os where to output the data of the .zip file
+     * @throws CanvasException if there was an issue getting the Canvas section
+     * @throws IOException if there was an issue either reading from the .zip file or
+     * writing to the output
+     * @throws DataAccessException if there was an issue getting a student in the database
+     */
     public static void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException, DataAccessException {
         String filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
 
@@ -150,6 +203,12 @@ public class AdminService {
 
     }
 
+    /**
+     * Gets all sections and the students in those sections
+     *
+     * @return an array of {@link CanvasSection}
+     * @throws CanvasException if there was an issue getting the sections in Canvas
+     */
     public static CanvasSection[] getAllSections() throws CanvasException {
         return CanvasService.getCanvasIntegration().getAllSections();
     }
