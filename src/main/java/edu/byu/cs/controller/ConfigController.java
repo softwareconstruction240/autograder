@@ -17,6 +17,9 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles config-specific HTTP endpoints
+ */
 public class ConfigController {
 
     public static final Handler getConfigAdmin = (ctx) -> {
