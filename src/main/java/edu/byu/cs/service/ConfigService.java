@@ -40,6 +40,13 @@ public class ConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final ConfigurationDao dao = DaoService.getConfigurationDao();
 
+    /**
+     * Gets the configuration values that can be read by any user. See {@link PublicConfig}
+     * for more information on the configuration values.
+     *
+     * @return a {@link PublicConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
+     */
     public static PublicConfig getPublicConfig() throws DataAccessException {
         String phasesString = dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class);
 
@@ -68,6 +75,13 @@ public class ConfigService {
         );
     }
 
+    /**
+     * Gets the configuration values that only admins should see. See {@link PrivateConfig}
+     * for more information on the configuration values.
+     *
+     * @return a {@link PrivateConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
+     */
     public static PrivateConfig getPrivateConfig() throws DataAccessException {
         return new PrivateConfig(
                 generatePenaltyConfig(),
@@ -150,12 +164,27 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
+    /**
+     * Update what phases students are able to submit for
+     *
+     * @param phasesArray the list of phases that should be counted as live
+     * @param user the user who updated the list of live phases
+     * @throws DataAccessException if there was an issue updating the live phases in the database
+     */
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
         dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
 
+    /**
+     * Set the amount of time the AutoGrader should warn students before shutting down
+     *
+     * @param user the user who set the shutdown warning duration
+     * @param warningMilliseconds the number of milliseconds to set the shutdown warning duration
+     * @throws DataAccessException if there was an issue setting the shutdown warning duration
+     * in the database
+     */
     public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
         if (warningMilliseconds < 0) {
             throw new IllegalArgumentException("warningMilliseconds must be non-negative");
@@ -166,6 +195,13 @@ public class ConfigService {
         logConfigChange("set the shutdown warning duration to %s milliseconds".formatted(warningMilliseconds), user.netId());
     }
 
+    /**
+     * Schedule the time the AutoGrader will shut down
+     *
+     * @param user the user who scheduled the shut-down time
+     * @param shutdownTimestampString the timestamp at which the AutoGrader will shut down
+     * @throws DataAccessException if an issue arises setting the shut-down date in the database
+     */
     public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
         if (shutdownTimestampString.isEmpty()) {
             clearShutdownSchedule(user);
@@ -215,6 +251,16 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Update the banner message users can see when they use the AutoGrader
+     *
+     * @param user the user who created the banner message
+     * @param expirationString the timestamp the banner message will expire at
+     * @param message the message itself
+     * @param link the url the user will be taken to if they click on the banner
+     * @param color the color of the background of the banner message
+     * @throws DataAccessException if an issue arises updating the banner message in the database
+     */
     public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         Instant expirationTimestamp = Instant.MAX;
         if (!expirationString.isEmpty()) {
@@ -248,6 +294,17 @@ public class ConfigService {
 
     }
 
+    /**
+     * Update the Canvas course id in the database and retrieve the course information from Canvas.
+     * If the AutoGrader is unable to retrieve the course information, it will revert
+     * to the previous Canvas course id.
+     *
+     * @param user the user who set the new course id
+     * @param newCourseId the new Canvas course id
+     * @throws DataAccessException if there is an issue updating the course id or course
+     * information in the database
+     * @throws CanvasException if an error occurs retrieving course information from Canvas
+     */
     public static void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
         Integer oldCourseJustInCase = dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class);
         dao.setConfiguration(Configuration.COURSE_NUMBER, newCourseId, Integer.class);
@@ -263,6 +320,13 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Retrieve and store course information in the database from Canvas
+     *
+     * @param user the user who sent the request
+     * @throws CanvasException If an error occurs retrieving course information from Canvas
+     * @throws DataAccessException if there is an issue updating course information in the database
+     */
     public static void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
         var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         retriever.useCourseRelatedInfoFromCanvas();
