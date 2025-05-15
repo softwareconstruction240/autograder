@@ -16,7 +16,16 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * The main entry point for starting the application for the AutoGrader
+ * The main entry point for starting the application for the AutoGrader.
+ * <p>
+ * During startup, the application performs the following key processes:
+ * <ul>
+ *     <li>Copies necessary resource files to the appropriate locations.</li>
+ *     <li>Sets up application properties based on command-line arguments.</li>
+ *     <li>Initializes database access objects for SQL operations.</li>
+ *     <li>Starts the server to handle incoming requests.</li>
+ *     <li>Reruns any submissions that are already in the queue.</li>
+ * </ul>
  */
 public class Main {
     private static Logger LOGGER = LoggerFactory.getLogger(Main.class);
