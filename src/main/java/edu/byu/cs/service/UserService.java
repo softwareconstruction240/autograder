@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * Contains service logic for the {@link edu.byu.cs.controller.UserController}
+ * Contains service logic for the {@link edu.byu.cs.controller.UserController}.
  * <br><br>
  * The {@code UserService} allows users to update their repo url, and give admins the ability
  * to get the repo history for a given user or repo url

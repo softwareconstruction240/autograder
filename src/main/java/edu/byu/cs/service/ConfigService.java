@@ -21,7 +21,19 @@ import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
 
 /**
- * Contains service logic for the {@link edu.byu.cs.controller.ConfigController}
+ * Contains service logic for the {@link edu.byu.cs.controller.ConfigController}.
+ * <br><br>
+ * The {@code ConfigService} provides many of the features relating to getting, generating,
+ * and updating several configurable items. Such items include:
+ * <ul>
+ *     <li>A banner message to show users when they access the AutoGrader</li>
+ *     <li>When to shutdown the AutoGrader</li>
+ *     <li>What days the AutoGrader should regard as holidays</li>
+ *     <li>The live phases students are allowed to submit to</li>
+ *     <li>The penalties that should be applied for insufficient commits</li>
+ *     <li>The course id and Canvas assignments to allow the AutoGrader to access Canvas
+ *     and update grades</li>
+ * </ul>
  */
 public class ConfigService {
 
