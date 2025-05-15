@@ -3,7 +3,9 @@ package edu.byu.cs.server.endpointprovider;
 import io.javalin.http.Handler;
 
 /**
- * An interface that describes what endpoints to provide a handler/controller for
+ * An interface that describes the various HTTP endpoints to provide a handler/controller
+ * for in the application. Implementing classes must provide the handler/controller and
+ * define the behavior of each endpoint by returning a valid Javalin {@link Handler}.
  */
 public interface EndpointProvider {
 

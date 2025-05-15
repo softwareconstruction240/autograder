@@ -17,7 +17,7 @@ import java.util.Properties;
 
 /**
  * The main entry point for starting the application for the AutoGrader.
- * <p>
+ * <br><br>
  * During startup, the application performs the following key processes:
  * <ul>
  *     <li>Copies necessary resource files to the appropriate locations.</li>
