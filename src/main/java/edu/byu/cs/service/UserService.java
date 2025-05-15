@@ -18,10 +18,24 @@ import java.util.Objects;
 
 /**
  * Contains service logic for the {@link edu.byu.cs.controller.UserController}
+ * <br><br>
+ * The {@code UserService} allows users to update their repo url, and give admins the ability
+ * to get the repo history for a given user or repo url
  */
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
+    /**
+     * Update a repo url for a given student
+     *
+     * @param studentNetId the student's netId
+     * @param repoUrl the GitHub repo url to update to for the student
+     * @param adminNetId the admin's netId if they are updating the repo url
+     * @throws BadRequestException given an invalid GitHub repo url
+     * @throws InternalServerException if an error arises during the cloning, checking,
+     * and saving of the repo url
+     * @throws WordOfWisdomViolationException if repo was blocked due to prior claim
+     */
     public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
             throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
