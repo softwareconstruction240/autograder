@@ -200,7 +200,8 @@ public class ConfigService {
      *
      * @param user the user who scheduled the shut-down time
      * @param shutdownTimestampString the timestamp at which the AutoGrader will shut down
-     * @throws DataAccessException if an issue arises setting the shut-down date in the database
+     * @throws DataAccessException if an issue arises clearing the shutdown schedule or
+     * setting the shutdown date in the database
      */
     public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
         if (shutdownTimestampString.isEmpty()) {
@@ -223,6 +224,9 @@ public class ConfigService {
         logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
     }
 
+    /**
+     * Shuts down the AutoGrader so students aren't able to submit for grades anymore
+     */
     public static void triggerShutdown() {
         try {
             ArrayList<Phase> phases = new ArrayList<>();
@@ -242,6 +246,12 @@ public class ConfigService {
         clearShutdownSchedule(null);
     }
 
+    /**
+     * Clears the shutdown schedule for the AutoGrader
+     *
+     * @param user the user who is clearing the shutdown schedule
+     * @throws DataAccessException if an error occurs clearing the schedule in the database
+     */
     public static void clearShutdownSchedule(User user) throws DataAccessException {
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
         if (user == null) {
@@ -338,6 +348,13 @@ public class ConfigService {
         );
     }
 
+    /**
+     * Update the commit penalties in the database
+     *
+     * @param user the user making the penalty update request
+     * @param request the penalty update request
+     * @throws DataAccessException if an error occurs updating the commit penalties in the database
+     */
     public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
         validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
         validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
@@ -352,6 +369,13 @@ public class ConfigService {
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
     }
 
+    /**
+     * Update the list of holidays the AutoGrader won't count toward the late penalty
+     *
+     * @param user the user who updated the list of holidays
+     * @param holidays the list of holidays
+     * @throws DataAccessException if an issue arises updating the list of holidays in the database
+     */
     public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
         StringBuilder stringBuilder = new StringBuilder();
 
