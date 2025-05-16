@@ -152,7 +152,6 @@ public class QualityAnalyzer {
         StringBuilder builder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             boolean categoryPasses = categoryPasses(category, output);
-            //category.value() returns the weight of the percentage
             builder.append((categoryPasses) ? "✓" : "✗").append(" ").append(category.name()).append(" ");
             builder.append(((Float)(category.value())).intValue()).append("%\n");
         }
