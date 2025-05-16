@@ -76,7 +76,6 @@ public class PassoffTestGrader extends TestGrader {
 
         if (testResults == null) return "No tests were run";
 
-        //TODO add passoff test specifics here:
         Integer totalRequiredTests = testResults.getNumTestsPassed() + testResults.getNumTestsFailed();
         if (testResults.getNumTestsFailed() == 0) {
             notes.append(testResults.getNumTestsPassed() + "/"+ totalRequiredTests + " required tests passed");
