@@ -61,14 +61,14 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected String getNotes(TestOutput testOutput) throws GradingException {
         TestNode testResults = testOutput.root();
+        Integer totalTestsRun = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
         if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
-
         return switch (testResults.getNumTestsFailed()) {
-            case 0 -> "All tests passed";
-            case 1 -> "1 test failed";
-            default -> testResults.getNumTestsFailed() + " tests failed";
+            case 0 -> testResults.getNumTestsPassed() + "/" + totalTestsRun + " tests passed";
+            case 1 -> "1/" + totalTestsRun + " test failed";
+            default -> testResults.getNumTestsFailed() + "/" + totalTestsRun + " tests failed";
         };
     }
 
