@@ -187,7 +187,12 @@ public class QualityAnalyzer {
 
     private record QualityOutput(Map<String, List<String>> errors, List<String> warnings) {}
 
-    private record QualityRubricCategory(String name, float value, Set<String> reporters) {}
+    private record QualityRubricCategory(String name, float value, Set<String> reporters) {
+        public String getValueAsPercent() {
+            Float percent = (Float) value;
+            return percent.intValue() + "%";
+        }
+    }
 
     private record QualityRubric(Set<QualityRubricCategory> categories) {}
 
