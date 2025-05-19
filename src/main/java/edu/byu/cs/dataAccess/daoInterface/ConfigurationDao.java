@@ -4,7 +4,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import java.net.StandardProtocolFamily;
 
 /**
- * A data access object for configurable values. The information is stored using key/value
+ * A data access object interface for configurable values. The information is stored using key/value
  * pairs, the possible configurable items to use as keys are listed as {@link Configuration}.
  */
 public interface ConfigurationDao {
