@@ -30,7 +30,7 @@ import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
  *     <li>When to shutdown the AutoGrader</li>
  *     <li>What days the AutoGrader should regard as holidays</li>
  *     <li>The live phases students are allowed to submit to</li>
- *     <li>The penalties that should be applied for insufficient commits</li>
+ *     <li>The penalties that should be applied for insufficient commits and late submissions</li>
  *     <li>The course id and Canvas assignments to allow the AutoGrader to access Canvas
  *     and update grades</li>
  * </ul>
@@ -349,7 +349,7 @@ public class ConfigService {
     }
 
     /**
-     * Update the commit penalties in the database
+     * Update the commit & late penalties in the database
      *
      * @param user the user making the penalty update request
      * @param request the penalty update request
