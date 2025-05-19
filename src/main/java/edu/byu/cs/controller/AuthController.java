@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import static edu.byu.cs.util.JwtUtils.validateToken;
 
+/**
+ * Handles authentication-related HTTP endpoints
+ */
 public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
