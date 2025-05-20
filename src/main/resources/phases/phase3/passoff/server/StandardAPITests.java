@@ -79,7 +79,6 @@ public class StandardAPITests {
         TestUser[] incompleteLoginRequests = {
             new TestUser(null, existingUser.getPassword(), existingUser.getEmail()),
             new TestUser(existingUser.getUsername(), null, existingUser.getEmail()),
-            new TestUser(existingUser.getUsername(), existingUser.getPassword(), null),
         };
 
         for (TestUser incompleteLoginRequest : incompleteLoginRequests) {

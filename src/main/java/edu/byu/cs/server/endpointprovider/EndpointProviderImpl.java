@@ -6,6 +6,10 @@ import edu.byu.cs.properties.ApplicationProperties;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
 
+/**
+ * The implementation of the {@link EndpointProvider} interface, and provides the
+ * handlers/controllers for the endpoints
+ */
 public class EndpointProviderImpl implements EndpointProvider {
 
     // Wildcard endpoints

@@ -12,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
 
+/**
+ * Handles CAS-related HTTP endpoints. CAS, standing for <em>Central Authentication Service</em>,
+ * is BYU's centralized authentication provider for all BYU users
+ */
 public class CasController {
     public static final Handler callbackGet = ctx -> {
         String ticket = ctx.queryParam("ticket");

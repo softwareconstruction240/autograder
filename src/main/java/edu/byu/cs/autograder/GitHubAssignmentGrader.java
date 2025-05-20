@@ -1,4 +1,4 @@
-package edu.byu.cs.autograder.test;
+package edu.byu.cs.autograder;
 
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.dataAccess.DaoService;

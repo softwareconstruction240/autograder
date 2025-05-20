@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Handles submission-related HTTP endpoints
+ */
 public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
