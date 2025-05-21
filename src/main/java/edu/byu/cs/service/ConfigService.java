@@ -20,11 +20,33 @@ import java.util.*;
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.ConfigController}.
+ * <br><br>
+ * The {@code ConfigService} provides many of the features relating to getting, generating,
+ * and updating several configurable items. Such items include:
+ * <ul>
+ *     <li>A banner message to show users when they access the AutoGrader</li>
+ *     <li>When to shutdown the AutoGrader</li>
+ *     <li>What days the AutoGrader should regard as holidays</li>
+ *     <li>The live phases students are allowed to submit to</li>
+ *     <li>The penalties that should be applied for insufficient commits and late submissions</li>
+ *     <li>The course id and Canvas assignments to allow the AutoGrader to access Canvas
+ *     and update grades</li>
+ * </ul>
+ */
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final ConfigurationDao dao = DaoService.getConfigurationDao();
 
+    /**
+     * Gets the configuration values that can be read by any user. See {@link PublicConfig}
+     * for more information on the configuration values.
+     *
+     * @return a {@link PublicConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
+     */
     public static PublicConfig getPublicConfig() throws DataAccessException {
         String phasesString = dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class);
 
@@ -53,6 +75,13 @@ public class ConfigService {
         );
     }
 
+    /**
+     * Gets the configuration values that only admins should see. See {@link PrivateConfig}
+     * for more information on the configuration values.
+     *
+     * @return a {@link PrivateConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
+     */
     public static PrivateConfig getPrivateConfig() throws DataAccessException {
         return new PrivateConfig(
                 generatePenaltyConfig(),
@@ -135,12 +164,27 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
+    /**
+     * Update what phases students are able to submit for
+     *
+     * @param phasesArray the list of phases that should be counted as live
+     * @param user the user who updated the list of live phases
+     * @throws DataAccessException if there was an issue updating the live phases in the database
+     */
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
         dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
 
+    /**
+     * Set the amount of time the AutoGrader should warn students before shutting down
+     *
+     * @param user the user who set the shutdown warning duration
+     * @param warningMilliseconds the number of milliseconds to set the shutdown warning duration
+     * @throws DataAccessException if there was an issue setting the shutdown warning duration
+     * in the database
+     */
     public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
         if (warningMilliseconds < 0) {
             throw new IllegalArgumentException("warningMilliseconds must be non-negative");
@@ -151,6 +195,14 @@ public class ConfigService {
         logConfigChange("set the shutdown warning duration to %s milliseconds".formatted(warningMilliseconds), user.netId());
     }
 
+    /**
+     * Schedule the time the AutoGrader will shut down
+     *
+     * @param user the user who scheduled the shut-down time
+     * @param shutdownTimestampString the timestamp at which the AutoGrader will shut down
+     * @throws DataAccessException if an issue arises clearing the shutdown schedule or
+     * setting the shutdown date in the database
+     */
     public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
         if (shutdownTimestampString.isEmpty()) {
             clearShutdownSchedule(user);
@@ -172,6 +224,9 @@ public class ConfigService {
         logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
     }
 
+    /**
+     * Shuts down the AutoGrader so students aren't able to submit for grades anymore
+     */
     public static void triggerShutdown() {
         try {
             ArrayList<Phase> phases = new ArrayList<>();
@@ -191,6 +246,12 @@ public class ConfigService {
         clearShutdownSchedule(null);
     }
 
+    /**
+     * Clears the shutdown schedule for the AutoGrader
+     *
+     * @param user the user who is clearing the shutdown schedule
+     * @throws DataAccessException if an error occurs clearing the schedule in the database
+     */
     public static void clearShutdownSchedule(User user) throws DataAccessException {
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
         if (user == null) {
@@ -200,6 +261,16 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Update the banner message users can see when they use the AutoGrader
+     *
+     * @param user the user who created the banner message
+     * @param expirationString the timestamp the banner message will expire at
+     * @param message the message itself
+     * @param link the url the user will be taken to if they click on the banner
+     * @param color the color of the background of the banner message
+     * @throws DataAccessException if an issue arises updating the banner message in the database
+     */
     public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         Instant expirationTimestamp = Instant.MAX;
         if (!expirationString.isEmpty()) {
@@ -233,6 +304,17 @@ public class ConfigService {
 
     }
 
+    /**
+     * Update the Canvas course id in the database and retrieve the course information from Canvas.
+     * If the AutoGrader is unable to retrieve the course information, it will revert
+     * to the previous Canvas course id.
+     *
+     * @param user the user who set the new course id
+     * @param newCourseId the new Canvas course id
+     * @throws DataAccessException if there is an issue updating the course id or course
+     * information in the database
+     * @throws CanvasException if an error occurs retrieving course information from Canvas
+     */
     public static void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
         Integer oldCourseJustInCase = dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class);
         dao.setConfiguration(Configuration.COURSE_NUMBER, newCourseId, Integer.class);
@@ -248,6 +330,13 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Retrieve and store course information in the database from Canvas
+     *
+     * @param user the user who sent the request
+     * @throws CanvasException If an error occurs retrieving course information from Canvas
+     * @throws DataAccessException if there is an issue updating course information in the database
+     */
     public static void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
         var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         retriever.useCourseRelatedInfoFromCanvas();
@@ -259,6 +348,13 @@ public class ConfigService {
         );
     }
 
+    /**
+     * Update the commit & late penalties in the database
+     *
+     * @param user the user making the penalty update request
+     * @param request the penalty update request
+     * @throws DataAccessException if an error occurs updating the commit penalties in the database
+     */
     public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
         validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
         validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
@@ -273,6 +369,13 @@ public class ConfigService {
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
     }
 
+    /**
+     * Update the list of holidays the AutoGrader won't count toward the late penalty
+     *
+     * @param user the user who updated the list of holidays
+     * @param holidays the list of holidays
+     * @throws DataAccessException if an issue arises updating the list of holidays in the database
+     */
     public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
         StringBuilder stringBuilder = new StringBuilder();
 

@@ -18,10 +18,31 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.CasController}. <br> View the
+ * <a href="https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works">Berkeley CAS docs</a>
+ * to understand how CAS, or <em>Central Authentication Service</em>, works, if needed.
+ * <br><br>
+ * The {@code CasService} ensures user authentication using BYU's CAS before they access
+ * and use the AutoGrader.
+ */
 public class CasService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
 
+    /**
+     * Validates a CAS ticket and retrieves the associated user.
+     * <br>
+     * If the user exists in the database, they are returned directly. Otherwise, the user
+     * is retrieved from Canvas and stored in the database before being returned
+     *
+     * @param ticket the CAS ticket to validate
+     * @return the user, either stored in the database or from Canvas if not
+     * @throws InternalServerException if an error arose during ticket validation or user retrieval
+     * @throws BadRequestException if ticket validation failed
+     * @throws DataAccessException if there was an issue storing the user in the database
+     * @throws CanvasException if there was an issue getting the user from Canvas
+     */
     public static User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
         String netId;
         try {
