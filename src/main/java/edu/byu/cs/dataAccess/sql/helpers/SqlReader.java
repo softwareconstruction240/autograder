@@ -14,6 +14,12 @@ import java.util.stream.Stream;
 
 import static java.sql.Types.NULL;
 
+/**
+ * See {@link #SqlReader(String, ColumnDefinition[], ItemBuilder)}, this class's constructor, for
+ * information regarding this class
+ *
+ * @param <T> the type of item to write to and read from a SQL table
+ */
 public class SqlReader <T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlReader.class);
