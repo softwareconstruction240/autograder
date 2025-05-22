@@ -8,6 +8,10 @@ import org.eclipse.jgit.annotations.NonNull;
 
 import java.util.Collection;
 
+/**
+ * A data access object interface for {@link Submission} objects, allowing for accessing
+ * submissions by phase, netId, or the latest submissions to the AutoGrader
+ */
 public interface SubmissionDao {
 
     /**
