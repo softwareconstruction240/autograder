@@ -30,7 +30,7 @@ public class SqlReader <T> {
     private final ColumnDefinition<T>[] columnDefinitions;
     public final String[] allColumnNames;
     private final ItemBuilder<T> itemBuilder;
-
+    /** Represents all the column names as a single string joined with commas */
     private final String allColumnNamesStmt;
     private final String selectAllColumnsStmt;
 
@@ -87,13 +87,41 @@ public class SqlReader <T> {
         this.insertWildCardIndexPositions = this.prepareWildcardIndices(columnDefinitions);
     }
 
+    /**
+     * Takes in a {@link Stream} of column name strings and returns the column names as a
+     * single string joined with commas
+     *
+     * @param columNames A {@code Stream<String>} of column names to join
+     * @return a single string consisting of all the column names joined with commas
+     */
     public static String joinColumnNames(Stream<String> columNames) {
         return joinColumnNames(columNames.toArray(String[]::new));
     }
+
+    /**
+     * Takes an array of column name strings and returns the column names as a single string
+     * joined with commas
+     *
+     * @param columnNames the array of column name strings
+     * @return a single string consisting of all the column names joined with commas
+     */
     public static String joinColumnNames(String[] columnNames) {
         return String.join(", ", columnNames);
     }
 
+    /**
+     * Builds and returns a SQL insert statement using the {@link #tableName} and the
+     * {@link #allColumnNamesStmt}. This is done by constructing a number of wildcard values
+     * (represented as '?') equal to the number of column names then formatting the {@code tableName},
+     * {@code allColumnNamesStmt}, and wildcard values into a SQL insert statement.
+     * <br>
+     * For example, provided the {@code tableName} of '{@code queue}' and the {@code allColumnNamesStmt}
+     * of '{@code net_id}, {@code phase}, {@code started}, and {@code time_added}'. The returning
+     * SQL insert statement would be '{@code INSERT INTO queue (net_id, phase, started, time_started)
+     * VALUES (?, ?, ?, ?)}'.
+     *
+     * @return the generated SQL insert statement string
+     */
     private String buildInsertStatement() {
         String valueWildcards = String.join(", ", Collections.nCopies(allColumnNames.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
