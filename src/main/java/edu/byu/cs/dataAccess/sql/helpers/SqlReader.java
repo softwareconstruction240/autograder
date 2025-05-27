@@ -28,13 +28,14 @@ public class SqlReader <T> {
     private final String tableName;
     /** Represents all the columns in the table. */
     private final ColumnDefinition<T>[] columnDefinitions;
+    /** Represents all the column names in the table */
     public final String[] allColumnNames;
     private final ItemBuilder<T> itemBuilder;
-    /** Represents all the column names as a single string joined with commas */
+    /** Represents all the column names in the table as a single string joined with commas */
     private final String allColumnNamesStmt;
+    /** A SQL select statement that selects all columns in the table */
     private final String selectAllColumnsStmt;
-
-
+    /** A SQL insert statement that allows an item to be inserted into the table */
     private final String insertStatement;
     private final Map<String, Integer> insertWildCardIndexPositions;
 
@@ -163,6 +164,16 @@ public class SqlReader <T> {
         }
     }
 
+    /**
+     * Gets the value of an {@code item} using the {@code columnDefinition} and sets the value
+     * in the {@code ps} using {@link #setValue(PreparedStatement, int, Object)}
+     *
+     * @param ps a {@link PreparedStatement} that we will update
+     * @param wildcardIndex the 1-indexed number indicating a specific wildcard to replace
+     * @param item the object the value will be pulled from
+     * @param columnDefinition A single column to get the value for
+     * @throws SQLException when SQL throws an error
+     */
     private void setValue(PreparedStatement ps, int wildcardIndex, T item, ColumnDefinition<T> columnDefinition) throws SQLException {
         Object value = columnDefinition.accessor().getValue(item);
         setValue(ps, wildcardIndex, value);
