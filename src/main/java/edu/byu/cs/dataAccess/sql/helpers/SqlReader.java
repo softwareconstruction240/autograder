@@ -30,6 +30,7 @@ public class SqlReader <T> {
     private final ColumnDefinition<T>[] columnDefinitions;
     /** Represents all the column names in the table */
     public final String[] allColumnNames;
+    /** A method that reads a row from a {@link ResultSet} and builds an item from that row */
     private final ItemBuilder<T> itemBuilder;
     /** Represents all the column names in the table as a single string joined with commas */
     private final String allColumnNamesStmt;
@@ -37,6 +38,7 @@ public class SqlReader <T> {
     private final String selectAllColumnsStmt;
     /** A SQL insert statement that allows an item to be inserted into the table */
     private final String insertStatement;
+    /** A map of column names to wildcard indices */
     private final Map<String, Integer> insertWildCardIndexPositions;
 
     /**
@@ -128,6 +130,13 @@ public class SqlReader <T> {
         return "INSERT INTO %s (%s) VALUES (%s)"
                 .formatted(tableName, allColumnNamesStmt, valueWildcards);
     }
+
+    /**
+     * A helper method that maps column names to their respective wildcard indices
+     *
+     * @param columnDefinitions an array of {@link ColumnDefinition} objects to pull column names from
+     * @return a map of column names to wildcard indices
+     */
     private Map<String, Integer> prepareWildcardIndices(ColumnDefinition<T>[] columnDefinitions) {
         Map<String, Integer> out = new HashMap<>();
 
@@ -309,6 +318,17 @@ public class SqlReader <T> {
         );
     }
 
+    /**
+     * A helper method that requests a connection, prepares a SQL statement, then
+     * executes the statement and returns the results
+     *
+     * @param statement a SQL statement to prepare and execute
+     * @param statementPreparer a method that can modify the <code>PreparedStatement</code> before being executed
+     * @param queryExecutor a method that executes the <code>PreparedStatement</code> and returns the results
+     * @return the requested results of the SQL statement query
+     * @param <T1> The type the requested results will return as
+     * @throws DataAccessException if SQL fails
+     */
     private <T1> T1 doExecuteQuery(
             @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
@@ -380,7 +400,7 @@ public class SqlReader <T> {
      * Represents a convenient beginning of most queries.
      * Usually, you will not want to use this alone, but will want to add
      * conditional <code>WHERE</code> clauses and other related
-     * */
+     */
     public String selectAllStmt() {
         return selectAllColumnsStmt;
     }
