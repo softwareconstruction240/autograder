@@ -10,6 +10,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * A class responsible for setting up a SQL database and handling connections to the database.
+ * <br>
+ * The SQL database uses the application properties to obtain the databases' name, url, user,
+ * and password in order to:
+ * <ul>
+ *     <li>Create the database and the appropriate tables if the database doesn't already exist</li>
+ *     <li>Getting a connection to the database</li>
+ * </ul>
+ */
 public class SqlDb {
 
     private static final String DB_URL = ApplicationProperties.dbUrl();

@@ -4,6 +4,14 @@ import edu.byu.cs.dataAccess.daoInterface.*;
 import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.dataAccess.sql.*;
 
+/**
+ * Provides centralized access and management for all DAOs.
+ * <br>
+ * This class maintains static references to each DAO implementation, enabling for retrieval
+ * and configuration of DAO instances. The {@code initializeMemoryDAOs()} method configures
+ * in-memory DAO instances with default testing values, while {@code initializeSqlDAOs()}
+ * initializes database-backed DAOs for live use.
+ */
 public class DaoService {
 
     private static UserDao userDao = new UserMemoryDao();
@@ -80,6 +88,7 @@ public class DaoService {
         }
     }
 
+    /** Create and set a SQL DAO for every DAO. Used for live application purposes */
     public static void initializeSqlDAOs() throws DataAccessException {
         SqlDb.setUpDb();
         DaoService.setConfigurationDao(new ConfigurationSqlDao());

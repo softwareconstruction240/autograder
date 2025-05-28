@@ -2,10 +2,17 @@ package edu.byu.cs.dataAccess.daoInterface;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 
+/**
+ * A data access object interface for configurable values. The information is stored using key/value
+ * pairs, the possible configurable items to use as keys are listed as {@link Configuration}.
+ */
 public interface ConfigurationDao {
     <T> void setConfiguration(Configuration key, T value, Class<T> type) throws DataAccessException;
     <T> T getConfiguration(Configuration key, Class<T> type) throws DataAccessException;
 
+    /**
+     * The types of configuration that can be changed
+     */
     enum Configuration {
         STUDENT_SUBMISSIONS_ENABLED,
         GRADER_SHUTDOWN_DATE,
