@@ -1,7 +1,6 @@
 package edu.byu.cs.dataAccess.daoInterface;
 
 import edu.byu.cs.dataAccess.DataAccessException;
-import java.net.StandardProtocolFamily;
 
 /**
  * A data access object interface for configurable values. The information is stored using key/value
