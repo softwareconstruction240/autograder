@@ -94,11 +94,11 @@ public class SqlReader <T> {
      * Takes in a {@link Stream} of column name strings and returns the column names as a
      * single string joined with commas
      *
-     * @param columNames A {@code Stream<String>} of column names to join
+     * @param columnNames A {@code Stream<String>} of column names to join
      * @return a single string consisting of all the column names joined with commas
      */
-    public static String joinColumnNames(Stream<String> columNames) {
-        return joinColumnNames(columNames.toArray(String[]::new));
+    public static String joinColumnNames(Stream<String> columnNames) {
+        return joinColumnNames(columnNames.toArray(String[]::new));
     }
 
     /**
