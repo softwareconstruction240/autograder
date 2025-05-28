@@ -120,7 +120,7 @@ public class SqlReader <T> {
      * <br>
      * For example, provided the {@code tableName} of '{@code queue}' and the {@code allColumnNamesStmt}
      * of '{@code net_id}, {@code phase}, {@code started}, and {@code time_added}'. The returning
-     * SQL insert statement would be '{@code INSERT INTO queue (net_id, phase, started, time_started)
+     * SQL insert statement would be '{@code INSERT INTO queue (net_id, phase, started, time_added)
      * VALUES (?, ?, ?, ?)}'.
      *
      * @return the generated SQL insert statement string
