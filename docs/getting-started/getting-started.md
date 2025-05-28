@@ -85,7 +85,7 @@ been filled in with default values. Update these as needed to match your environ
 
 Do the following actions:
 1. Refer to the required arguments below
-2. Fill in the appropriate values for each of the
+2. Fill in the appropriate values for each of the arguments
 3. Prepare the arguments by reformatting them onto a single line
    - Ex. `--arg-1 arg1Val --arg-2 arg2Val`
 4. Edit the "Server" _run configuration_
