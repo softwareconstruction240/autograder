@@ -15,6 +15,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.*;
+import edu.byu.cs.model.Rubric.RubricItem;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
@@ -312,15 +313,28 @@ public class Scorer {
         Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
+        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
             Rubric.RubricType rubricType = entry.getKey();
             Rubric.RubricItem rubricItem = entry.getValue();
-
+            rubricItem = addLateNotesToRubricItem(rubricItem, daysLate, maxLateDays);
             Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmissions, lateScoreMultiplier);
             rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
             items.put(rubricType, rubricItem);
         }
         return new Rubric(items, rubric.passed(), rubric.notes());
+    }
+    
+    private RubricItem addLateNotesToRubricItem(RubricItem rubricItem, int daysLate, int maxLateDays){
+        Rubric.Results results = rubricItem.results();
+        results = new Rubric.Results(
+            makeLatePenaltyNotes(daysLate, maxLateDays, results.notes()),
+            results.score(),
+            results.rawScore(),
+            results.possiblePoints(),
+            results.testResults(),
+            results.textResults());
+        return new RubricItem(rubricItem.category(), results, rubricItem.criteria());
     }
 
     private Rubric.Results mergeResultsWithPrevious(Rubric.RubricType rubricType, Rubric.RubricItem rubricItem,
