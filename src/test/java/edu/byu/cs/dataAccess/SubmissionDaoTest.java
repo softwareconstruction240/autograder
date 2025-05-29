@@ -11,13 +11,17 @@ import edu.byu.cs.properties.ApplicationProperties;
 
 import org.junit.jupiter.api.*;
 
+import java.math.BigInteger;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Random;
 import java.util.Properties;
 
 class SubmissionDaoTest {
     static Random random;
     SubmissionDao dao;
+    int userID;
 
     Submission firstSubmission;
 
@@ -42,10 +46,11 @@ class SubmissionDaoTest {
     @BeforeEach
     void setup() {
         dao = new SubmissionSqlDao();
-        int cosmo_id = generateID();
+        userID = generateID();
+        System.out.print(generateRandomHash());
         //Submission table has a foreign key constraint, so we need to generate a user as well
-        User cosmo = generateStudentUser(cosmo_id);
-        firstSubmission = generateSubmission(cosmo_id);
+        User cosmo = generateStudentUser(userID);
+        firstSubmission = generateSubmission(userID);
         Assertions.assertDoesNotThrow(()-> new UserSqlDao().insertUser(cosmo));
         Assertions.assertDoesNotThrow(() -> dao.insertSubmission(firstSubmission));
     }
@@ -57,8 +62,13 @@ class SubmissionDaoTest {
     }
 
     @Test
-    @Disabled
     void insertSubmission() {
+        Submission newSubmission = generateSubmission(userID);
+        Assertions.assertDoesNotThrow(()-> dao.insertSubmission(newSubmission));
+        Assertions.assertDoesNotThrow(() -> {
+            Collection<Submission> submissions = dao.getSubmissionsForUser(generateNetID(userID));
+            Assertions.assertTrue(submissions.contains(newSubmission));
+        });
     }
 
     @Test
@@ -68,7 +78,7 @@ class SubmissionDaoTest {
 
     private User generateStudentUser(int id){
         return new User(
-                "cosmo_" + id,
+                generateNetID(id),
                 generateID(),
                 "Cosmo",
                 "Cougar",
@@ -77,15 +87,48 @@ class SubmissionDaoTest {
         );
     }
 
-    private Submission generateSubmission(int id) {
+    private Submission generateSubmission(int id){
+        return generateSubmission(
+                id,
+                random.nextInt(3),
+                random.nextBoolean(),
+                random.nextFloat(3.1415f),
+                generateRandomHash(),
+                Phase.Phase0
+        );
+    }
+
+    private Submission generateSubmission(int id, String hash){
+        return generateSubmission(
+                id,
+                random.nextInt(3),
+                random.nextBoolean(),
+                random.nextFloat(3.1415f),
+                hash,
+                Phase.Phase0
+        );
+    }
+
+    private Submission generateSubmission(int id, Phase phase){
+        return generateSubmission(
+                id,
+                random.nextInt(3),
+                random.nextBoolean(),
+                random.nextFloat(3.1415f),
+                generateRandomHash(),
+                phase
+        );
+    }
+
+    private Submission generateSubmission(int id, int daysOld, boolean passed, Float score, String hash, Phase phase) {
         return new Submission(
-                "cosmo_" + id,
+                generateNetID(id),
                 generateRepo(id),
-                "fc80e76ee5bfa331840bc75d1a5efec2cc7a874c",
-                Instant.now().minusSeconds(60L * random.nextInt(1, 100)),
-                Phase.Phase0,
-                true,
-                1.618f,
+                hash,
+                Instant.now().minusSeconds(60L * random.nextInt(1, 100)).minus(daysOld, ChronoUnit.DAYS),
+                phase,
+                passed,
+                score,
                 3.1415f,
                 "This is only a testing submission for Cosmo Cougar (#%s).".formatted(id),
                 null,
@@ -100,7 +143,22 @@ class SubmissionDaoTest {
         return random.nextInt();
     }
 
+    private String generateNetID(int id){
+        return "cosmo_" + id;
+    }
+
     private String generateRepo(int id){
         return "https://github.com/cosmo_%s/chess".formatted(id);
+    }
+
+    private String generateRandomHash(){
+        byte[] randomBytes = new byte[20];
+        random.nextBytes(randomBytes);
+        BigInteger no = new BigInteger(1,randomBytes);
+        StringBuilder hash = new StringBuilder(no.toString(16));
+        while (hash.length() < 40) {
+            hash.insert(0, "0");
+        }
+        return hash.toString();
     }
 }
