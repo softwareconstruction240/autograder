@@ -44,7 +44,9 @@ public interface SubmissionDao {
     Collection<Submission> getAllLatestSubmissions() throws DataAccessException;
 
     /**
-     * Gets the X most recent latest submissions
+     * Gets the X most recent latest submissions.
+     * <br>
+     * If a student has multiple submissions for a phase, this code will get the latest one.
      *
      * @param batchSize defines how many submissions to return. Set batchSize to a negative int to get All submissions
      * @return the most recent X submissions
