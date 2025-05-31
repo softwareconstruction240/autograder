@@ -9,6 +9,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * A utility class that provides methods for making HTTP Requests
+ */
 public class NetworkUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkUtils.class);
@@ -32,6 +35,7 @@ public class NetworkUtils {
 
     /**
      * Makes an HTTP Get request and returns the body text, or null if an error occurs.
+     *
      * @param url The URL to request.
      * @return A string or null.
      */
