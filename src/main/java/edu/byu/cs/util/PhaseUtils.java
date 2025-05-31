@@ -20,6 +20,13 @@ public class PhaseUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhaseUtils.class);
 
+    /**
+     * Determines whether the phase is enabled for student submission
+     *
+     * @param phase the phase to check
+     * @return a boolean indicating if the phase is enabled
+     * @throws DataAccessException if an occurred getting the configuration for the phase
+     */
     public static boolean isPhaseEnabled(Phase phase) throws DataAccessException {
         boolean phaseEnabled;
 
@@ -87,6 +94,14 @@ public class PhaseUtils {
                 Integer.class);
     }
 
+    /**
+     * Gets the Canvas rubric id for a given phase and rubric type
+     *
+     * @param type the rubric type (e.g. "Pass-off Tests", "Git Commits", "Code Quality")
+     * @param phase the phase to get the Canvas rubric id for
+     * @return the rubric id for the rubric item
+     * @throws DataAccessException if an error occurs getting the configuration for the rubric item
+     */
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws DataAccessException {
         if (!PhaseUtils.isPhaseGraded(phase)) {
             throw new IllegalArgumentException("No canvas rubric for ungraded phase: " + phase);
