@@ -116,6 +116,13 @@ public class PhaseUtils {
         return configItem.rubric_id();
     }
 
+    /**
+     * Gets the packages for where passoff tests for a given phase is
+     *
+     * @param phase the phase to get the passoff test packages for
+     * @return the packages for the passoff tests
+     * @throws GradingException if there aren't passoff tests for the given phase
+     */
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0 -> Set.of("passoff.chess", "passoff.chess.piece");
@@ -125,6 +132,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the packages for where student-written unit tests for a given phase is
+     *
+     * @param phase the phase to get the unit test packages for
+     * @return the packages for the unit tests
+     * @throws GradingException if there aren't unit tests for the given phase
+     */
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -134,6 +148,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the paths for where the student-written unit test packages for a given phase are
+     *
+     * @param phase the phase to get the unit test packages for
+     * @return the paths of the packages for the unit tests
+     */
     public static Set<String> unitTestPackagePaths(Phase phase) {
         return switch (phase) {
             case Phase0, Phase6, Quality, GitHub, Commits -> new HashSet<>();
