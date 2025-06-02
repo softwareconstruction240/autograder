@@ -149,10 +149,10 @@ public class PhaseUtils {
     }
 
     /**
-     * Gets the paths for where the student-written unit test packages for a given phase are
+     * Gets the paths for where the required test packages for a given phase are
      *
-     * @param phase the phase to get the unit test packages for
-     * @return the paths of the packages for the unit tests
+     * @param phase the phase to get the required test packages for
+     * @return the paths of the packages for the required tests for the phase
      */
     public static Set<String> unitTestPackagePaths(Phase phase) {
         return switch (phase) {
