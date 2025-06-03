@@ -164,6 +164,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the name of the class needed to unit test for a given phase
+     *
+     * @param phase the phase to determine what to unit test for
+     * @return the name of the class needed to unit test code
+     * @throws GradingException if the phase does not contain unit tests
+     */
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -173,6 +180,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the minimum number of unit tests required for a given phase
+     *
+     * @param phase the phase to get the number of unit tests for
+     * @return the minimum number of units required for the phase
+     * @throws GradingException if the phase does not contain unit tests
+     */
     public static int minUnitTests(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -182,6 +196,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the modules needed to check for code coverage while testing student-written unit tests
+     *
+     * @param phase the phase that contains unit tests to check code coverage for
+     * @return the module to check for code coverage
+     * @throws GradingException if the phase does not contain unit tests to check for code coverage
+     */
     public static Set<String> unitTestModulesToCheckCoverage(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -191,6 +212,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the module where tests are located for a particular phase
+     *
+     * @param phase the phase to test
+     * @return the module where tests are located or null if there aren't tests for the phase
+     */
     public static String getModuleUnderTest(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1 -> "shared";
@@ -200,6 +227,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines if the phase is graded and can modify a student's score in Canvas
+     *
+     * @param phase the phase to check
+     * @return a boolean indicating if the phase is enabled
+     */
     public static boolean isPhaseGraded(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, GitHub -> true;
