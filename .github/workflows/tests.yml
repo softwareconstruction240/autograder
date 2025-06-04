@@ -26,7 +26,7 @@ jobs:
         ports:
           - '3306:3306'
         options: >-
-          --health-cmd "mysqladmin ping -p${{ env.MYSQL_ROOT_PASSWORD }}" --health-interval 10s --health-start-period 10s --health-timeout 5s --health-retries 10
+          --health-cmd "mysqladmin ping -p${{ env.DB_PASS }}" --health-interval 10s --health-start-period 10s --health-timeout 5s --health-retries 10
 
     steps:
       - name: Checkout repository
