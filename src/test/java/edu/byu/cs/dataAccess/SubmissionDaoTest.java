@@ -8,7 +8,6 @@ import edu.byu.cs.dataAccess.sql.UserSqlDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ApplicationProperties;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,22 +42,12 @@ class SubmissionDaoTest {
     static final int DAY_RANGE = 7;
 
     /**
-     * In order to successfully run this test on your machine, you're going to need some environment variables
-     * <br>
-     * It's highly recommended that you use a different DB name than the one you use for development,
-     * as the tests will drop tables when they need to
+     * See {@link DaoTestUtils} for information about how to set up the SQL database for testing
      */
     @BeforeAll
     static void prepareDatabase() throws DataAccessException {
         random = new Random();
-        Properties props = new Properties();
-        props.setProperty("db-port", System.getenv("DB_PORT"));
-        props.setProperty("db-host", System.getenv("DB_HOST"));
-        props.setProperty("db-name", System.getenv("DB_NAME"));
-        props.setProperty("db-user", System.getenv("DB_USER"));
-        props.setProperty("db-pass", System.getenv("DB_PASS"));
-        ApplicationProperties.loadProperties(props);
-        SqlDb.setUpDb();
+        DaoTestUtils.prepareSQLDatabase();
     }
 
     static IntStream latestSubmissionRange() {

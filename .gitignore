@@ -42,3 +42,6 @@ build/
 /phases/
 /commit-cache/
 src/test/resources/gitTestRepos/
+
+### .env files ###
+*.env
