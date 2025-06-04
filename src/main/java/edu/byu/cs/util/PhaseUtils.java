@@ -254,16 +254,36 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets any extra credit tests for a given phase
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return all extra credit tests associated with the phase
+     */
     public static Set<String> extraCreditTests(Phase phase) {
         if(phase == Phase.Phase1) return Set.of("CastlingTests", "EnPassantTests");
         return new HashSet<>();
     }
 
+    /**
+     * Provides the value (as a float) to assign to extra credit tests given the phase
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return the value to assign to extra credit tests if any, otherwise returns zero
+     */
     public static float extraCreditValue(Phase phase) {
         if(phase == Phase.Phase1) return .04f;
         return 0;
     }
 
+    /**
+     * Gets the {@link CommitVerificationConfig} for a given phase
+     *
+     * @param phase the phase to check regarding commit verification
+     * @return several values regarding the commit verification system as a {@link CommitVerificationConfig}
+     * @throws GradingException if there was an error getting the git commit config
+     * or there is no commit verification for the given phase
+     */
     public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
         int minimumLinesChanged;
@@ -285,6 +305,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should require a TA passoff if a student submits that
+     * phase with insufficient commits
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating whether the phase requires TA passoff
+     */
     public static boolean requiresTAPassoffForCommits(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
@@ -292,6 +319,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should count and verify commits when submitted
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating if the phase should count and verify commits
+     */
     public static boolean shouldVerifyCommits(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, GitHub -> true;
