@@ -10,6 +10,23 @@ jobs:
   maven-tests:
     name: "Run tests with Maven"
     runs-on: ubuntu-latest
+    env: 
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_NAME: test
+      DB_USER: root
+      DB_PASS: root
+
+    services:
+      mysql:
+        image: mysql:9.0.1
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASS }}
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
+        ports:
+          - '3306:3306'
+        options: >-
+          --health-cmd "mysqladmin ping -p${{ env.MYSQL_ROOT_PASSWORD }}" --health-interval 10s --health-start-period 10s --health-timeout 5s --health-retries 10
 
     steps:
       - name: Checkout repository
