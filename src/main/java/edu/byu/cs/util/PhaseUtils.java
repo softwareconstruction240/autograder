@@ -332,6 +332,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should get a penalty for insufficient commits when submitted
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating if the phase has a commit penalty
+     */
     public static boolean phaseHasCommitPenalty(Phase phase) {
         return switch (phase) {
             case GitHub, Quality, Commits -> false;
@@ -339,6 +345,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Converts a string representing a phase to a {@link Phase} enum
+     *
+     * @param phaseString the string representing the phase
+     * @return the {@link Phase} enum converted from the {@code phaseString}
+     * @throws IllegalArgumentException if the string could not be converted to a phase
+     */
     public static Phase getPhaseFromString(String phaseString) throws IllegalArgumentException {
         phaseString = phaseString.toLowerCase().replaceAll("\\s", "");
         if (phaseString.contains("phase0")) {
@@ -359,6 +372,12 @@ public class PhaseUtils {
         throw new IllegalArgumentException("Could not convert string to phase given '" + phaseString + "'");
     }
 
+    /**
+     * Gets the {@link Rubric.RubricType} items needed for a given phase for grading
+     *
+     * @param phase the phase to grade
+     * @return the {@link Rubric.RubricType} items for the provided phase
+     */
     public static Collection<Rubric.RubricType> getRubricTypesFromPhase(Phase phase) {
         return switch (phase) {
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
@@ -370,6 +389,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets a {@link ConfigurationDao.Configuration} key used to get the assignment number
+     * for a given phase in Canvas
+     *
+     * @param phase the phase to be graded
+     * @return a {@link ConfigurationDao.Configuration} enum key used to get the assignment number
+     */
     public static ConfigurationDao.Configuration getConfigurationAssignmentNumber(Phase phase) {
         return switch (phase) {
             case GitHub -> ConfigurationDao.Configuration.GITHUB_ASSIGNMENT_NUMBER;
