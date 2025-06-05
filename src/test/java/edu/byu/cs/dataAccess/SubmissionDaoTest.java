@@ -51,7 +51,11 @@ class SubmissionDaoTest {
     }
 
     static IntStream latestSubmissionRange() {
-        return IntStream.rangeClosed(-1, phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE + 1);
+        return IntStream.concat(
+                IntStream.rangeClosed(-1, phases.length + 1),
+                IntStream.of(phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE +1)
+        );
+        //return IntStream.rangeClosed(-1, phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE + 1);
     }
 
     static IntStream dayTestRange() {
