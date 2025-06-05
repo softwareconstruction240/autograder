@@ -39,7 +39,7 @@ class SubmissionDaoTest {
     int userID;
     static final int NUM_STUDENTS = 2;
     static final int SUBMISSIONS_PER_PHASE = 2;
-    static final int DAY_RANGE = 7;
+    static final int DAY_RANGE = 3;
 
     /**
      * See {@link DaoTestUtils} for information about how to set up the SQL database for testing
@@ -341,15 +341,13 @@ class SubmissionDaoTest {
         Submission finalDoesNotExist = doesNotExist;
 
         Assertions.assertThrows(ItemNotFoundException.class,
-                () -> {
-                    dao.manuallyApproveSubmission(
-                            finalDoesNotExist,
-                            100.4f,
-                            new Submission.ScoreVerification(3.1415f,
-                                    "cosmo_not",
-                                    Instant.now(),
-                                    50));
-                },
+                () -> dao.manuallyApproveSubmission(
+                        finalDoesNotExist,
+                        100.4f,
+                        new Submission.ScoreVerification(3.1415f,
+                                "cosmo_not",
+                                Instant.now(),
+                                50)),
                 "Did not throw ItemNotFoundException when trying to approve a non-existent submission");
     }
 
