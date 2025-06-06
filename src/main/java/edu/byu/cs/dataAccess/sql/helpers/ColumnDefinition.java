@@ -8,7 +8,7 @@ package edu.byu.cs.dataAccess.sql.helpers;
  * @param columnName The case-sensitive column name in the table
  * @param accessor A method that returns the value belonging in this column.
  *                 Note that only some types are recognized.
- * @param <T> The type of object that will be stored in the column.
+ * @param <T> The type of object whose values will be stored in the column.
  */
 public record ColumnDefinition <T> (
     String columnName,
