@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A utility class that provides methods for several phase-related operations
+ */
 public class PhaseUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhaseUtils.class);
