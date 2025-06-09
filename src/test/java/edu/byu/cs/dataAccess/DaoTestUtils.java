@@ -31,9 +31,9 @@ public class DaoTestUtils {
             props.setProperty("db-user", System.getenv("DB_USER"));
             props.setProperty("db-pass", System.getenv("DB_PASS"));
         } catch (NullPointerException e){
-            System.out.println("Unable to find environment variables. Switching to reading \'testdb.env\'...");
+            System.out.println("Unable to find environment variables. Switching to reading 'testdb.env'...");
             try(FileReader reader = new FileReader("testdb.env");
-            Scanner scanner = new Scanner(reader);) {
+            Scanner scanner = new Scanner(reader)) {
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
                     String[] values = line.split("=");
