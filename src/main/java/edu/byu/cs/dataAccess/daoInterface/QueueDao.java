@@ -5,6 +5,9 @@ import edu.byu.cs.model.QueueItem;
 
 import java.util.Collection;
 
+/**
+ * A data access object interface for {@link QueueItem} objects, items on the queue to be graded
+ */
 public interface QueueDao {
     /**
      * Adds an item to the queue

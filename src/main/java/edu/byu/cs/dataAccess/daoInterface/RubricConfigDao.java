@@ -5,6 +5,10 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 
+/**
+ * A data access object interface for {@link RubricConfig} objects to maintain the configuration
+ * for rubric items for a particular phase
+ */
 public interface RubricConfigDao {
 
     /**
