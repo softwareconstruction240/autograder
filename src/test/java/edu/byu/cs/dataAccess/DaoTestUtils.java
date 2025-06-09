@@ -20,7 +20,7 @@ public class DaoTestUtils {
      *     <li>DB_PASS</li>
      * </ul>
      * It's highly recommended that you use a different DB name than the one you use for development,
-     * as the tests will drop tables when they need to
+     * as the tests will truncate tables when necessary
      */
     static void prepareSQLDatabase() throws DataAccessException{
         Properties props = new Properties();
