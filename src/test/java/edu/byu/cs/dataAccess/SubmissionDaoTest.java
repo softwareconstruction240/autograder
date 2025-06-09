@@ -40,6 +40,7 @@ class SubmissionDaoTest {
     static final int NUM_STUDENTS = 2;
     static final int SUBMISSIONS_PER_PHASE = 2;
     static final int DAY_RANGE = 3;
+    static final float RAW_SCORE_MAX = 3.1415f;
 
     /**
      * See {@link DaoTestUtils} for information about how to set up the SQL database for testing
@@ -281,7 +282,7 @@ class SubmissionDaoTest {
     void getBestSubmissionWithDuplicateScore(Phase phase) throws DataAccessException {
         Collection<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
-            Submission duplicate = generateSubmission(userID, true, 3.1415f, phase);
+            Submission duplicate = generateSubmission(userID, true, RAW_SCORE_MAX, phase);
             Assertions.assertDoesNotThrow(() -> dao.insertSubmission(duplicate),
                     "Could not insert submission");
             submissions.add(duplicate);
@@ -344,7 +345,7 @@ class SubmissionDaoTest {
                 () -> dao.manuallyApproveSubmission(
                         finalDoesNotExist,
                         100.4f,
-                        new Submission.ScoreVerification(3.1415f,
+                        new Submission.ScoreVerification(RAW_SCORE_MAX,
                                 "cosmo_not",
                                 Instant.now(),
                                 50)),
@@ -400,7 +401,7 @@ class SubmissionDaoTest {
         return generateSubmission(
                 id,
                 passed,
-                random.nextFloat(3.1415f),
+                random.nextFloat(RAW_SCORE_MAX),
                 phase
         );
     }
@@ -409,7 +410,7 @@ class SubmissionDaoTest {
         return generateSubmission(
                 id,
                 random.nextBoolean(),
-                random.nextFloat(3.1415f),
+                random.nextFloat(RAW_SCORE_MAX),
                 phase
         );
     }
@@ -424,7 +425,7 @@ class SubmissionDaoTest {
                 phase,
                 passed,
                 score,
-                3.1415f,
+                RAW_SCORE_MAX,
                 "This is only a testing submission for Cosmo Cougar (#%s).".formatted(id),
                 null,
                 true,
