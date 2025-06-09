@@ -11,7 +11,9 @@ public class DaoTestUtils {
 
     /**
      * In order to successfully run these tests on your machine, you're going to need either some environment
-     * variables, or a file containing them named 'testdb.env'. You'll need the following values:
+     * variables, or a file containing them named 'testdb.env' at the root of the project.
+     * An example of what the file looks like has been provided at 'testdb.example.env'
+     * You'll need the following values:
      * <ul>
      *     <li>DB_HOST</li>
      *     <li>DB_PORT</li>
