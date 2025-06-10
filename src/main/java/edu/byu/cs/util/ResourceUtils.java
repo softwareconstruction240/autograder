@@ -14,6 +14,27 @@ import java.util.jar.JarFile;
 
 public class ResourceUtils {
 
+    /**
+     * The main entry point of the {@link ResourceUtils} class. This method copies
+     * resource files from {@code origin} to {@code destinationDir} based on whether
+     * the app is running from a JAR or not.
+     * <br>
+     * More precisely, this method performs the following steps:
+     * <ol>
+     *     <li>Deletes any existing resource files at the target location (<code>destinationDir</code>)</li>
+     *     <li>Gets the path where this class was loaded from (e.g., the JAR or <code>/target/classes/</code></li>
+     *     <li>
+     *         Depending on the path the class was loaded from, this method calls:
+     *         <ul>
+     *             <li>{@link ResourceUtils#copyResourceFilesJar(String, String, File)} (running from a JAR)</li>
+     *             <li>{@link ResourceUtils#copyResourceFilesNormal(String, File)} (running from a dev environment)</li>
+     *         </ul>
+     *     </li>
+     * </ol>
+     *
+     * @param origin the file/folder to copy
+     * @param destinationDir the directory to copy into
+     */
     public static void copyResourceFiles(String origin, File destinationDir) {
         FileUtils.removeDirectory(new File(destinationDir, origin));
         String codeSource = ResourceUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
