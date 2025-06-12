@@ -1,12 +1,13 @@
 package edu.byu.cs.dataAccess.sql;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -34,8 +35,11 @@ public class SqlDb {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlDb.class);
 
+    private static HikariDataSource dataSource;
+
     public static void setUpDb() throws DataAccessException {
-        try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
+        setupConnectionPool();
+        try (Connection connection = getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
             connection.setCatalog(DB_NAME);
@@ -133,10 +137,21 @@ public class SqlDb {
         }
     }
 
+    private static void setupConnectionPool(){
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(CONNECTION_STRING);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASSWORD);
+        config.setCatalog(DB_NAME);
+
+        //TODO: tune the connection pool here
+
+        dataSource = new HikariDataSource(config);
+    }
+
     public static Connection getConnection() throws DataAccessException {
         try {
-            Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
-            connection.setCatalog(DB_NAME);
+            Connection connection = dataSource.getConnection();
             return connection;
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
