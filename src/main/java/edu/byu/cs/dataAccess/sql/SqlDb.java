@@ -144,15 +144,18 @@ public class SqlDb {
         config.setPassword(DB_PASSWORD);
         config.setCatalog(DB_NAME);
 
-        //TODO: tune the connection pool here
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit","2048");
+
+
 
         dataSource = new HikariDataSource(config);
     }
 
     public static Connection getConnection() throws DataAccessException {
         try {
-            Connection connection = dataSource.getConnection();
-            return connection;
+            return dataSource.getConnection();
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
 
