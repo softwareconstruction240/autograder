@@ -24,6 +24,12 @@ public class Serializer {
             .registerTypeAdapter(CanvasRubricAssessment.class, new RubricAssessmentAdapter())
             .create();
 
+    /**
+     * Serializes an object to a JSON string
+     *
+     * @param obj the object to serialize
+     * @return the JSON string
+     */
     public static String serialize(Object obj) {
         try {
             return GSON.toJson(obj);
@@ -32,6 +38,14 @@ public class Serializer {
         }
     }
 
+    /**
+     * Serializes an object to a JSON string, preserving generic type information.
+     * See {@link Gson#toJson(Object, Type)} for more information.
+     *
+     * @param obj the object to serialize
+     * @param type the object's genericized type
+     * @return the JSON string
+     */
     public static String serialize(Object obj, Type type) {
         try {
             return GSON.toJson(obj, type);
@@ -40,14 +54,40 @@ public class Serializer {
         }
     }
 
+    /**
+     * Safely deserializes, allowing {@code jsonStr} to be null, a JSON string into an
+     * object of the specified class
+     *
+     * @param jsonStr the JSON string
+     * @param classOfT the class of T
+     * @return an object of type T from the JSON string
+     * @param <T> the type of object to deserialize into
+     */
     public static <T> T deserializeSafely(String jsonStr, Class<T> classOfT) {
         if (jsonStr == null) return null;
         return deserialize(jsonStr, classOfT);
     }
 
+    /**
+     * Deserializes a {@link JsonElement} into an object of the specified class
+     *
+     * @param jsonElement the {@link JsonElement}
+     * @param classOfT the class of T
+     * @return an object of type T from the {@link JsonElement}
+     * @param <T> the type of object to deserialize into
+     */
     public static <T> T deserialize(JsonElement jsonElement, Class<T> classOfT) {
         return deserialize(jsonElement.toString(), classOfT);
     }
+
+    /**
+     * Deserializes a JSON string into an object of the specified class
+     *
+     * @param jsonStr the JSON string
+     * @param classOfT the class of T
+     * @return an object of type T from the JSON string
+     * @param <T> the type of object to deserialize into
+     */
     public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
         try {
             return GSON.fromJson(jsonStr, classOfT);
@@ -56,6 +96,16 @@ public class Serializer {
         }
     }
 
+    /**
+     * Deserializes a JSON string into an object of the specified type.
+     * This method is useful if the specified object is a generic type.
+     * See {@link Gson#fromJson(String, Type)} for more information.
+     *
+     * @param jsonStr the JSON string
+     * @param targetType the object's genericized type
+     * @return an object of the specified type from the JSON string
+     * @param <T> the type of object to deserialize into
+     */
     public static <T> T deserialize(String jsonStr, Type targetType) {
         try {
             return GSON.fromJson(jsonStr, targetType);
@@ -64,6 +114,15 @@ public class Serializer {
         }
     }
 
+    /**
+     * Deserializes JSON from a {@link Reader} into an object of the specified class.
+     * See {@link Gson#fromJson(Reader, Class)} for more information.
+     *
+     * @param reader a {@link Reader} containing the JSON
+     * @param classOfT the class of T
+     * @return an object of type T read from the JSON
+     * @param <T> the type of object to deserialize into
+     */
     public static <T> T deserialize(Reader reader, Class<T> classOfT) {
         try {
             return GSON.fromJson(reader, classOfT);
