@@ -57,7 +57,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
 
         Phase currPhase = context.phase();
         do {
-            for (String unitTestPackagePath : PhaseUtils.unitTestPackagePaths(currPhase)) {
+            for (String unitTestPackagePath : PhaseUtils.requiredTestPackagePaths(currPhase)) {
                 File packageDirectory = new File(context.stageRepo(), unitTestPackagePath);
                 if (!packageDirectory.isDirectory()) {
                     missingPackages.add(unitTestPackagePath);
