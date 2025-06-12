@@ -17,6 +17,12 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A serializer used to convert to and from JSON, while also providing additional functionality.
+ * This added functionality provides for features such as ensuring null-safety and using type
+ * adapters for Java object classes such as {@link Instant}, {@link ZonedDateTimeAdapter},
+ * and {@link RubricAssessmentAdapter}
+ */
 public class Serializer {
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Instant.class, new InstantAdapter())
@@ -193,6 +199,9 @@ public class Serializer {
         protected abstract T readNotNull(JsonReader jsonReader) throws IOException;
     }
 
+    /**
+     * A {@link NullSafeTypeAdapter} that can read and parse {@link Instant} objects from JSON
+     */
     private static class InstantAdapter extends NullSafeTypeAdapter<Instant> {
         @Override
         protected Instant readNotNull(JsonReader jsonReader) throws IOException {
@@ -200,6 +209,9 @@ public class Serializer {
         }
     }
 
+    /**
+     * A {@link NullSafeTypeAdapter} that can read and parse {@link ZonedDateTime} objects from JSON
+     */
     private static class ZonedDateTimeAdapter extends NullSafeTypeAdapter<ZonedDateTime> {
         @Override
         protected ZonedDateTime readNotNull(JsonReader jsonReader) throws IOException {
