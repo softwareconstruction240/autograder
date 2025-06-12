@@ -131,13 +131,18 @@ public class Serializer {
         }
     }
 
+    /**
+     * Thrown whenever an issue arises during serialization/deserialization
+     */
     public static class SerializationException extends RuntimeException {
         public SerializationException(Throwable cause) {
             super(cause);
         }
     }
 
-
+    /**
+     * A custom JSON deserializer to deserialize JSON into {@link CanvasRubricAssessment} objects
+     */
     private static class RubricAssessmentAdapter implements JsonDeserializer<CanvasRubricAssessment> {
         @Override
         public CanvasRubricAssessment deserialize(JsonElement jsonElement, Type type,
@@ -161,6 +166,11 @@ public class Serializer {
         }
     }
 
+    /**
+     * A type adapter that allows for Java objects/JSON tokens to potentially be null
+     *
+     * @param <T> The type of object convert
+     */
     private abstract static class NullSafeTypeAdapter<T> extends TypeAdapter<T> {
         @Override
         public void write(JsonWriter jsonWriter, T t) throws IOException {
