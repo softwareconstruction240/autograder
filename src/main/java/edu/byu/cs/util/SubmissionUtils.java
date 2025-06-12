@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.HashSet;
 
 /**
- * A utility class the provides methods for getting the hash of the HEAD of a remote repository
+ * A utility class that provides methods for getting the hash of the HEAD of a remote repository
  * and approving submissions
  */
 public class SubmissionUtils {
