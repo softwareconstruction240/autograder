@@ -89,7 +89,7 @@ public class TestLocationVerifier implements StudentCodeVerifier {
 
     /**
      * Check that the provided test directory contains any unexpected test packages
-     * (not one of client, server, dataaccess, passoff) as specified above. If there
+     * (not one of client, service, dataaccess, passoff) as specified above. If there
      * is an unrecognized package, add it to a list and verify the unrecognized package.
      * @param testJavaDirectory File to a test/java directory under a given module
      */

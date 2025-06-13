@@ -16,10 +16,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A utility class that provides methods for several phase-related operations
+ */
 public class PhaseUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhaseUtils.class);
 
+    /**
+     * Determines whether the phase is enabled for student submission
+     *
+     * @param phase the phase to check
+     * @return a boolean indicating if the phase is enabled
+     * @throws DataAccessException if an occurred getting the configuration for the phase
+     */
     public static boolean isPhaseEnabled(Phase phase) throws DataAccessException {
         boolean phaseEnabled;
 
@@ -87,6 +97,14 @@ public class PhaseUtils {
                 Integer.class);
     }
 
+    /**
+     * Gets the Canvas rubric id for a given phase and rubric type
+     *
+     * @param type the rubric type (e.g. "Pass-off Tests", "Git Commits", "Code Quality")
+     * @param phase the phase to get the Canvas rubric id for
+     * @return the rubric id for the rubric item
+     * @throws DataAccessException if an error occurs getting the configuration for the rubric item
+     */
     public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws DataAccessException {
         if (!PhaseUtils.isPhaseGraded(phase)) {
             throw new IllegalArgumentException("No canvas rubric for ungraded phase: " + phase);
@@ -101,6 +119,13 @@ public class PhaseUtils {
         return configItem.rubric_id();
     }
 
+    /**
+     * Gets the packages for where passoff tests for a given phase is
+     *
+     * @param phase the phase to get the passoff test packages for
+     * @return the packages for the passoff tests
+     * @throws GradingException if there aren't passoff tests for the given phase
+     */
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0 -> Set.of("passoff.chess", "passoff.chess.piecemoves");
@@ -110,6 +135,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the packages for where student-written unit tests for a given phase is
+     *
+     * @param phase the phase to get the unit test packages for
+     * @return the packages for the unit tests
+     * @throws GradingException if there aren't unit tests for the given phase
+     */
     public static Set<String> unitTestPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -119,6 +151,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the paths for where the required test packages for a given phase are
+     *
+     * @param phase the phase to get the required test packages for
+     * @return the paths of the packages for the required tests for the phase
+     */
     public static Set<String> requiredTestPackagePaths(Phase phase) {
         return switch (phase) {
             case Phase0, Phase6, Quality, GitHub, Commits -> new HashSet<>();
@@ -129,6 +167,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the name of the class needed to unit test for a given phase
+     *
+     * @param phase the phase to determine what to unit test for
+     * @return the name of the class needed to unit test code
+     * @throws GradingException if the phase does not contain unit tests
+     */
     public static String unitTestCodeUnderTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -138,6 +183,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the minimum number of unit tests required for a given phase
+     *
+     * @param phase the phase to get the number of unit tests for
+     * @return the minimum number of units required for the phase
+     * @throws GradingException if the phase does not contain unit tests
+     */
     public static int minUnitTests(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -147,6 +199,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the modules needed to check for code coverage while testing student-written unit tests
+     *
+     * @param phase the phase that contains unit tests to check code coverage for
+     * @return the module to check for code coverage
+     * @throws GradingException if the phase does not contain unit tests to check for code coverage
+     */
     public static Set<String> unitTestModulesToCheckCoverage(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0, Phase1, Phase6, Quality, GitHub, Commits -> throw new GradingException("No unit tests for this phase");
@@ -156,6 +215,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets the module where tests are located for a particular phase
+     *
+     * @param phase the phase to test
+     * @return the module where tests are located or null if there aren't tests for the phase
+     */
     public static String getModuleUnderTest(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1 -> "shared";
@@ -165,6 +230,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines if the phase is graded and can modify a student's score in Canvas
+     *
+     * @param phase the phase to check
+     * @return a boolean indicating if the phase is enabled
+     */
     public static boolean isPhaseGraded(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, GitHub -> true;
@@ -186,16 +257,36 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets any extra credit tests for a given phase
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return all extra credit tests associated with the phase
+     */
     public static Set<String> extraCreditTests(Phase phase) {
         if(phase == Phase.Phase1) return Set.of("CastlingTests", "EnPassantTests");
         return new HashSet<>();
     }
 
+    /**
+     * Provides the value (as a float) to assign to extra credit tests given the phase
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return the value to assign to extra credit tests if any, otherwise returns zero
+     */
     public static float extraCreditValue(Phase phase) {
         if(phase == Phase.Phase1) return .04f;
         return 0;
     }
 
+    /**
+     * Gets the {@link CommitVerificationConfig} for a given phase
+     *
+     * @param phase the phase to check regarding commit verification
+     * @return several values regarding the commit verification system as a {@link CommitVerificationConfig}
+     * @throws GradingException if there was an error getting the git commit config
+     * or there is no commit verification for the given phase
+     */
     public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
         ConfigurationDao dao = DaoService.getConfigurationDao();
         int minimumLinesChanged;
@@ -217,6 +308,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should require a TA passoff if a student submits that
+     * phase with insufficient commits
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating whether the phase requires TA passoff
+     */
     public static boolean requiresTAPassoffForCommits(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6 -> true;
@@ -224,6 +322,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should count and verify commits when submitted
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating if the phase should count and verify commits
+     */
     public static boolean shouldVerifyCommits(Phase phase) {
         return switch (phase) {
             case Phase0, Phase1, Phase3, Phase4, Phase5, Phase6, GitHub -> true;
@@ -231,6 +335,12 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Determines whether the phase should get a penalty for insufficient commits when submitted
+     *
+     * @param phase the phase to determine
+     * @return a boolean indicating if the phase has a commit penalty
+     */
     public static boolean phaseHasCommitPenalty(Phase phase) {
         return switch (phase) {
             case GitHub, Quality, Commits -> false;
@@ -238,6 +348,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Converts a string representing a phase to a {@link Phase} enum
+     *
+     * @param phaseString the string representing the phase
+     * @return the {@link Phase} enum converted from the {@code phaseString}
+     * @throws IllegalArgumentException if the string could not be converted to a phase
+     */
     public static Phase getPhaseFromString(String phaseString) throws IllegalArgumentException {
         phaseString = phaseString.toLowerCase().replaceAll("\\s", "");
         if (phaseString.contains("phase0")) {
@@ -258,6 +375,12 @@ public class PhaseUtils {
         throw new IllegalArgumentException("Could not convert string to phase given '" + phaseString + "'");
     }
 
+    /**
+     * Gets the {@link Rubric.RubricType} items needed for a given phase for grading
+     *
+     * @param phase the phase to grade
+     * @return the {@link Rubric.RubricType} items for the provided phase
+     */
     public static Collection<Rubric.RubricType> getRubricTypesFromPhase(Phase phase) {
         return switch (phase) {
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
@@ -269,6 +392,13 @@ public class PhaseUtils {
         };
     }
 
+    /**
+     * Gets a {@link ConfigurationDao.Configuration} key used to get the assignment number
+     * for a given phase in Canvas
+     *
+     * @param phase the phase to be graded
+     * @return a {@link ConfigurationDao.Configuration} enum key used to get the assignment number
+     */
     public static ConfigurationDao.Configuration getConfigurationAssignmentNumber(Phase phase) {
         return switch (phase) {
             case GitHub -> ConfigurationDao.Configuration.GITHUB_ASSIGNMENT_NUMBER;
