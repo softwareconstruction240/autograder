@@ -1,79 +1,160 @@
 package edu.byu.cs.service;
 
-import com.google.gson.JsonObject;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
-import edu.byu.cs.canvas.model.CanvasAssignment;
-import edu.byu.cs.dataAccess.ConfigurationDao;
-import edu.byu.cs.dataAccess.ConfigurationDao.Configuration;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao.Configuration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
 import edu.byu.cs.util.PhaseUtils;
-import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.ConfigController}.
+ * <br><br>
+ * The {@code ConfigService} provides many of the features relating to getting, generating,
+ * and updating several configurable items. Such items include:
+ * <ul>
+ *     <li>A banner message to show users when they access the AutoGrader</li>
+ *     <li>When to shutdown the AutoGrader</li>
+ *     <li>What days the AutoGrader should regard as holidays</li>
+ *     <li>The live phases students are allowed to submit to</li>
+ *     <li>The penalties that should be applied for insufficient commits and late submissions</li>
+ *     <li>The course id and Canvas assignments to allow the AutoGrader to access Canvas
+ *     and update grades</li>
+ * </ul>
+ */
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final ConfigurationDao dao = DaoService.getConfigurationDao();
 
+    /**
+     * Gets the configuration values that can be read by any user. See {@link PublicConfig}
+     * for more information on the configuration values.
+     *
+     * @return a {@link PublicConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
+     */
+    public static PublicConfig getPublicConfig() throws DataAccessException {
+        String phasesString = dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class);
 
-    private static void logConfigChange(String changeMessage, String adminNetId) {
-        LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
-    }
+        List<Phase> phases;
+        if (phasesString != null && !phasesString.isEmpty() && !phasesString.equals("[]")) {
+            String cleanString = phasesString
+                    .replace("[", "")
+                    .replace("]", "");
 
-    private static void logAutomaticConfigChange(String changeMessage) {
-        LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
+            if (!cleanString.isEmpty()) {
+                phases = Arrays.stream(cleanString.split(","))
+                        .map(String::trim)
+                        .map(Phase::valueOf)
+                        .toList();
+            } else {
+                phases = new ArrayList<>();
+            }
+        } else {
+            phases = new ArrayList<>();
+        }
+
+        return new PublicConfig(
+                generateBannerConfig(),
+                generateShutdownConfig(),
+                phases
+        );
     }
 
     /**
-     * Edits in place the passed in response object
+     * Gets the configuration values that only admins should see. See {@link PrivateConfig}
+     * for more information on the configuration values.
      *
-     * @param response the Json Object to add banner info to
-     * @throws DataAccessException if it screws up while getting into the database
+     * @return a {@link PrivateConfig} with the configuration values
+     * @throws DataAccessException if an issue arises getting the configuration values in the database
      */
-    private static void addBannerConfig(JsonObject response) throws DataAccessException {
-        Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
+    public static PrivateConfig getPrivateConfig() throws DataAccessException {
+        return new PrivateConfig(
+                generatePenaltyConfig(),
+                dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
+                generateAssignmentsConfig(),
+                generateHolidayConfig()
+        );
+    }
 
+    //
+    // PUBLIC CONFIG GENERATORS
+    //
+    private static PublicConfig.BannerConfig generateBannerConfig() throws DataAccessException {
+        Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
         if (bannerExpiration.isBefore(Instant.now())) { //Banner has expired
             clearBannerConfig();
         }
 
-        if (bannerExpiration.equals(Instant.MAX)) { //shutdown is not set
-            response.addProperty("bannerExpiration", "never");
-        } else {
-            response.addProperty("bannerExpiration", bannerExpiration.toString());
+        return new PublicConfig.BannerConfig(
+                dao.getConfiguration(Configuration.BANNER_MESSAGE, String.class),
+                dao.getConfiguration(Configuration.BANNER_LINK, String.class),
+                dao.getConfiguration(Configuration.BANNER_COLOR, String.class),
+                translateInstantForFrontEnd(bannerExpiration)
+        );
+    }
+
+    private static PublicConfig.ShutdownConfig generateShutdownConfig() throws DataAccessException {
+        checkForShutdown();
+
+        return new PublicConfig.ShutdownConfig(
+                translateInstantForFrontEnd(dao.getConfiguration(Configuration.GRADER_SHUTDOWN_DATE, Instant.class)),
+                dao.getConfiguration(Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class)
+        );
+    }
+
+    //
+    // PRIVATE CONFIG GENERATORS
+    //
+    private static PrivateConfig.PenaltyConfig generatePenaltyConfig() throws DataAccessException {
+        return new PrivateConfig.PenaltyConfig(
+                dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class),
+                dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class),
+                dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class),
+                dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class),
+                dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class)
+        );
+    }
+
+    public static ArrayList<PrivateConfig.AssignmentConfig> generateAssignmentsConfig() throws DataAccessException {
+        ArrayList<PrivateConfig.AssignmentConfig> assignments = new ArrayList<>();
+        for (Phase phase : Phase.values()) {
+            if (!isPhaseGraded(phase)) continue;
+
+            int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
+            EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
+
+            assignments.add(new PrivateConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
         }
-
-        response.addProperty("bannerMessage", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_MESSAGE, String.class));
-        response.addProperty("bannerLink", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_LINK, String.class));
-        response.addProperty("bannerColor", dao.getConfiguration(ConfigurationDao.Configuration.BANNER_COLOR, String.class));
+        return assignments;
     }
 
-    private static void addPenaltyConfig(JsonObject response) throws DataAccessException {
-        response.addProperty("perDayLatePenalty", dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class));
-        response.addProperty("gitCommitPenalty", dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class));
-        response.addProperty("maxLateDaysPenalized", dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class));
-        response.addProperty("linesChangedPerCommit", dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class));
-        response.addProperty("clockForgivenessMinutes", dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class));
+    public static String[] generateHolidayConfig() throws DataAccessException {
+        String encodedDates = dao.getConfiguration(Configuration.HOLIDAY_LIST, String.class);
+
+        if (Objects.equals(encodedDates, "")) {
+            return new String[0];
+        }
+        return encodedDates.split(";");
     }
 
+    //
+    // CONFIG SETTERS
+    //
     private static void clearBannerConfig() throws DataAccessException {
         dao.setConfiguration(Configuration.BANNER_MESSAGE, "", String.class);
         dao.setConfiguration(Configuration.BANNER_LINK, "", String.class);
@@ -83,71 +164,27 @@ public class ConfigService {
         logAutomaticConfigChange("Banner message has expired");
     }
 
-    public static JsonObject getPublicConfig() throws DataAccessException {
-        checkForShutdown();
-
-        JsonObject response = new JsonObject();
-
-        addBannerConfig(response);
-        response.addProperty("phases", dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class));
-
-        Instant shutdownTimestamp = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
-        if (shutdownTimestamp.isBefore(Instant.now())) { //shutdown time has passed
-            clearShutdownSchedule();
-        }
-
-        if (shutdownTimestamp.equals(Instant.MAX)) { //shutdown is not set
-            response.addProperty("shutdownSchedule", "never");
-        } else {
-            response.addProperty("shutdownSchedule", shutdownTimestamp.toString());
-        }
-
-        response.addProperty("shutdownWarningMilliseconds", dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_WARNING_MILLISECONDS, Integer.class));
-
-        return response;
-    }
-
-    public static JsonObject getPrivateConfig() throws DataAccessException {
-        Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
-        Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo = new EnumMap<>(Phase.class);
-
-        for (Phase phase : Phase.values()) {
-            if (!isPhaseGraded(phase)) continue;
-            Integer assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
-            assignmentIds.put(phase, assignmentId);
-            if (rubricInfo.get(phase) == null) {
-                rubricInfo.put(phase, new EnumMap<>(Rubric.RubricType.class));
-            }
-            var rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
-            for (Rubric.RubricType type : rubricConfigItems.keySet()) {
-                RubricConfig.RubricConfigItem item = rubricConfigItems.get(type);
-                if (item == null) continue;
-                rubricInfo.get(phase).put(
-                        type,
-                        new CanvasAssignment.CanvasRubric(item.rubric_id(), item.points(), null)
-                );
-            }
-        }
-
-        JsonObject response = getPublicConfig();
-        addPenaltyConfig(response);
-
-        int courseNumber = dao.getConfiguration(
-                Configuration.COURSE_NUMBER,
-                Integer.class
-        );
-        response.addProperty("courseNumber", courseNumber);
-        response.addProperty("assignmentIds", Serializer.serialize(assignmentIds));
-        response.addProperty("rubricInfo", Serializer.serialize(rubricInfo));
-        return response;
-    }
-
+    /**
+     * Update what phases students are able to submit for
+     *
+     * @param phasesArray the list of phases that should be counted as live
+     * @param user the user who updated the list of live phases
+     * @throws DataAccessException if there was an issue updating the live phases in the database
+     */
     public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
         dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
     }
 
+    /**
+     * Set the amount of time the AutoGrader should warn students before shutting down
+     *
+     * @param user the user who set the shutdown warning duration
+     * @param warningMilliseconds the number of milliseconds to set the shutdown warning duration
+     * @throws DataAccessException if there was an issue setting the shutdown warning duration
+     * in the database
+     */
     public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
         if (warningMilliseconds < 0) {
             throw new IllegalArgumentException("warningMilliseconds must be non-negative");
@@ -158,6 +195,14 @@ public class ConfigService {
         logConfigChange("set the shutdown warning duration to %s milliseconds".formatted(warningMilliseconds), user.netId());
     }
 
+    /**
+     * Schedule the time the AutoGrader will shut down
+     *
+     * @param user the user who scheduled the shut-down time
+     * @param shutdownTimestampString the timestamp at which the AutoGrader will shut down
+     * @throws DataAccessException if an issue arises clearing the shutdown schedule or
+     * setting the shutdown date in the database
+     */
     public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
         if (shutdownTimestampString.isEmpty()) {
             clearShutdownSchedule(user);
@@ -179,6 +224,9 @@ public class ConfigService {
         logConfigChange("scheduled a grader shutdown for %s".formatted(shutdownTimestampString), user.netId());
     }
 
+    /**
+     * Shuts down the AutoGrader so students aren't able to submit for grades anymore
+     */
     public static void triggerShutdown() {
         try {
             ArrayList<Phase> phases = new ArrayList<>();
@@ -194,24 +242,16 @@ public class ConfigService {
         }
     }
 
-    /**
-     * Checks that the date for a scheduled shutdown has passed. If it has, it triggers the shutdown method
-     */
-    public static void checkForShutdown() {
-        try {
-            Instant shutdownInstant = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
-            if (shutdownInstant.isBefore(Instant.now())) {
-                triggerShutdown();
-            }
-        } catch (DataAccessException e) {
-            LOGGER.error("Something went wrong while checking for shutdown: " + e.getMessage());
-        }
-    }
-
     public static void clearShutdownSchedule() throws DataAccessException {
         clearShutdownSchedule(null);
     }
 
+    /**
+     * Clears the shutdown schedule for the AutoGrader
+     *
+     * @param user the user who is clearing the shutdown schedule
+     * @throws DataAccessException if an error occurs clearing the schedule in the database
+     */
     public static void clearShutdownSchedule(User user) throws DataAccessException {
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
         if (user == null) {
@@ -221,6 +261,16 @@ public class ConfigService {
         }
     }
 
+    /**
+     * Update the banner message users can see when they use the AutoGrader
+     *
+     * @param user the user who created the banner message
+     * @param expirationString the timestamp the banner message will expire at
+     * @param message the message itself
+     * @param link the url the user will be taken to if they click on the banner
+     * @param color the color of the background of the banner message
+     * @throws DataAccessException if an issue arises updating the banner message in the database
+     */
     public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         Instant expirationTimestamp = Instant.MAX;
         if (!expirationString.isEmpty()) {
@@ -254,54 +304,39 @@ public class ConfigService {
 
     }
 
-    private static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
-        ZoneId utahZone = ZoneId.of("America/Denver");
+    /**
+     * Update the Canvas course id in the database and retrieve the course information from Canvas.
+     * If the AutoGrader is unable to retrieve the course information, it will revert
+     * to the previous Canvas course id.
+     *
+     * @param user the user who set the new course id
+     * @param newCourseId the new Canvas course id
+     * @throws DataAccessException if there is an issue updating the course id or course
+     * information in the database
+     * @throws CanvasException if an error occurs retrieving course information from Canvas
+     */
+    public static void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
+        Integer oldCourseJustInCase = dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class);
+        dao.setConfiguration(Configuration.COURSE_NUMBER, newCourseId, Integer.class);
+        logConfigChange("changed the Canvas course ID to %d".formatted(newCourseId), user.netId());
 
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        LocalDateTime localDateTime = LocalDateTime.parse(timestampString, formatter);
-        ZonedDateTime utahTime = localDateTime.atZone(utahZone);
-
-        return utahTime.toInstant();
-    }
-
-    public static void updateCourseIds(User user, SetCourseIdsRequest setCourseIdsRequest) throws DataAccessException {
-
-        // Course Number
-        dao.setConfiguration(
-                Configuration.COURSE_NUMBER,
-                setCourseIdsRequest.courseNumber(),
-                Integer.class
-        );
-
-        // Assignment IDs and Rubric Info
-        var assignmentIds = setCourseIdsRequest.assignmentIds();
-        var rubricInfo = setCourseIdsRequest.rubricInfo();
-        for (Phase phase : assignmentIds.keySet()) {
-            Integer id = assignmentIds.get(phase);
-            DaoService.getConfigurationDao().setConfiguration(
-                    PhaseUtils.getConfigurationAssignmentNumber(phase),
-                    id,
-                    Integer.class
-            );
-            var rubricTypeMap = rubricInfo.get(phase);
-            for (Rubric.RubricType type : rubricTypeMap.keySet()) {
-                CanvasAssignment.CanvasRubric rubric = rubricTypeMap.get(type);
-                DaoService.getRubricConfigDao().setRubricIdAndPoints(
-                        phase,
-                        type,
-                        rubric.points(),
-                        rubric.id()
-                );
-            }
+        try {
+            // if this line fails, we need to revert back to the previous course id
+            updateCourseIdsUsingCanvas(user);
+        } catch (CanvasException e) {
+            dao.setConfiguration(Configuration.COURSE_NUMBER, oldCourseJustInCase, Integer.class);
+            logAutomaticConfigChange("While fetching new course assignment info for course %d, an error occurred. Reverting course id to %d".formatted(newCourseId, oldCourseJustInCase));
+            throw e;
         }
-
-        logConfigChange(
-                "updated course info (course number, assignment IDs, rubric, IDs, rubric points) " +
-                        "in the database manually",
-                user.netId()
-        );
     }
 
+    /**
+     * Retrieve and store course information in the database from Canvas
+     *
+     * @param user the user who sent the request
+     * @throws CanvasException If an error occurs retrieving course information from Canvas
+     * @throws DataAccessException if there is an issue updating course information in the database
+     */
     public static void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
         var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         retriever.useCourseRelatedInfoFromCanvas();
@@ -313,6 +348,13 @@ public class ConfigService {
         );
     }
 
+    /**
+     * Update the commit & late penalties in the database
+     *
+     * @param user the user making the penalty update request
+     * @param request the penalty update request
+     * @throws DataAccessException if an error occurs updating the commit penalties in the database
+     */
     public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
         validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
         validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
@@ -327,6 +369,61 @@ public class ConfigService {
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
     }
 
+    /**
+     * Update the list of holidays the AutoGrader won't count toward the late penalty
+     *
+     * @param user the user who updated the list of holidays
+     * @param holidays the list of holidays
+     * @throws DataAccessException if an issue arises updating the list of holidays in the database
+     */
+    public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        holidays.sort(LocalDate::compareTo);
+
+        for (LocalDate holiday : holidays) {
+            stringBuilder.append(holiday).append(";");
+        }
+
+        String encodedHolidays = stringBuilder.toString();
+
+        setConfigItem(user, Configuration.HOLIDAY_LIST, encodedHolidays, String.class);
+    }
+
+    //
+    // GENERAL HELPER FUNCTIONS
+    //
+    private static String translateInstantForFrontEnd(Instant timestamp) {
+        String translatedTime;
+        if (timestamp.equals(Instant.MAX)) {
+            translatedTime = "never";
+        } else {
+            translatedTime = timestamp.toString();
+        }
+        return translatedTime;
+    }
+    /**
+     * Checks that the date for a scheduled shutdown has passed. If it has, it triggers the shutdown method
+     */
+    public static void checkForShutdown() {
+        try {
+            Instant shutdownInstant = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
+            if (shutdownInstant.isBefore(Instant.now())) {
+                triggerShutdown();
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error("Something went wrong while checking for shutdown: " + e.getMessage());
+        }
+    }
+    private static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
+        ZoneId utahZone = ZoneId.of("America/Denver");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime localDateTime = LocalDateTime.parse(timestampString, formatter);
+        ZonedDateTime utahTime = localDateTime.atZone(utahZone);
+
+        return utahTime.toInstant();
+    }
     /**
      * throws IllegalArgumentException if percent is not valid
      * @param percent a float that should be between 0 and 1 (inclusive)
@@ -356,6 +453,18 @@ public class ConfigService {
         if (current.equals(value)) return;
 
         dao.setConfiguration(configKey, value, type);
-        logConfigChange("changed %s to %s".formatted(configKey.name(), value.toString()), admin.netId());
+        logConfigChange("changed %s to [%s]".formatted(configKey.name(), value.toString()), admin.netId());
+    }
+
+
+    //
+    // LOGGING
+    //
+    private static void logConfigChange(String changeMessage, String adminNetId) {
+        LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
+    }
+
+    private static void logAutomaticConfigChange(String changeMessage) {
+        LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
     }
 }

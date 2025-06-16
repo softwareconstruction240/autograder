@@ -1,26 +1,79 @@
 package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.autograder.git.GitHelper;
 import org.eclipse.jgit.annotations.Nullable;
 
-import java.io.File;
-import java.util.UUID;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Provides methods to validate and clean/standardize repo URLs
+ */
 public class RepoUrlValidator {
-    public static boolean isValidRepoUrl(String url) {
-        File cloningDir = new File("./tmp" + UUID.randomUUID());
+
+    /**
+     * Determines if a repo URL is a valid repo URL to use for the AutoGrader
+     *
+     * @param repoUrl the repo URL
+     * @return A boolean indicating the result
+     */
+    public static boolean isValid(@Nullable String repoUrl) {
         try {
-            GitHelper.fetchRepo(cloningDir, url);
+            var validator = new RepoUrlValidator();
+            var parts = validator.extractRepoParts(repoUrl);
+            return isNotFork(parts.username, parts.repoName);
+        } catch (InvalidRepoUrlException e) {
+            return false;
+        }
+    }
+
+    public static boolean canClean(@Nullable String repoUrl) {
+        try {
+            clean(repoUrl);
             return true;
         } catch (GradingException e) {
             return false;
         }
-        finally {
-            FileUtils.removeDirectory(cloningDir);
+    }
+
+    /**
+     * Determines if a repository exists and is not a fork for a given GitHub username
+     * and repository name
+     *
+     * @param githubUsername the name of the GitHub user
+     * @param repoName the name of the repository
+     * @return a boolean indicating if the repository exists and is not a fork
+     */
+    public static boolean isNotFork(@Nullable String githubUsername, @Nullable String repoName) {
+        if (githubUsername == null || repoName == null) {
+            return false; // Invalid to have NULL
         }
+
+        String apiUrl = String.format("https://api.github.com/repos/%s/%s", githubUsername, repoName);
+        var apiJSON = NetworkUtils.readGetRequestBody(apiUrl);
+
+        var jsonObj = Serializer.deserialize(apiJSON, Map.class);
+        if (jsonObj == null || jsonObj.isEmpty()) {
+            return false; // Error response, empty response. Could indicate network error.
+        }
+
+        // The repo exists and is not a fork.
+        // `True` values are obvious failures.
+        // `null` can also occur, but are not acceptable for our purposes.
+        return jsonObj.containsKey("fork") && jsonObj.get("fork").equals(false);
+    }
+
+    /**
+     * Cleans and standardizes the student's repo URL.
+     * See {@link RepoUrlValidator#cleanRepoUrl(String)} for more information.
+     *
+     * @param repoUrl the student's repository URL
+     * @return a cleaned and standardized repository URL
+     * @throws InvalidRepoUrlException if the repo URL is invalid
+     */
+    public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
+        return new RepoUrlValidator().cleanRepoUrl(repoUrl);
     }
 
     /**
@@ -33,7 +86,38 @@ public class RepoUrlValidator {
      * @return Cleaned and standardized repository URL.
      * @throws InvalidRepoUrlException If the repo URL is invalid.
      */
-    public static String clean(@Nullable String repoUrl) throws InvalidRepoUrlException {
+    public String cleanRepoUrl(@Nullable String repoUrl) throws InvalidRepoUrlException {
+        var parts = extractRepoParts(repoUrl);
+        return assembleCleanedRepoUrl(parts);
+    }
+
+    /**
+     * Parts of a repo URL split into groups
+     *
+     * @param domainName the beginning of the URL, the domain name (currently only accepting github.com)
+     * @param username the username of the author of the repository
+     * @param repoName the name of the repository
+     */
+    private record RepoUrlParts(String domainName, String username, String repoName) { }
+
+    /**
+     * Takes isolated parts of a repo URL and assembles the parts together into a cleaned repo URL
+     *
+     * @param parts the parts of a repo URL separated into groups
+     * @return an assembled and clean repo URL
+     */
+    private String assembleCleanedRepoUrl(RepoUrlParts parts) {
+        return String.format("https://%s/%s/%s", parts.domainName, parts.username, parts.repoName);
+    }
+
+    /**
+     * Decides if a repo URL is valid, and returns the extracted parts from the URL when the URL is valid.
+     *
+     * @param repoUrl A string repo URL to parse.
+     * @return {@link RepoUrlParts} When the URL is valid.
+     * @throws InvalidRepoUrlException When the URL in invalid.
+     */
+    private RepoUrlParts extractRepoParts(@Nullable String repoUrl) throws InvalidRepoUrlException {
         if (repoUrl == null) {
             throw new InvalidRepoUrlException("NULL is not a valid repo URL.");
         }
@@ -52,7 +136,7 @@ public class RepoUrlValidator {
                 domainName = matcher.group(1).toLowerCase();
                 githubUsername = matcher.group(2);
                 repositoryName = matcher.group(3);
-                return String.format("https://%s/%s/%s", domainName, githubUsername, repositoryName);
+                return new RepoUrlParts(domainName, githubUsername, repositoryName);
             }
         }
 
@@ -76,7 +160,7 @@ public class RepoUrlValidator {
      * </ol>
      * @return An array of strings representing regexes.
      */
-    private static String[] getRepoRegexPatterns() {
+    private String[] getRepoRegexPatterns() {
         // NOTE: This is the place where we require GitHub links. The rest of the grading system behind this wall
         // will function properly with any link that can be run with `git clone`, but we have arbitrarily chosen
         // to require "github.com" links for now.
@@ -99,6 +183,16 @@ public class RepoUrlValidator {
         };
     }
 
+    /**
+     * Thrown whenever a repo URL is invalid. A repo URL is valid if:
+     * <ul>
+     *     <li>It is a GitHub link</li>
+     *     <li>
+     *         All the parts of the URL were captured properly using the
+     *         {@link RepoUrlValidator#getRepoRegexPatterns()}
+     *     </li>
+     * </ul>
+     */
     public static class InvalidRepoUrlException extends GradingException {
         InvalidRepoUrlException(String message) {
             super(message);

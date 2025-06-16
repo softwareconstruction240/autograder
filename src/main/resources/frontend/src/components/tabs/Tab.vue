@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import {inject, onBeforeMount, ref, watch} from "vue";
-import {activeTabHashKey, addTabKey, type Tab as TabType} from "@/components/tabs/TabInjectionKeys";
+import { inject, onBeforeMount, ref, watch } from "vue";
+import {
+  activeTabHashKey,
+  addTabKey,
+  type Tab as TabType,
+} from "@/components/tabs/TabInjectionKeys";
 const props = defineProps<{
   title: string;
   disabled?: boolean;
@@ -18,14 +22,13 @@ onBeforeMount(() => {
   addTab?.({
     title: props.title,
     hash: hash.value,
-    disabled: props.disabled
+    disabled: props.disabled,
   });
 });
 
 watch(activeTabHash, () => {
   isActive.value = activeTabHash.value === hash.value;
 });
-
 </script>
 
 <template>
@@ -34,6 +37,4 @@ watch(activeTabHash, () => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

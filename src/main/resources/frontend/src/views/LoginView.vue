@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import {useAppConfigStore} from "@/stores/appConfig";
-import {onBeforeMount, onMounted} from 'vue';
-import { loadUser } from '@/services/authService'
+import { useConfigStore } from "@/stores/config";
+import { onBeforeMount, onMounted } from "vue";
+import { loadUser } from "@/services/authService";
 import router from "@/router";
 
 onBeforeMount(async () => {
-  await loadUser()
-  await router.push({ name: 'home' });
-})
+  await loadUser();
+  await router.push({ name: "home" });
+});
 
 const login = () => {
-  window.location.href = useAppConfigStore().backendUrl + '/auth/login';
-}
+  window.location.href = useConfigStore().backendUrl + "/auth/login";
+};
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
+  const error = urlParams.get("error");
   // clear the url params
   window.history.replaceState({}, document.title, window.location.pathname);
-  if (error != null)
-    alert(error);
+  if (error != null) alert(error);
 });
 </script>
 

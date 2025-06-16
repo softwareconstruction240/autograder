@@ -10,9 +10,16 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.sql.Types.NULL;
 
+/**
+ * See {@link #SqlReader(String, ColumnDefinition[], ItemBuilder)}, this class's constructor, for
+ * information regarding this class
+ *
+ * @param <T> the type of item to write to and read from a SQL table
+ */
 public class SqlReader <T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlReader.class);
@@ -21,14 +28,17 @@ public class SqlReader <T> {
     private final String tableName;
     /** Represents all the columns in the table. */
     private final ColumnDefinition<T>[] columnDefinitions;
-    private final String[] allColumnNames;
+    /** Represents all the column names in the table */
+    public final String[] allColumnNames;
+    /** A method that reads a row from a {@link ResultSet} and builds an item from that row */
     private final ItemBuilder<T> itemBuilder;
-
+    /** Represents all the column names in the table as a single string joined with commas */
     private final String allColumnNamesStmt;
+    /** A SQL select statement that selects all columns in the table */
     private final String selectAllColumnsStmt;
-
-
+    /** A SQL insert statement that allows an item to be inserted into the table */
     private final String insertStatement;
+    /** A map of column names to wildcard indices */
     private final Map<String, Integer> insertWildCardIndexPositions;
 
     /**
@@ -73,18 +83,60 @@ public class SqlReader <T> {
         this.itemBuilder = itemBuilder;
 
         // Several pre-constructed statement fragments
-        this.allColumnNamesStmt = String.join(", ", allColumnNames);
+        this.allColumnNamesStmt = joinColumnNames(allColumnNames);
         this.selectAllColumnsStmt = "SELECT " + allColumnNamesStmt + " FROM " + this.tableName + " ";
 
         this.insertStatement = buildInsertStatement();
         this.insertWildCardIndexPositions = this.prepareWildcardIndices(columnDefinitions);
     }
 
+    /**
+     * Takes in a {@link Stream} of column name strings and returns the column names as a
+     * single string joined with commas
+     *
+     * @param columnNames A {@code Stream<String>} of column names to join
+     * @return a single string consisting of all the column names joined with commas
+     */
+    public static String joinColumnNames(Stream<String> columnNames) {
+        return joinColumnNames(columnNames.toArray(String[]::new));
+    }
+
+    /**
+     * Takes an array of column name strings and returns the column names as a single string
+     * joined with commas
+     *
+     * @param columnNames the array of column name strings
+     * @return a single string consisting of all the column names joined with commas
+     */
+    public static String joinColumnNames(String[] columnNames) {
+        return String.join(", ", columnNames);
+    }
+
+    /**
+     * Builds and returns a SQL insert statement using the {@link #tableName} and the
+     * {@link #allColumnNamesStmt}. This is done by constructing a number of wildcard values
+     * (represented as '?') equal to the number of column names then formatting the {@code tableName},
+     * {@code allColumnNamesStmt}, and wildcard values into a SQL insert statement.
+     * <br>
+     * For example, provided the {@code tableName} of '{@code queue}' and the {@code allColumnNamesStmt}
+     * of '{@code net_id}, {@code phase}, {@code started}, and {@code time_added}'. The returning
+     * SQL insert statement would be '{@code INSERT INTO queue (net_id, phase, started, time_added)
+     * VALUES (?, ?, ?, ?)}'.
+     *
+     * @return the generated SQL insert statement string
+     */
     private String buildInsertStatement() {
         String valueWildcards = String.join(", ", Collections.nCopies(allColumnNames.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
                 .formatted(tableName, allColumnNamesStmt, valueWildcards);
     }
+
+    /**
+     * A helper method that maps column names to their respective wildcard indices
+     *
+     * @param columnDefinitions an array of {@link ColumnDefinition} objects to pull column names from
+     * @return a map of column names to wildcard indices
+     */
     private Map<String, Integer> prepareWildcardIndices(ColumnDefinition<T>[] columnDefinitions) {
         Map<String, Integer> out = new HashMap<>();
 
@@ -121,6 +173,16 @@ public class SqlReader <T> {
         }
     }
 
+    /**
+     * Gets the value of an {@code item} using the {@code columnDefinition} and sets the value
+     * in the {@code ps} using {@link #setValue(PreparedStatement, int, Object)}
+     *
+     * @param ps a {@link PreparedStatement} that we will update
+     * @param wildcardIndex the 1-indexed number indicating a specific wildcard to replace
+     * @param item the object the value will be pulled from
+     * @param columnDefinition A single column to get the value for
+     * @throws SQLException when SQL throws an error
+     */
     private void setValue(PreparedStatement ps, int wildcardIndex, T item, ColumnDefinition<T> columnDefinition) throws SQLException {
         Object value = columnDefinition.accessor().getValue(item);
         setValue(ps, wildcardIndex, value);
@@ -256,6 +318,17 @@ public class SqlReader <T> {
         );
     }
 
+    /**
+     * A helper method that requests a connection, prepares a SQL statement, then
+     * executes the statement and returns the results
+     *
+     * @param statement a SQL statement to prepare and execute
+     * @param statementPreparer a method that can modify the <code>PreparedStatement</code> before being executed
+     * @param queryExecutor a method that executes the <code>PreparedStatement</code> and returns the results
+     * @return the requested results of the SQL statement query
+     * @param <T1> The type the requested results will return as
+     * @throws DataAccessException if SQL fails
+     */
     private <T1> T1 doExecuteQuery(
             @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
@@ -327,7 +400,7 @@ public class SqlReader <T> {
      * Represents a convenient beginning of most queries.
      * Usually, you will not want to use this alone, but will want to add
      * conditional <code>WHERE</code> clauses and other related
-     * */
+     */
     public String selectAllStmt() {
         return selectAllColumnsStmt;
     }

@@ -2,38 +2,40 @@
 defineProps({
   lead: {
     type: Boolean,
-    required: false
+    required: false,
   },
   name: {
     type: String,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    required: false
+    required: false,
   },
   url: {
     type: String,
-    required: true
+    required: true,
   },
   faIcon: {
     type: String,
-    required: true
+    required: true,
   },
   tenure: {
     type: String,
-    required: true
+    required: true,
   },
   contributions: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 </script>
 
 <template>
   <div :id="lead ? 'lead' : ''">
-    <p class="name">{{ name }} <a :href=url target="_blank"><i :class="faIcon"/></a></p>
+    <p class="name">
+      {{ name }} <a :href="url" target="_blank"><i :class="faIcon" /></a>
+    </p>
     <p class="title" v-if="title">{{ title }}</p>
     <p class="tenure">{{ tenure }}</p>
     <p class="contributions">{{ contributions }}</p>
@@ -71,6 +73,7 @@ defineProps({
 }
 
 i {
-  color: #0047BA;
+  color: #0047ba;
+  display: inline-block;
 }
 </style>

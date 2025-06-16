@@ -2,7 +2,8 @@ package edu.byu.cs.service;
 
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.controller.exception.PriorRepoClaimBlockageException;
+import edu.byu.cs.controller.exception.UnprocessableEntityException;
+import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.RepoUpdate;
@@ -15,22 +16,37 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Contains service logic for the {@link edu.byu.cs.controller.UserController}.
+ * <br><br>
+ * The {@code UserService} allows users to update their repo url, and give admins the ability
+ * to get the repo history for a given user or repo url
+ */
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
-        try {
-            String cleanRepoUrl = RepoUrlValidator.clean(repoUrl);
-            setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
-        } catch (RepoUrlValidator.InvalidRepoUrlException e) {
-            throw new BadRequestException("Invalid GitHub Repo URL: " + repoUrl);
-        }
+    /**
+     * Update a repo url for a given student
+     *
+     * @param studentNetId the student's netId
+     * @param repoUrl the GitHub repo url to update to for the student
+     * @param adminNetId the admin's netId if they are updating the repo url
+     * @throws BadRequestException given an invalid GitHub repo url
+     * @throws InternalServerException if an error arises during the cloning, checking,
+     * and saving of the repo url
+     * @throws WordOfWisdomViolationException if repo was blocked due to prior claim
+     */
+    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
+        String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
+        setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
     }
 
-    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId) throws BadRequestException, InternalServerException {
+    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
+            throws InternalServerException, UnprocessableEntityException {
         Collection<RepoUpdate> updates = new ArrayList<>();
         if (repoUrl == null && netId == null) {
-            throw new BadRequestException("You must provide either a repoUrl or a netId");
+            throw new UnprocessableEntityException("You must provide either a repoUrl or a netId");
         }
 
         try {
@@ -48,16 +64,17 @@ public class UserService {
         return updates;
     }
 
-    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId) throws BadRequestException, InternalServerException, PriorRepoClaimBlockageException {
-        boolean valid;
+    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+            throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         try {
-            valid = RepoUrlValidator.isValidRepoUrl(repoUrl);
+            if (!isValidRepoUrl(repoUrl)) {
+                throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
+            }
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.error("Error cloning repo during repoPatch: {}", e.getMessage());
             throw new InternalServerException("There was an internal server error in verifying the Github Repo", e);
-        }
-        if (!valid) {
-            throw new BadRequestException("Invalid Github Repo Url. Check if the link is valid and points directly to a Github Repo.");
         }
 
         RepoUpdate historicalUpdate;
@@ -68,10 +85,11 @@ public class UserService {
         }
         if (historicalUpdate != null) {
             if (adminNetId != null) {
-                throw new PriorRepoClaimBlockageException("Repo is blocked because of a prior claim: " + historicalUpdate);
+                throw new WordOfWisdomViolationException("Repo is blocked because of a prior claim: " + historicalUpdate);
+            } else {
+                LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
+                throw new WordOfWisdomViolationException("Please talk to a TA to submit this url");
             }
-            LOGGER.info("Student {} was blocked from updating their url because of a prior claim: {}", studentNetId, historicalUpdate);
-            throw new PriorRepoClaimBlockageException("Please talk to a TA to submit this url");
         }
 
         try {
@@ -87,6 +105,10 @@ public class UserService {
         } else {
             LOGGER.info("admin {} changed the repoUrl for student {} to {}", adminNetId, studentNetId, repoUrl);
         }
+    }
+
+    private static boolean isValidRepoUrl(String url) {
+        return RepoUrlValidator.isValid(url);
     }
 
     /**
@@ -108,5 +130,16 @@ public class UserService {
             }
         }
         return null;
+    }
+
+    /**
+     * Cleans up and returns the provided GitHub Repo URL for consistent formatting.
+     */
+    private static String requireCleanRepoUrl(String url) throws BadRequestException {
+        try {
+            return RepoUrlValidator.clean(url);
+        } catch (RepoUrlValidator.InvalidRepoUrlException e) {
+            throw new BadRequestException("Invalid GitHub Repo URL: " + url);
+        }
     }
 }

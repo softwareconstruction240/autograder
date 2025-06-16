@@ -5,7 +5,7 @@ import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
-import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jgit.annotations.NonNull;
@@ -15,10 +15,22 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.HashSet;
 
+/**
+ * A utility class that provides methods for getting the hash of the HEAD of a remote repository
+ * and approving submissions
+ */
 public class SubmissionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionUtils.class);
 
+    /**
+     * Gets the hash of the HEAD of a remote repository using the {@code repoUrl}
+     *
+     * @param repoUrl the repo URL to get the remote repository
+     * @return the hash of the HEAD
+     * @throws DataAccessException if the git ls-remote process failed to execute or
+     * exited with non-zero exit code
+     */
     public static String getRemoteHeadHash(String repoUrl) throws DataAccessException {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "ls-remote", repoUrl, "HEAD");
         try {
@@ -82,6 +94,14 @@ public class SubmissionUtils {
                 .formatted(studentNetId, phase.name(), approvedScore, approverNetId, submissionsAffected));
     }
 
+    /**
+     * Asserts that a submission by a student for a phase has been approved, throws otherwise
+     *
+     * @param submissionDao the DAO used to get the submission
+     * @param studentNetId the student to approve
+     * @param phase the phase for the submission
+     * @throws DataAccessException if an issue arises getting the submission from the database
+     */
     private static void assertSubmissionUnapproved(SubmissionDao submissionDao, String studentNetId, Phase phase) throws DataAccessException {
         Submission withheldSubmission = submissionDao.getFirstPassingSubmission(studentNetId, phase);
         if (withheldSubmission.isApproved()) {
@@ -89,6 +109,17 @@ public class SubmissionUtils {
         }
     }
 
+    /**
+     * Modifies the submission entries in the database and approves passing withheld submissions
+     * for a phase using a manual approval from a TA or professor for a withheld submission
+     *
+     * @param submissionDao the DAO used to get the submission
+     * @param withheldSubmission the withheld submission that was approved
+     * @param approvingNetId identifies the TA or professor approving the score
+     * @param penaltyPct the penalty percentage (as an int between 0-100)
+     * @return an integer representing the number of submissions affected and approved
+     * @throws DataAccessException if an issue arises accessing submissions from the database
+     */
     private static int modifySubmissionEntriesInDatabase(
             SubmissionDao submissionDao, Submission withheldSubmission, String approvingNetId, int penaltyPct)
             throws DataAccessException {

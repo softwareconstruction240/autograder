@@ -49,7 +49,7 @@ Any variation of the following will work.
 git clone https://github.com/softwareconstruction240/autograder.git
 ```
 
-Additionally, you can also leverage Intelli-J's "File > New > New Project from Version Control" 
+Additionally, you can also leverage Intelli-J's "File > New > New Project from Version Control"
 feature which will do it for you given a GitHub link.
 
 ### 2. Use the latest version of the JVM
@@ -69,13 +69,13 @@ cd src/main/resources/frontend
 yarn
 ```
 
-### 4. Setup "Server" _Run Configuration_
+### 4. Setup "Main" _Run Configuration_
 
 Do the following steps:
-1. Navigate to the server file: `src/main/java/edu/byu/cs/server/Server.java`
-2. Click the "Run" button to run `Server.main()`
+1. Navigate to the main file: `src/main/java/Main.java`
+2. Click the "Run" button to run `Main.main()`
 3. This will give you a _Run Configuration_ that you can modify in the following steps.
-  
+
 
 ### 5. Set up Program Arguments
 
@@ -85,7 +85,7 @@ been filled in with default values. Update these as needed to match your environ
 
 Do the following actions:
 1. Refer to the required arguments below
-2. Fill in the appropriate values for each of the 
+2. Fill in the appropriate values for each of the
 3. Prepare the arguments by reformatting them onto a single line
    - Ex. `--arg-1 arg1Val --arg-2 arg2Val`
 4. Edit the "Server" _run configuration_
@@ -120,7 +120,7 @@ Do the following steps:
 > [!NOTE]
 > **Windows** In the case you are running on the Autograder inside a dev container,\
 > you may need to add the `--host` option at the end of the `yarn dev` command (`yarn dev --host`).
-  
+
 ```shell
 cd src/main/resources/frontend
 yarn dev
@@ -171,7 +171,7 @@ To ensure that the assignment IDs and rubric IDs/points are synced with Canvas:
 
 > [!NOTE]
 > If there's an issue with the process, you may need to explore updating the course IDs manually.\
-> This can be done directly though the database's `configuration` table or 
+> This can be done directly though the database's `configuration` table or
 > by clicking `Update Manually` in the `config` tab.
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually

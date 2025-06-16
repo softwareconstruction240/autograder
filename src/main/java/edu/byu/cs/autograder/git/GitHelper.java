@@ -5,11 +5,13 @@ import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.analytics.CommitsByDay;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitValidation.*;
 import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.model.Submission;
+import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.CloneCommand;
@@ -27,33 +29,40 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
+/**
+ * In this class, <pre>static</pre> methods are used to distinguish those that run are threadsafe and preserve no state.
+ */
 public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
+    private final CommitVerificationStrategy commitVerificationStrategy;
     private String headHash;
 
     public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
 
-    public GitHelper(GradingContext gradingContext) {
+    public GitHelper(GradingContext gradingContext, CommitVerificationStrategy commitVerificationStrategy) {
         this.gradingContext = gradingContext;
+        this.commitVerificationStrategy = commitVerificationStrategy;
     }
 
     // ## Entry Point ##
-    public CommitVerificationResult setUpAndVerifyHistory() throws GradingException {
+    public CommitVerificationReport setUpAndVerifyHistory() throws GradingException {
         setUp();
         return verifyCommitHistory();
     }
 
     public void setUp() throws GradingException {
         File stageRepo = gradingContext.stageRepo();
-        fetchStudentRepo(stageRepo);
+        fetchRepo(stageRepo);
         headHash = getHeadHash(stageRepo);
     }
 
-    public CommitVerificationResult verifyCommitHistory() {
+    public CommitVerificationReport verifyCommitHistory() {
         if (headHash == null) {
             throw new RuntimeException("Cannot verifyCommitHistory before headHash has been populated. Call setUp() first.");
         }
@@ -61,9 +70,17 @@ public class GitHelper {
         gradingContext.observer().update("Verifying commits...");
 
         try {
-            return shouldVerifyCommits() ?
+            CommitVerificationReport report = shouldVerifyCommits() ?
                     verifyCommitRequirements(gradingContext.stageRepo()) :
                     skipCommitVerification(true, headHash, null);
+
+            CommitVerificationResult result = report.result();
+            if (result.warningMessages() != null) {
+                var observer = gradingContext.observer();
+                result.warningMessages().forEach(observer::notifyWarning);
+            }
+
+            return report;
         } catch (GradingException e) {
             // Grading can continue, we'll just alert them of the error.
             String errorStr = "Internally failed to evaluate commit history: " + e.getMessage();
@@ -85,16 +102,45 @@ public class GitHelper {
     /**
      * Fetches the student repo and puts it in the given local path
      */
-    private void fetchStudentRepo(File intoDirectory) throws GradingException {
+    private void fetchRepo(File intoDirectory) throws GradingException {
         gradingContext.observer().update("Fetching repo...");
 
-        fetchRepo(intoDirectory, gradingContext.repoUrl());
+        fetchRepoFromUrl(gradingContext.repoUrl(), intoDirectory);
     }
 
-    public static void fetchRepo(File intoDirectory, String repoUrl) throws GradingException {
+    /**
+     * Clones a repo URL into a temporary directory, and returns the directory where it was saved.
+     * <br>
+     * If any problems arise, the temporary directory is cleaned up and a {@link GradingException} is thrown.
+     *
+     * @param repoUrl The string URL to clone.
+     * @return A {@link File} to the newly cloned repo root.
+     * @throws GradingException When any problem occurs while downloading the repo. No temporary directory is preserved.
+     */
+    public static File fetchRepoFromUrl(String repoUrl) throws GradingException {
+        File cloningDir = new File("./tmp" + UUID.randomUUID());
+        try {
+            fetchRepoFromUrl(repoUrl, cloningDir);
+        } catch (GradingException exception) {
+            FileUtils.removeDirectory(cloningDir);
+            throw exception;
+        }
+        return cloningDir;
+    }
+
+    /**
+     * Clones a repo URL into the specified directory on the local machine.
+     *
+     * @param repoUrl A string URL to clone
+     * @param intoDirectory A {@link File} representing the target location.
+     * @throws GradingException When the repo cannot be cloned. This is usually due to an invalid or non-existent repository.
+     *                          When this occurs, the temporary directory will have any remnants of the partially complete clone command.
+     */
+    public static void fetchRepoFromUrl(String repoUrl, File intoDirectory) throws GradingException {
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(intoDirectory);
+
         try (Git git = cloneCommand.call()) {
             LOGGER.info("Cloned repo to {}", git.getRepository().getDirectory());
         } catch (GitAPIException e) {
@@ -103,21 +149,21 @@ public class GitHelper {
     }
 
     // Early decisions
-    private CommitVerificationResult skipCommitVerification(boolean verified, File stageRepo) throws GradingException {
+    private CommitVerificationReport skipCommitVerification(boolean verified, File stageRepo) throws GradingException {
         String headHash = getHeadHash(stageRepo);
         return skipCommitVerification(verified, headHash, null);
     }
-    private CommitVerificationResult skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
+    private CommitVerificationReport skipCommitVerification(boolean verified, @NonNull String headHash, String failureMessage) {
         if (headHash == null) {
             throw new IllegalArgumentException("Head hash cannot be null");
         }
         LOGGER.debug("Skipping commit verification. Verified: {}", verified);
         return new CommitVerificationResult(
                 verified, false,
-                0, 0, 0, false, 0, failureMessage,
+                0, 0, 0, false, 0, failureMessage, null,
                 Instant.MIN, Instant.MAX,
                 headHash, null
-        );
+        ).toReport(null);
     }
 
     // Decision Logic
@@ -126,10 +172,10 @@ public class GitHelper {
      * Decides whether a git repo passes the requirements and returns the evaluation results.
      *
      * @param stageRepo A {@link File} pointing to a directory on the local machine with the repo to evaluate.
-     * @return A {@link CommitVerificationResult} with the results.
+     * @return A {@link CommitVerificationReport} with the results.
      * @throws GradingException When certain assumptions are not met.
      */
-    CommitVerificationResult verifyCommitRequirements(File stageRepo) throws GradingException {
+    CommitVerificationReport verifyCommitRequirements(File stageRepo) throws GradingException {
         try {
             var potentialResult = preserveOriginalVerification();
             if (potentialResult != null) {
@@ -145,7 +191,7 @@ public class GitHelper {
 
                 return verifyRegularCommits(git, lowerThreshold, upperThreshold);
             }
-        } catch (IOException | GitAPIException | DataAccessException e) {
+        } catch (Exception e) {
             throw new GradingException("Failed to verify commits: " + e.getMessage(), e);
         }
     }
@@ -154,9 +200,9 @@ public class GitHelper {
      * Performs the explicit remembering of the authorization of previous phases.
      *
      * @return Null if no decision is made. If a previous submission exists for the given phase,
-     * returns a special `CommitVerificationResult` that represents the state.
+     * returns a special {@link CommitVerificationReport} that represents the state.
      */
-    private CommitVerificationResult preserveOriginalVerification() throws DataAccessException {
+    private CommitVerificationReport preserveOriginalVerification() throws DataAccessException {
         Submission firstPassingSubmission = getFirstPassingSubmission();
         if (firstPassingSubmission == null || firstPassingSubmission.verifiedStatus() == null) {
             return null;
@@ -168,9 +214,9 @@ public class GitHelper {
         String failureMessage = generateFailureMessage(verified, firstPassingSubmission);
         return new CommitVerificationResult(
                 verified, true,
-                0, 0, 0, false, originalPenaltyPct, failureMessage,
+                0, 0, 0, false, originalPenaltyPct, failureMessage, null,
                 null, null, headHash, null
-        );
+        ).toReport(null);
     }
 
     private static String generateFailureMessage(boolean verified, Submission firstPassingSubmission) {
@@ -192,70 +238,63 @@ public class GitHelper {
     /**
      * Analyzes the commits in the given directory within the bounds provided.
      *
-     * @return {@link CommitVerificationResult} Representing the verification results
+     * @return {@link CommitVerificationReport} Representing the verification results and context used to generate it
      */
-    CommitVerificationResult verifyRegularCommits(
+    CommitVerificationReport verifyRegularCommits(
             Git git, CommitThreshold lowerThreshold, CommitThreshold upperThreshold)
-            throws GitAPIException, IOException, DataAccessException {
+            throws GitAPIException, IOException, DataAccessException, GradingException {
 
-        CommitsByDay commitHistory = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold);
-        return commitsPassRequirements(commitHistory);
-    }
-    private CommitVerificationResult commitsPassRequirements(CommitsByDay commitsByDay) {
-        int requiredCommits = gradingContext.verificationConfig().requiredCommits();
-        int requiredDaysWithCommits = gradingContext.verificationConfig().requiredDaysWithCommits();
+        Set<String> excludeCommits = new HashSet<>();
         int minimumLinesChangedPerCommit = gradingContext.verificationConfig().minimumChangedLinesPerCommit();
-        int commitVerificationPenaltyPct = gradingContext.verificationConfig().commitVerificationPenaltyPct();
 
-        int numCommits = commitsByDay.totalCommits();
-        int daysWithCommits = commitsByDay.dayMap().size();
-        long significantCommits = commitsByDay.changesPerCommit().stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
+        do {
 
-        CV[] assertedConditions = {
-                new CV(
-                        numCommits < requiredCommits,
-                        String.format("Not enough commits to pass off (%d/%d).", numCommits, requiredCommits)),
-                new CV(
-                        numCommits >= requiredCommits && significantCommits < requiredCommits,
-                        String.format("Have some commits, but some of them are too insignificant for credit (%d/%d).", significantCommits, requiredCommits)),
-                new CV(
-                        daysWithCommits < requiredDaysWithCommits,
-                        String.format("Did not commit on enough days to pass off (%d/%d).", daysWithCommits, requiredDaysWithCommits)),
-                new CV(
-                        commitsByDay.commitsInFuture(),
-                        "Suspicious commit history. Some commits are authored after the hand in date."),
-                new CV(
-                        commitsByDay.commitsInPast(),
-                        "Suspicious commit history. Some commits are authored before the previous phase hash."),
-                new CV(
-                        !commitsByDay.commitsInOrder(),
-                        "Suspicious commit history. Not all commits are in order."),
-                new CV(
-                        commitsByDay.commitsBackdated(),
-                        "Suspicious commit history. Some commits have been backdated."),
-                new CV(
-                        commitsByDay.commitTimestampsDuplicated(),
-                        "Suspicious commit history. Multiple commits have the exact same timestamp."),
-                new CV(
-                        commitsByDay.missingTailHash(),
-                        "Missing tail hash. The previous submission commit could not be found in the repository."),
-        };
-        ArrayList<String> errorMessages = evaluateConditions(assertedConditions, commitVerificationPenaltyPct);
+            CommitsByDay commitsByDay = CommitAnalytics.countCommitsByDay(git, lowerThreshold, upperThreshold, excludeCommits);
 
-        return new CommitVerificationResult(
-                errorMessages.isEmpty(),
-                false,
-                numCommits,
-                (int) significantCommits,
-                daysWithCommits,
-                commitsByDay.missingTailHash(),
-                0, // Penalties are applied by TA's upon approval of unapproved submissions
-                String.join("\n", errorMessages),
-                commitsByDay.lowerThreshold().timestamp(),
-                commitsByDay.upperThreshold().timestamp(),
-                commitsByDay.upperThreshold().commitHash(),
-                commitsByDay.lowerThreshold().commitHash()
-        );
+            int numCommits = commitsByDay.totalCommits();
+            int daysWithCommits = commitsByDay.dayMap().size();
+            long significantCommits = commitsByDay.linearizedLineChanges()
+                    .stream().filter(i -> i >= minimumLinesChangedPerCommit).count();
+
+            CommitVerificationContext context = new CommitVerificationContext(
+                    gradingContext.verificationConfig(),
+                    commitsByDay,
+                    numCommits,
+                    daysWithCommits,
+                    significantCommits
+            );
+
+            commitVerificationStrategy.evaluate(context, gradingContext);
+            var excludeSet = commitVerificationStrategy.extendExcludeSet();
+            if (excludeSet != null && !excludeSet.isEmpty()) {
+                // Restart, but exclude the requested commits
+                excludeCommits.addAll(excludeSet);
+                continue;
+            }
+
+            Result warningResults = commitVerificationStrategy.getWarnings();
+            Result errorResults = commitVerificationStrategy.getErrors();
+            String errorMessage = errorResults == null ? "" : String.join("\n", errorResults.messages());
+            boolean hasErrors = errorResults != null && !errorResults.isEmpty();
+
+            var result = new CommitVerificationResult(
+                    !hasErrors,
+                    false,
+                    numCommits,
+                    (int) significantCommits,
+                    daysWithCommits,
+                    commitsByDay.missingTailHash(),
+                    0, // Penalties are applied by TA's upon approval of unapproved submissions
+                    errorMessage,
+                    warningResults.messages(),
+                    commitsByDay.lowerThreshold().timestamp(),
+                    commitsByDay.upperThreshold().timestamp(),
+                    commitsByDay.upperThreshold().commitHash(),
+                    commitsByDay.lowerThreshold().commitHash()
+            );
+            return new CommitVerificationReport(context, result);
+        } while (true);
+
     }
 
     // Evaluation Helpers
@@ -285,12 +324,14 @@ public class GitHelper {
         Instant latestTimestamp = null;
         String latestCommitHash = null;
         Repository repo = git.getRepository();
+        boolean hasCandidateSubmission = false;
 
         Instant effectiveSubmissionTimestamp;
         try (RevWalk revWalk = new RevWalk(repo)) {
             for (Submission submission : passingSubmissions) {
                 if (!PhaseUtils.isPhaseGraded(submission.phase())) continue;
 
+                hasCandidateSubmission = true;
                 effectiveSubmissionTimestamp = getEffectiveTimestampOfSubmission(revWalk, submission);
                 revWalk.reset(); // Resetting a `revWalk` is more effective than creating a new one
                 if (latestTimestamp == null || effectiveSubmissionTimestamp.isAfter(latestTimestamp)) {
@@ -300,6 +341,9 @@ public class GitHelper {
             }
         }
 
+        if (!hasCandidateSubmission) {
+            return MIN_COMMIT_THRESHOLD;
+        }
         if (latestTimestamp == null) {
             throw new GradingException("After processing a non-empty set of passing submissions, our latestTimestamp timestamp is null.");
         }
@@ -351,21 +395,6 @@ public class GitHelper {
         return currentThreshold;
     }
 
-    private ArrayList<String> evaluateConditions(CV[] assertedConditions, int commitVerificationPenaltyPct) {
-        ArrayList<String> errorMessages = new ArrayList<>();
-        for (CV assertedCondition : assertedConditions) {
-            if (!assertedCondition.fails) continue;
-            errorMessages.add(assertedCondition.errorMsg());
-        }
-
-        if (!errorMessages.isEmpty() && PhaseUtils.requiresTAPassoffForCommits(gradingContext.phase())) {
-            errorMessages.add("Since you did not meet the prerequisites for commit frequency, "
-                    + "you will need to talk to a TA to receive a score. ");
-            errorMessages.add(String.format("It may come with a %d%% penalty.", commitVerificationPenaltyPct));
-        }
-        return errorMessages;
-    }
-
     // Helpers
 
     private Collection<Submission> getPassingSubmissions() throws DataAccessException {
@@ -389,13 +418,5 @@ public class GitHelper {
     static String getHeadHash(Git git) throws IOException {
         return git.getRepository().findRef("HEAD").getObjectId().getName();
     }
-
-    // Data Structures
-
-    /** CommitValidation. Internal helper */
-    private record CV(
-            boolean fails,
-            String errorMsg
-    ) { }
 
 }

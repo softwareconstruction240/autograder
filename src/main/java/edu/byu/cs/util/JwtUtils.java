@@ -12,6 +12,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+/**
+ * A utility class that handles <a href="https://jwt.io/introduction">JSON Web Tokens</a>
+ * (or JWTs for short) "for securely transmitting information between parties as a JSON object."
+ * This class provides methods for generating and validating tokens to ensure authentication and
+ * authorization of users.
+ */
 public class JwtUtils {
     private static final SecretKey key = generateSecretKey();
 

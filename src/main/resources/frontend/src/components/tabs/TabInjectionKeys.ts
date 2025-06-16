@@ -1,9 +1,9 @@
-import type {InjectionKey, Ref} from "vue";
+import type { InjectionKey, Ref } from "vue";
 
 export interface Tab {
-    title: string;
-    hash: string;
-    disabled: boolean;
+  title: string;
+  hash: string;
+  disabled: boolean;
 }
 
 export const addTabKey = Symbol() as InjectionKey<(tab: Tab) => void>;
