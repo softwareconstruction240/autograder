@@ -12,6 +12,18 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * A utility class that provides methods for:
+ * <ul>
+ *     <li>Reading to and writing from a file</li>
+ *     <li>Copying a file</li>
+ *     <li>Creating, modifying, and deleting directories</li>
+ *     <li>Creating a .zip file from a directory</li>
+ *     <li>Getting all the files and directories in a given directory</li>
+ *     <li>Getting the absolute path for a file or for all files in a directory</li>
+ *     <li>Getting the last file alphabetically from a directory</li>
+ * </ul>
+ */
 public class FileUtils {
 
     /**
@@ -163,6 +175,7 @@ public class FileUtils {
 
     /**
      * Replace newFile with oldFile
+     *
      * @param oldFile file to be replaced
      * @param newFile new file to take place of oldFile
      */
@@ -177,13 +190,45 @@ public class FileUtils {
     }
 
     /**
+     * Receives a path to a file/directory and maps all file names the associated absolute paths.
+     * <br>
+     * If the path provided leads to a directory, all the files in the directory are returned as a
+     * mapping of their file names to their absolute paths. If the path provided leads not to a directory,
+     * only the mapping of its file name and absolute path is returned.
+     * <br><br><br>
+     * For a <b>file</b> example, given the input of
+     * {@code "autograder/phases/phase0/passoff/chess/ChessBoardTests.java"},
+     * we get an output of:
+     * <br>
+     * <code>
+     * {
+     *     "ChessBoardTests.java": "autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
+     * }
+     * </code>
+     * <br><br>
+     * For a <b>directory</b> example, given the input of
+     * {@code "autograder/phases/phase0/passoff/chess/"},
+     * we get an output of:
+     * <br>
+     * <code>
+     * {
+     *     "QueenMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/QueenMoveTests.java",
+     *     "EqualsTestingUtility.java": "autograder/phases/phase0/passoff/chess/EqualsTestingUtility.java",
+     *     "ChessPositionTests.java": "autograder/phases/phase0/passoff/chess/ChessPositionTests.java",
+     *     "TestUtilities.java": "autograder/phases/phase0/passoff/chess/TestUtilities.java",
+     *     "ChessMoveTests.java": "autograder/phases/phase0/passoff/chess/ChessMoveTests.java",
+     *     "ChessPieceTests.java": "autograder/phases/phase0/passoff/chess/ChessPieceTests.java",
+     *     "KnightMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/KnightMoveTests.java",
+     *     "ChessBoardTests.java": "autograder/phases/phase0/passoff/chess/ChessBoardTests.java",
+     *     "RookMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/RookMoveTests.java",
+     *     "BishopMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/BishopMoveTests.java",
+     *     "KingMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/KingMoveTests.java",
+     *     "PawnMoveTests.java": "autograder/phases/phase0/passoff/chess/piecemoves/PawnMoveTests.java"
+     * }
+     * </code>
+     *
      * @param filePath The path to file/directory to find all the file names and the associated absolute paths
      * @return A map of the file names and the associated absolute paths given a path
-     * For example:
-     * {
-     *     "ChessBoardTests.java":
-     *     "IdeaProjects/autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
-     * }
      */
     public static Map<String, String> getFileNamesToAbsolutePaths(Path filePath) throws GradingException {
         Map<String, String> fileNamesToAbsolutesPaths = new HashMap<>();
@@ -206,6 +251,7 @@ public class FileUtils {
     /**
      * Gets the files and directories within a given directory with given depth. If
      * the file provided is not a directory, an empty collection will be returned.
+     *
      * @param file The directory to scan
      * @return A collection of files contained within the directory
      */
