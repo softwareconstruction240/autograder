@@ -131,6 +131,7 @@ public class SqlDb {
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }
+            dataSource.setCatalog(DB_NAME);
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);
@@ -142,7 +143,6 @@ public class SqlDb {
         config.setJdbcUrl(CONNECTION_STRING);
         config.setUsername(DB_USER);
         config.setPassword(DB_PASSWORD);
-        config.setCatalog(DB_NAME);
 
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
