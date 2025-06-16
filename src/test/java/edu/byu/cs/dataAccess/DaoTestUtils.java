@@ -9,9 +9,12 @@ import java.util.Scanner;
 
 public class DaoTestUtils {
 
+    private static final String PATH_TO_ENV_VARS = "src/test/resources/testdb.env";
+
     /**
      * In order to successfully run these tests on your machine, you're going to need either some environment
-     * variables, or a file containing them named 'testdb.env' at the root of the project.
+     * variables, or a file containing them named 'testdb.env' in the test's resources folder.
+     * <strong>Make sure the it's in the test resources, not the normal resources!</strong>
      * An example of what the file looks like has been provided at 'testdb.example.env'
      * You'll need the following values:
      * <ul>
@@ -34,8 +37,8 @@ public class DaoTestUtils {
             props.setProperty("db-pass", System.getenv("DB_PASS"));
         } catch (NullPointerException e){
             System.out.println("Unable to find environment variables. Switching to reading 'testdb.env'...");
-            try(FileReader reader = new FileReader("testdb.env");
-            Scanner scanner = new Scanner(reader)) {
+            try(FileReader reader = new FileReader(PATH_TO_ENV_VARS);
+                Scanner scanner = new Scanner(reader)) {
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
                     String[] values = line.split("=");
