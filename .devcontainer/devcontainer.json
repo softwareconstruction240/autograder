@@ -7,7 +7,9 @@
 	},
 	"forwardPorts": [8080, 5173],
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {},
+    "ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {
+      "version": "3.9.8"
+    },
 		"ghcr.io/devcontainers/features/node:1": {}
 	}
 }
