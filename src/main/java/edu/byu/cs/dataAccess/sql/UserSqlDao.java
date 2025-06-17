@@ -6,6 +6,7 @@ import edu.byu.cs.dataAccess.sql.helpers.ColumnDefinition;
 import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.annotations.NonNull;
+import org.intellij.lang.annotations.Language;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -73,7 +74,7 @@ public class UserSqlDao implements UserDao {
         setFieldValue(netId, "canvas_user_id", canvasUserId);
     }
 
-    private void setFieldValue(@NonNull String netId, @NonNull String columnName, @NonNull Object columnValue) throws DataAccessException {
+    private void setFieldValue(@NonNull String netId, @NonNull @Language("SQL") String columnName, @NonNull Object columnValue) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
                     UPDATE user

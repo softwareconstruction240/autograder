@@ -4,6 +4,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.SqlDb;
 import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.annotations.Nullable;
+import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,24 +21,25 @@ import static java.sql.Types.NULL;
  *
  * @param <T> the type of item to write to and read from a SQL table
  */
+@SuppressWarnings("unused")
 public class SqlReader <T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlReader.class);
 
     /** Represents the name of our SQL table */
-    private final String tableName;
+    private final @Language("SQL") String tableName;
     /** Represents all the columns in the table. */
     private final ColumnDefinition<T>[] columnDefinitions;
     /** Represents all the column names in the table */
-    public final String[] allColumnNames;
+    public final @Language("SQL") String[] allColumnNames;
     /** A method that reads a row from a {@link ResultSet} and builds an item from that row */
     private final ItemBuilder<T> itemBuilder;
     /** Represents all the column names in the table as a single string joined with commas */
-    private final String allColumnNamesStmt;
+    private final @Language("SQL") String allColumnNamesStmt;
     /** A SQL select statement that selects all columns in the table */
-    private final String selectAllColumnsStmt;
+    private final @Language("SQL") String selectAllColumnsStmt;
     /** A SQL insert statement that allows an item to be inserted into the table */
-    private final String insertStatement;
+    private final @Language("SQL") String insertStatement;
     /** A map of column names to wildcard indices */
     private final Map<String, Integer> insertWildCardIndexPositions;
 
@@ -75,7 +77,7 @@ public class SqlReader <T> {
      *                          to read out data from all columns.
      * @param itemBuilder Responsible for reading a single row of the result set and constructing an item
      */
-    public SqlReader(String tableName, ColumnDefinition<T>[] columnDefinitions, ItemBuilder<T> itemBuilder) {
+    public SqlReader(@Language("SQL") String tableName, ColumnDefinition<T>[] columnDefinitions, ItemBuilder<T> itemBuilder) {
         this.tableName = tableName;
         this.columnDefinitions = columnDefinitions;
         this.allColumnNames = Arrays.stream(columnDefinitions)
@@ -97,6 +99,7 @@ public class SqlReader <T> {
      * @param columnNames A {@code Stream<String>} of column names to join
      * @return a single string consisting of all the column names joined with commas
      */
+    @Language("SQL")
     public static String joinColumnNames(Stream<String> columnNames) {
         return joinColumnNames(columnNames.toArray(String[]::new));
     }
@@ -108,7 +111,8 @@ public class SqlReader <T> {
      * @param columnNames the array of column name strings
      * @return a single string consisting of all the column names joined with commas
      */
-    public static String joinColumnNames(String[] columnNames) {
+    @Language("SQL")
+    public static String joinColumnNames(@Language("SQL") String[] columnNames) {
         return String.join(", ", columnNames);
     }
 
@@ -125,6 +129,7 @@ public class SqlReader <T> {
      *
      * @return the generated SQL insert statement string
      */
+    @Language("SQL")
     private String buildInsertStatement() {
         String valueWildcards = String.join(", ", Collections.nCopies(allColumnNames.length, "?"));
         return "INSERT INTO %s (%s) VALUES (%s)"
@@ -257,7 +262,7 @@ public class SqlReader <T> {
      * @param additionalStatementClauses Additional query clauses narrowing the results.
      * @return A collection of matching items.
      */
-    public Collection<T> executeQuery(@Nullable String additionalStatementClauses) throws DataAccessException {
+    public Collection<T> executeQuery(@Nullable @Language("SQL") String additionalStatementClauses) throws DataAccessException {
         return executeQuery(additionalStatementClauses, x -> {});
     }
 
@@ -277,7 +282,7 @@ public class SqlReader <T> {
      * @return A collection of objects received as results
      */
     public Collection<T> executeQuery(
-        @Nullable String additionalStatementClauses,
+        @Language("SQL") @Nullable String additionalStatementClauses,
         @NonNull StatementPreparer statementPreparer
     ) throws DataAccessException {
         return doExecuteQuery(
@@ -303,7 +308,7 @@ public class SqlReader <T> {
      * @return Any results returned by the result set processor
      */
     public <T1> T1 executeQuery(
-            @NonNull String statement,
+            @Language("SQL") @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
             @NonNull ResultSetProcessor<T1> resultSetProcessor
     ) throws DataAccessException {
@@ -330,13 +335,13 @@ public class SqlReader <T> {
      * @throws DataAccessException if SQL fails
      */
     private <T1> T1 doExecuteQuery(
-            @NonNull String statement,
+            @Language("SQL") @NonNull String statement,
             @NonNull StatementPreparer statementPreparer,
             @NonNull StatementQueryExecutor<T1> queryExecutor
     ) throws DataAccessException {
         try (
                 var connection = getConnection();
-                PreparedStatement ps = connection.prepareStatement(statement);
+                PreparedStatement ps = connection.prepareStatement(statement)
         ) {
             statementPreparer.prepare(ps);
             return queryExecutor.executeQuery(ps);
@@ -357,7 +362,7 @@ public class SqlReader <T> {
      * @param statementPreparer A method that finishes preparing the statement (usually be filling wildcards)
      */
     public void executeUpdate(
-            @NonNull String statement,
+            @Language("SQL") @NonNull String statement,
             @Nullable StatementPreparer statementPreparer
     ) throws DataAccessException {
         try (
@@ -401,6 +406,7 @@ public class SqlReader <T> {
      * Usually, you will not want to use this alone, but will want to add
      * conditional <code>WHERE</code> clauses and other related
      */
+    @Language("SQL")
     public String selectAllStmt() {
         return selectAllColumnsStmt;
     }
@@ -411,7 +417,8 @@ public class SqlReader <T> {
      * @param additionalClauses Additional SQL statements to add to the result
      * @return A joined SQL statement ready for preparation.
      */
-    public String selectAllStmt(@Nullable String additionalClauses) {
+    @Language("SQL")
+    public String selectAllStmt(@Nullable @Language("SQL") String additionalClauses) {
         return additionalClauses == null ?
                 selectAllColumnsStmt :
                 selectAllColumnsStmt + additionalClauses;
@@ -423,6 +430,7 @@ public class SqlReader <T> {
      *
      * @return A string with the table name (configured upon construction).
      */
+    @Language("SQL")
     public String getTableName() {
         return tableName;
     }

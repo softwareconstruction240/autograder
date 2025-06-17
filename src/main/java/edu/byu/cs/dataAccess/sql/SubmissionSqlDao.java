@@ -11,6 +11,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.Serializer;
+import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,7 +221,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         String headHash = submission.headHash();
         String phase = submission.phase().name();
 
-        String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
+        @Language("SQL") String whereClause = "WHERE net_id = ? AND head_hash = ? AND phase = ?";
         String verifiedStatusStr = Submission.serializeVerifiedStatus(Submission.VerifiedStatus.ApprovedManually);
         String verificationStr = Submission.serializeScoreVerification(scoreVerification);
 
