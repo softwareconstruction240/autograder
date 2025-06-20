@@ -77,8 +77,8 @@ public class StandardAPITests {
     @DisplayName("Login Bad Request")
     public void loginBadRequest() {
         TestUser[] incompleteLoginRequests = {
-            new TestUser(null, existingUser.getPassword(), existingUser.getEmail()),
-            new TestUser(existingUser.getUsername(), null, existingUser.getEmail()),
+            new TestUser(null, existingUser.getPassword()),
+            new TestUser(existingUser.getUsername(), null),
         };
 
         for (TestUser incompleteLoginRequest : incompleteLoginRequests) {
