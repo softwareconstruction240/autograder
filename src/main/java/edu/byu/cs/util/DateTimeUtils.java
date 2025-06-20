@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Has helper methods for handling dates.
+ * A utility class that provides methods for getting and handling dates
  */
 public class DateTimeUtils {
 

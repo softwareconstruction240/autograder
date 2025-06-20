@@ -13,6 +13,9 @@ import java.util.Collection;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
 
+/**
+ * Handles admin-specific HTTP endpoints
+ */
 public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);

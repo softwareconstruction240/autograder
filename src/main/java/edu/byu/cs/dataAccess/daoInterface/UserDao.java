@@ -6,7 +6,7 @@ import edu.byu.cs.model.User;
 import java.util.Collection;
 
 /**
- * A data access object for users.
+ * A data access object interface for users.
  * This data source holds information about students and admins
  */
 public interface UserDao {

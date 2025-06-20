@@ -152,7 +152,9 @@ public class QualityAnalyzer {
         StringBuilder builder = new StringBuilder();
         for (QualityRubricCategory category : qualityRubricItems.categories()) {
             boolean categoryPasses = categoryPasses(category, output);
-            builder.append((categoryPasses) ? "✓" : "✗").append(" ").append(category.name()).append("\n");
+            builder.append((categoryPasses) ? "✓" : "✗").append(" ")
+                .append(category.name()).append(" ")
+                .append(category.getValueAsPercent()).append("\n");
         }
         return builder.toString();
     }
@@ -186,7 +188,12 @@ public class QualityAnalyzer {
 
     private record QualityOutput(Map<String, List<String>> errors, List<String> warnings) {}
 
-    private record QualityRubricCategory(String name, float value, Set<String> reporters) {}
+    private record QualityRubricCategory(String name, float value, Set<String> reporters) {
+        public String getValueAsPercent() {
+            Float percent = (Float) value;
+            return percent.intValue() + "%";
+        }
+    }
 
     private record QualityRubric(Set<QualityRubricCategory> categories) {}
 

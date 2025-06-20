@@ -5,6 +5,9 @@ import edu.byu.cs.model.RepoUpdate;
 
 import java.util.Collection;
 
+/**
+ * A data access object interface for {@link RepoUpdate} objects so changes to urls can be logged
+ */
 public interface RepoUpdateDao {
     /**
      * Inserts an update into the database

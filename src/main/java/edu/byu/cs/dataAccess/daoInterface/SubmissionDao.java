@@ -8,6 +8,10 @@ import org.eclipse.jgit.annotations.NonNull;
 
 import java.util.Collection;
 
+/**
+ * A data access object interface for {@link Submission} objects, allowing for accessing
+ * submissions by phase, netId, or the latest submissions to the AutoGrader
+ */
 public interface SubmissionDao {
 
     /**
@@ -38,13 +42,17 @@ public interface SubmissionDao {
 
     /**
      * Gets all latest submissions
+     * <br>
+     * If a person has multiple submissions for a phase, this code will only get the latest one.
      *
      * @return all latest submissions
      */
     Collection<Submission> getAllLatestSubmissions() throws DataAccessException;
 
     /**
-     * Gets the X most recent latest submissions
+     * Gets the X most recent latest submissions.
+     * <br>
+     * If a person has multiple submissions for a phase, this code will only get the latest one.
      *
      * @param batchSize defines how many submissions to return. Set batchSize to a negative int to get All submissions
      * @return the most recent X submissions

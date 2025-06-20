@@ -3,12 +3,17 @@ package edu.byu.cs.util;
 import java.io.*;
 import java.util.concurrent.*;
 
+/**
+ * A utility class that allows a {@link Process} to be run using a {@link ProcessBuilder}
+ * and returns the result as {@link ProcessOutput}
+ */
 public class ProcessUtils {
 
     private static final long DEFAULT_TIMEOUT = 90000;
 
     /**
      * Runs a process given by a process builder and returns process output
+     *
      * @param processBuilder process to run
      * @return output from process standard out
      */
@@ -18,6 +23,7 @@ public class ProcessUtils {
 
     /**
      * Runs a process given by a process builder and returns process output
+     *
      * @param processBuilder process to run
      * @param timeout length to wait for in ms
      * @return output from process standard out
@@ -28,6 +34,7 @@ public class ProcessUtils {
 
     /**
      * Runs a process given by a process builder and returns process output
+     *
      * @param processBuilder process to run
      * @param input string to write to standard in for process
      * @return output from process standard out
@@ -38,6 +45,7 @@ public class ProcessUtils {
 
     /**
      * Runs a process given by a process builder and returns process output
+     *
      * @param processBuilder process to run
      * @param input string to write to standard in for process
      * @param timeout length to wait for in ms
@@ -98,8 +106,18 @@ public class ProcessUtils {
         }
     }
 
+    /**
+     * The output of running a process
+     *
+     * @param stdOut the standard output from running the process
+     * @param stdErr the error output from running the process
+     * @param statusCode the status code from running the process, 0 if successful, error otherwise
+     */
     public record ProcessOutput(String stdOut, String stdErr, int statusCode){}
 
+    /**
+     * Thrown if an issue arises running a process
+     */
     public static class ProcessException extends Exception {
         public ProcessException(String message) {
             super(message);
