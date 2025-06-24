@@ -20,6 +20,7 @@ public record CanvasRubricAssessment(Map<String, CanvasRubricItem> items) {
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public CanvasRubricAssessment clone() {
         return new CanvasRubricAssessment(new HashMap<>(items));
     }
