@@ -2,7 +2,6 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
@@ -157,11 +156,10 @@ public class TestHelper {
      * @param uberJar          The jar file containing the compiled classes to be tested.
      * @param compiledTests    The directory containing the compiled test classes.
      * @param packagesToTest   A set of packages to test. Example: {"package1", "package2"}
-     * @param extraCreditTests A set of extra credit tests. Example: {"ExtraCreditTest1", "ExtraCreditTest2"}
      * @return A TestNode object containing the results of the tests.
      */
     TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                             Set<String> extraCreditTests, Set<String> coverageModules) throws GradingException {
+                             Set<String> coverageModules) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -199,9 +197,9 @@ public class TestHelper {
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
-            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, extraCreditTests);
+            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, Set.of()); //FIXME: Remove empty Set
 
-            return new TestOutput(testAnalysis.root(), testAnalysis.extraCredit(), coverage, trimErrorOutput(error));
+            return new TestOutput(testAnalysis.root(), coverage, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);

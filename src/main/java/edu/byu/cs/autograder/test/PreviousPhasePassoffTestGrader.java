@@ -79,7 +79,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
     @Override
     protected float getScore(TestOutput testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
-        testResults = new TestOutput(testResults.root(), null, testResults.coverage(), testResults.error());
         StringBuilder errorBuilder = new StringBuilder(ERROR_MESSAGE).append(" \nFailing tests: \n");
         failingTests(testResults.root(), errorBuilder);
         Rubric.Results results = Rubric.Results.testError(errorBuilder.toString(), testResults);
