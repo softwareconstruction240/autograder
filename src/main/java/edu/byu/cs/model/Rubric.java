@@ -63,9 +63,10 @@ public record Rubric(
     public enum RubricType {
         PASSOFF_TESTS,
         UNIT_TESTS,
+        EXTRA_CREDIT,
         QUALITY,
         GIT_COMMITS,
         GITHUB_REPO,
-        GRADING_ISSUE;
+        GRADING_ISSUE
     }
 }

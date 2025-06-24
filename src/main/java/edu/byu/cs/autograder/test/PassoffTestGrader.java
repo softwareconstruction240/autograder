@@ -14,7 +14,6 @@ import java.util.*;
  * Runs and scores the passoff tests for the current phase a submission is graded for
  */
 public class PassoffTestGrader extends TestGrader {
-
     public PassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
     }
