@@ -35,11 +35,6 @@ public class UnitTestGrader extends TestGrader {
     }
 
     @Override
-    protected Set<String> extraCreditTests() {
-        return new HashSet<>();
-    }
-
-    @Override
     protected String testName() {
         return "Custom Tests";
     }

@@ -71,7 +71,7 @@ public abstract class TestGrader {
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage());
+                    packagesToTest(), null, modulesToCheckCoverage());
         }
 
         if (results.root() == null) {
@@ -108,8 +108,6 @@ public abstract class TestGrader {
     protected abstract Set<File> testsToCompile() throws GradingException;
 
     protected abstract Set<String> packagesToTest() throws GradingException;
-
-    protected abstract Set<String> extraCreditTests() throws GradingException;
 
     protected abstract String testName();
 
