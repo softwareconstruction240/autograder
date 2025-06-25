@@ -3,26 +3,15 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.FileUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TestAnalyzerTest {
-
-    private Set<String> extraCreditTests;
-
-    @BeforeEach
-    void setup() {
-        extraCreditTests = new HashSet<>();
-    }
-
     @Test
     @DisplayName("All tests pass")
     void parse__all_tests_pass() throws GradingException, IOException {
@@ -45,7 +34,7 @@ class TestAnalyzerTest {
                 </testsuite>
                 """;
 
-        TestNode root = new TestAnalyzer().parse(xmlFromString(testsPassingInput), extraCreditTests).root();
+        TestNode root = new TestAnalyzer().parse(xmlFromString(testsPassingInput)).root();
 
         assertTrue(root.getTestName().startsWith("JUnit Jupiter"));
         assertEquals(2, root.getChildren().size());
@@ -96,7 +85,7 @@ class TestAnalyzerTest {
                 </testsuite>
                 """;
 
-        TestNode root = new TestAnalyzer().parse(xmlFromString(testsFailingInput), extraCreditTests).root();
+        TestNode root = new TestAnalyzer().parse(xmlFromString(testsFailingInput)).root();
 
         assertTrue(root.getTestName().startsWith("JUnit Jupiter"));
         assertEquals(2, root.getChildren().size());
@@ -172,7 +161,7 @@ class TestAnalyzerTest {
                 </testsuite>
                 """;
 
-        TestNode root = new TestAnalyzer().parse(xmlFromString(testsPassingInput), extraCreditTests).root();
+        TestNode root = new TestAnalyzer().parse(xmlFromString(testsPassingInput)).root();
 
         assertTrue(root.getTestName().startsWith("JUnit Jupiter"));
         assertEquals(3, root.getChildren().get("piece").getChildren().get("PawnMoveTests").getChildren().size());

@@ -197,7 +197,7 @@ public class TestHelper {
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
-            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, Set.of()); //FIXME: Remove empty Set
+            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput);
 
             return new TestOutput(testAnalysis.root(), coverage, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {

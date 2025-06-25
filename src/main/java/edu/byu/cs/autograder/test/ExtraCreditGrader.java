@@ -7,7 +7,6 @@ import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -20,7 +19,7 @@ public class ExtraCreditGrader extends TestGrader {
 
     @Override
     protected String name() {
-        return "extra-credit";
+        return "extra credit";
     }
 
     @Override
@@ -50,7 +49,7 @@ public class ExtraCreditGrader extends TestGrader {
 
     @Override
     protected Rubric.RubricType rubricType() {
-        return null;
+        return Rubric.RubricType.EXTRA_CREDIT;
     }
 
     @Override
