@@ -5,6 +5,7 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.TestNode;
 import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.ProcessUtils;
@@ -197,9 +198,9 @@ public class TestHelper {
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
-            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput);
+            TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput);
 
-            return new TestOutput(testAnalysis.root(), coverage, trimErrorOutput(error));
+            return new TestOutput(testAnalysis, coverage, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);

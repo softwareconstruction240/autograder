@@ -14,9 +14,6 @@ import java.util.Set;
  * <b>Important: this class is ONLY compatible with the xml output on the JUnit standalone client</b><br/>
  */
 public class TestAnalyzer {
-
-    public record TestAnalysis(TestNode root, TestNode extraCredit) {}
-
     /**
      * Parses the output of the JUnit Console Runner
      *
@@ -31,7 +28,7 @@ public class TestAnalyzer {
         extraCredit.setTestName("JUnit Jupiter Extra Credit");
 
         if(!junitXmlOutput.exists()) {
-            return compileAnalysis(root, extraCredit);
+            return compileAnalysis(root);
         }
 
         String xml = FileUtils.readStringFromFile(junitXmlOutput);
@@ -81,7 +78,7 @@ public class TestAnalyzer {
             }
         }
 
-        return compileAnalysis(root, extraCredit);
+        return compileAnalysis(root);
     }
 
     private TestNode nodeForClass(TestNode base, String name) {
@@ -102,11 +99,9 @@ public class TestAnalyzer {
         else return nodeForClass(node, extra);
     }
 
-    private TestAnalysis compileAnalysis(TestNode root, TestNode extraCredit) {
+    private TestNode compileAnalysis(TestNode root) {
         TestNode.collapsePackages(root);
         TestNode.countTests(root);
-        TestNode.collapsePackages(extraCredit);
-        TestNode.countTests(extraCredit);
-        return new TestAnalysis(root, extraCredit);
+        return root;
     }
 }
