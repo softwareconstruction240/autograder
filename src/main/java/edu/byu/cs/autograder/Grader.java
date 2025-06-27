@@ -10,6 +10,7 @@ import edu.byu.cs.autograder.git.GitHelper;
 import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.quality.QualityGrader;
 import edu.byu.cs.autograder.score.Scorer;
+import edu.byu.cs.autograder.test.ExtraCreditGrader;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
@@ -133,6 +134,7 @@ public class Grader implements Runnable {
                     // This code is violating the open-closed principle.
                     case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
                     case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
+                    case EXTRA_CREDIT -> new ExtraCreditGrader(gradingContext).runTests();
                     case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
                     case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
                     case GIT_COMMITS, GRADING_ISSUE -> null;
