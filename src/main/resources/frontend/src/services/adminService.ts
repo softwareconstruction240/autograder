@@ -14,11 +14,15 @@ export const submissionsForUserGet = (netId: string): Promise<Submission[]> => {
 };
 
 export const approveSubmissionPost = (netId: string, phase: Phase, penalize: boolean) => {
-  return ServerCommunicator.postRequest("/api/admin/submissions/approve", {
-    netId,
-    phase,
-    penalize,
-  });
+  return ServerCommunicator.postRequest(
+    "/api/admin/submissions/approve",
+    {
+      netId,
+      phase,
+      penalize,
+    },
+    false,
+  );
 };
 
 export const submissionsLatestGet = (batchSize?: number): Promise<Submission[]> => {
