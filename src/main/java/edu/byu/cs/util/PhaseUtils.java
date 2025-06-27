@@ -129,7 +129,7 @@ public class PhaseUtils {
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0 -> Set.of("passoff.chess", "passoff.chess.piecemoves");
-            case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
+            case Phase1 -> Set.of("passoff.chess.game");
             case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
             case Phase5, Quality, GitHub, Commits -> throw new GradingException("No passoff tests for this phase");
         };
@@ -258,14 +258,15 @@ public class PhaseUtils {
     }
 
     /**
-     * Gets any extra credit tests for a given phase
+     * Gets the packages for where extra credit tests for a given phase is
      *
      * @param phase the phase that may have extra credit tests
-     * @return all extra credit tests associated with the phase
+     * @return the packages for the extra credit tests
+     * @throws GradingException if there aren't extra credit tests for the given phase
      */
-    public static Set<String> extraCreditTests(Phase phase) {
-        if(phase == Phase.Phase1) return Set.of("CastlingTests", "EnPassantTests");
-        return new HashSet<>();
+    public static Set<String> extraCreditPackagesToTest(Phase phase) throws GradingException {
+        if (phase == Phase.Phase1) return Set.of("passoff.chess.extracredit");
+        throw new GradingException("No extra credit tests for this phase");
     }
 
     /**
