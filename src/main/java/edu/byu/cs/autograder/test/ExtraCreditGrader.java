@@ -29,8 +29,8 @@ public class ExtraCreditGrader extends TestGrader {
     }
 
     @Override
-    protected Set<String> packagesToTest() {
-        return PhaseUtils.extraCreditTests(gradingContext.phase());
+    protected Set<String> packagesToTest() throws GradingException {
+        return PhaseUtils.extraCreditPackagesToTest(gradingContext.phase());
     }
 
     @Override
@@ -39,13 +39,45 @@ public class ExtraCreditGrader extends TestGrader {
     }
 
     @Override
-    protected float getScore(TestOutput testResults) throws GradingException {
-        return 0;
+    protected float getScore(TestOutput testOutput) {
+        float score = 0;
+
+        Map<String, Float> ecScores = getECScores(testOutput.root());
+        float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
+        for (Float ecScore : ecScores.values()) {
+            if (ecScore == 1f) {
+                score += extraCreditValue;
+            }
+        }
+
+        return score;
     }
 
     @Override
-    protected String getNotes(TestOutput testResults) throws GradingException {
-        return "";
+    protected String getNotes(TestOutput testOutput) {
+        TestNode testResults = testOutput.root();
+        StringBuilder notes = new StringBuilder();
+
+        if (testResults == null) return "No tests were run";
+
+        Map<String, Float> ecScores = getECScores(testOutput.root());
+        float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
+        float totalECPoints = ecScores.values().stream().reduce(0f, (f1, f2) -> (float) (f1 + Math.floor(f2))) * extraCreditValue;
+
+        if (totalECPoints > 0f) notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
+
+        return notes.toString();
+    }
+
+    private Map<String, Float> getECScores(TestNode results) {
+        Map<String, Float> scores = new HashMap<>();
+
+        for (TestNode child : results.getChildren().values()) {
+            scores.put(child.getTestName(), (float) child.getNumTestsPassed() /
+                    (child.getNumTestsPassed() + child.getNumTestsFailed()));
+        }
+
+        return scores;
     }
 
     @Override
