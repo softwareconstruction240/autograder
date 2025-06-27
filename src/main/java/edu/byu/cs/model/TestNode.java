@@ -95,34 +95,34 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
         }
     }
 
-    public static void countTests(TestNode node) {
-        node.numTestsPassed = 0;
-        node.numTestsFailed = 0;
-        if (node.passed != null) {
-            if (node.passed) {
-                node.numTestsPassed++;
+    public void countTests() {
+        numTestsPassed = 0;
+        numTestsFailed = 0;
+        if (passed != null) {
+            if (passed) {
+                numTestsPassed++;
             } else {
-                node.numTestsFailed++;
+                numTestsFailed++;
             }
         }
 
-        for (TestNode child : node.children.values()) {
-            countTests(child);
-            node.numTestsPassed += child.numTestsPassed;
-            node.numTestsFailed += child.numTestsFailed;
+        for (TestNode child : children.values()) {
+            child.countTests();
+            numTestsPassed += child.numTestsPassed;
+            numTestsFailed += child.numTestsFailed;
         }
     }
 
-    public static void collapsePackages(TestNode node) {
-        while (node.getChildren().size() == 1) {
-            TestNode child = node.getChildren().values().iterator().next();
+    public void collapsePackages() {
+        while (getChildren().size() == 1) {
+            TestNode child = getChildren().values().iterator().next();
             if (child.passed != null) return;
-            node.testName = String.format("%s.%s", node.testName, child.testName);
-            node.children = child.children;
+            testName = String.format("%s.%s", testName, child.testName);
+            children = child.children;
         }
 
-        for (TestNode child : node.children.values()) {
-            collapsePackages(child);
+        for (TestNode child : children.values()) {
+            child.collapsePackages();
         }
     }
 
