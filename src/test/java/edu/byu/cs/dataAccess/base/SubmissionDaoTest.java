@@ -1,10 +1,10 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.base;
 
+import edu.byu.cs.dataAccess.sql.SqlDaoTestUtils;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
-import edu.byu.cs.dataAccess.sql.SqlDb;
-import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
-import edu.byu.cs.dataAccess.sql.UserSqlDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
@@ -15,14 +15,20 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-class SubmissionDaoTest {
+public abstract class SubmissionDaoTest {
+    protected abstract SubmissionDao newSubmissionDao();
+    protected abstract UserDao newUserDao();
+    protected abstract void clearSubmissions() throws DataAccessException;
+
+    protected SubmissionDao dao;
+    protected UserDao userDao;
+
     static final Phase[] phases = {
             Phase.Phase0,
             Phase.Phase1,
@@ -34,21 +40,18 @@ class SubmissionDaoTest {
             Phase.GitHub
     };
     static Random random;
-    SubmissionDao dao;
-    UserDao userDao;
-    int userID;
     static final int NUM_STUDENTS = 2;
     static final int SUBMISSIONS_PER_PHASE = 2;
     static final int DAY_RANGE = 3;
     static final float RAW_SCORE_MAX = 3.1415f;
+    int userID;
 
     /**
-     * See {@link DaoTestUtils} for information about how to set up the SQL database for testing
+     * See {@link SqlDaoTestUtils} for information about how to set up the SQL database for testing
      */
     @BeforeAll
-    static void prepareDatabase() throws DataAccessException {
+    static void prepare() throws DataAccessException {
         random = new Random();
-        DaoTestUtils.prepareSQLDatabase();
     }
 
     static IntStream latestSubmissionRange() {
@@ -73,9 +76,9 @@ class SubmissionDaoTest {
 
     @BeforeEach
     void setup() {
-        dao = new SubmissionSqlDao();
+        dao = newSubmissionDao();
         //Submission table has a foreign key constraint, so we need to generate a user
-        userDao = new UserSqlDao();
+        userDao = newUserDao();
         userID = generateID();
         Assertions.assertDoesNotThrow(() -> userDao.insertUser(generateStudentUser(userID)),
                 "Could not insert initial user");
@@ -456,14 +459,5 @@ class SubmissionDaoTest {
             hash.insert(0, "0");
         }
         return hash.toString();
-    }
-
-    private void clearSubmissions() throws DataAccessException {
-        try (var connection = SqlDb.getConnection();
-             var statement = connection.prepareStatement("TRUNCATE submission")) {
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataAccessException("Could not clear database", e);
-        }
     }
 }
