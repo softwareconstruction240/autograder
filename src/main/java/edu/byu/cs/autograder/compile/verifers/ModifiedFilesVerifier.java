@@ -4,12 +4,9 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.compile.StudentCodeReader;
 import edu.byu.cs.autograder.compile.StudentCodeVerifier;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,25 +15,36 @@ import java.util.Set;
 public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
 
     private final Set<String> ignoredFiles;
-    private final Set<String> studentFilesRegex;
+    private final String[] studentFilesRegex;
 
     private final String fileType;
 
     private final Set<String> modifiedFiles = new HashSet<>();
     private final Set<String> missingFiles = new HashSet<>();
 
-    public ModifiedFilesVerifier(Set<String> setIgnoredFiles, Set<String> setStudentFilesRegex, String setFileType) {
+    public ModifiedFilesVerifier(Set<String> setIgnoredFiles, String[] setStudentFilesRegex, String setFileType) {
         ignoredFiles = setIgnoredFiles;
         studentFilesRegex = setStudentFilesRegex;
         fileType = setFileType;
     }
 
+    /**
+     * Checks if the student modified or is missing files by comparing the relevant phase
+     * files to the student's files.
+     * The algorithm that does this is determined by a concrete class the extends the
+     * {@code ModifiedFilesVerifier}.
+     *
+     * @param context The grading context for the student's submission
+     * @param reader The reader for the student's files in their submission
+     * @throws GradingException if there is some error when comparing the student's test files
+     * to the reference test files (specifically ProcessException)
+     */
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         if (!PhaseUtils.isPhaseGraded(context.phase())) return;
 
         // check for modified or missing files
-        checkForModifiedOrMissingFiles();
+        checkForModifiedOrMissingFiles(context, reader);
 
         // notify observer if there are modified or missing files
         if (!modifiedFiles.isEmpty() || !missingFiles.isEmpty()) {
@@ -57,7 +65,7 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
         }
     }
 
-    protected abstract void checkForModifiedOrMissingFiles();
+    protected abstract void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException;
 
     /**
      * In the student's repository, gets all the file names to their absolute path based on
@@ -70,32 +78,12 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
      * @param reader Student code reader
      * @return A map of the file's name and the associated absolute path to that file
      */
-    private Map<String, String> getStudentFileNamesToAbsolutePath(StudentCodeReader reader) {
+    protected Map<String, String> getStudentFileNamesToAbsolutePath(StudentCodeReader reader) {
         Map<String, String> studentPassoffFileNamesToAbsolutes = new HashMap<>();
         for (String passoffRegex : studentFilesRegex) {
             studentPassoffFileNamesToAbsolutes.putAll(reader.getFileNameToAbsolutePath(passoffRegex));
         }
         return studentPassoffFileNamesToAbsolutes;
-    }
-
-    /**
-     * Gets all the phases' file names based on the phase number and path to the phases folder
-     * containing those files.
-     * Format:
-     * {
-     *      "ChessBoardTests.java":
-     *      "IdeaProjects/autograder/phases/phase0/passoff/chess/ChessBoardTests.java"
-     * }
-     * @param phase Phase to grab the test files from.
-     * @return A map of the phase's file names and the associated absolute path to that file.
-     */
-    private Map<String, String> getPhasePassoffFileNamesToAbsolutePath(
-            String phasesPath,
-            Phase phase
-    ) throws GradingException {
-        String phaseNumber = PhaseUtils.getPhaseAsString(phase);
-        String passoffPath = String.format("%s/phase%s/passoff/", phasesPath, phaseNumber);
-        return FileUtils.getFileNamesToAbsolutePaths(Path.of(passoffPath));
     }
 
     /**
@@ -106,7 +94,7 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
      * @param studentFileNames A map of the student's file names to their absolute paths
      * @throws ProcessUtils.ProcessException if process times outs out
      */
-    private void compareReferenceFilesToStudent(
+    protected void compareReferenceFilesToStudent(
             Map<String, String> referenceFileNames,
             Map<String, String> studentFileNames
     ) throws ProcessUtils.ProcessException {
