@@ -17,15 +17,18 @@ import java.util.Set;
 
 public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
 
-    private final Set<String> IGNORED_FILES;
-    private final Set<String> STUDENT_FILES_REGEX;
+    private final Set<String> ignoredFiles;
+    private final Set<String> studentFilesRegex;
+
+    private final String fileType;
 
     private final Set<String> modifiedFiles = new HashSet<>();
     private final Set<String> missingFiles = new HashSet<>();
 
-    public ModifiedFilesVerifier(Set<String> SET_IGNORED_FILES, Set<String> SET_STUDENT_FILES_REGEX) {
-        IGNORED_FILES = SET_IGNORED_FILES;
-        STUDENT_FILES_REGEX = SET_STUDENT_FILES_REGEX;
+    public ModifiedFilesVerifier(Set<String> setIgnoredFiles, Set<String> setStudentFilesRegex, String setFileType) {
+        ignoredFiles = setIgnoredFiles;
+        studentFilesRegex = setStudentFilesRegex;
+        fileType = setFileType;
     }
 
     @Override
@@ -39,11 +42,12 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
         if (!modifiedFiles.isEmpty() || !missingFiles.isEmpty()) {
             String warningMessage = String.format(
                     """
-                    Warning: your test files have changed. This could lead to the autograder giving
+                    Warning: your %s files have changed. This could lead to the autograder giving
                     different results than your local machine.
                     %s
                     %s
                     """,
+                    fileType,
                     !modifiedFiles.isEmpty() ? "Modified Files: " + String.join(", ", modifiedFiles) : "",
                     !missingFiles.isEmpty() ? "Missing Files: " + String.join(", ", missingFiles) : ""
             );
@@ -68,14 +72,14 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
      */
     private Map<String, String> getStudentFileNamesToAbsolutePath(StudentCodeReader reader) {
         Map<String, String> studentPassoffFileNamesToAbsolutes = new HashMap<>();
-        for (String passoffRegex : STUDENT_FILES_REGEX) {
+        for (String passoffRegex : studentFilesRegex) {
             studentPassoffFileNamesToAbsolutes.putAll(reader.getFileNameToAbsolutePath(passoffRegex));
         }
         return studentPassoffFileNamesToAbsolutes;
     }
 
     /**
-     * Gets all the phases' test file names based on the phase number and path to the phases folder
+     * Gets all the phases' file names based on the phase number and path to the phases folder
      * containing those files.
      * Format:
      * {
@@ -108,7 +112,7 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
     ) throws ProcessUtils.ProcessException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         for (String referenceFileName : referenceFileNames.keySet()) {
-            if (IGNORED_FILES.contains(referenceFileName)) {
+            if (ignoredFiles.contains(referenceFileName)) {
                 continue;
             }
 
