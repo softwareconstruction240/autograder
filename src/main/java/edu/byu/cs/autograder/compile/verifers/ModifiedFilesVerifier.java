@@ -76,6 +76,24 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
     protected abstract void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException;
 
     /**
+     * Compares the reference files to the student's files.
+     *
+     * @param referenceFileNames A map of the reference's file names to their absolute paths
+     * @param studentFileNames A map of the student's file names to their absolute paths
+     * @throws GradingException if an issue arises running the process to verify the files
+     */
+    protected void compareFilesToStudent(
+            Map<String, String> referenceFileNames,
+            Map<String, String> studentFileNames
+    ) throws GradingException {
+        try {
+            compareReferenceFilesToStudent(referenceFileNames, studentFileNames);
+        } catch (ProcessUtils.ProcessException e) {
+            throw new GradingException("Unable to verify unmodified " + fileType + " files: " + e.getMessage());
+        }
+    }
+
+    /**
      * In the student's repository, gets all the file names to their absolute path based on
      * the STUDENT_FILES_REGEX
      * For example:
@@ -100,7 +118,7 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
      * a side effect. Utilizes a process with the `diff` command.
      * @param referenceFileNames A map of the reference's file names to their absolute paths
      * @param studentFileNames A map of the student's file names to their absolute paths
-     * @throws ProcessUtils.ProcessException if process times outs out
+     * @throws ProcessUtils.ProcessException if process times out
      */
     protected void compareReferenceFilesToStudent(
             Map<String, String> referenceFileNames,

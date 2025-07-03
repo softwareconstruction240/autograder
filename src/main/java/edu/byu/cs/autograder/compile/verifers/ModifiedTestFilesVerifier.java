@@ -6,7 +6,6 @@ import edu.byu.cs.autograder.compile.StudentCodeReader;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
-import edu.byu.cs.util.ProcessUtils;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -48,11 +47,7 @@ public class ModifiedTestFilesVerifier extends ModifiedFilesVerifier {
         do {
             Map<String, String> referencePhaseFileNames =
                     getPhasePassoffFileNamesToAbsolutePath(context.phasesPath(), currentPhase);
-            try {
-                compareReferenceFilesToStudent(referencePhaseFileNames, studentTestFileNames);
-            } catch (ProcessUtils.ProcessException e) {
-                throw new GradingException("Unable to verify unmodified test files: " + e.getMessage());
-            }
+            compareFilesToStudent(referencePhaseFileNames, studentTestFileNames);
             currentPhase = PhaseUtils.getPreviousPhase(currentPhase);
         } while (currentPhase != null);
     }
