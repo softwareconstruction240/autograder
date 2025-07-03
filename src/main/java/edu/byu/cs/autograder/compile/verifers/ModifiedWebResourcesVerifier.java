@@ -3,11 +3,28 @@ package edu.byu.cs.autograder.compile.verifers;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.compile.StudentCodeReader;
-import edu.byu.cs.autograder.compile.StudentCodeVerifier;
+import edu.byu.cs.model.Phase;
+import edu.byu.cs.util.PhaseUtils;
 
-public class ModifiedWebResourcesVerifier implements StudentCodeVerifier {
+import java.util.Map;
+import java.util.Set;
+
+public class ModifiedWebResourcesVerifier extends ModifiedFilesVerifier {
+
+    public ModifiedWebResourcesVerifier() {
+        super(Set.of("deleteme"),
+                new String[] {
+                        ".*server/src/main/resources/web/.*"
+                }, "web resources");
+    }
+
     @Override
-    public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
+    protected void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException {
+        //Check if phase is phase 3 or beyond
+        Phase phase = context.phase();
+        int phaseNumber = Integer.parseInt(PhaseUtils.getPhaseAsString(phase));
+        if(phaseNumber<3) return;
 
+        Map<String, String> studentTestFileNames = getStudentFileNamesToAbsolutePath(reader);
     }
 }
