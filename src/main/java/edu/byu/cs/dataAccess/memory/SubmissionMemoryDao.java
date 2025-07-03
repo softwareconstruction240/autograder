@@ -100,7 +100,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission bestSubmission =  null;
         for (Submission s : submissions) {
             if (bestSubmission == null) { bestSubmission = s; }
-            else if (s.score() > bestSubmission.score()) { bestSubmission = s; }
+            else if (s.score() > bestSubmission.score() && s.passed()) { bestSubmission = s; }
+        }
+        if (bestSubmission == null || !bestSubmission.passed()){
+            return null;
         }
         return bestSubmission;
     }
