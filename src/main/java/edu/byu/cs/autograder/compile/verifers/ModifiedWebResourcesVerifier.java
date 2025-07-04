@@ -22,11 +22,12 @@ public class ModifiedWebResourcesVerifier extends ModifiedFilesVerifier {
 
     @Override
     protected void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException {
-        //Check if phase is phase 3 or beyond
+        // check if phase is phase 3 or beyond
         Phase phase = context.phase();
         int phaseNumber = Integer.parseInt(PhaseUtils.getPhaseAsString(phase));
         if(phaseNumber<3) return;
 
+        // get student and reference files and compare
         Map<String, String> studentWebResourcesFileNames = getStudentFileNamesToAbsolutePath(reader);
         String webResourcesPath = String.format("%s/phase3/resources/web/", context.phasesPath());
         Map<String, String> referenceWebResourcesFileNames = FileUtils.getFileNamesToAbsolutePaths(Path.of(webResourcesPath));
