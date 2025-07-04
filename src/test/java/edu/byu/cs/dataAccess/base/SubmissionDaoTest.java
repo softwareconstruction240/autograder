@@ -148,11 +148,11 @@ public abstract class SubmissionDaoTest {
     }
 
     @ParameterizedTest(name = "with {0} submissions")
-    @ValueSource(ints = {0, 1, 2})
+    @ValueSource(ints = {0, 1, 2, 7})
     void getLastSubmissionForUser(int submissionCount) throws DataAccessException{
         ArrayList<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < submissionCount; i++){
-            Submission s = generateSubmission(userID);
+            Submission s = generateSubmission(userID, Phase.Phase0);
             submissions.add(s);
             dao.insertSubmission(s);
         }
