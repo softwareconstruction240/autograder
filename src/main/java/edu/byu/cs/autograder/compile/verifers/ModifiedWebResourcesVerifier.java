@@ -34,6 +34,7 @@ public class ModifiedWebResourcesVerifier extends ModifiedFilesVerifier {
             throws GradingException {
         // check if current phase is phase 3 or beyond
         Phase phase = context.phase();
+        // The assumption is made that "phases" that aren't phases 0-6 have been filtered out by this point...
         int phaseNumber = Integer.parseInt(PhaseUtils.getPhaseAsString(phase));
         if (phaseNumber<3) return;
 
