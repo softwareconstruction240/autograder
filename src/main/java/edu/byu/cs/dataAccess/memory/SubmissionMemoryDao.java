@@ -89,7 +89,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission earliest = null;
         long min = Long.MAX_VALUE;
         for (Submission s : submissions) {
-            if (s.passed() && s.timestamp().getEpochSecond() < min) earliest = s;
+            if (s.passed() && s.timestamp().getEpochSecond() < min) {
+                earliest = s;
+                min = s.timestamp().getEpochSecond();
+            }
         }
         return earliest;
     }
