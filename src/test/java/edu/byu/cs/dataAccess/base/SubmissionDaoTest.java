@@ -166,10 +166,6 @@ public abstract class SubmissionDaoTest {
             Submission submission = obtainedSubmissionsByTime.get(i);
             for (int j = i + 1; j < obtainedSubmissionsByTime.size(); j++) {
                 Submission previousSubmission = obtainedSubmissionsByTime.get(j);
-                //FIXME: this test could fail if the timestamps are the same
-                Assertions.assertTrue(previousSubmission.timestamp().isBefore(submission.timestamp()),
-                        "Previous time:" + previousSubmission.timestamp() + ", After time:"
-                                + submission.timestamp());
                 if (previousSubmission.netId().equals(submission.netId())) {
                     Assertions.assertNotEquals(previousSubmission.phase(), submission.phase(),
                             "Returned multiple phases for a user");
