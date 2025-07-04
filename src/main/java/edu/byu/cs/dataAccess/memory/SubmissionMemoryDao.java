@@ -45,7 +45,7 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission latest = null;
         long max = 0;
         for (Submission s : submissions) {
-            if (s.passed() && s.timestamp().getEpochSecond() > max) {
+            if (s.timestamp().getEpochSecond() > max) {
                 latest = s;
                 max = s.timestamp().getEpochSecond();
             }
