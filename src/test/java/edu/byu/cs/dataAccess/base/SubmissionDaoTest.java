@@ -13,6 +13,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -143,6 +144,33 @@ public abstract class SubmissionDaoTest {
                     "Got a different submission from what was inserted");
             Assertions.assertFalse(otherSubmissions.contains(s),
                     "Got a submission for a different user");
+        }
+    }
+
+    @ParameterizedTest(name = "with {0} submissions")
+    @ValueSource(ints = {0, 1, 2})
+    void getLastSubmissionForUser(int submissionCount) throws DataAccessException{
+        ArrayList<Submission> submissions = new ArrayList<>();
+        for (int i = 0; i < submissionCount; i++){
+            Submission s = generateSubmission(userID);
+            submissions.add(s);
+            dao.insertSubmission(s);
+        }
+        Submission lastSubmission = dao.getLastSubmissionForUser(generateNetID(userID));
+        if (submissionCount == 0){
+            Assertions.assertNull(lastSubmission);
+            return;
+        }
+        Assertions.assertTrue(submissions.contains(lastSubmission),
+                "Got a submission that wasn't generated");
+        Assertions.assertEquals(generateNetID(userID), lastSubmission.netId(),
+                "Got a submission for another student");
+        for (Submission s : submissions){
+            if (!s.equals(lastSubmission)){
+                Assertions.assertTrue(s.timestamp().isBefore(lastSubmission.timestamp()),
+                        "Submission received is not the latest submission:\n Latest:" +
+                                lastSubmission.passed() + " Other:" + s.passed());
+            }
         }
     }
 
