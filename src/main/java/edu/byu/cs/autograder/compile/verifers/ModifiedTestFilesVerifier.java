@@ -30,10 +30,8 @@ public class ModifiedTestFilesVerifier extends ModifiedFilesVerifier {
     }
 
     /**
-     * Checks if the student modified or is missing test files by comparing the relevant phase test
-     * files to the student's files.
-     * Algorithm: Working from the current phase back, for each reference file in the phase, compare
-     * the reference file to the student's equivalent.
+     * Working from the current phase back, checks if the student modified or is missing
+     * test files by comparing the relevant phase test files to the student's files.
      *
      * @param context The grading context for the student's submission
      * @param reader The reader for the student's files in their submission
@@ -41,7 +39,8 @@ public class ModifiedTestFilesVerifier extends ModifiedFilesVerifier {
      * to the reference test files (specifically ProcessException)
      */
     @Override
-    protected void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException {
+    protected void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader)
+            throws GradingException {
         Map<String, String> studentTestFileNames = getStudentFileNamesToAbsolutePath(reader);
         Phase currentPhase = context.phase();
         do {

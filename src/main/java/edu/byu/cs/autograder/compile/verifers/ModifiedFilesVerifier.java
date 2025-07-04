@@ -66,14 +66,16 @@ public abstract class ModifiedFilesVerifier implements StudentCodeVerifier {
     }
 
     /**
-     * Checks if the student modified or is missing test files by comparing the relevant phase test
-     * files to the student's files.
+     * Checks if the student modified or is missing files by comparing the relevant phase
+     * files to the student's files. For each reference file in the phase, compare the
+     * reference file to the student's equivalent.
      *
      * @param context The grading context for the student's submission
      * @param reader The reader for the student's files in their submission
      * @throws GradingException if there is some error when comparing the student's files
      */
-    protected abstract void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader) throws GradingException;
+    protected abstract void checkForModifiedOrMissingFiles(GradingContext context, StudentCodeReader reader)
+            throws GradingException;
 
     /**
      * Compares the reference files to the student's files.
