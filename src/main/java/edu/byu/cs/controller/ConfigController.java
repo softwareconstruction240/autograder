@@ -138,4 +138,11 @@ public class ConfigController {
 
         ctx.result("");
     };
+
+    public static final Handler updateSlackLink = (ctx) -> {
+        User user = ctx.sessionAttribute("user");
+        String request = Serializer.deserialize(ctx.body(), String.class);
+
+        ConfigService.updateSlackLink(user, request);
+    };
 }

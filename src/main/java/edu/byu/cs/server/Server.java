@@ -131,6 +131,8 @@ public class Server {
                             post("/penalties", provider.updatePenalties());
 
                             post("/holidays", provider.updateHolidays());
+
+                            post("/slackLink", provider.updateSlackLink());
                         });
                     });
                 });

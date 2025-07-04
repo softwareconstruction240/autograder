@@ -391,6 +391,17 @@ public class ConfigService {
         setConfigItem(user, Configuration.HOLIDAY_LIST, encodedHolidays, String.class);
     }
 
+    /**
+     * Update the invitation link to the Slack page of the current semester/term
+     *
+     * @param user the user who updated the invitation link
+     * @param slackLink the invitation link to the Slack page
+     * @throws DataAccessException if an issue arises updating the invitation link
+     */
+    public static void updateSlackLink(User user, String slackLink) throws DataAccessException {
+        setConfigItem(user, Configuration.SLACK_LINK, slackLink, String.class);
+    }
+
     //
     // GENERAL HELPER FUNCTIONS
     //
