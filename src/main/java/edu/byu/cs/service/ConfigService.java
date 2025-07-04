@@ -71,7 +71,8 @@ public class ConfigService {
         return new PublicConfig(
                 generateBannerConfig(),
                 generateShutdownConfig(),
-                phases
+                phases,
+                dao.getConfiguration(Configuration.SLACK_LINK, String.class)
         );
     }
 
