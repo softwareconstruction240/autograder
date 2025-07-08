@@ -51,7 +51,7 @@ public abstract class SubmissionDaoTest {
      * See {@link SqlDaoTestUtils} for information about how to set up the SQL database for testing
      */
     @BeforeAll
-    static void prepare() throws DataAccessException {
+    static void prepare() {
         random = new Random();
     }
 
