@@ -174,6 +174,19 @@ public abstract class SubmissionDaoTest {
         }
     }
 
+    @Test
+    void getAllLatestSubmissions() throws DataAccessException {
+        clearSubmissions();
+        Collection<Submission> allSubmissions = generateSubmissionDummyData(userID);
+        allSubmissions.addAll(generateStudentDummyData(generateID()));
+        Collection<Submission> negativeBatch = dao.getAllLatestSubmissions(-1);
+        Collection<Submission> obtained = dao.getAllLatestSubmissions();
+        Assertions.assertEquals(negativeBatch.size(), obtained.size());
+        for (Submission s : obtained){
+            Assertions.assertTrue(negativeBatch.contains(s));
+        }
+    }
+
     @ParameterizedTest(name = "batch of {0}")
     @MethodSource("latestSubmissionRange")
     void getAllLatestSubmissions(int batch) throws DataAccessException {
