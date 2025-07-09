@@ -89,11 +89,23 @@ public abstract class SubmissionDaoTest {
     void submissionSerialization() throws DataAccessException {
         Submission firstSubmission = generateSubmission(userID);
 
-        Assertions.assertDoesNotThrow(() -> dao.insertSubmission(firstSubmission),
-                "Could not insert submission");
+        dao.insertSubmission(firstSubmission);
         var readSubmission = dao.getFirstPassingSubmission(firstSubmission.netId(), firstSubmission.phase());
         Assertions.assertEquals(firstSubmission, readSubmission,
                 "Submission obtained was not equal to submission inserted");
+    }
+
+    @Test void submissionSerialziationWithNulls() throws DataAccessException{
+        Submission nullSubmission = generateSubmission(userID,
+                true,
+                3.1415f,
+                Phase.Phase0,
+                false
+        );
+
+        dao.insertSubmission(nullSubmission);
+        Submission obtained = dao.getFirstPassingSubmission(nullSubmission.netId(), nullSubmission.phase());
+        Assertions.assertEquals(nullSubmission, obtained);
     }
 
     @Test
@@ -322,7 +334,7 @@ public abstract class SubmissionDaoTest {
     void getBestSubmissionWithDuplicateScore(Phase phase) throws DataAccessException {
         Collection<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
-            Submission duplicate = generateSubmission(userID, true, RAW_SCORE_MAX, phase);
+            Submission duplicate = generateSubmission(userID, true, RAW_SCORE_MAX, phase, true);
             Assertions.assertDoesNotThrow(() -> dao.insertSubmission(duplicate),
                     "Could not insert submission");
             submissions.add(duplicate);
@@ -442,7 +454,8 @@ public abstract class SubmissionDaoTest {
                 id,
                 passed,
                 random.nextFloat(RAW_SCORE_MAX),
-                phase
+                phase,
+                true
         );
     }
 
@@ -451,11 +464,12 @@ public abstract class SubmissionDaoTest {
                 id,
                 random.nextBoolean(),
                 random.nextFloat(RAW_SCORE_MAX),
-                phase
+                phase,
+                true
         );
     }
 
-    private Submission generateSubmission(int id, boolean passed, Float score, Phase phase) {
+    private Submission generateSubmission(int id, boolean passed, Float score, Phase phase, boolean verification) {
         return new Submission(
                 generateNetID(id),
                 generateRepo(id),
@@ -469,9 +483,9 @@ public abstract class SubmissionDaoTest {
                 "This is only a testing submission for Cosmo Cougar (#%s).".formatted(id),
                 null,
                 true,
-                Submission.VerifiedStatus.ApprovedManually,
+                verification ? Submission.VerifiedStatus.ApprovedManually : null,
                 null, null,
-                new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0)
+                verification ? new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0) : null
         );
     }
 
