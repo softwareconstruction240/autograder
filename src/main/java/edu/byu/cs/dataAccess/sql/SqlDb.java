@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -38,8 +39,7 @@ public class SqlDb {
     private static HikariDataSource dataSource;
 
     public static void setUpDb() throws DataAccessException {
-        setupConnectionPool();
-        try (Connection connection = getConnection();
+        try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
             connection.setCatalog(DB_NAME);
@@ -131,7 +131,7 @@ public class SqlDb {
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }
-            dataSource.setCatalog(DB_NAME);
+            setupConnectionPool();
         } catch (SQLException e) {
             LOGGER.error("Error connecting to database", e);
             throw new DataAccessException("Error connecting to database", e);
@@ -143,6 +143,7 @@ public class SqlDb {
         config.setJdbcUrl(CONNECTION_STRING);
         config.setUsername(DB_USER);
         config.setPassword(DB_PASSWORD);
+        config.setCatalog(DB_NAME);
 
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
