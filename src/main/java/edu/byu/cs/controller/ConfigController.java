@@ -141,7 +141,9 @@ public class ConfigController {
 
     public static final Handler updateSlackLink = (ctx) -> {
         User user = ctx.sessionAttribute("user");
-        String request = Serializer.deserialize(ctx.body(), String.class);
+
+        JsonObject jsonObject = Serializer.deserialize(ctx.body(), JsonObject.class);
+        String request = Serializer.deserialize(jsonObject.get("slackLink"), String.class);
 
         ConfigService.updateSlackLink(user, request);
     };

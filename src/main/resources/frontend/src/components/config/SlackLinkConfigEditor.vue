@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { setSlackLink } from "@/services/configService";
 import { useConfigStore } from "@/stores/config";
 
 const config = useConfigStore();
@@ -12,11 +13,11 @@ const valueReady = (): boolean => {
   return slackLink.value.length !== 0;
 }
 
-const slackLink = ref<string>("");
+const slackLink = ref<string>(config.public.slackLink);
 
 const submitSlackLink = async () => {
   try {
-    //TODO: await setSlackLink(slackLink);
+    await setSlackLink(slackLink.value);
     closeEditor();
   } catch (e) {
     config.updatePublicConfig();

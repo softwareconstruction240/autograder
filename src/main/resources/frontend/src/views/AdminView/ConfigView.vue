@@ -177,7 +177,7 @@ onMounted(async () => {
         <SlackLinkConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
-        <p><span class="infoLabel">Slack Link: </span>{{ config.public.slackLink }}</p>
+        <p><span class="infoLabel">Slack Link: </span><em>{{ config.public.slackLink }}</em></p>
       </template>
     </ConfigSection>
   </div>
