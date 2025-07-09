@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from "vue";
 import { useConfigStore } from "@/stores/config";
 
@@ -7,6 +7,10 @@ const config = useConfigStore();
 const { closeEditor } = defineProps<{
   closeEditor: () => void;
 }>();
+
+const valueReady = (): boolean => {
+  return slackLink.value.length !== 0;
+}
 
 const slackLink = ref<string>("");
 
@@ -23,7 +27,18 @@ const submitSlackLink = async () => {
 </script>
 
 <template>
-  <p>Top Text: Fix this!</p>
+  <p>
+    Set the URL where users will be redirected to the Slack page for the current semester or term.
+    This redirect will occur when a user visits:
+    <br><em>https://cs240.click/TODO/insert/slacklink/here/</em>
+  </p>
+  <input v-model="slackLink" type="text" placeholder="No Slack Link" />
+
+  <button :disabled="!valueReady()" @click="submitSlackLink">Submit</button>
 </template>
 
-<style scoped></style>
+<style scoped>
+button {
+  margin-top: 10px;
+}
+</style>
