@@ -43,6 +43,7 @@ public interface EndpointProvider {
     Handler updatePenalties();
     Handler updateHolidays();
     Handler updateSlackLink();
+    Handler redirectSlackLink();
 
     // SubmissionController
     Handler submitPost();

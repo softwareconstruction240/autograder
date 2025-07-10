@@ -147,4 +147,9 @@ public class ConfigController {
 
         ConfigService.updateSlackLink(user, request);
     };
+
+    public static final Handler redirectSlackLink = (ctx) -> {
+        String slackLink = ConfigService.getSlackLink();
+        ctx.redirect(slackLink);
+    };
 }

@@ -402,6 +402,10 @@ public class ConfigService {
         setConfigItem(user, Configuration.SLACK_LINK, slackLink, String.class);
     }
 
+    public static String getSlackLink() throws DataAccessException {
+        return dao.getConfiguration(Configuration.SLACK_LINK, String.class);
+    }
+
     //
     // GENERAL HELPER FUNCTIONS
     //

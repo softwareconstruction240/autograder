@@ -158,6 +158,11 @@ public class EndpointProviderImpl implements EndpointProvider {
         return ConfigController.updateSlackLink;
     }
 
+    @Override
+    public Handler redirectSlackLink(){
+        return ConfigController.redirectSlackLink;
+    }
+
     // SubmissionController
 
     @Override

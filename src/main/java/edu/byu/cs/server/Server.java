@@ -80,6 +80,8 @@ public class Server {
 
                     get("/config", provider.getConfigStudent());
 
+                    get("/slack", provider.redirectSlackLink());
+
                     path("/admin", () -> {
                         before("/*", ctx -> {
                             if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
