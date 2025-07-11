@@ -80,8 +80,6 @@ public class Server {
 
                     get("/config", provider.getConfigStudent());
 
-                    get("/slack", provider.redirectSlackLink());
-
                     path("/admin", () -> {
                         before("/*", ctx -> {
                             if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
@@ -137,6 +135,11 @@ public class Server {
                             post("/slackLink", provider.updateSlackLink());
                         });
                     });
+                });
+
+                get("/slack", ctx -> {
+                    ctx.sessionAttribute("slack", true);
+                    provider.loginGet().handle(ctx);
                 });
 
                 after(provider.afterAll());

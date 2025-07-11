@@ -31,7 +31,7 @@ const submitSlackLink = async () => {
   <p>
     Set the URL where users will be redirected to the Slack page for the current semester or term.
     This redirect will occur when a user visits:
-    <br><em>https://cs240.click/TODO/insert/slacklink/here/</em>
+    <br><em>https://cs240.click/slack</em>
   </p>
   <input v-model="slackLink" type="text" placeholder="No Slack Link" />
 
