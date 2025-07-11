@@ -28,7 +28,7 @@ const submitSlackLink = async () => {
 
 <template>
   <p>
-    Set the URL where users will be redirected to the Slack page for the current semester or term.
+    Set the URL where users will be redirected to the Slack page for the current term or semester.
     This redirect will occur when a user visits:
     <br /><em>https://cs240.click/slack</em>
   </p>
