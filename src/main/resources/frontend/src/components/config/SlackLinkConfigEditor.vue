@@ -11,7 +11,7 @@ const { closeEditor } = defineProps<{
 
 const valueReady = (): boolean => {
   return slackLink.value.length !== 0;
-}
+};
 
 const slackLink = ref<string>(config.public.slackLink);
 
@@ -23,15 +23,14 @@ const submitSlackLink = async () => {
     config.updatePublicConfig();
     alert("There was a problem in saving the slack link");
   }
-}
-
+};
 </script>
 
 <template>
   <p>
     Set the URL where users will be redirected to the Slack page for the current semester or term.
     This redirect will occur when a user visits:
-    <br><em>https://cs240.click/slack</em>
+    <br /><em>https://cs240.click/slack</em>
   </p>
   <input v-model="slackLink" type="text" placeholder="No Slack Link" />
 

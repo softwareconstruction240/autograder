@@ -27,7 +27,7 @@ const ScheduleShutdownEditor = defineAsyncComponent(
 );
 const SlackLinkConfigEditor = defineAsyncComponent(
   () => import("@/components/config/SlackLinkConfigEditor.vue"),
-)
+);
 
 const config = useConfigStore();
 
@@ -172,12 +172,17 @@ onMounted(async () => {
       </template>
     </ConfigSection>
 
-    <ConfigSection title="Slack Link" description="The invitation link to the Slack page of the current semester/term">
+    <ConfigSection
+      title="Slack Link"
+      description="The invitation link to the Slack page of the current semester/term"
+    >
       <template #editor="{ closeEditor }">
         <SlackLinkConfigEditor :closeEditor="closeEditor" />
       </template>
       <template #current>
-        <p><span class="infoLabel">Slack Link: </span><em>{{ config.public.slackLink }}</em></p>
+        <p>
+          <span class="infoLabel">Slack Link: </span><em>{{ config.public.slackLink }}</em>
+        </p>
       </template>
     </ConfigSection>
   </div>
