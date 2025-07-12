@@ -1,13 +1,13 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.sql;
 
-import edu.byu.cs.dataAccess.sql.SqlDb;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 
 import java.io.FileReader;
 import java.util.Properties;
 import java.util.Scanner;
 
-public class DaoTestUtils {
+public class SqlDaoTestUtils {
 
     private static final String PATH_TO_ENV_VARS = "src/test/resources/testdb.env";
 
@@ -27,7 +27,7 @@ public class DaoTestUtils {
      * It's highly recommended that you use a different DB name than the one you use for development,
      * as the tests will truncate tables when necessary
      */
-    static void prepareSQLDatabase() throws DataAccessException{
+    static void prepareSQLDatabase() throws DataAccessException {
         Properties props = new Properties();
         try {
             props.setProperty("db-port", System.getenv("DB_PORT"));
