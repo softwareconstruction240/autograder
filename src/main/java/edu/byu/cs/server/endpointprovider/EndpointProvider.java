@@ -42,6 +42,7 @@ public interface EndpointProvider {
     Handler reloadCourseAssignmentIds();
     Handler updatePenalties();
     Handler updateHolidays();
+    Handler updateSlackLink();
 
     // SubmissionController
     Handler submitPost();

@@ -71,7 +71,8 @@ public class ConfigService {
         return new PublicConfig(
                 generateBannerConfig(),
                 generateShutdownConfig(),
-                phases
+                phases,
+                dao.getConfiguration(Configuration.SLACK_LINK, String.class)
         );
     }
 
@@ -388,6 +389,21 @@ public class ConfigService {
         String encodedHolidays = stringBuilder.toString();
 
         setConfigItem(user, Configuration.HOLIDAY_LIST, encodedHolidays, String.class);
+    }
+
+    /**
+     * Update the invitation link to the Slack page of the current semester/term
+     *
+     * @param user the user who updated the invitation link
+     * @param slackLink the invitation link to the Slack page
+     * @throws DataAccessException if an issue arises updating the invitation link
+     */
+    public static void updateSlackLink(User user, String slackLink) throws DataAccessException {
+        setConfigItem(user, Configuration.SLACK_LINK, slackLink, String.class);
+    }
+
+    public static String getSlackLink() throws DataAccessException {
+        return dao.getConfiguration(Configuration.SLACK_LINK, String.class);
     }
 
     //

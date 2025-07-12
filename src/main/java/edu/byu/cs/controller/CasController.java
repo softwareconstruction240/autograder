@@ -1,9 +1,12 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.CasService;
+import edu.byu.cs.service.ConfigService;
+import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
 
@@ -31,17 +34,29 @@ public class CasController {
 
         // FIXME: secure cookie with httpOnly
         ctx.cookie("token", generateToken(user.netId()), 14400);
-        ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.FOUND);
+
+        redirect(ctx);
     };
 
     public static final Handler loginGet = ctx -> {
         // check if already logged in
         if (ctx.cookie("token") != null) {
-            ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.FOUND);
+            redirect(ctx);
             return;
         }
         ctx.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
     };
+
+
+    private static void redirect(Context ctx) throws DataAccessException {
+        String redirectTo;
+        if(ctx.sessionAttribute("slack") != null) {
+            redirectTo = ConfigService.getSlackLink();
+            ctx.sessionAttribute("slack", null);
+        }
+        else redirectTo = ApplicationProperties.frontendUrl();
+        ctx.redirect(redirectTo, HttpStatus.FOUND);
+    }
 
     public static final Handler logoutPost = ctx -> {
         if (ctx.cookie("token") == null) {

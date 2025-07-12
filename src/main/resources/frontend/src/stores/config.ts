@@ -25,6 +25,8 @@ export type PublicConfig = {
   };
 
   livePhases: string[];
+
+  slackLink: string;
 };
 
 /**
@@ -66,6 +68,8 @@ export const useConfigStore = defineStore("config", () => {
     },
 
     livePhases: [],
+
+    slackLink: "",
   });
 
   const privateConfig = reactive<PrivateConfig>({
