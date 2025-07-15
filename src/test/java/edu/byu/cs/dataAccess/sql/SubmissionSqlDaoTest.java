@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import java.sql.SQLException;
 
-class SqlSubmissionDaoTest extends SubmissionDaoTest {
+class SubmissionSqlDaoTest extends SubmissionDaoTest {
 
     @BeforeAll
     protected static void prepareDatabase() throws DataAccessException {

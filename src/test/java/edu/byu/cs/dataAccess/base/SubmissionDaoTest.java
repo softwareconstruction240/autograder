@@ -95,7 +95,7 @@ public abstract class SubmissionDaoTest {
                 "Submission obtained was not equal to submission inserted");
     }
 
-    @Test void submissionSerialziationWithNulls() throws DataAccessException{
+    @Test void submissionSerializationWithNulls() throws DataAccessException{
         Submission nullSubmission = generateSubmission(userID,
                 true,
                 3.1415f,
