@@ -1,10 +1,10 @@
-package edu.byu.cs.dataAccess;
+package edu.byu.cs.dataAccess.base;
 
+import edu.byu.cs.dataAccess.sql.SqlDaoTestUtils;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
-import edu.byu.cs.dataAccess.sql.SqlDb;
-import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
-import edu.byu.cs.dataAccess.sql.UserSqlDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
@@ -13,16 +13,23 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-class SubmissionDaoTest {
+public abstract class SubmissionDaoTest {
+    protected abstract SubmissionDao newSubmissionDao();
+    protected abstract UserDao newUserDao();
+    protected abstract void clearSubmissions() throws DataAccessException;
+
+    protected SubmissionDao dao;
+    protected UserDao userDao;
+
     static final Phase[] phases = {
             Phase.Phase0,
             Phase.Phase1,
@@ -34,21 +41,18 @@ class SubmissionDaoTest {
             Phase.GitHub
     };
     static Random random;
-    SubmissionDao dao;
-    UserDao userDao;
-    int userID;
     static final int NUM_STUDENTS = 2;
     static final int SUBMISSIONS_PER_PHASE = 2;
     static final int DAY_RANGE = 3;
     static final float RAW_SCORE_MAX = 3.1415f;
+    int userID;
 
     /**
-     * See {@link DaoTestUtils} for information about how to set up the SQL database for testing
+     * See {@link SqlDaoTestUtils} for information about how to set up the SQL database for testing
      */
     @BeforeAll
-    static void prepareDatabase() throws DataAccessException {
+    static void prepare() {
         random = new Random();
-        DaoTestUtils.prepareSQLDatabase();
     }
 
     static IntStream latestSubmissionRange() {
@@ -73,9 +77,9 @@ class SubmissionDaoTest {
 
     @BeforeEach
     void setup() {
-        dao = new SubmissionSqlDao();
+        dao = newSubmissionDao();
         //Submission table has a foreign key constraint, so we need to generate a user
-        userDao = new UserSqlDao();
+        userDao = newUserDao();
         userID = generateID();
         Assertions.assertDoesNotThrow(() -> userDao.insertUser(generateStudentUser(userID)),
                 "Could not insert initial user");
@@ -85,11 +89,23 @@ class SubmissionDaoTest {
     void submissionSerialization() throws DataAccessException {
         Submission firstSubmission = generateSubmission(userID);
 
-        Assertions.assertDoesNotThrow(() -> dao.insertSubmission(firstSubmission),
-                "Could not insert submission");
+        dao.insertSubmission(firstSubmission);
         var readSubmission = dao.getFirstPassingSubmission(firstSubmission.netId(), firstSubmission.phase());
         Assertions.assertEquals(firstSubmission, readSubmission,
                 "Submission obtained was not equal to submission inserted");
+    }
+
+    @Test void submissionSerializationWithNulls() throws DataAccessException{
+        Submission nullSubmission = generateSubmission(userID,
+                true,
+                3.1415f,
+                Phase.Phase0,
+                false
+        );
+
+        dao.insertSubmission(nullSubmission);
+        Submission obtained = dao.getFirstPassingSubmission(nullSubmission.netId(), nullSubmission.phase());
+        Assertions.assertEquals(nullSubmission, obtained);
     }
 
     @Test
@@ -143,6 +159,46 @@ class SubmissionDaoTest {
         }
     }
 
+    @ParameterizedTest(name = "with {0} submissions")
+    @ValueSource(ints = {0, 1, 2, 7})
+    void getLastSubmissionForUser(int submissionCount) throws DataAccessException{
+        ArrayList<Submission> submissions = new ArrayList<>();
+        for (int i = 0; i < submissionCount; i++){
+            Submission s = generateSubmission(userID, Phase.Phase0);
+            submissions.add(s);
+            dao.insertSubmission(s);
+        }
+        Submission lastSubmission = dao.getLastSubmissionForUser(generateNetID(userID));
+        if (submissionCount == 0){
+            Assertions.assertNull(lastSubmission);
+            return;
+        }
+        Assertions.assertTrue(submissions.contains(lastSubmission),
+                "Got a submission that wasn't generated");
+        Assertions.assertEquals(generateNetID(userID), lastSubmission.netId(),
+                "Got a submission for another student");
+        for (Submission s : submissions){
+            if (!s.equals(lastSubmission)){
+                Assertions.assertTrue(s.timestamp().isBefore(lastSubmission.timestamp()),
+                        "Submission received is not the latest submission:\n Latest:" +
+                                lastSubmission.passed() + " Other:" + s.passed());
+            }
+        }
+    }
+
+    @Test
+    void getAllLatestSubmissions() throws DataAccessException {
+        clearSubmissions();
+        Collection<Submission> allSubmissions = generateSubmissionDummyData(userID);
+        allSubmissions.addAll(generateStudentDummyData(generateID()));
+        Collection<Submission> negativeBatch = dao.getAllLatestSubmissions(-1);
+        Collection<Submission> obtained = dao.getAllLatestSubmissions();
+        Assertions.assertEquals(negativeBatch.size(), obtained.size());
+        for (Submission s : obtained){
+            Assertions.assertTrue(negativeBatch.contains(s));
+        }
+    }
+
     @ParameterizedTest(name = "batch of {0}")
     @MethodSource("latestSubmissionRange")
     void getAllLatestSubmissions(int batch) throws DataAccessException {
@@ -163,10 +219,6 @@ class SubmissionDaoTest {
             Submission submission = obtainedSubmissionsByTime.get(i);
             for (int j = i + 1; j < obtainedSubmissionsByTime.size(); j++) {
                 Submission previousSubmission = obtainedSubmissionsByTime.get(j);
-                //FIXME: this test could fail if the timestamps are the same
-                Assertions.assertTrue(previousSubmission.timestamp().isBefore(submission.timestamp()),
-                        "Previous time:" + previousSubmission.timestamp() + ", After time:"
-                                + submission.timestamp());
                 if (previousSubmission.netId().equals(submission.netId())) {
                     Assertions.assertNotEquals(previousSubmission.phase(), submission.phase(),
                             "Returned multiple phases for a user");
@@ -282,7 +334,7 @@ class SubmissionDaoTest {
     void getBestSubmissionWithDuplicateScore(Phase phase) throws DataAccessException {
         Collection<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
-            Submission duplicate = generateSubmission(userID, true, RAW_SCORE_MAX, phase);
+            Submission duplicate = generateSubmission(userID, true, RAW_SCORE_MAX, phase, true);
             Assertions.assertDoesNotThrow(() -> dao.insertSubmission(duplicate),
                     "Could not insert submission");
             submissions.add(duplicate);
@@ -402,7 +454,8 @@ class SubmissionDaoTest {
                 id,
                 passed,
                 random.nextFloat(RAW_SCORE_MAX),
-                phase
+                phase,
+                true
         );
     }
 
@@ -411,11 +464,12 @@ class SubmissionDaoTest {
                 id,
                 random.nextBoolean(),
                 random.nextFloat(RAW_SCORE_MAX),
-                phase
+                phase,
+                true
         );
     }
 
-    private Submission generateSubmission(int id, boolean passed, Float score, Phase phase) {
+    private Submission generateSubmission(int id, boolean passed, Float score, Phase phase, boolean verification) {
         return new Submission(
                 generateNetID(id),
                 generateRepo(id),
@@ -429,9 +483,9 @@ class SubmissionDaoTest {
                 "This is only a testing submission for Cosmo Cougar (#%s).".formatted(id),
                 null,
                 true,
-                Submission.VerifiedStatus.ApprovedManually,
+                verification ? Submission.VerifiedStatus.ApprovedManually : null,
                 null, null,
-                new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0)
+                verification ? new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0) : null
         );
     }
 
@@ -456,14 +510,5 @@ class SubmissionDaoTest {
             hash.insert(0, "0");
         }
         return hash.toString();
-    }
-
-    private void clearSubmissions() throws DataAccessException {
-        try (var connection = SqlDb.getConnection();
-             var statement = connection.prepareStatement("TRUNCATE submission")) {
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataAccessException("Could not clear database", e);
-        }
     }
 }
