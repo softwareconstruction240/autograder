@@ -328,6 +328,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "test cases", Rubric.RubricType.PASSOFF_TESTS,
                 "web api works", Rubric.RubricType.PASSOFF_TESTS,
                 "pass off tests", Rubric.RubricType.PASSOFF_TESTS,
+                "extra credit", Rubric.RubricType.EXTRA_CREDIT,
                 "code quality", Rubric.RubricType.QUALITY,
                 "unit tests", Rubric.RubricType.UNIT_TESTS,
                 "git commits", Rubric.RubricType.GIT_COMMITS,
