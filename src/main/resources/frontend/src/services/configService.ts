@@ -70,6 +70,12 @@ export const updateHolidays = async (dates: string[]) => {
   });
 };
 
+export const setSlackLink = async (slackLink: string) => {
+  await doSetConfigItem("/api/admin/config/slackLink", {
+    slackLink: slackLink,
+  });
+};
+
 const doSetConfigItem = async (path: string, body: Object): Promise<void> => {
   await ServerCommunicator.postRequest(path, body, false);
   await useConfigStore().updateConfig();

@@ -153,6 +153,11 @@ public class EndpointProviderImpl implements EndpointProvider {
         return ConfigController.updateHolidays;
     }
 
+    @Override
+    public Handler updateSlackLink() {
+        return ConfigController.updateSlackLink;
+    }
+
     // SubmissionController
 
     @Override

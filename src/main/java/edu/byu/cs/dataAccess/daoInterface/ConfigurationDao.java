@@ -35,6 +35,7 @@ public interface ConfigurationDao {
         LINES_PER_COMMIT_REQUIRED,
         CLOCK_FORGIVENESS_MINUTES,
         MAX_ERROR_OUTPUT_CHARS,
-        HOLIDAY_LIST
+        HOLIDAY_LIST,
+        SLACK_LINK
     }
 }

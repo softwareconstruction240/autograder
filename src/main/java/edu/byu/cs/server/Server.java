@@ -131,8 +131,15 @@ public class Server {
                             post("/penalties", provider.updatePenalties());
 
                             post("/holidays", provider.updateHolidays());
+
+                            post("/slackLink", provider.updateSlackLink());
                         });
                     });
+                });
+
+                get("/slack", ctx -> {
+                    ctx.sessionAttribute("slack", true);
+                    provider.loginGet().handle(ctx);
                 });
 
                 after(provider.afterAll());
