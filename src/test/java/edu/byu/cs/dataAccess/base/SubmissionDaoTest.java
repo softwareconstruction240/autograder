@@ -80,8 +80,8 @@ public abstract class SubmissionDaoTest {
         dao = newSubmissionDao();
         //Submission table has a foreign key constraint, so we need to generate a user
         userDao = newUserDao();
-        userID = generateID();
-        Assertions.assertDoesNotThrow(() -> userDao.insertUser(generateStudentUser(userID)),
+        userID = DaoTestUtils.generateID();
+        Assertions.assertDoesNotThrow(() -> userDao.insertUser(DaoTestUtils.generateStudentUser(userID)),
                 "Could not insert initial user");
     }
 
@@ -114,7 +114,7 @@ public abstract class SubmissionDaoTest {
 
         Assertions.assertDoesNotThrow(() -> dao.insertSubmission(newSubmission),
                 "Could not insert submission");
-        Collection<Submission> submissions = dao.getSubmissionsForUser(generateNetID(userID));
+        Collection<Submission> submissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(userID));
         Assertions.assertTrue(submissions.contains(newSubmission),
                 "Could not find inserted user in database");
     }
@@ -127,14 +127,14 @@ public abstract class SubmissionDaoTest {
     )
     void getSubmissionsForPhase(Phase phase) throws DataAccessException {
         Collection<Submission> expectedUserSubmissions = generateSubmissionDummyData(userID);
-        Collection<Submission> actualUserSubmissions = dao.getSubmissionsForPhase(generateNetID(userID), phase);
+        Collection<Submission> actualUserSubmissions = dao.getSubmissionsForPhase(DaoTestUtils.generateNetID(userID), phase);
 
         Assertions.assertEquals(SUBMISSIONS_PER_PHASE, actualUserSubmissions.size(),
                 "Did not get all the submissions for given phase");
         for (Submission s : actualUserSubmissions) {
             Assertions.assertEquals(phase, s.phase(),
                     "Got submission with a different phase");
-            Assertions.assertEquals(generateNetID(userID), s.netId(),
+            Assertions.assertEquals(DaoTestUtils.generateNetID(userID), s.netId(),
                     "Got submission with different netID");
             Assertions.assertTrue(expectedUserSubmissions.contains(s),
                     "Got a unexpected submission");
@@ -144,13 +144,13 @@ public abstract class SubmissionDaoTest {
     @Test
     void getSubmissionsForUser() throws DataAccessException {
         Collection<Submission> expectedUserSubmissions = generateSubmissionDummyData(userID);
-        Collection<Submission> otherSubmissions = generateStudentDummyData(generateID());
-        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(generateNetID(userID));
+        Collection<Submission> otherSubmissions = generateStudentDummyData(DaoTestUtils.generateID());
+        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(userID));
 
         Assertions.assertEquals(expectedUserSubmissions.size(), actualSubmissions.size(),
                 "Did not get the correct number of submissions for given netID");
         for (Submission s : actualSubmissions) {
-            Assertions.assertEquals(generateNetID(userID), s.netId(),
+            Assertions.assertEquals(DaoTestUtils.generateNetID(userID), s.netId(),
                     "netID on submissions did not match");
             Assertions.assertTrue(expectedUserSubmissions.contains(s),
                     "Got a different submission from what was inserted");
@@ -168,14 +168,14 @@ public abstract class SubmissionDaoTest {
             submissions.add(s);
             dao.insertSubmission(s);
         }
-        Submission lastSubmission = dao.getLastSubmissionForUser(generateNetID(userID));
+        Submission lastSubmission = dao.getLastSubmissionForUser(DaoTestUtils.generateNetID(userID));
         if (submissionCount == 0){
             Assertions.assertNull(lastSubmission);
             return;
         }
         Assertions.assertTrue(submissions.contains(lastSubmission),
                 "Got a submission that wasn't generated");
-        Assertions.assertEquals(generateNetID(userID), lastSubmission.netId(),
+        Assertions.assertEquals(DaoTestUtils.generateNetID(userID), lastSubmission.netId(),
                 "Got a submission for another student");
         for (Submission s : submissions){
             if (!s.equals(lastSubmission)){
@@ -190,7 +190,7 @@ public abstract class SubmissionDaoTest {
     void getAllLatestSubmissions() throws DataAccessException {
         clearSubmissions();
         Collection<Submission> allSubmissions = generateSubmissionDummyData(userID);
-        allSubmissions.addAll(generateStudentDummyData(generateID()));
+        allSubmissions.addAll(generateStudentDummyData(DaoTestUtils.generateID()));
         Collection<Submission> negativeBatch = dao.getAllLatestSubmissions(-1);
         Collection<Submission> obtained = dao.getAllLatestSubmissions();
         Assertions.assertEquals(negativeBatch.size(), obtained.size());
@@ -204,7 +204,7 @@ public abstract class SubmissionDaoTest {
     void getAllLatestSubmissions(int batch) throws DataAccessException {
         clearSubmissions();
         Collection<Submission> allSubmissions = generateSubmissionDummyData(userID);
-        allSubmissions.addAll(generateStudentDummyData(generateID()));
+        allSubmissions.addAll(generateStudentDummyData(DaoTestUtils.generateID()));
         Collection<Submission> obtainedSubmissions = dao.getAllLatestSubmissions(batch);
 
         if (batch != -1) {
@@ -234,7 +234,7 @@ public abstract class SubmissionDaoTest {
 
         dao.removeSubmissionsByNetId(null, 0);
 
-        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(generateNetID(userID));
+        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(userID));
         Assertions.assertEquals(expectedSubmissions.size(), actualSubmissions.size(),
                 "Removing with null netID deleted some submissions");
         Assertions.assertTrue(actualSubmissions.containsAll(expectedSubmissions),
@@ -244,12 +244,12 @@ public abstract class SubmissionDaoTest {
     @Test
     void removeSubmissionsByNetIDWithNoSubmissions() throws DataAccessException {
         clearSubmissions();
-        int otherID = generateID();
+        int otherID = DaoTestUtils.generateID();
         Collection<Submission> expectedSubmissions = generateStudentDummyData(otherID);
 
-        dao.removeSubmissionsByNetId(generateNetID(userID), 0);
+        dao.removeSubmissionsByNetId(DaoTestUtils.generateNetID(userID), 0);
 
-        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(generateNetID(otherID));
+        Collection<Submission> actualSubmissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(otherID));
         Assertions.assertEquals(expectedSubmissions.size(), actualSubmissions.size(),
                 "Removed submissions with netID that did not match");
         Assertions.assertTrue(actualSubmissions.containsAll(expectedSubmissions),
@@ -260,18 +260,18 @@ public abstract class SubmissionDaoTest {
     @MethodSource("dayTestRange")
     void removeSubmissionsByNetID(int days) throws DataAccessException {
         clearSubmissions();
-        int secondUserID = generateID();
+        int secondUserID = DaoTestUtils.generateID();
         Collection<Submission> userSubmissions = generateSubmissionDummyData(userID);
         Collection<Submission> secondUserSubmissions = generateStudentDummyData(secondUserID);
         userSubmissions.removeIf(submission ->
                 submission.timestamp().compareTo(Instant.now().minus(days, ChronoUnit.DAYS)) < 0);
 
-        dao.removeSubmissionsByNetId(generateNetID(userID), days);
+        dao.removeSubmissionsByNetId(DaoTestUtils.generateNetID(userID), days);
 
-        Collection<Submission> obtainedSubmissions = dao.getSubmissionsForUser(generateNetID(userID));
+        Collection<Submission> obtainedSubmissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(userID));
         Assertions.assertTrue(userSubmissions.containsAll(obtainedSubmissions),
                 "Did not remove the correct number of submissions");
-        obtainedSubmissions = dao.getSubmissionsForUser(generateNetID(secondUserID));
+        obtainedSubmissions = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(secondUserID));
         Assertions.assertTrue(secondUserSubmissions.containsAll(obtainedSubmissions),
                 "Removed submissions for a user with a different netID");
     }
@@ -282,7 +282,7 @@ public abstract class SubmissionDaoTest {
         Collection<Submission> submissions = generatePassingSubmissions(numPassing, phase);
         Submission expectedPassing = findFirstPassing(submissions);
 
-        Submission actualPassing = dao.getFirstPassingSubmission(generateNetID(userID), phase);
+        Submission actualPassing = dao.getFirstPassingSubmission(DaoTestUtils.generateNetID(userID), phase);
         Assertions.assertEquals(expectedPassing, actualPassing,
                 "Did not get the same first passed submission:");
 
@@ -306,7 +306,7 @@ public abstract class SubmissionDaoTest {
         Collection<Submission> submissions = generatePassingSubmissions(numPassing, phase);
         Submission expected = findBestSubmission(submissions);
 
-        Submission actual = dao.getBestSubmissionForPhase(generateNetID(userID), phase);
+        Submission actual = dao.getBestSubmissionForPhase(DaoTestUtils.generateNetID(userID), phase);
         Assertions.assertEquals(expected, actual, "Did not obtain the best submission");
     }
 
@@ -342,7 +342,7 @@ public abstract class SubmissionDaoTest {
 
         //FIXME: what is the tie-breaker here? because it's not time and the code doesn't seem to care
         Submission expected = findFirstPassing(submissions);
-        Submission actual = dao.getBestSubmissionForPhase(generateNetID(userID), phase);
+        Submission actual = dao.getBestSubmissionForPhase(DaoTestUtils.generateNetID(userID), phase);
         Assertions.assertEquals(expected, actual);
     }
 
@@ -353,7 +353,7 @@ public abstract class SubmissionDaoTest {
         Collection<Submission> expected = new ArrayList<>(allSubmissions);
         expected.removeIf(submission -> !submission.passed());
 
-        Collection<Submission> actual = dao.getAllPassingSubmissions(generateNetID(userID));
+        Collection<Submission> actual = dao.getAllPassingSubmissions(DaoTestUtils.generateNetID(userID));
         Assertions.assertEquals(expected.size(), actual.size(),
                 "Did not get expected number of passing submissions");
         Assertions.assertTrue(actual.containsAll(expected),
@@ -381,7 +381,7 @@ public abstract class SubmissionDaoTest {
         dao.insertSubmission(unapproved);
         Assertions.assertDoesNotThrow(() -> dao.manuallyApproveSubmission(unapproved, 6.6f, verification),
                 "Exception thrown on valid manual approval:");
-        Collection<Submission> actual = dao.getSubmissionsForUser(generateNetID(userID));
+        Collection<Submission> actual = dao.getSubmissionsForUser(DaoTestUtils.generateNetID(userID));
         Assertions.assertTrue(actual.contains(approved),
                 "Approved submission was not found in the user's submissions");
     }
@@ -416,17 +416,6 @@ public abstract class SubmissionDaoTest {
         return submissions;
     }
 
-    private User generateStudentUser(int id) {
-        return new User(
-                generateNetID(id),
-                generateID(),
-                "Cosmo",
-                "Cougar",
-                generateRepo(id),
-                User.Role.STUDENT
-        );
-    }
-
     private Collection<Submission> generateSubmissionDummyData(int id) {
         HashSet<Submission> submissions = new HashSet<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
@@ -440,7 +429,7 @@ public abstract class SubmissionDaoTest {
     }
 
     private Collection<Submission> generateStudentDummyData(int id) {
-        User user = generateStudentUser(id);
+        User user = DaoTestUtils.generateStudentUser(id);
         Assertions.assertDoesNotThrow(() -> userDao.insertUser(user), "Could not insert user");
         return generateSubmissionDummyData(id);
     }
@@ -471,8 +460,8 @@ public abstract class SubmissionDaoTest {
 
     private Submission generateSubmission(int id, boolean passed, Float score, Phase phase, boolean verification) {
         return new Submission(
-                generateNetID(id),
-                generateRepo(id),
+                DaoTestUtils.generateNetID(id),
+                DaoTestUtils.generateRepo(id),
                 generateRandomHash(),
                 Instant.now().minusSeconds(random.nextLong(1, 86399))
                         .minus(random.nextInt(DAY_RANGE), ChronoUnit.DAYS),
@@ -487,18 +476,6 @@ public abstract class SubmissionDaoTest {
                 null, null,
                 verification ? new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0) : null
         );
-    }
-
-    private int generateID() {
-        return random.nextInt();
-    }
-
-    private String generateNetID(int id) {
-        return "cosmo_" + id;
-    }
-
-    private String generateRepo(int id) {
-        return "https://github.com/cosmo_%s/chess".formatted(id);
     }
 
     private String generateRandomHash() {
