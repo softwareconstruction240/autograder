@@ -5,9 +5,6 @@ import edu.byu.cs.dataAccess.base.UserDaoTest;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import org.junit.jupiter.api.BeforeAll;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public class UserSqlDaoTest extends UserDaoTest {
     @BeforeAll
     protected static void prepareDatabase() throws DataAccessException {
