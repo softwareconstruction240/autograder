@@ -4,6 +4,7 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.base.SubmissionDaoTest;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.sql.helpers.SqlReader;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.sql.SQLException;
@@ -26,11 +27,6 @@ class SubmissionSqlDaoTest extends SubmissionDaoTest {
 
     @Override
     protected void clearSubmissions() throws DataAccessException {
-        try (var connection = SqlDb.getConnection();
-             var statement = connection.prepareStatement("TRUNCATE submission")) {
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataAccessException("Could not clear database", e);
-        }
+        SqlDaoTestUtils.deleteTableWithCascade("submission");
     }
 }

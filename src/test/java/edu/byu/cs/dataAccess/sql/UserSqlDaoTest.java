@@ -21,11 +21,6 @@ public class UserSqlDaoTest extends UserDaoTest {
 
     @Override
     protected void clearUsers() throws DataAccessException{
-        try(var connection = SqlDb.getConnection()){
-            var statement = connection.prepareStatement("DELETE FROM user");
-            statement.executeUpdate();
-        }catch (SQLException e){
-            throw new DataAccessException("Could not clear users", e);
-        }
+        SqlDaoTestUtils.deleteTableWithCascade("user");
     }
 }
