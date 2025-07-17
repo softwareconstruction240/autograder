@@ -11,6 +11,7 @@ import edu.byu.cs.model.User;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 public abstract class UserDaoTest {
@@ -67,8 +68,8 @@ public abstract class UserDaoTest {
     }
 
     @Test
-    void insertUserTwiceFails() throws DataAccessException {
-        Assertions.assertDoesNotThrow(() -> {dao.insertUser(student);});
+    void insertUserTwiceFails() {
+        Assertions.assertDoesNotThrow(() -> dao.insertUser(student));
         Assertions.assertThrows(DataAccessException.class, () -> dao.insertUser(student));
     }
 
@@ -107,6 +108,14 @@ public abstract class UserDaoTest {
         Assertions.assertEquals(expected, obtained);
     }
 
+    @Test
+    public void setFirstNameOnUserThatDoesNotExist() throws DataAccessException{
+        dao.insertUser(student);
+        dao.setFirstName("DNE", "DNE");
+        User obtained = dao.getUser(student.netId());
+        Assertions.assertEquals(student, obtained);
+    }
+
     @ParameterizedTest
     @MethodSource("provideTestUsers")
     void setLastName(User user) throws DataAccessException{
@@ -125,6 +134,14 @@ public abstract class UserDaoTest {
         Assertions.assertEquals(expected, obtained);
     }
 
+    @Test
+    public void setLastNameOnUserThatDoesNotExist() throws DataAccessException{
+        dao.insertUser(student);
+        dao.setLastName("DNE", "DNE");
+        User obtained = dao.getUser(student.netId());
+        Assertions.assertEquals(student, obtained);
+    }
+
     @ParameterizedTest
     @MethodSource("provideTestUsers")
     void setRepoUrl(User user) throws DataAccessException{
@@ -141,6 +158,14 @@ public abstract class UserDaoTest {
         Assertions.assertDoesNotThrow(() -> dao.setRepoUrl(user.netId(), changed));
         User obtained = dao.getUser(expected.netId());
         Assertions.assertEquals(expected, obtained);
+    }
+
+    @Test
+    public void setRepoUrlOnUserThatDoesNotExist() throws DataAccessException{
+        dao.insertUser(student);
+        dao.setRepoUrl("DNE", "https://github.com/fake/fake");
+        User obtained = dao.getUser(student.netId());
+        Assertions.assertEquals(student, obtained);
     }
 
     @ParameterizedTest
@@ -162,6 +187,19 @@ public abstract class UserDaoTest {
         }
     }
 
+    @Test
+    public void setRoleOnUserThatDoesNotExist() throws DataAccessException{
+        Collection<User> allUsers = provideTestUsers();
+        addAllTestUsers();
+        for(User.Role role : User.Role.values()) {
+            dao.setRole("DNE", role);
+            for (User user: allUsers){
+                User obtained = dao.getUser(user.netId());
+                Assertions.assertEquals(user, obtained);
+            }
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("provideTestUsers")
     void setCanvasUserId(User user) throws DataAccessException {
@@ -177,6 +215,35 @@ public abstract class UserDaoTest {
         Assertions.assertDoesNotThrow(() -> dao.setCanvasUserId(user.netId(), 0));
         User obtained = dao.getUser(expected.netId());
         Assertions.assertEquals(expected, obtained);
+    }
+
+    @Test
+    public void setCanvasUserIdOnUserThatDoesNotExist() throws DataAccessException{
+        dao.insertUser(student);
+        dao.setCanvasUserId("DNE", 0);
+        User obtained = dao.getUser(student.netId());
+        Assertions.assertEquals(student, obtained);
+    }
+
+    @Test
+    void getUsers() throws DataAccessException{
+        Collection<User> obtained = dao.getUsers();
+        Assertions.assertTrue(obtained.isEmpty());
+        addAllTestUsers();
+        Collection<User> expected = provideTestUsers();
+        obtained = dao.getUsers();
+        Assertions.assertEquals(expected.size(), obtained.size());
+        for (User user : expected){
+            Assertions.assertTrue(obtained.contains(user));
+        }
+    }
+
+    @Test
+    void repoUrlClaimed() throws DataAccessException{
+        addAllTestUsers();
+        Assertions.assertTrue(dao.repoUrlClaimed(student.repoUrl()));
+        Assertions.assertFalse(dao.repoUrlClaimed("https://github.com/notclaimed/repo"));
+        Assertions.assertFalse(dao.repoUrlClaimed(null));
     }
 
     private void addAllTestUsers() throws DataAccessException{
