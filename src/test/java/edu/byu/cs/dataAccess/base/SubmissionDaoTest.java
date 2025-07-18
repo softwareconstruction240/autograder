@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+//FIXME: I was today years old when I learned that Submission has a custom equals function, which could be a problem
 public abstract class SubmissionDaoTest {
     protected abstract SubmissionDao newSubmissionDao();
     protected abstract UserDao newUserDao();
@@ -30,16 +31,6 @@ public abstract class SubmissionDaoTest {
     protected SubmissionDao dao;
     protected UserDao userDao;
 
-    static final Phase[] phases = {
-            Phase.Phase0,
-            Phase.Phase1,
-            Phase.Phase3,
-            Phase.Phase4,
-            Phase.Phase5,
-            Phase.Phase6,
-            Phase.Quality,
-            Phase.GitHub
-    };
     static Random random;
     static final int NUM_STUDENTS = 2;
     static final int SUBMISSIONS_PER_PHASE = 2;
@@ -57,8 +48,8 @@ public abstract class SubmissionDaoTest {
 
     static IntStream latestSubmissionRange() {
         return IntStream.concat(
-                IntStream.rangeClosed(-1, phases.length + 1),
-                IntStream.of(phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE +1)
+                IntStream.rangeClosed(-1, DaoTestUtils.phases.length + 1),
+                IntStream.of(DaoTestUtils.phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE +1)
         );
         //return IntStream.rangeClosed(-1, phases.length * NUM_STUDENTS * SUBMISSIONS_PER_PHASE + 1);
     }
@@ -68,7 +59,7 @@ public abstract class SubmissionDaoTest {
     }
 
     static Stream<Arguments> multipleSubmissionsRange(){
-        return Stream.of(phases).flatMap(phase ->
+        return Stream.of(DaoTestUtils.phases).flatMap(phase ->
                 IntStream.rangeClosed(0, SUBMISSIONS_PER_PHASE).mapToObj(i ->
                         Arguments.of(i, phase)
                 ));
@@ -419,7 +410,7 @@ public abstract class SubmissionDaoTest {
     private Collection<Submission> generateSubmissionDummyData(int id) {
         HashSet<Submission> submissions = new HashSet<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
-            for (Phase phase : phases) {
+            for (Phase phase : DaoTestUtils.phases) {
                 Submission s = generateSubmission(id, phase);
                 Assertions.assertDoesNotThrow(() -> dao.insertSubmission(s));
                 submissions.add(s);
