@@ -35,24 +35,6 @@ public abstract class QueueDaoTest {
     }
 
     @Test
-    void pop() throws DataAccessException {
-        Collection<QueueItem> queue = generateQueue(3);
-        for (QueueItem item : queue){
-            dao.add(item);
-        }
-        QueueItem obtained = dao.pop();
-        for (QueueItem item : queue){
-            if (!item.equals(obtained)){
-                Assertions.assertTrue(obtained.timeAdded().isBefore(item.timeAdded()));
-            }
-        }
-        queue.removeIf(queueItem -> queueItem.equals(obtained));
-        Collection<QueueItem> obtainedQueue = dao.getAll();
-        Assertions.assertEquals(queue.size(), obtainedQueue.size());
-        Assertions.assertTrue(obtainedQueue.containsAll(queue));
-    }
-
-    @Test
     void remove() throws DataAccessException {
         Collection<QueueItem> queue = generateQueue(3);
         QueueItem removeMe = generateQueueItem();

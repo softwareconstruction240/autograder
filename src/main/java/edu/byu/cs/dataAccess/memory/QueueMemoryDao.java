@@ -15,16 +15,6 @@ public class QueueMemoryDao implements QueueDao {
     }
 
     @Override
-    public QueueItem pop() {
-        if (queue.isEmpty()) {
-            return null;
-        }
-        QueueItem item = queue.getFirst();
-        queue.removeFirst();
-        return item;
-    }
-
-    @Override
     public void remove(String netId) {
         queue.removeIf(item -> item.netId().equals(netId));
     }

@@ -37,26 +37,6 @@ public class QueueSqlDao implements QueueDao {
     }
 
     @Override
-    public QueueItem pop() throws DataAccessException {
-        try (var connection = SqlDb.getConnection();
-            var statement = connection.prepareStatement(
-                    """
-                            DELETE FROM %s
-                            WHERE net_id = (
-                                SELECT net_id
-                                FROM %1$s
-                                ORDER BY time_added
-                                LIMIT 1
-                            )
-                            """.formatted(sqlReader.getTableName()))) {
-            var topItems = sqlReader.readItems(statement);
-            return sqlReader.expectOneItem(topItems);
-        } catch (Exception e) {
-            throw new DataAccessException("Error popping item from queue", e);
-        }
-    }
-
-    @Override
     public void remove(String netId) throws DataAccessException {
         sqlReader.executeUpdate(
                 """
