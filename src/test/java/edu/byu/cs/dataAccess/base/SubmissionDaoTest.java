@@ -16,13 +16,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-//FIXME: I was today years old when I learned that Submission has a custom equals function, which could be a problem
 public abstract class SubmissionDaoTest {
     protected abstract SubmissionDao newSubmissionDao();
     protected abstract UserDao newUserDao();
@@ -82,7 +82,7 @@ public abstract class SubmissionDaoTest {
 
         dao.insertSubmission(firstSubmission);
         var readSubmission = dao.getFirstPassingSubmission(firstSubmission.netId(), firstSubmission.phase());
-        Assertions.assertEquals(firstSubmission, readSubmission,
+        assertSubmissionDeepEquals(firstSubmission, readSubmission,
                 "Submission obtained was not equal to submission inserted");
     }
 
@@ -96,7 +96,7 @@ public abstract class SubmissionDaoTest {
 
         dao.insertSubmission(nullSubmission);
         Submission obtained = dao.getFirstPassingSubmission(nullSubmission.netId(), nullSubmission.phase());
-        Assertions.assertEquals(nullSubmission, obtained);
+        assertSubmissionDeepEquals(nullSubmission, obtained, "Null submissions do not match");
     }
 
     @Test
@@ -274,7 +274,7 @@ public abstract class SubmissionDaoTest {
         Submission expectedPassing = findFirstPassing(submissions);
 
         Submission actualPassing = dao.getFirstPassingSubmission(DaoTestUtils.generateNetID(userID), phase);
-        Assertions.assertEquals(expectedPassing, actualPassing,
+        assertSubmissionDeepEquals(expectedPassing, actualPassing,
                 "Did not get the same first passed submission:");
 
     }
@@ -298,7 +298,7 @@ public abstract class SubmissionDaoTest {
         Submission expected = findBestSubmission(submissions);
 
         Submission actual = dao.getBestSubmissionForPhase(DaoTestUtils.generateNetID(userID), phase);
-        Assertions.assertEquals(expected, actual, "Did not obtain the best submission");
+        assertSubmissionDeepEquals(expected, actual, "Did not obtain the best submission");
     }
 
     private Submission findBestSubmission(Collection<Submission> submissions) {
@@ -334,7 +334,7 @@ public abstract class SubmissionDaoTest {
         //FIXME: what is the tie-breaker here? because it's not time and the code doesn't seem to care
         Submission expected = findFirstPassing(submissions);
         Submission actual = dao.getBestSubmissionForPhase(DaoTestUtils.generateNetID(userID), phase);
-        Assertions.assertEquals(expected, actual);
+        assertSubmissionDeepEquals(expected, actual, "Best Submissions do not match");
     }
 
     @ParameterizedTest(name = "{1} with {0} submissions passing")
@@ -478,5 +478,27 @@ public abstract class SubmissionDaoTest {
             hash.insert(0, "0");
         }
         return hash.toString();
+    }
+
+    void assertSubmissionDeepEquals(Submission expected, Submission actual, String message){
+        //netid, headhash and phase
+        Assertions.assertEquals(expected, actual, message);
+        if (expected != null && actual != null) {
+            Duration delta = Duration.between(expected.timestamp(), actual.timestamp()).abs();
+            Assertions.assertTrue(delta.compareTo(Duration.ofSeconds(1)) <= 0, message + " time");
+            Assertions.assertEquals(expected.rubric(), actual.rubric(), message + " rubric");
+            Assertions.assertEquals(expected.score(), actual.score(), 1e-5, message + " score");
+            Assertions.assertEquals(expected.passed(), actual.passed(), message + " passed");
+            Assertions.assertEquals(expected.admin(), actual.admin(), message + " admin");
+            Assertions.assertEquals(expected.verifiedStatus(), actual.verifiedStatus(), message + " verifiedStatus");
+            Assertions.assertEquals(expected.isApproved(), actual.isApproved(), message + " isApproved");
+            Assertions.assertEquals(expected.getPenaltyPct(), actual.getPenaltyPct(), message + " penaltypct");
+            Assertions.assertEquals(expected.rawScore(), actual.rawScore(), 1e-5, message + " raw score");
+            Assertions.assertEquals(expected.notes(), actual.notes(), message + " notes");
+            Assertions.assertEquals(expected.verification(), actual.verification(), message + " verification");
+            Assertions.assertEquals(expected.commitContext(), actual.commitContext(), message + " commit context");
+            Assertions.assertEquals(expected.commitResult(), actual.commitResult(), message + " commit result");
+            Assertions.assertEquals(expected.repoUrl(), actual.repoUrl(), message + " repo url");
+        }
     }
 }
