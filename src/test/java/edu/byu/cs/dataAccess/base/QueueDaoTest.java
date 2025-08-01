@@ -1,24 +1,31 @@
 package edu.byu.cs.dataAccess.base;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.QueueItem;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public abstract class QueueDaoTest {
     protected QueueDao dao;
     protected abstract QueueDao getQueueDao();
     protected abstract void clearQueueItems() throws DataAccessException;
     static Random random = new Random();
+
+    static IntStream queueSizeRange() {
+        return IntStream.of(0,1,2,3,300);
+    }
 
     @BeforeEach
     void setup() throws DataAccessException{
@@ -34,9 +41,10 @@ public abstract class QueueDaoTest {
         Assertions.assertEquals(expected, obtained);
     }
 
-    @Test
-    void remove() throws DataAccessException {
-        Collection<QueueItem> queue = generateQueue(3);
+    @ParameterizedTest
+    @MethodSource ("queueSizeRange")
+    void remove(int queueSize) throws DataAccessException {
+        Collection<QueueItem> queue = generateQueue(queueSize);
         QueueItem removeMe = generateQueueItem();
         dao.add(removeMe);
         for (QueueItem item : queue){
@@ -53,9 +61,40 @@ public abstract class QueueDaoTest {
         Assertions.assertFalse(obtainedQueue.contains(removeMe));
     }
 
-    @Test
-    void getAll() throws DataAccessException {
-        Collection<QueueItem> queue = generateQueue(3);
+    @ParameterizedTest
+    @MethodSource ("quietlyFailingFunctions")
+    void executeOnItemThatDoesNotExist(NamedAction namedAction) throws DataAccessException{
+        QueueItem item = generateQueueItem();
+        Assertions.assertTrue(dao.getAll().isEmpty());
+        Assertions.assertDoesNotThrow(() -> namedAction.action.execute(dao, item));
+        Assertions.assertTrue(dao.getAll().isEmpty());
+    }
+
+    static Stream<NamedAction> quietlyFailingFunctions(){
+        return Stream.of(
+                new NamedAction("remove", (dao, item) -> dao.remove(item.netId())),
+                new NamedAction("markStarted", (dao, item) -> dao.markStarted(item.netId())),
+                new NamedAction("markNotStarted", (dao, item) -> dao.markNotStarted(item.netId())),
+                new NamedAction("get", (dao, item) -> dao.get(item.netId()))
+        );
+    }
+
+    @FunctionalInterface
+    interface QueueDaoAction {
+        void execute (QueueDao dao, QueueItem item) throws DataAccessException;
+    }
+
+    record NamedAction(String name, QueueDaoAction action){
+        @Override
+        public String toString(){
+            return name;
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource ("queueSizeRange")
+    void getAll(int queueSize) throws DataAccessException {
+        Collection<QueueItem> queue = generateQueue(queueSize);
         for (QueueItem item : queue){
             dao.add(item);
         }
@@ -79,8 +118,13 @@ public abstract class QueueDaoTest {
         Assertions.assertTrue(dao.isAlreadyInQueue(item.netId()));
     }
 
-    @Test
-    void markStarted() throws DataAccessException {
+    @ParameterizedTest
+    @MethodSource ("queueSizeRange")
+    void markStarted(int queueSize) throws DataAccessException {
+        Collection<QueueItem> queueNoise = generateQueue(queueSize);
+        for (QueueItem item : queueNoise){
+            dao.add(item);
+        }
         QueueItem item = generateQueueItem();
         dao.add(item);
         QueueItem expected = new QueueItem(
@@ -94,8 +138,13 @@ public abstract class QueueDaoTest {
         Assertions.assertEquals(expected, obtained);
     }
 
-    @Test
-    void markNotStarted() throws DataAccessException {
+    @ParameterizedTest
+    @MethodSource ("queueSizeRange")
+    void markNotStarted(int queueSize) throws DataAccessException {
+        Collection<QueueItem> queueNoise = generateQueue(queueSize);
+        for (QueueItem item : queueNoise){
+            dao.add(item);
+        }
         QueueItem item = generateQueueItem();
         dao.add(item);
         QueueItem expected = new QueueItem(
@@ -112,9 +161,10 @@ public abstract class QueueDaoTest {
         Assertions.assertEquals(item, obtained);
     }
 
-    @Test
-    void get() throws DataAccessException {
-        Collection<QueueItem> queue = generateQueue(3);
+    @ParameterizedTest
+    @MethodSource ("queueSizeRange")
+    void get(int queueSize) throws DataAccessException {
+        Collection<QueueItem> queue = generateQueue(queueSize);
         for (QueueItem item : queue){
             dao.add(item);
             QueueItem obtained = dao.get(item.netId());
@@ -122,11 +172,16 @@ public abstract class QueueDaoTest {
         }
     }
 
+    @Test
+    void getNonExistentItemReturnsNull() throws DataAccessException{
+        QueueItem item = generateQueueItem();
+        Assertions.assertNull((dao.get(item.netId())));
+    }
+
     QueueItem generateQueueItem(){
         return new QueueItem(
                 DaoTestUtils.generateNetID(DaoTestUtils.generateID()),
                 DaoTestUtils.getRandomPhase(),
-                //it seems that mysql doesn't support milliseconds...
                 Instant.now().minusSeconds(random.nextLong(1,86399)).truncatedTo(ChronoUnit.SECONDS),
                 false
         );
