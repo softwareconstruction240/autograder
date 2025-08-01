@@ -49,7 +49,7 @@ public class QueueSqlDao implements QueueDao {
 
     @Override
     public Collection<QueueItem> getAll() throws DataAccessException {
-        return sqlReader.executeQuery("");
+        return sqlReader.executeQuery("ORDER BY time_added DESC");
     }
 
     @Override
