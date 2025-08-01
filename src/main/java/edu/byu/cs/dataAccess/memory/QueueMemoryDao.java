@@ -22,8 +22,9 @@ public class QueueMemoryDao implements QueueDao {
 
     @Override
     public Collection<QueueItem> getAll() {
-        queue.sort(Comparator.comparing(QueueItem::timeAdded));
-        return queue;
+        List<QueueItem> sorted = new ArrayList<>(queue);
+        sorted.sort(Comparator.comparing(QueueItem::timeAdded));
+        return sorted;
     }
 
     @Override
