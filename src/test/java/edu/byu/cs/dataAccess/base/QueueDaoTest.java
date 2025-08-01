@@ -62,6 +62,13 @@ public abstract class QueueDaoTest {
         Collection<QueueItem> obtainedQueue = dao.getAll();
         Assertions.assertEquals(queue.size(), obtainedQueue.size());
         Assertions.assertTrue(obtainedQueue.containsAll(queue));
+        QueueItem popped = null;
+        for (QueueItem item : obtainedQueue){
+            if (popped != null && !popped.timeAdded().equals(item.timeAdded())) {
+                Assertions.assertTrue(item.timeAdded().isAfter(popped.timeAdded()));
+            }
+            popped = item;
+        }
     }
 
     @Test

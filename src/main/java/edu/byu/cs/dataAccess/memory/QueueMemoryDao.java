@@ -5,6 +5,7 @@ import edu.byu.cs.model.QueueItem;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 public class QueueMemoryDao implements QueueDao {
@@ -21,6 +22,7 @@ public class QueueMemoryDao implements QueueDao {
 
     @Override
     public Collection<QueueItem> getAll() {
+        queue.sort(Comparator.comparing(QueueItem::timeAdded));
         return queue;
     }
 
