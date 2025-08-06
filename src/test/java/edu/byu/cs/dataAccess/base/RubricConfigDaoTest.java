@@ -90,7 +90,12 @@ public abstract class RubricConfigDaoTest {
         Assertions.assertEquals(expectedTotal, obtained);
     }
 
-    //TODO: test where there is no rubric config calculates points to 0
+    @ParameterizedTest
+    @EnumSource (Phase.class)
+    void getPhaseTotalPossiblePointsWithNoConfig(Phase phase) throws DataAccessException {
+        int obtained = dao.getPhaseTotalPossiblePoints(phase);
+        Assertions.assertEquals(0, obtained);
+    }
 
     RubricConfig generateRubricConfig(Phase phase){
         return generateRubricConfig(phase, 240);
