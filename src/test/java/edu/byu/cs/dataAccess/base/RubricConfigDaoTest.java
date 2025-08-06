@@ -33,15 +33,37 @@ public abstract class RubricConfigDaoTest {
     @ParameterizedTest
     @EnumSource(Phase.class)
     void setAndGetRubricConfig(Phase phase) throws DataAccessException{
-        RubricConfig config = generateRubricConfig(phase);
+        RubricConfig config = generateRubricConfig(phase, 240);
         Assertions.assertDoesNotThrow(() -> dao.setRubricConfig(phase, config));
         RubricConfig obtained = dao.getRubricConfig(phase);
         Assertions.assertEquals(config, obtained);
     }
 
     @Test
-    void setRubricIdAndPoints(){
-        //dao.setRubricIdAndPoints();
+    void setAndGetRubricConfigAllPhasesTogether() throws DataAccessException {
+        for (Phase phase : Phase.values()){
+            setAndGetRubricConfig(phase);
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource (Phase.class)
+    void setRubricIdAndPoints(Phase phase) throws DataAccessException{
+        RubricConfig firstConfig = generateRubricConfig(phase, 240);
+        //the memory dao will actually change the first Rubric Config--which is fine--but we want to verify the change
+        RubricConfig deepCopy = new RubricConfig(firstConfig.phase(), firstConfig.items().clone());
+        dao.setRubricConfig(phase, firstConfig);
+        RubricConfig changedConfig = generateRubricConfig(phase, 0);
+        for (Rubric.RubricType type : PhaseUtils.getRubricTypesFromPhase(phase)){
+            dao.setRubricIdAndPoints(phase, type, 0, changedConfig.items().get(type).rubric_id());
+        }
+        RubricConfig obtained = dao.getRubricConfig(phase);
+        for (RubricConfig.RubricConfigItem item : obtained.items().values()){
+            if (item != null){
+                Assertions.assertNotEquals(deepCopy, obtained);
+            }
+        }
+        Assertions.assertEquals(changedConfig, obtained);
     }
 
     @Test
@@ -50,7 +72,7 @@ public abstract class RubricConfigDaoTest {
     }
 
 
-    RubricConfig generateRubricConfig(Phase phase){
+    RubricConfig generateRubricConfig(Phase phase, int points){
         EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> items = new EnumMap<>(Rubric.RubricType.class);
         Collection<Rubric.RubricType> types = PhaseUtils.getRubricTypesFromPhase(phase);
         for (Rubric.RubricType type : Rubric.RubricType.values()){
@@ -59,7 +81,7 @@ public abstract class RubricConfigDaoTest {
                         "Testing: " + type.toString(),
                         "This is a test for category " + type +
                                 " for Phase:" + PhaseUtils.getPhaseAsString(phase),
-                        240,
+                        points,
                         generateRandomRubricID()
                 );
                 items.put(type, item);
