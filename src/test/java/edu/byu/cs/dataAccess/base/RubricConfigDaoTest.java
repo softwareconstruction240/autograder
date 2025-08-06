@@ -33,7 +33,11 @@ public abstract class RubricConfigDaoTest {
     @ParameterizedTest
     @EnumSource(Phase.class)
     void setAndGetRubricConfig(Phase phase) throws DataAccessException{
-        RubricConfig config = generateRubricConfig(phase, 240);
+        RubricConfig config = generateRubricConfig(phase);
+        assertSetAndGetRubricConfig(phase, config);
+    }
+
+    private void assertSetAndGetRubricConfig(Phase phase, RubricConfig config) throws DataAccessException {
         Assertions.assertDoesNotThrow(() -> dao.setRubricConfig(phase, config));
         RubricConfig obtained = dao.getRubricConfig(phase);
         Assertions.assertEquals(config, obtained);
@@ -46,7 +50,12 @@ public abstract class RubricConfigDaoTest {
         }
     }
 
-    //TODO: test with null rubric ids
+    @ParameterizedTest
+    @EnumSource(Phase.class)
+    void setAndGetWithNullIds(Phase phase) throws DataAccessException {
+        RubricConfig config = generateRubricConfig(phase, 240, null);
+        assertSetAndGetRubricConfig(phase, config);
+    }
 
     @ParameterizedTest
     @EnumSource (Phase.class)
@@ -83,8 +92,15 @@ public abstract class RubricConfigDaoTest {
 
     //TODO: test where there is no rubric config calculates points to 0
 
+    RubricConfig generateRubricConfig(Phase phase){
+        return generateRubricConfig(phase, 240);
+    }
 
     RubricConfig generateRubricConfig(Phase phase, int points){
+        return generateRubricConfig(phase, points, generateRandomRubricID());
+    }
+
+    RubricConfig generateRubricConfig(Phase phase, int points, String rubricId){
         EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> items = new EnumMap<>(Rubric.RubricType.class);
         Collection<Rubric.RubricType> types = PhaseUtils.getRubricTypesFromPhase(phase);
         for (Rubric.RubricType type : Rubric.RubricType.values()){
@@ -94,7 +110,7 @@ public abstract class RubricConfigDaoTest {
                         "This is a test for category " + type +
                                 " for Phase:" + PhaseUtils.getPhaseAsString(phase),
                         points,
-                        generateRandomRubricID()
+                        rubricId
                 );
                 items.put(type, item);
             }
