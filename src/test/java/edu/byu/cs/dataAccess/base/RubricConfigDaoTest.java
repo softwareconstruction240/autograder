@@ -46,6 +46,8 @@ public abstract class RubricConfigDaoTest {
         }
     }
 
+    //TODO: test with null rubric ids
+
     @ParameterizedTest
     @EnumSource (Phase.class)
     void setRubricIdAndPoints(Phase phase) throws DataAccessException{
@@ -66,10 +68,20 @@ public abstract class RubricConfigDaoTest {
         Assertions.assertEquals(changedConfig, obtained);
     }
 
-    @Test
-    void getPhaseTotalPossiblePoints(){
-        //dao.getPhaseTotalPossiblePoints();
+    @ParameterizedTest
+    @EnumSource (Phase.class)
+    void getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
+        RubricConfig config = generateRubricConfig(phase, 240);
+        dao.setRubricConfig(phase, config);
+        int expectedTotal = 0;
+        for (Rubric.RubricType type : PhaseUtils.getRubricTypesFromPhase(phase)) {
+            expectedTotal += 240;
+        }
+        int obtained = dao.getPhaseTotalPossiblePoints(phase);
+        Assertions.assertEquals(expectedTotal, obtained);
     }
+
+    //TODO: test where there is no rubric config calculates points to 0
 
 
     RubricConfig generateRubricConfig(Phase phase, int points){
