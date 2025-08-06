@@ -30,7 +30,7 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         for (Map.Entry<Rubric.RubricType, RubricConfig.RubricConfigItem> entry : rubricConfig.items().entrySet()) {
             RubricConfig.RubricConfigItem item = entry.getValue();
             if (item != null) {
-                addRubricConfigItem(phase, entry.getKey(), item.category(), item.criteria(), item.points());
+                addRubricConfigItem(phase, entry.getKey(), item.category(), item.criteria(), item.points(), item.rubric_id());
             }
         }
     }
@@ -49,14 +49,15 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         }
     }
 
-    private void addRubricConfigItem(Phase phase, Rubric.RubricType type, String category, String criteria, int points) throws DataAccessException {
+    private void addRubricConfigItem(Phase phase, Rubric.RubricType type, String category, String criteria, int points, String id) throws DataAccessException {
         try (var connection = SqlDb.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO rubric_config (phase, type, category, criteria, points) VALUES (?, ?, ?, ?, ?)");
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) VALUES (?, ?, ?, ?, ?, ?)");
             statement.setString(1, phase.name());
             statement.setString(2, type.toString());
             statement.setString(3, category);
             statement.setString(4, criteria);
             statement.setInt(5, points);
+            statement.setString(6, id);
             statement.executeUpdate();
         } catch (Exception e) {
             throw new DataAccessException("Error getting rubric item", e);
