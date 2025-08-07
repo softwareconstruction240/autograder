@@ -230,6 +230,12 @@ public class TestHelper {
     static String removeSparkLines(String errorOutput) {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
+        lines.removeIf(s -> s.matches("       __                  ___           _____"));
+        lines.removeIf(s -> s.matches("      / /___ __   ______ _/ (_)___      / ___/"));
+        lines.removeIf(s -> s.matches(" __  / / __ `/ | / / __ `/ / / __ \\\\    / __ \\\\"));
+        lines.removeIf(s -> s.matches("/ /_/ / /_/ /| |/ / /_/ / / / / / /   / /_/ /"));
+        lines.removeIf(s -> s.matches("\\\\____/\\\\__,_/ |___/\\\\__,_/_/_/_/ /_/    \\\\____/"));
+        lines.removeIf(s -> s.matches("https://javalin.io/documentation"));
         return String.join("\n", lines);
     }
 
