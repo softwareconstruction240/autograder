@@ -79,6 +79,17 @@ public abstract class RubricConfigDaoTest {
 
     @ParameterizedTest
     @EnumSource (Phase.class)
+    void setRubricIdAndPointsOnNonExistentPhase(Phase phase) throws DataAccessException{
+        RubricConfig changedConfig = generateRubricConfig(phase);
+        for (Rubric.RubricType type : PhaseUtils.getRubricTypesFromPhase(phase)){
+            dao.setRubricIdAndPoints(phase, type, 0, changedConfig.items().get(type).rubric_id());
+        }
+        RubricConfig obtained = dao.getRubricConfig(phase);
+        Assertions.assertEquals(generateBlankConfig(phase), obtained);
+    }
+
+    @ParameterizedTest
+    @EnumSource (Phase.class)
     void getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
         RubricConfig config = generateRubricConfig(phase, 240);
         dao.setRubricConfig(phase, config);
@@ -122,6 +133,14 @@ public abstract class RubricConfigDaoTest {
             else{
                 items.put(type, null);
             }
+        }
+        return new RubricConfig(phase, items);
+    }
+
+    RubricConfig generateBlankConfig(Phase phase) {
+        EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> items = new EnumMap<>(Rubric.RubricType.class);
+        for (Rubric.RubricType type : Rubric.RubricType.values()){
+            items.put(type, null);
         }
         return new RubricConfig(phase, items);
     }
