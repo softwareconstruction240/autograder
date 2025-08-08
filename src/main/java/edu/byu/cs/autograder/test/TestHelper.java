@@ -2,7 +2,6 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
@@ -227,7 +226,7 @@ public class TestHelper {
         return commands;
     }
 
-    static String removeSparkLines(String errorOutput) {
+    static String removeJavalinLines(String errorOutput) {
         List<String> lines = new ArrayList<>(Arrays.asList(errorOutput.split("\n")));
         lines.removeIf(s -> s.matches("^\\[(main|Thread-\\d*)] INFO.*$"));
         lines.removeIf(s -> s.matches("[ /_\\\\(),`|]+"));
@@ -237,7 +236,7 @@ public class TestHelper {
     }
 
      String trimErrorOutput(String errorOutput) {
-        errorOutput = removeSparkLines(errorOutput);
+        errorOutput = removeJavalinLines(errorOutput);
         if (errorOutput.length() > MAX_ERROR_OUTPUT_CHARS) {
             errorOutput =  errorOutput.substring(0, MAX_ERROR_OUTPUT_CHARS) + "...\n(Error Output Truncated)";
         }
