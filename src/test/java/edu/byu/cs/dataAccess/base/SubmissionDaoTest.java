@@ -111,11 +111,7 @@ public abstract class SubmissionDaoTest {
     }
 
     @ParameterizedTest
-    @EnumSource(
-            value = Phase.class,
-            names = {"Commits"},
-            mode = EnumSource.Mode.EXCLUDE
-    )
+    @EnumSource(value = Phase.class)
     void getSubmissionsForPhase(Phase phase) throws DataAccessException {
         Collection<Submission> expectedUserSubmissions = generateSubmissionDummyData(userID);
         Collection<Submission> actualUserSubmissions = dao.getSubmissionsForPhase(DaoTestUtils.generateNetID(userID), phase);
@@ -316,11 +312,7 @@ public abstract class SubmissionDaoTest {
     }
 
     @ParameterizedTest
-    @EnumSource(
-            value = Phase.class,
-            names = {"Commits"},
-            mode = EnumSource.Mode.EXCLUDE
-    )
+    @EnumSource(value = Phase.class)
     @Disabled
     void getBestSubmissionWithDuplicateScore(Phase phase) throws DataAccessException {
         Collection<Submission> submissions = new ArrayList<>();
