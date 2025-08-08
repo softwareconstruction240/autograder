@@ -383,6 +383,7 @@ public class PhaseUtils {
     public static Collection<Rubric.RubricType> getRubricTypesFromPhase(Phase phase) {
         return switch (phase) {
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
+            case Quality -> Set.of(Rubric.RubricType.QUALITY);
             case Phase0, Phase1 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS);
             case Phase3, Phase4 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.QUALITY, Rubric.RubricType.UNIT_TESTS);
             case Phase5 -> Set.of(Rubric.RubricType.QUALITY, Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.UNIT_TESTS);
