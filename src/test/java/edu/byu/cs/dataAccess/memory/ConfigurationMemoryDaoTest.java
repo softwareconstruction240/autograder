@@ -11,7 +11,7 @@ public class ConfigurationMemoryDaoTest extends ConfigurationDaoTest {
     }
 
     @Override
-    protected void clearConfigurationItems() throws DataAccessException {
+    protected void clearConfigurationItems() {
         dao = new ConfigurationMemoryDao();
     }
 }
