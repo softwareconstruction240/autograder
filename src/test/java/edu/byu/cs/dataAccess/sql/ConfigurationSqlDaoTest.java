@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 public class ConfigurationSqlDaoTest extends ConfigurationDaoTest {
 
     @BeforeAll
-    static void init() throws DataAccessException{
+    static void setupDB() throws DataAccessException{
         SqlDaoTestUtils.prepareSQLDatabase();
     }
 
