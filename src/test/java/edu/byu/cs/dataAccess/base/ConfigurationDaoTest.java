@@ -19,8 +19,8 @@ public abstract class ConfigurationDaoTest {
 
     @BeforeEach
     void setup() throws DataAccessException {
-        dao = getConfigurationDao();
         clearConfigurationItems();
+        dao = getConfigurationDao();
     }
 
     @ParameterizedTest
@@ -72,8 +72,10 @@ public abstract class ConfigurationDaoTest {
 
     @ParameterizedTest
     @EnumSource(ConfigurationDao.Configuration.class)
-    void getItemThatDoesNotExist(){
-
+    void getItemThatDoesNotExist(ConfigurationDao.Configuration key)throws DataAccessException{
+        Class clazz = generateDummyDataForKey(key).getClass();
+        var obtained = dao.getConfiguration(key, clazz);
+        Assertions.assertEquals(determineDefaultValue(clazz.getName()), obtained);
     }
 
     /**
@@ -99,6 +101,17 @@ public abstract class ConfigurationDaoTest {
             case SLACK_LINK, BANNER_LINK, BANNER_COLOR, BANNER_MESSAGE-> "https://slack.com";
             case STUDENT_SUBMISSIONS_ENABLED -> random.nextBoolean();
             case GRADER_SHUTDOWN_DATE, HOLIDAY_LIST, BANNER_EXPIRATION-> Instant.now();
+        };
+    }
+
+    Object determineDefaultValue(String clazz){
+        return switch (clazz) {
+            case "java.lang.String" -> "";
+            case "java.lang.Integer" -> 0;
+            case "java.lang.Boolean" -> false;
+            case "java.time.Instant" -> Instant.MAX;
+            case "java.lang.Float" -> 0f;
+            default -> throw new IllegalArgumentException("Unsupported configuration type: " + clazz);
         };
     }
 
