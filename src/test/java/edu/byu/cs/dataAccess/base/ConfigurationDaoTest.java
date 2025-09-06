@@ -60,12 +60,18 @@ public abstract class ConfigurationDaoTest {
 
     @ParameterizedTest
     @EnumSource(ConfigurationDao.Configuration.class)
-    void setItemWithDuplicateKey(ConfigurationDao.Configuration key){
+    void setItemWithDuplicateKey(ConfigurationDao.Configuration key) throws DataAccessException{
         var value = generateDummyDataForKey(key);
-        //Class clazz = Class.forName();
+        Class clazz = value.getClass();
+        dao.setConfiguration(key, value, clazz);
+        dao.setConfiguration(key, "Override", String.class);
+        String obtained = dao.getConfiguration(key, String.class);
+        Assertions.assertEquals("Override", obtained);
+        Assertions.assertNotEquals(value, obtained);
     }
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(ConfigurationDao.Configuration.class)
     void getItemThatDoesNotExist(){
 
     }
