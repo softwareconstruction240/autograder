@@ -15,7 +15,7 @@ public abstract class ConfigurationDaoTest {
     protected ConfigurationDao dao;
     protected abstract ConfigurationDao getConfigurationDao();
     protected abstract void clearConfigurationItems() throws DataAccessException;
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
     @BeforeEach
     void setup() throws DataAccessException {
