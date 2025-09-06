@@ -28,7 +28,7 @@ public abstract class ConfigurationDaoTest {
     void getAndSetValidConfigurations(ConfigurationDao.Configuration key)
             throws ClassNotFoundException, DataAccessException {
         var value = generateDummyDataForKey(key);
-        Class clazz = Class.forName(getNameOfTypeForKey(key));
+        Class clazz = value.getClass();
         dao.setConfiguration(key, value, clazz);
         var obtained = dao.getConfiguration(key, clazz);
         Assertions.assertEquals(value, obtained);
@@ -39,14 +39,30 @@ public abstract class ConfigurationDaoTest {
         Assertions.assertThrows(DataAccessException.class, () -> dao.setConfiguration(null,null, null));
     }
 
-    @Test
-    void setItemWithInvalidValue(){
+    @ParameterizedTest
+    @EnumSource(ConfigurationDao.Configuration.class)
+    void setItemWithInvalidValue(ConfigurationDao.Configuration key){
+        Object[] invalidValues = {null, 3.1415d, new InvalidClass()};
 
+        for (Object v : invalidValues){
+            Assertions.assertThrows(DataAccessException.class, () -> {
+                if (v == null){
+                    dao.setConfiguration(key, v, null);
+                }
+                else {
+                    Class clazz = v.getClass();
+                    dao.setConfiguration(key, v, clazz);
+                    dao.getConfiguration(key, clazz);
+                }
+            });
+        }
     }
 
-    @Test
-    void setItemWithDuplicateKey(){
-
+    @ParameterizedTest
+    @EnumSource(ConfigurationDao.Configuration.class)
+    void setItemWithDuplicateKey(ConfigurationDao.Configuration key){
+        var value = generateDummyDataForKey(key);
+        //Class clazz = Class.forName();
     }
 
     @Test
@@ -80,16 +96,5 @@ public abstract class ConfigurationDaoTest {
         };
     }
 
-    String getNameOfTypeForKey(ConfigurationDao.Configuration key){
-        return switch (key){
-            case COURSE_NUMBER, LINES_PER_COMMIT_REQUIRED, MAX_LATE_DAYS_TO_PENALIZE, CLOCK_FORGIVENESS_MINUTES,
-                 GITHUB_ASSIGNMENT_NUMBER, PHASE0_ASSIGNMENT_NUMBER, PHASE1_ASSIGNMENT_NUMBER, PHASE3_ASSIGNMENT_NUMBER,
-                 PHASE4_ASSIGNMENT_NUMBER, PHASE5_ASSIGNMENT_NUMBER, PHASE6_ASSIGNMENT_NUMBER, MAX_ERROR_OUTPUT_CHARS,
-                 GRADER_SHUTDOWN_WARNING_MILLISECONDS -> "java.lang.Integer";
-            case GIT_COMMIT_PENALTY, PER_DAY_LATE_PENALTY-> "java.lang.Float";
-            case SLACK_LINK, BANNER_LINK, BANNER_COLOR, BANNER_MESSAGE -> "java.lang.String";
-            case STUDENT_SUBMISSIONS_ENABLED -> "java.lang.Boolean";
-            case GRADER_SHUTDOWN_DATE, HOLIDAY_LIST, BANNER_EXPIRATION -> "java.time.Instant";
-        };
-    }
+    private record InvalidClass(){}
 }
