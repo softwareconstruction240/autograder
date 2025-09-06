@@ -25,8 +25,7 @@ public abstract class ConfigurationDaoTest {
 
     @ParameterizedTest
     @EnumSource(ConfigurationDao.Configuration.class)
-    void getAndSetValidConfigurations(ConfigurationDao.Configuration key)
-            throws ClassNotFoundException, DataAccessException {
+    void getAndSetValidConfigurations(ConfigurationDao.Configuration key) throws DataAccessException {
         var value = generateDummyDataForKey(key);
         Class clazz = value.getClass();
         dao.setConfiguration(key, value, clazz);
