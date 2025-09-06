@@ -35,8 +35,8 @@ public abstract class ConfigurationDaoTest {
     }
 
     @Test
-    void setItemWithInvalidKey(){
-
+    void setItemWithInvalidKey() {
+        Assertions.assertThrows(DataAccessException.class, () -> dao.setConfiguration(null,null, null));
     }
 
     @Test
