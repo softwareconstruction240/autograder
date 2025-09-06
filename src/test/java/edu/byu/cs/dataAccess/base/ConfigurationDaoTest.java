@@ -2,6 +2,7 @@ package edu.byu.cs.dataAccess.base;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +30,8 @@ public abstract class ConfigurationDaoTest {
         var value = generateDummyDataForKey(key);
         Class clazz = Class.forName(getNameOfTypeForKey(key));
         dao.setConfiguration(key, value, clazz);
-        dao.getConfiguration(key, clazz);
+        var obtained = dao.getConfiguration(key, clazz);
+        Assertions.assertEquals(value, obtained);
     }
 
     @Test
