@@ -26,6 +26,17 @@ public class ConfigurationMemoryDao implements ConfigurationDao {
 
     @Override
     public <T> T getConfiguration(Configuration key, Class<T> type) {
+        if (configuration.get(key) == null){
+            String className = type.getSimpleName();
+            return type.cast(switch (className) {
+                case "String" -> "";
+                case "Integer" -> 0;
+                case "Boolean" -> false;
+                case "Instant" -> Instant.MAX;
+                case "Float" -> 0f;
+                default -> throw new IllegalArgumentException("Unsupported configuration type: " + type);
+            });
+        }
         return type.cast(configuration.get(key));
     }
 }
