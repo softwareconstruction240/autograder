@@ -38,11 +38,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
         return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
     }
 
-    @Override
-    protected Set<String> extraCreditTests() throws GradingException {
-        return allPreviousPhases(PhaseUtils::extraCreditTests);
-    }
-
     /**
      * Takes a {@link PhaseFunction}, runs it's <code>apply</code> method for every phase
      * previous to the phase stored in the grading context and returns a set of {@code T}
@@ -84,7 +79,6 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
     @Override
     protected float getScore(TestOutput testResults) throws GradingException {
         if (testResults.root().getNumTestsFailed() == 0) return 1f;
-        testResults = new TestOutput(testResults.root(), null, testResults.coverage(), testResults.error());
         StringBuilder errorBuilder = new StringBuilder(ERROR_MESSAGE).append(" \nFailing tests: \n");
         failingTests(testResults.root(), errorBuilder);
         Rubric.Results results = Rubric.Results.testError(errorBuilder.toString(), testResults);
