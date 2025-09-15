@@ -26,7 +26,7 @@ public class QualityAnalyzer {
     static {
         Path libsPath = new File("phases", "libs").toPath();
         try {
-            checkStyleJarPath = new File(libsPath.toFile(), "checkstyle-1.0.8.jar").getCanonicalPath();
+            checkStyleJarPath = new File(libsPath.toFile(), "checkstyle-1.0.9.jar").getCanonicalPath();
             File qualityRubric = new File(libsPath.toFile(), "qualityRubric.json");
             qualityRubricItems = Serializer.deserialize(new FileReader(qualityRubric), QualityRubric.class);
         } catch (IOException e) {
