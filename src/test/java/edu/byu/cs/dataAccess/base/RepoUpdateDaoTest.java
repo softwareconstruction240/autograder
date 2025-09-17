@@ -60,8 +60,15 @@ public abstract class RepoUpdateDaoTest {
     }
 
     @Test
-    public void getNoRepoUpdatesForInvalidUser(){
-
+    public void getNoRepoUpdatesForInvalidUser() throws DataAccessException{
+        Collection<RepoUpdate> updates = generateManyRepoUpdates(3);
+        for (RepoUpdate update : updates){
+            dao.insertUpdate(update);
+        }
+        Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForUser(null);
+        Assertions.assertTrue(obtainedUpdates.isEmpty());
+        obtainedUpdates = dao.getUpdatesForUser(netId);
+        Assertions.assertTrue(obtainedUpdates.isEmpty());
     }
 
     @Test
