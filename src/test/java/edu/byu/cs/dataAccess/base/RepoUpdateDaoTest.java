@@ -19,6 +19,8 @@ public abstract class RepoUpdateDaoTest {
     protected abstract void clearRepoUpdateItems() throws DataAccessException;
     private static Random random = new Random();
 
+    String netId = "cosmo_cougar";
+
     @BeforeEach
     public void setup() throws DataAccessException{
         dao = getRepoUpdateDao();
@@ -27,9 +29,7 @@ public abstract class RepoUpdateDaoTest {
 
     @Test
     public void insertAndGetOneValidRepoUpdate () throws DataAccessException{
-        String netId = "cosmo_cougar";
-        String repoUrl = "https://github.com/comso_cougar/chess";
-        RepoUpdate update = generateRepoUpdate(netId, repoUrl);
+        RepoUpdate update = generateRepoUpdate(netId);
         dao.insertUpdate(update);
         Collection<RepoUpdate> updates = dao.getUpdatesForUser(netId);
         Assertions.assertEquals(1, updates.size());
@@ -42,10 +42,20 @@ public abstract class RepoUpdateDaoTest {
     }
 
     @Test
-    public void getRepoUpdatesForValidUser(){
+    public void getRepoUpdatesForValidUser() throws DataAccessException{
         Collection<RepoUpdate> updates = generateManyRepoUpdates(3);
         for (RepoUpdate update : updates){
-            dao.
+            dao.insertUpdate(update);
+        }
+        Collection<RepoUpdate> validUserUpdates = generateManyRepoUpdates(3, netId);
+        for (RepoUpdate update : updates){
+            dao.insertUpdate(update);
+        }
+        Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForUser(netId);
+        Assertions.assertEquals(validUserUpdates.size(), obtainedUpdates.size());
+        Assertions.assertTrue(obtainedUpdates.containsAll(validUserUpdates));
+        for (RepoUpdate update : updates) {
+            Assertions.assertFalse(obtainedUpdates.contains(update));
         }
     }
 
@@ -64,24 +74,30 @@ public abstract class RepoUpdateDaoTest {
 
     }
 
-    public RepoUpdate generateRepoUpdate(String netId, String repoUrl){
+    private RepoUpdate generateRepoUpdate(String netId){
         boolean admin = random.nextBoolean();
         return new RepoUpdate(
                 Instant.now().truncatedTo(ChronoUnit.SECONDS),
                 netId,
-                repoUrl,
+                "https://github.com/" + netId + "/chess",
                 admin,
                 admin ? "Cosmo_Boss" : null
         );
     }
 
-    public HashSet<RepoUpdate> generateManyRepoUpdates(int size){
+    private HashSet<RepoUpdate> generateManyRepoUpdates(int size){
         var updates = new HashSet<RepoUpdate>();
         for (int i = 0; i < size; i++){
             int id = random.nextInt();
-            updates.add(generateRepoUpdate(
-                    "cosmo_" + id,
-                    String.format("https://github.com/comso_%d/chess", id)));
+            updates.add(generateRepoUpdate("cosmo_"+id));
+        }
+        return updates;
+    }
+
+    private HashSet<RepoUpdate> generateManyRepoUpdates(int size, String netId){
+        var updates = new HashSet<RepoUpdate>();
+        for (int i = 0; i < size; i++){
+            updates.add(generateRepoUpdate(netId));
         }
         return updates;
     }
