@@ -1,24 +1,30 @@
 package edu.byu.cs.dataAccess.base;
 
-import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
 import edu.byu.cs.model.RepoUpdate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public abstract class RepoUpdateDaoTest {
     protected RepoUpdateDao dao;
     protected abstract RepoUpdateDao getRepoUpdateDao();
     protected abstract void clearRepoUpdateItems() throws DataAccessException;
     private static Random random = new Random();
+
+    static IntStream getNoiseStream() {
+        return IntStream.of(1,2,3,300);
+    }
 
     String netId = "cosmo_cougar";
     String repoLink = "https://github.com/" + netId + "/chess";
@@ -43,12 +49,13 @@ public abstract class RepoUpdateDaoTest {
         Assertions.assertThrows(DataAccessException.class, ()-> dao.insertUpdate(null));
     }
 
-    @Test
-    public void getRepoUpdatesForValidUser() throws DataAccessException{
-        Collection<RepoUpdate> updates = generateManyRepoUpdates(3);
+    @ParameterizedTest
+    @MethodSource("getNoiseStream")
+    public void getRepoUpdatesForValidUser(int noise) throws DataAccessException{
+        Collection<RepoUpdate> updates = generateManyRepoUpdates(noise);
         insertAllRepoUpdates(updates);
 
-        Collection<RepoUpdate> validUserUpdates = generateManyRepoUpdates(3, netId, null);
+        Collection<RepoUpdate> validUserUpdates = generateManyRepoUpdates(noise, netId, null);
         insertAllRepoUpdates(validUserUpdates);
 
         Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForUser(netId);
@@ -61,10 +68,10 @@ public abstract class RepoUpdateDaoTest {
         }
     }
 
-    @Test
-    public void getNoRepoUpdatesForInvalidUser() throws DataAccessException{
-        Collection<RepoUpdate> updates = generateManyRepoUpdates(3);
-        insertAllRepoUpdates(updates);
+    @ParameterizedTest
+    @MethodSource("getNoiseStream")
+    public void getNoRepoUpdatesForInvalidUser(int noise) throws DataAccessException{
+        insertAllRepoUpdates(generateManyRepoUpdates(noise));
 
         Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForUser(null);
         Assertions.assertTrue(obtainedUpdates.isEmpty());
@@ -73,12 +80,13 @@ public abstract class RepoUpdateDaoTest {
         Assertions.assertTrue(obtainedUpdates.isEmpty());
     }
 
-    @Test
-    public void getRepoUpdatesForValidRepoUrl() throws DataAccessException{
-        Collection<RepoUpdate> updates = generateManyRepoUpdates(3);
+    @ParameterizedTest
+    @MethodSource("getNoiseStream")
+    public void getRepoUpdatesForValidRepoUrl(int noise) throws DataAccessException{
+        Collection<RepoUpdate> updates = generateManyRepoUpdates(noise);
         insertAllRepoUpdates(updates);
 
-        Collection<RepoUpdate> updatesWithSameRepo = generateManyRepoUpdates(3, null, repoLink);
+        Collection<RepoUpdate> updatesWithSameRepo = generateManyRepoUpdates(noise, null, repoLink);
         insertAllRepoUpdates(updatesWithSameRepo);
 
         Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForRepo(repoLink);
@@ -90,9 +98,16 @@ public abstract class RepoUpdateDaoTest {
         }
     }
 
-    @Test
-    public void getNoRepoUpdatesForInvalidRepoUrl(){
+    @ParameterizedTest
+    @MethodSource("getNoiseStream")
+    public void getNoRepoUpdatesForInvalidRepoUrl(int noise) throws DataAccessException{
+        insertAllRepoUpdates(generateManyRepoUpdates(noise));
 
+        Collection<RepoUpdate> obtainedUpdates = dao.getUpdatesForRepo(null);
+        Assertions.assertTrue(obtainedUpdates.isEmpty());
+
+        obtainedUpdates = dao.getUpdatesForRepo(repoLink);
+        Assertions.assertTrue(obtainedUpdates.isEmpty());
     }
 
     private void insertAllRepoUpdates(Collection<RepoUpdate> updates) throws DataAccessException{
@@ -104,8 +119,9 @@ public abstract class RepoUpdateDaoTest {
     private RepoUpdate generateRepoUpdate(String netId, String repoLink){
         boolean admin = random.nextBoolean();
         return new RepoUpdate(
-                //FIXME primary key for this table is time, and with this code there's roughly a 1/365 chance for a collision
-                Instant.now().truncatedTo(ChronoUnit.SECONDS).minus(random.nextInt(0,365), ChronoUnit.DAYS),
+                Instant.now().truncatedTo(ChronoUnit.SECONDS)
+                        .minus(random.nextInt(0,365), ChronoUnit.DAYS)
+                        .minusSeconds(random.nextLong(1, 86399)),
                 netId,
                 repoLink,
                 admin,
