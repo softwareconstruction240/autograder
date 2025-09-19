@@ -13,7 +13,12 @@ public class RepoUpdateMemoryDao implements RepoUpdateDao {
 
     @Override
     public void insertUpdate(RepoUpdate update) throws DataAccessException {
-        repoUpdates.add(update);
+        if (update != null) {
+            repoUpdates.add(update);
+        }
+        else {
+            throw new DataAccessException("Cannot insert null update");
+        }
     }
 
     @Override

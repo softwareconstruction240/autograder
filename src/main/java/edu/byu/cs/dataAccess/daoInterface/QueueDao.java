@@ -17,13 +17,6 @@ public interface QueueDao {
     void add(QueueItem item) throws DataAccessException;
 
     /**
-     * Removes the next item from the queue
-     *
-     * @return the next item in the queue
-     */
-    QueueItem pop() throws DataAccessException;
-
-    /**
      * Removes an item from the queue
      *
      * @param netId the netId of the item to remove

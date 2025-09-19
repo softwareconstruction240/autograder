@@ -24,21 +24,26 @@ public class RubricConfigMemoryDao implements RubricConfigDao {
     public void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) {
         RubricConfig rubricConfig = rubricConfigs.get(phase);
         if (rubricConfig == null) {
-            RubricConfig.RubricConfigItem rubricConfigItem = new RubricConfig.RubricConfigItem("", "", points, rubric_id);
+            //RubricConfig.RubricConfigItem rubricConfigItem = new RubricConfig.RubricConfigItem("", "", points, rubric_id);
             EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> items = new EnumMap<>(Rubric.RubricType.class);
-            items.put(type, rubricConfigItem);
+            for (Rubric.RubricType t : Rubric.RubricType.values()){
+                items.put(t, null);
+            }
             rubricConfig = new RubricConfig(phase, items);
             rubricConfigs.put(phase, rubricConfig);
         }
 
         var rubricTypeToConfigItem = rubricConfig.items();
         RubricConfig.RubricConfigItem oldRubricConfigItem = rubricTypeToConfigItem.get(type);
-        RubricConfig.RubricConfigItem newRubricConfigItem = new RubricConfig.RubricConfigItem(
-                oldRubricConfigItem != null ? oldRubricConfigItem.category() : "",
-                oldRubricConfigItem != null ? oldRubricConfigItem.criteria() : "",
+        RubricConfig.RubricConfigItem newRubricConfigItem = null;
+        if (oldRubricConfigItem != null){
+            newRubricConfigItem = new RubricConfig.RubricConfigItem(
+                oldRubricConfigItem.category(),
+                oldRubricConfigItem.criteria(),
                 points,
                 rubric_id
-        );
+            );
+        }
         rubricTypeToConfigItem.put(type, newRubricConfigItem);
     }
 

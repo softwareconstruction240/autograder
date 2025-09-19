@@ -5,6 +5,7 @@ import edu.byu.cs.model.QueueItem;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 public class QueueMemoryDao implements QueueDao {
@@ -15,23 +16,15 @@ public class QueueMemoryDao implements QueueDao {
     }
 
     @Override
-    public QueueItem pop() {
-        if (queue.isEmpty()) {
-            return null;
-        }
-        QueueItem item = queue.getFirst();
-        queue.removeFirst();
-        return item;
-    }
-
-    @Override
     public void remove(String netId) {
         queue.removeIf(item -> item.netId().equals(netId));
     }
 
     @Override
     public Collection<QueueItem> getAll() {
-        return queue;
+        List<QueueItem> sorted = new ArrayList<>(queue);
+        sorted.sort(Comparator.comparing(QueueItem::timeAdded));
+        return sorted;
     }
 
     @Override

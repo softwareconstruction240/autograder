@@ -1,5 +1,6 @@
 package edu.byu.cs.dataAccess.memory;
 
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 
@@ -11,9 +12,9 @@ public class UserMemoryDao implements UserDao {
 
     private final Map<String, User> users = new HashMap<>();
     @Override
-    public void insertUser(User user) {
+    public void insertUser(User user) throws DataAccessException {
         if (users.containsKey(user.netId()))
-            throw new IllegalArgumentException("User already exists");
+            throw new DataAccessException("User already exists");
 
         users.put(user.netId(), user);
     }
@@ -26,7 +27,7 @@ public class UserMemoryDao implements UserDao {
     @Override
     public void setFirstName(String netId, String firstName) {
         if (!users.containsKey(netId))
-            throw new IllegalArgumentException("User does not exist");
+            return;
 
         User oldUser = users.get(netId);
         User newUser = new User(oldUser.netId(), oldUser.canvasUserId(), firstName, oldUser.lastName(), oldUser.repoUrl(), oldUser.role());
@@ -37,7 +38,7 @@ public class UserMemoryDao implements UserDao {
     @Override
     public void setLastName(String netId, String lastName) {
         if (!users.containsKey(netId))
-            throw new IllegalArgumentException("User does not exist");
+            return;
 
         User oldUser = users.get(netId);
         User newUser = new User(oldUser.netId(), oldUser.canvasUserId(), oldUser.firstName(), lastName, oldUser.repoUrl(), oldUser.role());
@@ -48,7 +49,7 @@ public class UserMemoryDao implements UserDao {
     @Override
     public void setRepoUrl(String netId, String repoUrl) {
         if (!users.containsKey(netId))
-            throw new IllegalArgumentException("User does not exist");
+            return;
 
         User oldUser = users.get(netId);
         User newUser = new User(oldUser.netId(), oldUser.canvasUserId(), oldUser.firstName(), oldUser.lastName(), repoUrl, oldUser.role());
@@ -59,10 +60,10 @@ public class UserMemoryDao implements UserDao {
     @Override
     public void setRole(String netId, User.Role role) {
         if (!users.containsKey(netId))
-            throw new IllegalArgumentException("User does not exist");
+            return;
 
         User oldUser = users.get(netId);
-        User newUser = new User(oldUser.netId(), 0, oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), role);
+        User newUser = new User(oldUser.netId(), oldUser.canvasUserId(), oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), role);
 
         users.put(netId, newUser);
     }
@@ -70,7 +71,7 @@ public class UserMemoryDao implements UserDao {
     @Override
     public void setCanvasUserId(String netId, int canvasUserId) {
         if (!users.containsKey(netId))
-            throw new IllegalArgumentException("User does not exist");
+            return;
 
         User oldUser = users.get(netId);
         User newUser = new User(oldUser.netId(), canvasUserId, oldUser.firstName(), oldUser.lastName(), oldUser.repoUrl(), oldUser.role());
