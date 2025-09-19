@@ -56,8 +56,22 @@ public class SqlDaoTestUtils {
                 throw new RuntimeException("Unable to load db properties", ex);
             }
         }
-        ApplicationProperties.loadProperties(props);
-        SqlDb.setUpDb();
+        if (!arePropertiesLoaded(props)) {
+            ApplicationProperties.loadProperties(props);
+            SqlDb.setUpDb();
+        }
+    }
+
+    private static boolean arePropertiesLoaded(Properties props){
+        try {
+            return (props.getProperty("db-host").equals(ApplicationProperties.dbHost())
+                    && props.getProperty("db-name").equals(ApplicationProperties.dbName())
+                    && props.getProperty("db-user").equals(ApplicationProperties.dbUser())
+                    && props.getProperty("db-pass").equals(ApplicationProperties.dbPass())
+                    && props.getProperty("db-port").equals(ApplicationProperties.dbPort()));
+        } catch (RuntimeException e){
+            return false;
+        }
     }
 
     /**
