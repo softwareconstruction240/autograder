@@ -21,7 +21,6 @@ public class ConfigurationMemoryDao implements ConfigurationDao {
                   "java.lang.Float" -> configuration.put(key, value);
             case null, default -> throw new DataAccessException("Invalid type:" + type.getName());
         }
-        configuration.put(key, value);
     }
 
     @Override
