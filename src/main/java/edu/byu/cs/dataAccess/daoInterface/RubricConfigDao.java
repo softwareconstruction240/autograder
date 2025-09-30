@@ -22,6 +22,9 @@ public interface RubricConfigDao {
     default int getPhaseTotalPossiblePoints(Phase phase) throws DataAccessException {
         RubricConfig rubricConfig = getRubricConfig(phase);
         int total = 0;
+        if (rubricConfig == null) {
+            return total;
+        }
         for(RubricConfig.RubricConfigItem item : rubricConfig.items().values()) {
             if(item != null) {
                 total += item.points();

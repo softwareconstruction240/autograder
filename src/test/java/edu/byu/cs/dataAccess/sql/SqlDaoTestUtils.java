@@ -4,6 +4,8 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 
 import java.io.FileReader;
+import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -54,7 +56,64 @@ public class SqlDaoTestUtils {
                 throw new RuntimeException("Unable to load db properties", ex);
             }
         }
-        ApplicationProperties.loadProperties(props);
-        SqlDb.setUpDb();
+        if (!arePropertiesLoaded(props)) {
+            ApplicationProperties.loadProperties(props);
+            SqlDb.setUpDb();
+        }
+    }
+
+    private static boolean arePropertiesLoaded(Properties props){
+        try {
+            return (props.getProperty("db-host").equals(ApplicationProperties.dbHost())
+                    && props.getProperty("db-name").equals(ApplicationProperties.dbName())
+                    && props.getProperty("db-user").equals(ApplicationProperties.dbUser())
+                    && props.getProperty("db-pass").equals(ApplicationProperties.dbPass())
+                    && props.getProperty("db-port").equals(ApplicationProperties.dbPort()));
+        } catch (RuntimeException e){
+            return false;
+        }
+    }
+
+    /**
+     * Will call "DELETE FROM tableName" on the database. Assuming all foreign key constraints are
+     * defined in the table for deletes, this should work. If it doesn't, you may need to play around
+     * with table structures or change how the tests clear.
+     * <br>
+     * You'll notice this code doesn't use a prepared statement for the table name. Though SQL injection attacks would
+     * be unlikely as this code should never go into production or receive user input, as a precaution a valid table
+     * name check has been implemented
+     *
+     * @param tableName
+     * @throws DataAccessException for sql errors
+     */
+    public static void deleteTableWithCascade(String tableName) throws DataAccessException {
+        if (!isValidTableName(tableName)){
+            throw new DataAccessException("Attempted to delete a table that doesn't exist");
+        }
+        try(var connection = SqlDb.getConnection()){
+            var statement = connection.prepareStatement("DELETE FROM " + tableName);
+            statement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Could not clear " + tableName, e);
+        }
+    }
+
+    private static boolean isValidTableName(String tableName){
+        try{
+            TableNames.valueOf(tableName.toUpperCase(Locale.ROOT));
+            return true;
+        }
+        catch (IllegalArgumentException e){
+            return false;
+        }
+    }
+
+    protected enum TableNames{
+        USER,
+        SUBMISSION,
+        QUEUE,
+        RUBRIC_CONFIG,
+        CONFIGURATION,
+        REPO_UPDATE,
     }
 }
