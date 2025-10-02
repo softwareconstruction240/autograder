@@ -238,6 +238,7 @@ public class ConfigService {
             }
             dao.setConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, phases, ArrayList.class);
             logAutomaticConfigChange("Student submissions have shutdown. These phases remain active: " + phases);
+            clearShutdownSchedule();
         } catch (DataAccessException e) {
             LOGGER.error("Something went wrong while shutting down graded phases: " + e.getMessage());
         }
