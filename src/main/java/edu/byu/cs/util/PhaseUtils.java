@@ -198,6 +198,15 @@ public class PhaseUtils {
         };
     }
 
+    public static String unitTestPackageForCoverage(Phase phase) throws GradingException {
+        return switch (phase){
+            case Phase3 -> "service";
+            case Phase4 -> "dataaccess"; //TODO: may need to have a subpackage
+            case Phase5 -> "client"; //FIXME: definately needs a subpackage
+            default -> throw new GradingException("No unit tests for this phaase");
+        };
+    }
+
     /**
      * Gets the modules needed to check for code coverage while testing student-written unit tests
      *
