@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class ServerFacadeTestPortVerifier implements StudentCodeVerifier {
     private static final String DYNAMIC_PORT_LINE = "port = server.run(0)";
     private static final int CHECK_HARDCODED_PORT = 8080;
-    private static final String EXPLANATION = "A port argument of 0 lets Spark/Jetty choose a port. The run method " +
+    private static final String EXPLANATION = "A port argument of 0 lets Javalin/Jetty choose a port. The run method " +
             "then returns the port the server started on. Use this return value to set up your server facade " +
             "(probably \"var port\").";
 

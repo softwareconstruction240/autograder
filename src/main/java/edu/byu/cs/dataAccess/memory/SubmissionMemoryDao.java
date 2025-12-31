@@ -45,7 +45,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission latest = null;
         long max = 0;
         for (Submission s : submissions) {
-            if (s.passed() && s.timestamp().getEpochSecond() > max) latest = s;
+            if (s.timestamp().getEpochSecond() > max) {
+                latest = s;
+                max = s.timestamp().getEpochSecond();
+            }
         }
         return latest;
     }
@@ -89,7 +92,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission earliest = null;
         long min = Long.MAX_VALUE;
         for (Submission s : submissions) {
-            if (s.passed() && s.timestamp().getEpochSecond() < min) earliest = s;
+            if (s.passed() && s.timestamp().getEpochSecond() < min) {
+                earliest = s;
+                min = s.timestamp().getEpochSecond();
+            }
         }
         return earliest;
     }
@@ -100,7 +106,10 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Submission bestSubmission =  null;
         for (Submission s : submissions) {
             if (bestSubmission == null) { bestSubmission = s; }
-            else if (s.score() > bestSubmission.score()) { bestSubmission = s; }
+            else if (s.score() > bestSubmission.score() && s.passed()) { bestSubmission = s; }
+        }
+        if (bestSubmission == null || !bestSubmission.passed()){
+            return null;
         }
         return bestSubmission;
     }

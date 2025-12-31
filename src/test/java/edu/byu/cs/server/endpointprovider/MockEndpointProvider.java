@@ -166,6 +166,11 @@ public class MockEndpointProvider implements EndpointProvider {
     }
 
     @Override
+    public Handler updateSlackLink() {
+        return (ctx) -> extractRequestInfo("updateSlackLink", ctx);
+    }
+
+    @Override
     public Handler updatePenalties() {
         return (ctx) -> extractRequestInfo("updatePenalties", ctx);
     }

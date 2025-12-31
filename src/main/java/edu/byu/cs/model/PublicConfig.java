@@ -11,11 +11,13 @@ import java.util.List;
  *                 phases for the AutoGrader will shut down
  * @param livePhases A list of phases that are currently active on the AutoGrader
  *                   and students can submit to
+ * @param slackLink An invitation link to the Slack page of the current semester/term
  */
 public record PublicConfig(
     BannerConfig banner,
     ShutdownConfig shutdown,
-    List<Phase> livePhases
+    List<Phase> livePhases,
+    String slackLink
 ) {
     /**
      * Represents the configuration information needed to display a dynamic message
