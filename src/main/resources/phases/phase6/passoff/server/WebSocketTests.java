@@ -317,10 +317,13 @@ public class WebSocketTests {
     private void makeMove(WebsocketUser sender, int gameID, ChessMove move, boolean expectSuccess, boolean extraNotification,
                           Set<WebsocketUser> inGame, Set<WebsocketUser> otherClients, String description) {
         TestCommand moveCommand = new TestCommand(sender.authToken(), gameID, move);
-        Map<String, Integer> numExpectedMessages = expectedMessages(sender, 1, inGame, (expectSuccess ? 2 : 0), otherClients);
+        int numExtraNotification = extraNotification ? 1 : 0;
+        int senderExpected = 1 + numExtraNotification;
+        int inGameExpected = (expectSuccess ? 2  + numExtraNotification : 0);
+        Map<String, Integer> numExpectedMessages = expectedMessages(sender, senderExpected, inGame, inGameExpected, otherClients);
         Map<String, List<TestMessage>> actualMessages = environment.exchange(sender.username(), moveCommand, numExpectedMessages, waitTime);
 
-        if(extraNotification && actualMessages.get(sender.username()).size() > 1) {
+        if(extraNotification) {
             assertCommandMessages(actualMessages, expectSuccess, sender, types(LOAD_GAME, NOTIFICATION),
                     inGame, types(LOAD_GAME, NOTIFICATION, NOTIFICATION), otherClients, description);
         }
