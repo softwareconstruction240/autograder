@@ -1,6 +1,23 @@
 package edu.byu.cs.service;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.controller.exception.BadRequestException;
@@ -10,13 +27,6 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
 
 /**
  * Contains service logic for the {@link edu.byu.cs.controller.CasController}. <br> View the
@@ -27,8 +37,11 @@ import java.util.Map;
  * and use the AutoGrader.
  */
 public class CasService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
     public static final String BYU_CAS_URL = "https://cas.byu.edu/cas";
+    public static final String BYU_OAUTH_URL = "https://api-sandbox.byu.edu";
+    private static final Logger LOGGER = LoggerFactory.getLogger(CasService.class);
+
+    private static final HttpClient httpClient = HttpClient.newHttpClient();
 
     /**
      * Validates a CAS ticket and retrieves the associated user.
@@ -39,9 +52,9 @@ public class CasService {
      * @param ticket the CAS ticket to validate
      * @return the user, either stored in the database or from Canvas if not
      * @throws InternalServerException if an error arose during ticket validation or user retrieval
-     * @throws BadRequestException if ticket validation failed
-     * @throws DataAccessException if there was an issue storing the user in the database
-     * @throws CanvasException if there was an issue getting the user from Canvas
+     * @throws BadRequestException     if ticket validation failed
+     * @throws DataAccessException     if there was an issue storing the user in the database
+     * @throws CanvasException         if there was an issue getting the user from Canvas
      */
     public static User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
         String netId;
@@ -108,6 +121,71 @@ public class CasService {
             throw e;
         } finally {
             connection.disconnect();
+        }
+    }
+
+    public static TokenResponse exchangeCodeForTokens(String code) throws IOException, InterruptedException {
+
+        String tokenUrl = BYU_OAUTH_URL + "/token";
+
+
+        String formData = "grant_type=authorization_code" +
+                "&client_id=" + URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8) +
+ //               "&client_secret=" + URLEncoder.encode(CognitoAuthProperties.APP_CLIENT_SECRET, StandardCharsets.UTF_8) +
+                "&code=" + URLEncoder.encode(code, StandardCharsets.UTF_8) +
+                "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8);
+
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(tokenUrl))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+
+
+        return getTokenResponse(response.body());
+
+    }
+
+    private static TokenResponse getTokenResponse(String response) {
+
+        return new Gson().fromJson(response, TokenResponse.class);
+
+    }
+
+    public record TokenResponse(
+            @SerializedName("access_token") String accessToken,
+            @SerializedName("id_token") String idToken,
+            @SerializedName("refresh_token") String refreshToken,
+            @SerializedName("expires_in") int expiresIn,
+            @SerializedName("token_type") String tokenType
+
+    ) {}
+
+    public static String callPersonApi(String token) throws InternalServerException{
+        String personUrl = BYU_OAUTH_URL + "api/tbd/";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(personUrl))
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .method("GET", HttpRequest.BodyPublishers.noBody())
+                .build();
+        try{
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300){
+                return response.body();
+            }
+            LOGGER.error("Persons API did not respond with a successful code:{}", response.statusCode());
+            return response.body();
+        } catch (IOException | InterruptedException e) {
+            LOGGER.error("Could not contact BYU Persons API:{}", e.getMessage());
+            throw new InternalServerException("Could not verify identity", e);
         }
     }
 
