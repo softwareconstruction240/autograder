@@ -35,7 +35,7 @@ public class ExtraCreditGrader extends TestGrader {
 
     @Override
     protected String testName() {
-        return "Extra Credit Tests";
+        return "Extra Credit";
     }
 
     @Override

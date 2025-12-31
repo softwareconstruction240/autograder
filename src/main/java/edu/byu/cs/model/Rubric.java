@@ -67,6 +67,6 @@ public record Rubric(
         QUALITY,
         GIT_COMMITS,
         GITHUB_REPO,
-        GRADING_ISSUE
+        GRADING_ISSUE;
     }
 }
