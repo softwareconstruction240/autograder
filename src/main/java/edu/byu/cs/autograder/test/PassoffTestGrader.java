@@ -14,6 +14,7 @@ import java.util.*;
  * Runs and scores the passoff tests for the current phase a submission is graded for
  */
 public class PassoffTestGrader extends TestGrader {
+
     public PassoffTestGrader(GradingContext gradingContext) {
         super(gradingContext);
     }
@@ -57,10 +58,10 @@ public class PassoffTestGrader extends TestGrader {
 
         Integer totalRequiredTests = testResults.getNumTestsPassed() + testResults.getNumTestsFailed();
         if (testResults.getNumTestsFailed() == 0) {
-            notes.append(testResults.getNumTestsPassed()).append("/").append(totalRequiredTests).append(" required tests passed");
+            notes.append(testResults.getNumTestsPassed() + "/"+ totalRequiredTests + " required tests passed");
         }
         else {
-            notes.append(testResults.getNumTestsFailed()).append("/").append(totalRequiredTests).append(" required tests failed");
+            notes.append(testResults.getNumTestsFailed() + "/" + totalRequiredTests + " required tests failed");
         }
 
         return notes.toString();

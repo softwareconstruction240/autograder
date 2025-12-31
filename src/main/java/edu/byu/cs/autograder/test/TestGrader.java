@@ -67,7 +67,7 @@ public abstract class TestGrader {
         TestOutput results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
             results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), null);
-            results.root().countTests();
+            TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
@@ -76,7 +76,7 @@ public abstract class TestGrader {
 
         if (results.root() == null) {
             results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), results.error());
-            results.root().countTests();
+            TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }

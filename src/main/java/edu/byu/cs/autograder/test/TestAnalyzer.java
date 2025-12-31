@@ -82,8 +82,8 @@ public class TestAnalyzer {
     }
 
     private TestNode compileAnalysis(TestNode root) {
-        root.collapsePackages();
-        root.countTests();
+        TestNode.collapsePackages(root);
+        TestNode.countTests(root);
         return root;
     }
 }
