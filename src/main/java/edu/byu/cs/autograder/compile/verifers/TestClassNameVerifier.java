@@ -35,7 +35,7 @@ public class TestClassNameVerifier implements StudentCodeVerifier {
     private StudentCodeReader reader;
 
     /**
-     *
+     * Verifies the student's custom test by checking that they have the correct class name.
      * @param context A grading context
      * @param reader A student code reader
      */
