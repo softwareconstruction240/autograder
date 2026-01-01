@@ -280,6 +280,17 @@ public class PhaseUtils {
     }
 
     /**
+     * Provides the credit score to assign to extra credit tests given the phase.
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return the credit score to give for extra credit tests if any, otherwise returns zero
+     */
+    public static int extraCreditScore(Phase phase) {
+        if (phase == Phase.Phase1) return 10;
+        return 0;
+    }
+
+    /**
      * Gets the {@link CommitVerificationConfig} for a given phase
      *
      * @param phase the phase to check regarding commit verification

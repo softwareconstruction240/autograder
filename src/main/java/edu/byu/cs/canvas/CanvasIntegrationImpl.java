@@ -434,11 +434,18 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 for (String desc : RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.keySet()) {
                     if (rubric.description().toLowerCase().contains(desc)) {
                         Rubric.RubricType rubricType = RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.get(desc);
+                        if (rubricType == Rubric.RubricType.EXTRA_CREDIT) {
+                            rubric = changePoints(rubric, PhaseUtils.extraCreditScore(phase));
+                        }
                         rubricInfo.get(phase).put(rubricType, rubric);
                         break;
                     }
                 }
             }
+        }
+
+        private static CanvasAssignment.CanvasRubric changePoints(CanvasAssignment.CanvasRubric rubric, int points) {
+            return new CanvasAssignment.CanvasRubric(rubric.id(), points, rubric.description());
         }
 
         /**
