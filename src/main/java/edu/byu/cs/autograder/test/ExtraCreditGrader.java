@@ -40,43 +40,21 @@ public class ExtraCreditGrader extends TestGrader {
 
     @Override
     protected float getScore(TestOutput testOutput) {
+        TestNode testResults = testOutput.root();
         float score = 0;
 
-        Map<String, Float> ecScores = getECScores(testOutput.root());
-        float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
-        for (Float ecScore : ecScores.values()) {
-            if (ecScore == 1f) {
-                score += extraCreditValue;
-            }
+        for (TestNode child : testResults.getChildren().values()) {
+            score += (float) Math.floor((float) child.getNumTestsPassed() / child.getNumTestsTotal());
         }
 
-        return score;
+        return score / testResults.getChildren().size();
     }
 
     @Override
     protected String getNotes(TestOutput testOutput) {
-        TestNode testResults = testOutput.root();
-        StringBuilder notes = new StringBuilder();
+        if (testOutput.root() == null) return "No tests were run";
 
-        if (testResults == null) return "No tests were run";
-
-        Map<String, Float> ecScores = getECScores(testOutput.root());
-        float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
-        float totalECPoints = ecScores.values().stream().reduce(0f, (f1, f2) -> (float) (f1 + Math.floor(f2))) * extraCreditValue;
-
-        if (totalECPoints > 0f) notes.append("Extra credit tests: +").append(totalECPoints * 100).append("%");
-
-        return notes.toString();
-    }
-
-    private Map<String, Float> getECScores(TestNode results) {
-        Map<String, Float> scores = new HashMap<>();
-
-        for (TestNode child : results.getChildren().values()) {
-            scores.put(child.getTestName(), (float) child.getNumTestsPassed() / child.getNumTestsTotal());
-        }
-
-        return scores;
+        return "Extra credit tests: +" + (getScore(testOutput) * PhaseUtils.extraCreditScore(gradingContext.phase()));
     }
 
     @Override
