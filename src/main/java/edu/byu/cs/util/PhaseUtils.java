@@ -269,17 +269,6 @@ public class PhaseUtils {
     }
 
     /**
-     * Provides the value (as a float) to assign to extra credit tests given the phase
-     *
-     * @param phase the phase that may have extra credit tests
-     * @return the value to assign to extra credit tests if any, otherwise returns zero
-     */
-    public static float extraCreditValue(Phase phase) {
-        if(phase == Phase.Phase1) return .04f;
-        return 0;
-    }
-
-    /**
      * Provides the credit score to assign to extra credit tests given the phase.
      *
      * @param phase the phase that may have extra credit tests
