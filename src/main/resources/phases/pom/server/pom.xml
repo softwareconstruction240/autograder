@@ -26,7 +26,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <mainClass>Main</mainClass>
+                    <mainClass>server.ServerMain</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -43,7 +43,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        Main
+                                        server.ServerMain
                                     </mainClass>
                                 </manifest>
                             </archive>
