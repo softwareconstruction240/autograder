@@ -64,7 +64,7 @@ public class ExtraCreditGrader extends TestGrader {
         float extraCreditValue = PhaseUtils.extraCreditValue(gradingContext.phase());
         float totalECPoints = ecScores.values().stream().reduce(0f, (f1, f2) -> (float) (f1 + Math.floor(f2))) * extraCreditValue;
 
-        if (totalECPoints > 0f) notes.append("\nExtra credit tests: +").append(totalECPoints * 100).append("%");
+        if (totalECPoints > 0f) notes.append("Extra credit tests: +").append(totalECPoints * 100).append("%");
 
         return notes.toString();
     }
