@@ -73,8 +73,7 @@ public class ExtraCreditGrader extends TestGrader {
         Map<String, Float> scores = new HashMap<>();
 
         for (TestNode child : results.getChildren().values()) {
-            scores.put(child.getTestName(), (float) child.getNumTestsPassed() /
-                    (child.getNumTestsPassed() + child.getNumTestsFailed()));
+            scores.put(child.getTestName(), (float) child.getNumTestsPassed() / child.getNumTestsTotal());
         }
 
         return scores;
