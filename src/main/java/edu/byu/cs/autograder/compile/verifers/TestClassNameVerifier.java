@@ -111,7 +111,7 @@ public class TestClassNameVerifier implements StudentCodeVerifier {
      * @param file A file
      */
     private void fileCorrectlyNamed(File file) {
-        Pattern pattern = Pattern.compile("^(?:.+Tests?|Test.+)\\.java$");
+        Pattern pattern = Pattern.compile("^(?:.+Tests?|Test[A-Z].+)\\.java$");
         Matcher matcher = pattern.matcher(file.getName());
         if (!matcher.find()) {
             incorrectFileNames.add(file.getName());
