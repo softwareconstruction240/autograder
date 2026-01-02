@@ -30,6 +30,9 @@ public interface RubricConfigDao {
                 total += item.points();
             }
         }
+        if (rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
+            total -= item.points();
+        }
         return total;
     }
 
