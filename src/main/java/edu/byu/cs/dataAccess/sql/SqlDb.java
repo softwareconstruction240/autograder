@@ -93,7 +93,12 @@ public class SqlDb {
                                 `phase` VARCHAR(9) NOT NULL,
                                 `time_added` DATETIME NOT NULL,
                                 `started` BOOL,
-                                PRIMARY KEY (`net_id`)
+                                PRIMARY KEY (`net_id`),
+                                CONSTRAINT `net_id`
+                                    FOREIGN KEY (`net_id`)
+                                    REFERENCES `user` (`net_id`)
+                                    ON DELETE CASCADE
+                                    ON UPDATE CASCADE
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }
@@ -127,7 +132,12 @@ public class SqlDb {
                                `repo_url` VARCHAR(2048) NOT NULL,
                                `admin_update` BOOLEAN NOT NULL,
                                `admin_net_id` VARCHAR(255),
-                               PRIMARY KEY (`timestamp`)
+                               PRIMARY KEY (`timestamp`),
+                               CONSTRAINT `net_id`
+                                    FOREIGN KEY (`net_id`)
+                                    REFERENCES `user` (`net_id`)
+                                    ON DELETE CASCADE
+                                    ON UPDATE CASCADE
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
                         """);
             }
