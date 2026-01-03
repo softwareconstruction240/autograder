@@ -141,7 +141,7 @@ public abstract class RepoUpdateDaoTest {
      * @return
      */
     private HashSet<RepoUpdate> generateManyRepoUpdates(int size, String netId, String repoLink){
-        String user = netId == null ? "cosmo_" + random.nextInt() : netId;
+        String user = netId == null ? DaoTestUtils.generateNetID(random.nextInt()) : netId;
         String url = repoLink == null ? "https://github.com/" + user + "/chess" : repoLink;
         var updates = new HashSet<RepoUpdate>();
         for (int i = 0; i < size; i++){
