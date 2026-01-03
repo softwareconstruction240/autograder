@@ -2,7 +2,9 @@ package edu.byu.cs.dataAccess.base;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.RepoUpdate;
+import edu.byu.cs.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +20,11 @@ import java.util.stream.IntStream;
 
 public abstract class RepoUpdateDaoTest {
     protected RepoUpdateDao dao;
+    protected UserDao userDao;
     protected abstract RepoUpdateDao getRepoUpdateDao();
+    protected abstract UserDao newUserDao();
     protected abstract void clearRepoUpdateItems() throws DataAccessException;
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
     static IntStream getNoiseStream() {
         return IntStream.of(1,2,3,300);
@@ -32,11 +36,13 @@ public abstract class RepoUpdateDaoTest {
     @BeforeEach
     public void setup() throws DataAccessException{
         dao = getRepoUpdateDao();
+        userDao = newUserDao();
         clearRepoUpdateItems();
     }
 
     @Test
     public void insertAndGetOneValidRepoUpdate () throws DataAccessException{
+        addUser(netId, repoLink);
         RepoUpdate update = generateRepoUpdate(netId, repoLink);
         dao.insertUpdate(update);
         Collection<RepoUpdate> updates = dao.getUpdatesForUser(netId);
@@ -143,10 +149,19 @@ public abstract class RepoUpdateDaoTest {
     private HashSet<RepoUpdate> generateManyRepoUpdates(int size, String netId, String repoLink){
         String user = netId == null ? DaoTestUtils.generateNetID(random.nextInt()) : netId;
         String url = repoLink == null ? "https://github.com/" + user + "/chess" : repoLink;
+        addUser(user, url);
         var updates = new HashSet<RepoUpdate>();
         for (int i = 0; i < size; i++){
             updates.add(generateRepoUpdate(user, url));
         }
         return updates;
+    }
+
+    private void addUser(String netId, String repoLink) {
+        Assertions.assertDoesNotThrow(() -> {
+            if (userDao.getUser(netId) == null) {
+                userDao.insertUser(DaoTestUtils.generateStudentUser(netId, repoLink));
+            }
+        });
     }
 }
