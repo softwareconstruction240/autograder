@@ -34,7 +34,6 @@ public class Main {
 
     public static void main(String[] args) {
         ResourceUtils.copyResourceFiles("phases", new File(""));
-        ResourceUtils.copyResourceFiles("sql", new File(""));
         setupProperties(args);
 
         try {

@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.sql.helpers.SqlScriptParser;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,7 @@ public class SqlDb {
     private static HikariDataSource dataSource;
 
     public static void setUpDb() throws DataAccessException {
+        ResourceUtils.copyResourceFiles("sql", new File(""));
         try (Connection connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
