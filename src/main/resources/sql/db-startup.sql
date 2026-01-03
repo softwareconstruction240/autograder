@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `submission` (
     `admin` BOOL NOT NULL,
     PRIMARY KEY (`id`),
     INDEX sort_index (`net_id`,`phase`,`passed`,`score`,`timestamp`),
-    CONSTRAINT `net_id`
+    CONSTRAINT `submission_net_id`
         FOREIGN KEY (`net_id`)
         REFERENCES `user` (`net_id`)
         ON DELETE CASCADE
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `queue` (
     `time_added` DATETIME NOT NULL,
     `started` BOOL,
     PRIMARY KEY (`net_id`),
-    CONSTRAINT `net_id`
+    CONSTRAINT `queue_net_id`
         FOREIGN KEY (`net_id`)
         REFERENCES `user` (`net_id`)
         ON DELETE CASCADE
@@ -70,9 +70,9 @@ CREATE TABLE IF NOT EXISTS `repo_update` (
     `admin_update` BOOLEAN NOT NULL,
     `admin_net_id` VARCHAR(255),
     PRIMARY KEY (`timestamp`),
-    CONSTRAINT `net_id`
-    FOREIGN KEY (`net_id`)
-    REFERENCES `user` (`net_id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+    CONSTRAINT `repo_net_id`
+        FOREIGN KEY (`net_id`)
+        REFERENCES `user` (`net_id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
