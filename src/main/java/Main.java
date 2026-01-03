@@ -28,12 +28,13 @@ import java.util.Properties;
  * </ul>
  */
 public class Main {
-    private static Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static EndpointProvider endpointProvider = new EndpointProviderImpl();
+    private static final EndpointProvider endpointProvider = new EndpointProviderImpl();
 
     public static void main(String[] args) {
         ResourceUtils.copyResourceFiles("phases", new File(""));
+        ResourceUtils.copyResourceFiles("sql", new File(""));
         setupProperties(args);
 
         try {
