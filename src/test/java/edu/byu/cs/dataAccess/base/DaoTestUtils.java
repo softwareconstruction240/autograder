@@ -2,8 +2,10 @@ package edu.byu.cs.dataAccess.base;
 
 import java.util.Random;
 
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.User;
+import org.junit.jupiter.api.Assertions;
 
 public class DaoTestUtils {
     static Random random = new Random();
@@ -51,5 +53,17 @@ public class DaoTestUtils {
                 repoUrl,
                 User.Role.STUDENT
         );
+    }
+
+    public static void addUser(UserDao userDao, int id) {
+        addUser(userDao, generateNetID(id), generateRepo(id));
+    }
+
+    public static void addUser(UserDao userDao, String netId, String repoLink) {
+        Assertions.assertDoesNotThrow(() -> {
+            if (userDao.getUser(netId) == null) {
+                userDao.insertUser(DaoTestUtils.generateStudentUser(netId, repoLink));
+            }
+        }, "Could not get or insert initial user");
     }
 }

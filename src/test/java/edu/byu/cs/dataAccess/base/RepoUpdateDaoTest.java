@@ -4,7 +4,6 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.RepoUpdate;
-import edu.byu.cs.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,7 @@ public abstract class RepoUpdateDaoTest {
 
     @Test
     public void insertAndGetOneValidRepoUpdate () throws DataAccessException{
-        addUser(netId, repoLink);
+        DaoTestUtils.addUser(userDao, netId, repoLink);
         RepoUpdate update = generateRepoUpdate(netId, repoLink);
         dao.insertUpdate(update);
         Collection<RepoUpdate> updates = dao.getUpdatesForUser(netId);
@@ -149,19 +148,11 @@ public abstract class RepoUpdateDaoTest {
     private HashSet<RepoUpdate> generateManyRepoUpdates(int size, String netId, String repoLink){
         String user = netId == null ? DaoTestUtils.generateNetID(random.nextInt()) : netId;
         String url = repoLink == null ? "https://github.com/" + user + "/chess" : repoLink;
-        addUser(user, url);
+        DaoTestUtils.addUser(userDao, user, url);
         var updates = new HashSet<RepoUpdate>();
         for (int i = 0; i < size; i++){
             updates.add(generateRepoUpdate(user, url));
         }
         return updates;
-    }
-
-    private void addUser(String netId, String repoLink) {
-        Assertions.assertDoesNotThrow(() -> {
-            if (userDao.getUser(netId) == null) {
-                userDao.insertUser(DaoTestUtils.generateStudentUser(netId, repoLink));
-            }
-        });
     }
 }
