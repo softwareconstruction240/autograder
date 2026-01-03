@@ -36,12 +36,19 @@ public class DaoTestUtils {
     }
 
     public static User generateStudentUser(int id) {
-        return new User(
+        return generateStudentUser(
                 generateNetID(id),
+                generateRepo(id)
+        );
+    }
+
+    public static User generateStudentUser(String netId, String repoUrl) {
+        return new User(
+                netId,
                 generateID(),
                 "Cosmo",
                 "Cougar",
-                generateRepo(id),
+                repoUrl,
                 User.Role.STUDENT
         );
     }
