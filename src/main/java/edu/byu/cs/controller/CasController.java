@@ -19,22 +19,17 @@ import io.javalin.http.HttpStatus;
  * is BYU's centralized authentication provider for all BYU users
  */
 public class CasController {
-    //FIXME: when in production mode should be api-production
-    public static final String BYU_OAUTH_URL = "https://api-sandbox.byu.edu";
 
     public static final Handler callbackGet = ctx -> {
-        System.out.println("Callback called");
         String code = ctx.queryParam("code");
-        System.out.println("code extracted");
         //TODO: throw a fit if there's no code
         CasService.TokenResponse response = CasService.exchangeCodeForTokens(code);
-        System.out.println("Token recieved");
-        System.out.println(CasService.callPersonApi(response.accessToken()));
-        String ticket = ctx.queryParam("ticket");
+
+        //String ticket = ctx.queryParam("ticket");
 
         User user;
         try {
-            user = CasService.callback(ticket);
+            user = CasService.callback(response.idToken());
         } catch (CanvasException e) {
             String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
             ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
@@ -55,9 +50,7 @@ public class CasController {
             redirect(ctx);
             return;
         }
-        //ctx.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
-        ctx.redirect(BYU_OAUTH_URL + "/authorize" + "?response_type=code" + "&client_id="+
-                ApplicationProperties.clientId() + "&redirect_uri=" + ApplicationProperties.casCallbackUrl());
+        ctx.redirect(CasService.getAuthorizationUrl());
     };
 
 

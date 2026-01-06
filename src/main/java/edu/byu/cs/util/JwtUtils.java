@@ -1,12 +1,15 @@
 package edu.byu.cs.util;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.JwkSet;
+import io.jsonwebtoken.security.Jwks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -68,5 +71,29 @@ public class JwtUtils {
         }
         keyGenerator.init(512, new SecureRandom());
         return keyGenerator.generateKey();
+    }
+
+    public static String validateToken(String token, JwkSet keys){
+        String netid = null;
+        if (keys.size() == 1){
+            var key = keys.getKeys().stream().findFirst().get().toKey();
+            try {
+                netid = Jwts.parser()
+                        .verifyWith((PublicKey) key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .getSubject();
+            } catch (Exception e) {
+                LOGGER.error("Unable to verify with JWK:",e);
+            }
+        }
+        return netid;
+    }
+
+    public static JwkSet readJWKs(String json){
+        return Jwks.setParser()
+                .build()
+                .parse(json);
     }
 }
