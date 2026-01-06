@@ -93,17 +93,17 @@ public class EndpointProviderImpl implements EndpointProvider {
 
     @Override
     public Handler callbackGet() {
-        return CasController.callbackGet;
+        return RedirectController.callbackGet;
     }
 
     @Override
     public Handler loginGet() {
-        return CasController.loginGet;
+        return RedirectController.loginGet;
     }
 
     @Override
     public Handler logoutPost() {
-        return CasController.logoutPost;
+        return RedirectController.logoutPost;
     }
 
     // ConfigController

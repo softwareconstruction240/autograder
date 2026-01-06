@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import javax.management.RuntimeErrorException;
 import javax.net.ssl.HttpsURLConnection;
 
+import edu.byu.cs.controller.RedirectController;
 import edu.byu.cs.util.JwtUtils;
 import io.jsonwebtoken.security.JwkSet;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 
 /**
- * Contains service logic for the {@link edu.byu.cs.controller.CasController}. <br> View the
+ * Contains service logic for the {@link RedirectController}. <br> View the
  * <a href="https://calnet.berkeley.edu/calnet-technologists/cas/how-cas-works">Berkeley CAS docs</a>
  * to understand how CAS, or <em>Central Authentication Service</em>, works, if needed.
  * <br><br>
