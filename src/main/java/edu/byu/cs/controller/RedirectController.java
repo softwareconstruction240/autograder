@@ -7,7 +7,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
-import edu.byu.cs.service.CasService;
+import edu.byu.cs.service.AuthenticationService;
 import edu.byu.cs.service.ConfigService;
 import static edu.byu.cs.util.JwtUtils.generateToken;
 import io.javalin.http.Context;
@@ -23,13 +23,13 @@ public class RedirectController {
     public static final Handler callbackGet = ctx -> {
         String code = ctx.queryParam("code");
         //TODO: throw a fit if there's no code
-        CasService.TokenResponse response = CasService.exchangeCodeForTokens(code);
+        AuthenticationService.TokenResponse response = AuthenticationService.exchangeCodeForTokens(code);
 
         //String ticket = ctx.queryParam("ticket");
 
         User user;
         try {
-            user = CasService.callback(response.idToken());
+            user = AuthenticationService.callback(response.idToken());
         } catch (CanvasException e) {
             String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
             ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
@@ -50,7 +50,7 @@ public class RedirectController {
             redirect(ctx);
             return;
         }
-        ctx.redirect(CasService.getAuthorizationUrl());
+        ctx.redirect(AuthenticationService.getAuthorizationUrl());
     };
 
     /**
