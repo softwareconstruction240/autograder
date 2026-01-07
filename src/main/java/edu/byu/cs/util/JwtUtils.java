@@ -1,6 +1,7 @@
 package edu.byu.cs.util;
 
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Jwk;
 import io.jsonwebtoken.security.JwkSet;
 import io.jsonwebtoken.security.Jwks;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -23,6 +25,7 @@ import java.util.Date;
  */
 public class JwtUtils {
     private static final SecretKey key = generateSecretKey();
+    private static JwkSet byuPublicKeys;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
@@ -73,10 +76,11 @@ public class JwtUtils {
         return keyGenerator.generateKey();
     }
 
-    public static String validateToken(String token, JwkSet keys){
+    public static String validateTokenAgainstKeys(String token){
         String netid = null;
-        if (keys.size() == 1){
-            var key = keys.getKeys().stream().findFirst().get().toKey();
+        //one key short circuit
+        if (byuPublicKeys.size() == 1){
+            var key = byuPublicKeys.getKeys().stream().findFirst().get().toKey();
             try {
                 netid = Jwts.parser()
                         .verifyWith((PublicKey) key)
@@ -88,12 +92,35 @@ public class JwtUtils {
                 LOGGER.error("Unable to verify with JWK:",e);
             }
         }
+        else{
+            netid = Jwts.parser()
+                    .keyLocator(locator)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+        }
         return netid;
     }
 
     public static JwkSet readJWKs(String json){
-        return Jwks.setParser()
+        var keys = Jwks.setParser()
                 .build()
                 .parse(json);
+        byuPublicKeys = keys;
+        return keys;
     }
+
+    static Locator<Key> locator = new Locator<>() {
+        @Override
+        public Key locate(Header header) {
+            for (Jwk<?> key : byuPublicKeys) {
+                if (((ProtectedHeader) header).getKeyId().equals(key.getId())) {
+                    return key.toKey();
+                }
+            }
+            return null;
+        }
+    };
+
 }

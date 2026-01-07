@@ -14,7 +14,6 @@ import java.util.Optional;
 
 import edu.byu.cs.controller.RedirectController;
 import edu.byu.cs.util.JwtUtils;
-import io.jsonwebtoken.security.JwkSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public class AuthenticationService {
     private static Instant keyExpiration = Instant.now();
 
     public static OpenIDConfig config;
-    private static JwkSet byuPublicKeys;
+
 
     /**
      * Validates an identity token and retrieves the associated user.
@@ -117,7 +116,7 @@ public class AuthenticationService {
             cacheJWK();
 
         }
-        return JwtUtils.validateToken(token, byuPublicKeys);
+        return JwtUtils.validateTokenAgainstKeys(token);
     }
 
     public static TokenResponse exchangeCodeForTokens(String code) throws IOException, InterruptedException, InternalServerException {
@@ -196,7 +195,7 @@ public class AuthenticationService {
 
         keyExpiration = getCacheTime(response);
 
-        byuPublicKeys = JwtUtils.readJWKs(response.body());
+        JwtUtils.readJWKs(response.body());
 
     }
 
