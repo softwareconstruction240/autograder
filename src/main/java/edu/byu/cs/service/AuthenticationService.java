@@ -37,7 +37,7 @@ import edu.byu.cs.properties.ApplicationProperties;
  * to understand OAuth works, if needed. Other sites on this page are a great resource as well,
  * particularly verifying JWT tokens. You should also check out the {@link JwtUtils} class as well.
  * <br><br>
- * The {@code CasService} ensures the user Authenticates before they access
+ * The {@code AuthenticationService} ensures the user authenticates before they access
  * and use the AutoGrader.
  */
 public class AuthenticationService {
