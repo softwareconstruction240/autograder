@@ -13,6 +13,7 @@ import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.Rubric.RubricItem;
@@ -411,10 +412,16 @@ public class Scorer {
      * @return a ScorePair with both the score and rawScore as a percentage value from [0-1].
      */
     private ScorePair getScores(Rubric rubric) throws GradingException, DataAccessException {
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
+        RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
+        int totalPossiblePoints = rubricConfigDao.getPhaseTotalPossiblePoints(gradingContext.phase());
 
         if (totalPossiblePoints == 0) {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
+        }
+
+        if (rubricConfigDao.getRubricConfig(gradingContext.phase()) instanceof RubricConfig rubricConfig &&
+                rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
+            totalPossiblePoints -= item.points();
         }
 
         float score = 0;

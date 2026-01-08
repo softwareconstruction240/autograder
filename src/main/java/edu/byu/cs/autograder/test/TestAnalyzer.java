@@ -7,31 +7,24 @@ import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * Parses the output of the JUnit Console Runner
  * <b>Important: this class is ONLY compatible with the xml output on the JUnit standalone client</b><br/>
  */
 public class TestAnalyzer {
-
-    public record TestAnalysis(TestNode root, TestNode extraCredit) {}
-
     /**
      * Parses the output of the JUnit Console Runner
      *
      * @param junitXmlOutput   file containing test output
-     * @param extraCreditTests the names of the test files (excluding .java) worth bonus points. This cannot be null, but can be empty
      * @return the root of the test tree
      */
-    public TestAnalysis parse(File junitXmlOutput, Set<String> extraCreditTests) throws GradingException {
+    public TestNode parse(File junitXmlOutput) throws GradingException {
         TestNode root = new TestNode();
         root.setTestName("JUnit Jupiter");
-        TestNode extraCredit = new TestNode();
-        extraCredit.setTestName("JUnit Jupiter Extra Credit");
 
         if(!junitXmlOutput.exists()) {
-            return compileAnalysis(root, extraCredit);
+            return compileAnalysis(root);
         }
 
         String xml = FileUtils.readStringFromFile(junitXmlOutput);
@@ -44,16 +37,6 @@ public class TestAnalyzer {
 
         int uniqueTestIndex = 0;
         for (TestSuite.TestCase testCase : suite.getTestcase()) {
-            TestNode base = root;
-            String ecCategory = null;
-            for (String category : extraCreditTests) {
-                if (testCase.getClassname().endsWith(category)) {
-                    ecCategory = category;
-                    base = extraCredit;
-                    break;
-                }
-            }
-
             String name = testCase.getName();
             String[] systemOut = testCase.getSystemOut().getData().split("\n");
             for (String str : systemOut) {
@@ -66,7 +49,7 @@ public class TestAnalyzer {
 
             TestNode node = new TestNode();
             node.setTestName(name);
-            TestNode parent = nodeForClass(base, testCase.getClassname());
+            TestNode parent = nodeForClass(root, testCase.getClassname());
             String uniqueTestNameKey = String.format("%s - %d", name, uniqueTestIndex++);
             parent.getChildren().put(uniqueTestNameKey, node);
 
@@ -75,13 +58,9 @@ public class TestAnalyzer {
                 node.setErrorMessage(testCase.getFailure().getData());
             }
 
-            if (ecCategory != null) {
-                node.setEcCategory(ecCategory);
-                parent.setEcCategory(ecCategory);
-            }
         }
 
-        return compileAnalysis(root, extraCredit);
+        return compileAnalysis(root);
     }
 
     private TestNode nodeForClass(TestNode base, String name) {
@@ -102,11 +81,9 @@ public class TestAnalyzer {
         else return nodeForClass(node, extra);
     }
 
-    private TestAnalysis compileAnalysis(TestNode root, TestNode extraCredit) {
+    private TestNode compileAnalysis(TestNode root) {
         TestNode.collapsePackages(root);
         TestNode.countTests(root);
-        TestNode.collapsePackages(extraCredit);
-        TestNode.countTests(extraCredit);
-        return new TestAnalysis(root, extraCredit);
+        return root;
     }
 }
