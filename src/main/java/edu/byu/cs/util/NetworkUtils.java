@@ -35,7 +35,11 @@ public class NetworkUtils {
                     .GET() // HTTP GET method
                     .build();
 
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            var response =  httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (!isSuccessful(response.statusCode())){
+                LOGGER.warn("Error making GET request to '{}': {} status returned", url, response.statusCode());
+            }
+            return response;
         }
     }
 
@@ -48,10 +52,7 @@ public class NetworkUtils {
     public static String readGetRequestBody(String url) {
         try {
             HttpResponse<String> response = makeJsonGetRequest(url);
-            if (!isSuccessful(response.statusCode())){
-                LOGGER.warn("Error making GET request to '{}': {} status returned", url, response.statusCode());
-                return null;
-            }
+
             return response.body();
         } catch (IOException | InterruptedException e) {
             System.err.print("Error making GET request to '" + url + "': " + e.getMessage());
