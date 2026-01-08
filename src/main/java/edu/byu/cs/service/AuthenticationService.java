@@ -139,8 +139,6 @@ public class AuthenticationService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        LOGGER.info(response.body());
-
         return new Gson().fromJson(response.body(), TokenResponse.class);
 
     }
@@ -255,12 +253,37 @@ public class AuthenticationService {
         if (config.encryptions().size()!=1){
             LOGGER.warn("Config has multiple encryption types: {}", config);
         }
-        return config.authorizationEndpoint.contains(BYU_API_URL) && config.tokenEndpoint().contains(BYU_API_URL) &&
-                config.keyUri().contains(BYU_API_URL);
+        return isValidUrl(config.authorizationEndpoint) && isValidUrl(config.tokenEndpoint()) && 
+               isValidUrl(config.keyUri());
     }
 
     private static boolean isExpired(Instant time){
         return time.isBefore(Instant.now());
+    }
+
+    /**
+     * Validates that a URL uses HTTPS and has the same host as the BYU API URL.
+     * @param urlString the URL to validate
+     * @return true if the URL is valid, false otherwise
+     */
+    private static boolean isValidUrl(String urlString) {
+        try {
+            URI uri = new URI(urlString);
+            URI baseUri = new URI(BYU_API_URL);
+            
+            // Verify HTTPS is used
+            if (!"https".equals(uri.getScheme())) {
+                return false;
+            }
+            
+            // Verify the host matches the base API URL's host
+            String host = uri.getHost();
+            String expectedHost = baseUri.getHost();
+            return host != null && host.equals(expectedHost);
+            
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -276,8 +299,9 @@ public class AuthenticationService {
             LOGGER.error("Unable to cache OpenID Config", e);
             throw new InternalServerException("Unable to verify identity", e);
         }
-        return AuthenticationService.config.authorizationEndpoint() + "?response_type=code" + "&client_id="+
-                ApplicationProperties.clientId() + "&redirect_uri=" + ApplicationProperties.casCallbackUrl()
-                + "&scope=openid";
+        return URLEncoder.encode(AuthenticationService.config.authorizationEndpoint(), StandardCharsets.UTF_8) 
+        + "?response_type=code" + "&client_id="+ URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8) 
+        + "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8)
+        + "&scope=openid";
     }
 }
