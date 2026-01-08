@@ -278,9 +278,9 @@ public class AuthenticationService {
             LOGGER.error("Unable to cache OpenID Config", e);
             throw new InternalServerException("Unable to verify identity", e);
         }
-        return URLEncoder.encode(AuthenticationService.config.authorizationEndpoint(), StandardCharsets.UTF_8) 
-        + "?response_type=code" + "&client_id="+ URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8) 
-        + "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8)
-        + "&scope=openid";
+        return AuthenticationService.config.authorizationEndpoint()
+            + "?response_type=code&client_id=" + URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8)
+            + "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8)
+            + "&scope=" + URLEncoder.encode("openid", StandardCharsets.UTF_8);
     }
 }
