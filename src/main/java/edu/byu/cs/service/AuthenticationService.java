@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import edu.byu.cs.controller.RedirectController;
 import edu.byu.cs.util.JwtUtils;
+import edu.byu.cs.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,9 +164,10 @@ public class AuthenticationService {
                 .header("Accept", "application/json")
                 .GET()
                 .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(BYU_API_URL +
+                    "/.well-known/openid-configuration");
 
-            configExpiration = getCacheTime(response);
+            configExpiration = NetworkUtils.getCacheTime(response);
 
             OpenIDConfig config = new Gson().fromJson(response.body(), OpenIDConfig.class);
             if (isValidConfig(config)){
@@ -183,36 +185,13 @@ public class AuthenticationService {
      * can rotate the keys whenever, so we must be able to account for multiple.
      */
     private static void cacheJWK () throws IOException, InterruptedException, InternalServerException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(config.keyUri))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(config.keyUri);
 
-        keyExpiration = getCacheTime(response);
+        keyExpiration = NetworkUtils.getCacheTime(response);
 
         JwtUtils.readJWKs(response.body());
 
-    }
-
-    /**
-     * Grabs the Cache-Control header so that the config and keys are refreshed according to the BYU settings
-     *
-     * @param response http response with Cache-Control header
-     * @return Expire time of given response
-     * @throws InternalServerException if unable to find the Cache-Control header
-     */
-    private static Instant getCacheTime(HttpResponse<String> response) throws InternalServerException {
-        Optional<String> cache = response.headers().firstValue("Cache-Control");
-        try{
-            String seconds = cache.get().replace("max-age=", "");
-            return Instant.now().plusSeconds(Long.parseLong(seconds));
-        }
-        catch (NoSuchElementException e) {
-            throw new InternalServerException("Unable to determine cache time", e);
-        }
     }
 
     /**
@@ -238,7 +217,7 @@ public class AuthenticationService {
      * <br><br>
      * Also logs any changes to the OpenID config that may need to be looked at.
      * @param config
-     * @return
+     * @return true if valid, false if there's a glaring problem
      */
     private static boolean isValidConfig(OpenIDConfig config){
         if (!config.issuer().equals(BYU_API_URL)){
