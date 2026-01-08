@@ -109,6 +109,11 @@ Do the following actions:
 # Use one of the following, but not both
 --canvas-token <canvas api key>
 --use-canvas false
+
+#Follow the steps at https://developer.byu.edu/data/api-usage/create-an-oauth-client
+#You are going to want to choose the Auth Code + PKCE option
+#For the redirect url, you should use the cas-callback-url
+--client-id <client id>
 ```
 
 ### 6. Run the Autograder Locally
