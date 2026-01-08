@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -11,6 +12,7 @@ import edu.byu.cs.service.AuthenticationService;
 import edu.byu.cs.service.ConfigService;
 import static edu.byu.cs.util.JwtUtils.generateToken;
 import io.javalin.http.Context;
+import io.javalin.http.Cookie;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
 
@@ -22,7 +24,9 @@ public class RedirectController {
 
     public static final Handler callbackGet = ctx -> {
         String code = ctx.queryParam("code");
-        //TODO: throw a fit if there's no code
+        if (code == null){
+            throw new UnauthorizedException();
+        }
         AuthenticationService.TokenResponse response = AuthenticationService.exchangeCodeForTokens(code);
 
         //String ticket = ctx.queryParam("ticket");
@@ -36,8 +40,15 @@ public class RedirectController {
             return;
         }
 
-        // FIXME: secure cookie with httpOnly
-        ctx.cookie("token", generateToken(user.netId()), 14400);
+        ctx.cookie (new Cookie(
+                "token",
+                generateToken(user.netId()),
+                "/",
+                14400,
+                AuthenticationService.isSecure(),
+                0,
+                true
+        ));
 
         redirect(ctx);
     };
@@ -73,7 +84,7 @@ public class RedirectController {
             return;
         }
 
-        // TODO: call cas logout endpoint with ticket
+        // TODO: call logout endpoint with token
         ctx.removeCookie("token", "/");
         ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
     };

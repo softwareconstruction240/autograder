@@ -9,8 +9,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import edu.byu.cs.controller.RedirectController;
 import edu.byu.cs.util.JwtUtils;
@@ -282,5 +280,12 @@ public class AuthenticationService {
             + "?response_type=code&client_id=" + URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8)
             + "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8)
             + "&scope=" + URLEncoder.encode("openid", StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Evaluates the frontend url and if it is secure returns true.
+     */
+    public static boolean isSecure() {
+        return ApplicationProperties.frontendUrl().startsWith("https");
     }
 }
