@@ -157,11 +157,6 @@ public class AuthenticationService {
      * @throws InternalServerException when there is something suspicious about the OpenID config
      */
     private static void cacheBYUOpenIDConfig() throws InternalServerException, IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BYU_API_URL + "/.well-known/openid-configuration"))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
             HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(BYU_API_URL +
                     "/.well-known/openid-configuration");
 
@@ -208,13 +203,13 @@ public class AuthenticationService {
             @SerializedName("jwks_uri") String keyUri,
             @SerializedName("scopes_supported") Collection<String> scopes,
             @SerializedName("id_token_signing_alg_values_supported")Collection<String> encryptions
-    ){};
+    ){}
 
     /**
      * Ensures the config came from the issuer, BYU API, and that any redirect links also are from the BYU API.
      * <br><br>
      * Also logs any changes to the OpenID config that may need to be looked at.
-     * @param config
+     * @param config an OpenID config
      * @return true if valid, false if there's a glaring problem
      */
     private static boolean isValidConfig(OpenIDConfig config){
