@@ -3,8 +3,6 @@ package edu.byu.cs.service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -42,7 +40,6 @@ public class AuthenticationService {
     public static final String BYU_API_URL = "https://api-sandbox.byu.edu";
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static Instant configExpiration = Instant.now();
     private static Instant keyExpiration = Instant.now();
 
@@ -128,15 +125,8 @@ public class AuthenticationService {
                 "&code=" + URLEncoder.encode(code, StandardCharsets.UTF_8) +
                 "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(config.tokenEndpoint))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(formData))
-                .build();
 
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = NetworkUtils.makeParameterizedPostRequest(config.tokenEndpoint, formData);
 
         return new Gson().fromJson(response.body(), TokenResponse.class);
 

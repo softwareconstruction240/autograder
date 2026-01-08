@@ -36,8 +36,25 @@ public class NetworkUtils {
                     .build();
 
             var response =  httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (!isSuccessful(response.statusCode())){
+            if (isFailure(response.statusCode())){
                 LOGGER.warn("Error making GET request to '{}': {} status returned", url, response.statusCode());
+            }
+            return response;
+        }
+    }
+
+    public static HttpResponse<String> makeParameterizedPostRequest(String url, String formData) throws IOException, InterruptedException {
+        try(HttpClient httpClient = HttpClient.newHttpClient()){
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(formData))
+                    .build();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (isFailure(response.statusCode())){
+                LOGGER.warn("Error making POST request to '{}': {} status returned with form data: {}",
+                        url, response.statusCode(), formData);
             }
             return response;
         }
@@ -61,8 +78,8 @@ public class NetworkUtils {
         }
     }
 
-    private static boolean isSuccessful(int status){
-        return status /100 == 2;
+    private static boolean isFailure(int status){
+        return status / 100 != 2;
     }
 
     /**
