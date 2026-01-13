@@ -16,6 +16,13 @@ The primary things that needs to be updated on an ongoing basis are:
 > Updated as of **WINTER 2026**
 
 ```mysql
+INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id)
+VALUES ('Phase1', 'EXTRA_CREDIT', 'Extra Credit', 'Castling and En Passant', 10, '90342_7835')
+```
+
+If updating prior to **SUMMER 2024**, run these statements before running the ones above.
+
+```mysql
 ALTER TABLE rubric_config ADD rubric_id VARCHAR(15);
 -- could be ten as no rubric ids so far are longer than 10, but just in case
 -- we need extra space. It's up to you if you want to change it. I don't mind.
@@ -27,8 +34,7 @@ VALUES ('Phase0', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '9
 
 UPDATE rubric_config SET rubric_id = '_1958' WHERE phase = 'Phase1';
 INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id)
-VALUES ('Phase1', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90342_7800'),
-       ('Phase1', 'EXTRA_CREDIT', 'Extra Credit', 'Castling and En Passant', 10, '90342_7835');
+VALUES ('Phase1', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90342_7800');
 
 UPDATE rubric_config SET rubric_id = '_5202' WHERE phase = 'Phase3' and type = 'PASSOFF_TESTS';
 UPDATE rubric_config SET rubric_id = '90344_776' WHERE phase = 'Phase3' and type = 'UNIT_TESTS';
