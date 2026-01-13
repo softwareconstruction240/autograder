@@ -34,6 +34,24 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
     }
 
     @Override
+    protected Set<File> testsToIgnore() throws GradingException {
+        return allPreviousPhases((p) -> {
+            Set<String> ignoredPackages;
+            try {
+                ignoredPackages = PhaseUtils.extraCreditPackagesToTest(p);
+            } catch (GradingException e) {
+                return Set.of();
+            }
+            Set<File> ignoredTests = new HashSet<>();
+            File parent = new File("./phases/phase" + PhaseUtils.getPhaseAsString(p));
+            for (String extraCreditPackage : ignoredPackages) {
+                ignoredTests.add(new File(parent, extraCreditPackage));
+            }
+            return ignoredTests;
+        });
+    }
+
+    @Override
     protected Set<String> packagesToTest() throws GradingException {
         return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
     }
