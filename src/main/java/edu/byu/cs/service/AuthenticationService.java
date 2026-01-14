@@ -143,8 +143,6 @@ public class AuthenticationService {
 
     ) {}
 
-    //FIXME: make sure cache control is still valid
-
     /**
      * Caches the info from the api needed to complete the OAuth transaction.
      * @throws InternalServerException when there is something suspicious about the OpenID config

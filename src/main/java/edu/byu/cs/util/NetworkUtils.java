@@ -93,7 +93,10 @@ public class NetworkUtils {
         Optional<String> cache = response.headers().firstValue("Cache-Control");
         try{
             String seconds = cache.get().replace("max-age=", "");
-            return Instant.now().plusSeconds(Long.parseLong(seconds));
+            if (Long.parseLong(seconds) > 0){
+                return Instant.now().plusSeconds(Long.parseLong(seconds));
+            }
+            else throw new InternalServerException("Invalid cache time", new IllegalArgumentException());
         }
         catch (NoSuchElementException e) {
             throw new InternalServerException("Unable to determine cache time", e);
