@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 
@@ -143,6 +145,29 @@ class AuthenticationServiceTest {
             appPropsMock.when(ApplicationProperties::frontendUrl).thenReturn("http://example.com");
 
             assertFalse(AuthenticationService.isSecure());
+        }
+    }
+
+    // ==================== Authorization Url Test ============
+
+    @Test
+    @DisplayName("getAuthorizationUrl returns a filled out authorization request")
+    void getAuthUrl() throws Exception{
+        try (MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class);
+             MockedStatic<ApplicationProperties> appPropsMock = mockStatic(ApplicationProperties.class)) {
+
+
+            appPropsMock.when(ApplicationProperties::casCallbackUrl).thenReturn("https://cs240.click/auth/callback");
+            appPropsMock.when(ApplicationProperties::clientId).thenReturn("cs240");
+            setupMockedValidOpenIDConfig(networkUtilsMock);
+
+            Assertions.assertEquals("https://api-sandbox.byu.edu/auth?response_type=code" +
+                            "&client_id=cs240" +
+                            "&redirect_uri=" +
+                            URLEncoder.encode("https://cs240.click/auth/callback", StandardCharsets.UTF_8) +
+                            "&scope=openid",
+                    AuthenticationService.getAuthorizationUrl());
+
         }
     }
 
