@@ -40,8 +40,9 @@ public class AuthenticationService {
     public static final String BYU_API_URL = "https://api-sandbox.byu.edu";
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
-    private static Instant configExpiration = Instant.now();
-    private static Instant keyExpiration = Instant.now();
+    //initializing these 30 seconds behind the current time ensures the config is cached on start
+    private static Instant configExpiration = Instant.now().minusSeconds(30);
+    private static Instant keyExpiration = Instant.now().minusSeconds(30);
 
     public static OpenIDConfig config;
 
@@ -141,6 +142,8 @@ public class AuthenticationService {
             @SerializedName("token_type") String tokenType
 
     ) {}
+
+    //FIXME: make sure cache control is still valid
 
     /**
      * Caches the info from the api needed to complete the OAuth transaction.
