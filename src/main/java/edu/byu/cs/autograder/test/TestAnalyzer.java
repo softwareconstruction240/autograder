@@ -7,6 +7,7 @@ import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.FileUtils;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Parses the output of the JUnit Console Runner
@@ -19,7 +20,7 @@ public class TestAnalyzer {
      * @param junitXmlOutput   file containing test output
      * @return the root of the test tree
      */
-    public TestNode parse(File junitXmlOutput) throws GradingException {
+    public TestNode parse(File junitXmlOutput, Set<String> ignoredTests) throws GradingException {
         TestNode root = new TestNode();
         root.setTestName("JUnit Jupiter");
 
@@ -37,6 +38,11 @@ public class TestAnalyzer {
 
         int uniqueTestIndex = 0;
         for (TestSuite.TestCase testCase : suite.getTestcase()) {
+            if (ignoredTests.stream().anyMatch(
+                    category -> testCase.getClassname().endsWith(category))) {
+                continue;
+            }
+
             String name = testCase.getName();
             String[] systemOut = testCase.getSystemOut().getData().split("\n");
             for (String str : systemOut) {

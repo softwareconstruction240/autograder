@@ -157,10 +157,11 @@ public class TestHelper {
      * @param uberJar          The jar file containing the compiled classes to be tested.
      * @param compiledTests    The directory containing the compiled test classes.
      * @param packagesToTest   A set of packages to test. Example: {"package1", "package2"}
+     * @param ignoredTests     A set of tests to ignore. Example: {"IgnoredTest1", "IgnoredTest2"}
      * @return A TestNode object containing the results of the tests.
      */
     TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                             Set<String> coverageModules) throws GradingException {
+                             Set<String> ignoredTests, Set<String> coverageModules) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -198,7 +199,7 @@ public class TestHelper {
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
-            TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput);
+            TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput, ignoredTests);
 
             return new TestOutput(testAnalysis, coverage, trimErrorOutput(error));
         } catch (ProcessUtils.ProcessException e) {

@@ -71,7 +71,7 @@ public abstract class TestGrader {
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), modulesToCheckCoverage());
+                    packagesToTest(), ignoredTests(), modulesToCheckCoverage());
         }
 
         if (results.root() == null) {
@@ -112,5 +112,9 @@ public abstract class TestGrader {
     protected abstract Rubric.RubricType rubricType();
 
     protected abstract Set<String> modulesToCheckCoverage() throws GradingException;
+
+    protected Set<String> ignoredTests() throws GradingException {
+        return Set.of();
+    }
 
 }
