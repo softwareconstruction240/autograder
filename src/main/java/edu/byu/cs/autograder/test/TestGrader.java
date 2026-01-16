@@ -94,8 +94,7 @@ public abstract class TestGrader {
 
     private void compileTests() throws GradingException {
         gradingContext.observer().update("Compiling " + name() + " tests...");
-        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(),
-                testsToIgnore(), gradingContext.stagePath());
+        testHelper.compileTests(gradingContext.stageRepo(), module, testsToCompile(), gradingContext.stagePath());
     }
 
     protected abstract String name();
@@ -113,9 +112,5 @@ public abstract class TestGrader {
     protected abstract Rubric.RubricType rubricType();
 
     protected abstract Set<String> modulesToCheckCoverage() throws GradingException;
-
-    protected Set<File> testsToIgnore() throws GradingException {
-        return Set.of();
-    }
 
 }

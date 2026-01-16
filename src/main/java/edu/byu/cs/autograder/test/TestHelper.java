@@ -87,8 +87,8 @@ public class TestHelper {
      * @param testsLocations    The location of the tests
      * @param stagePath         The path to the stage directory
      */
-    void compileTests(File stageRepoPath, String module, Set<File> testsLocations,
-                      Set<File> ignoredTests, String stagePath) throws GradingException {
+    void compileTests(File stageRepoPath, String module, Set<File> testsLocations, String stagePath)
+            throws GradingException {
         // remove any existing tests
         FileUtils.removeDirectory(new File(stagePath + "/tests"));
 
@@ -127,10 +127,6 @@ public class TestHelper {
         } catch (IOException | ProcessUtils.ProcessException e) {
             LOGGER.error("Error compiling tests", e);
             throw new GradingException("Error compiling tests", e);
-        }
-
-        for (File ignoredTest : ignoredTests) {
-            FileUtils.removeDirectory(ignoredTest);
         }
     }
 
