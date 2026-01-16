@@ -50,10 +50,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
         return numTestsFailed;
     }
 
-    public Integer getNumTestsTotal() {
-        return numTestsFailed + numTestsPassed;
-    }
-
     public void setTestName(String testName) {
         this.testName = testName;
     }

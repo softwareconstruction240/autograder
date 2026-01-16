@@ -42,7 +42,7 @@ public class PassoffTestGrader extends TestGrader {
     @Override
     protected float getScore(TestOutput testOutput) {
         TestNode testResults = testOutput.root();
-        float totalStandardTests = testResults.getNumTestsTotal();
+        float totalStandardTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
 
         if (totalStandardTests == 0) return 0;
 
@@ -56,7 +56,7 @@ public class PassoffTestGrader extends TestGrader {
 
         if (testResults == null) return "No tests were run";
 
-        Integer totalRequiredTests = testResults.getNumTestsTotal();
+        Integer totalRequiredTests = testResults.getNumTestsPassed() + testResults.getNumTestsFailed();
         if (testResults.getNumTestsFailed() == 0) {
             notes.append(testResults.getNumTestsPassed() + "/"+ totalRequiredTests + " required tests passed");
         }

@@ -44,7 +44,8 @@ public class ExtraCreditGrader extends TestGrader {
         float score = 0;
 
         for (TestNode child : testResults.getChildren().values()) {
-            score += (float) Math.floor((float) child.getNumTestsPassed() / child.getNumTestsTotal());
+            score += (float) Math.floor((float) child.getNumTestsPassed() /
+                    (child.getNumTestsPassed() + child.getNumTestsFailed()));
         }
 
         return score / testResults.getChildren().size();

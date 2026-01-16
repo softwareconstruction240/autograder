@@ -8,7 +8,6 @@ import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -42,7 +41,7 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected float getScore(TestOutput testOutput) throws GradingException {
         TestNode testResults = testOutput.root();
-        float totalTests = testResults.getNumTestsTotal();
+        float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
 
         if (totalTests == 0) return 0;
 
@@ -56,8 +55,8 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected String getNotes(TestOutput testOutput) throws GradingException {
         TestNode testResults = testOutput.root();
-        Integer totalTestsRun = testResults.getNumTestsTotal();
-        if (totalTestsRun < PhaseUtils.minUnitTests(gradingContext.phase()))
+        Integer totalTestsRun = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
+        if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
             return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
                     " method should have a positive and negative test";
         return switch (testResults.getNumTestsFailed()) {

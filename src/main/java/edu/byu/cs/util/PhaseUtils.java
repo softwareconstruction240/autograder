@@ -268,6 +268,17 @@ public class PhaseUtils {
     }
 
     /**
+     * Provides the credit score to assign to extra credit tests given the phase.
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return the credit score to give for extra credit tests if any, otherwise returns zero
+     */
+    public static int extraCreditScore(Phase phase) {
+        if (phase == Phase.Phase1) return 10;
+        return 0;
+    }
+
+    /**
      * Gets the packages for where extra credit tests for a given phase is
      *
      * @param phase the phase that may have extra credit tests
@@ -277,17 +288,6 @@ public class PhaseUtils {
     public static Set<String> extraCreditPackagesToTest(Phase phase) throws GradingException {
         if (phase == Phase.Phase1) return Set.of("passoff.chess.extracredit");
         throw new GradingException("No extra credit tests for this phase");
-    }
-
-    /**
-     * Provides the credit score to assign to extra credit tests given the phase.
-     *
-     * @param phase the phase that may have extra credit tests
-     * @return the credit score to give for extra credit tests if any, otherwise returns zero
-     */
-    public static int extraCreditScore(Phase phase) {
-        if (phase == Phase.Phase1) return 10;
-        return 0;
     }
 
     /**

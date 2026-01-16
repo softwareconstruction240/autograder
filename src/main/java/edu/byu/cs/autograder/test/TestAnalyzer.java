@@ -18,6 +18,7 @@ public class TestAnalyzer {
      * Parses the output of the JUnit Console Runner
      *
      * @param junitXmlOutput   file containing test output
+     * @param ignoredTests the names of the test files (excluding .java) to ignore. This cannot be null, but can be empty
      * @return the root of the test tree
      */
     public TestNode parse(File junitXmlOutput, Set<String> ignoredTests) throws GradingException {
