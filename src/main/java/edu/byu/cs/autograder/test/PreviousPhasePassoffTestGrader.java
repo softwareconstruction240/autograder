@@ -38,6 +38,11 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
         return allPreviousPhases(PhaseUtils::passoffPackagesToTest);
     }
 
+    @Override
+    protected Set<String> ignoredTests() throws GradingException {
+        return allPreviousPhases(PhaseUtils::extraCreditTests);
+    }
+
     /**
      * Takes a {@link PhaseFunction}, runs it's <code>apply</code> method for every phase
      * previous to the phase stored in the grading context and returns a set of {@code T}

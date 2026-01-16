@@ -257,6 +257,17 @@ public class PhaseUtils {
     }
 
     /**
+     * Gets any extra credit tests for a given phase
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return all extra credit tests associated with the phase
+     */
+    public static Set<String> extraCreditTests(Phase phase) {
+        if(phase == Phase.Phase1) return Set.of("CastlingTests", "EnPassantTests");
+        return new HashSet<>();
+    }
+
+    /**
      * Gets the packages for where extra credit tests for a given phase is
      *
      * @param phase the phase that may have extra credit tests
