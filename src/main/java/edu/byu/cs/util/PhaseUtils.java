@@ -202,7 +202,7 @@ public class PhaseUtils {
         return switch (phase){
             case Phase3 -> "service";
             case Phase4 -> "dataaccess"; //TODO: may need to have a subpackage
-            case Phase5 -> ""; //FIXME: definately needs a subpackage
+            case Phase5 -> "facade"; //FIXME: definately needs a subpackage
                                 // Originally was "client" which broke the code as there is no client package inside of
                                 // the client module. So changed it to "" to get everything from the client module
             default -> "";
