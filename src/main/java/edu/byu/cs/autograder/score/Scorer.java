@@ -417,6 +417,11 @@ public class Scorer {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
         }
 
+        if (DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase()) instanceof RubricConfig rubricConfig &&
+                rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
+            totalPossiblePoints -= item.points();
+        }
+
         float score = 0;
         float rawScore = 0;
         for (Rubric.RubricType type : Rubric.RubricType.values()) {
