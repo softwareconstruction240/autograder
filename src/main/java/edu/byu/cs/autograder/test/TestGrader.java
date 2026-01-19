@@ -71,7 +71,8 @@ public abstract class TestGrader {
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage());
+                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage(),
+                    PhaseUtils.unitTestPackageForCoverage(gradingContext.phase()));
         }
 
         if (results.root() == null) {
