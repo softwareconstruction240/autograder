@@ -11,7 +11,6 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -85,7 +84,7 @@ public class JwtUtils {
             }
             return null;
         };
-        String netid = null;
+        String netid;
             netid = Jwts.parser()
                     .keyLocator(locator)
                     .build()
