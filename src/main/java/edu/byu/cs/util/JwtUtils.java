@@ -77,29 +77,21 @@ public class JwtUtils {
     }
 
     public static String validateTokenAgainstKeys(String token){
-        String netid = null;
-        //one key short circuit
-        if (byuPublicKeys.size() == 1){
-            var key = byuPublicKeys.getKeys().stream().findFirst().get().toKey();
-            try {
-                netid = Jwts.parser()
-                        .verifyWith((PublicKey) key)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload()
-                        .getSubject();
-            } catch (Exception e) {
-                LOGGER.error("Unable to verify with JWK:",e);
+        Locator<Key> locator = header -> {
+            for (Jwk<?> key : byuPublicKeys) {
+                if (((ProtectedHeader) header).getKeyId().equals(key.getId())) {
+                    return key.toKey();
+                }
             }
-        }
-        else{
+            return null;
+        };
+        String netid = null;
             netid = Jwts.parser()
                     .keyLocator(locator)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload()
                     .getSubject();
-        }
         return netid;
     }
 
@@ -109,16 +101,5 @@ public class JwtUtils {
                 .parse(json);
     }
 
-    static Locator<Key> locator = new Locator<>() {
-        @Override
-        public Key locate(Header header) {
-            for (Jwk<?> key : byuPublicKeys) {
-                if (((ProtectedHeader) header).getKeyId().equals(key.getId())) {
-                    return key.toKey();
-                }
-            }
-            return null;
-        }
-    };
 
 }
