@@ -1,9 +1,10 @@
 package edu.byu.cs.util;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.impl.security.DefaultJwkSet;
 import io.jsonwebtoken.security.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.security.*;
 import java.security.KeyPair;
@@ -47,8 +48,11 @@ class JwtUtilsTest {
         assertNull(JwtUtils.validateToken(token));
     }
 
-    @Test
-    void validateTokenAgainstKeys() {
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3})
+    void validateTokenAgainstKeys(int size) throws Exception{
+        HashMap<Integer, KeyPair> map = generateKeyPairs(size);
+        JwkSet set = generateJwks(map);
 
     }
 
@@ -84,6 +88,13 @@ class JwtUtilsTest {
         return Jwts.builder()
                 .subject("testNetId")
                 .expiration(Date.from(expiration))
+                .compact();
+    }
+
+    private String generateToken(PrivateKey key){
+        return Jwts.builder()
+                .subject("testNetId")
+                .signWith(key)
                 .compact();
     }
 
