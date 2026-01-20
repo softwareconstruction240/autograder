@@ -103,12 +103,10 @@ public class JwtUtils {
         return netid;
     }
 
-    public static JwkSet readJWKs(String json){
-        var keys = Jwks.setParser()
+    public static void readJWKs(String json){
+        byuPublicKeys = Jwks.setParser()
                 .build()
                 .parse(json);
-        byuPublicKeys = keys;
-        return keys;
     }
 
     static Locator<Key> locator = new Locator<>() {
