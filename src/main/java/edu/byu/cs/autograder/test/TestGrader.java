@@ -66,28 +66,22 @@ public abstract class TestGrader {
 
         TestOutput results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
-            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), null);
+            results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), null);
             TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage());
+                    packagesToTest(), ignoredTests(), modulesToCheckCoverage());
         }
 
         if (results.root() == null) {
-            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), results.error());
+            results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), results.error());
             TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
         }
 
         results.root().setTestName(testName());
-        if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
-            results = new TestOutput(results.root(), null, results.coverage(), results.error());
-        }
-        else {
-            results.extraCredit().setTestName("Extra Credit");
-        }
 
         String notes = getNotes(results);
         float score = getScore(results);
@@ -109,8 +103,6 @@ public abstract class TestGrader {
 
     protected abstract Set<String> packagesToTest() throws GradingException;
 
-    protected abstract Set<String> extraCreditTests() throws GradingException;
-
     protected abstract String testName();
 
     protected abstract float getScore(TestOutput testResults) throws GradingException;
@@ -120,5 +112,9 @@ public abstract class TestGrader {
     protected abstract Rubric.RubricType rubricType();
 
     protected abstract Set<String> modulesToCheckCoverage() throws GradingException;
+
+    protected Set<String> ignoredTests() throws GradingException {
+        return Set.of();
+    }
 
 }

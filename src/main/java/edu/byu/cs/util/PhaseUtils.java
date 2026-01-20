@@ -128,7 +128,7 @@ public class PhaseUtils {
     public static Set<String> passoffPackagesToTest(Phase phase) throws GradingException {
         return switch (phase) {
             case Phase0 -> Set.of("passoff.chess", "passoff.chess.piecemoves");
-            case Phase1 -> Set.of("passoff.chess.game", "passoff.chess.extracredit");
+            case Phase1 -> Set.of("passoff.chess.game");
             case Phase3, Phase4, Phase6 -> Set.of("passoff.server");
             case Phase5, Quality, GitHub -> throw new GradingException("No passoff tests for this phase");
         };
@@ -268,14 +268,26 @@ public class PhaseUtils {
     }
 
     /**
-     * Provides the value (as a float) to assign to extra credit tests given the phase
+     * Provides the credit score to assign to extra credit tests given the phase.
      *
      * @param phase the phase that may have extra credit tests
-     * @return the value to assign to extra credit tests if any, otherwise returns zero
+     * @return the credit score to give for extra credit tests if any, otherwise returns zero
      */
-    public static float extraCreditValue(Phase phase) {
-        if(phase == Phase.Phase1) return .04f;
+    public static int extraCreditScore(Phase phase) {
+        if (phase == Phase.Phase1) return 10;
         return 0;
+    }
+
+    /**
+     * Gets the packages for where extra credit tests for a given phase is
+     *
+     * @param phase the phase that may have extra credit tests
+     * @return the packages for the extra credit tests
+     * @throws GradingException if there aren't extra credit tests for the given phase
+     */
+    public static Set<String> extraCreditPackagesToTest(Phase phase) throws GradingException {
+        if (phase == Phase.Phase1) return Set.of("passoff.chess.extracredit");
+        throw new GradingException("No extra credit tests for this phase");
     }
 
     /**
@@ -384,7 +396,8 @@ public class PhaseUtils {
         return switch (phase) {
             case GitHub -> Set.of(Rubric.RubricType.GITHUB_REPO);
             case Quality -> Set.of(Rubric.RubricType.QUALITY);
-            case Phase0, Phase1 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS);
+            case Phase0 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS);
+            case Phase1 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.EXTRA_CREDIT);
             case Phase3, Phase4 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.QUALITY, Rubric.RubricType.UNIT_TESTS);
             case Phase5 -> Set.of(Rubric.RubricType.QUALITY, Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.UNIT_TESTS);
             case Phase6 -> Set.of(Rubric.RubricType.GIT_COMMITS, Rubric.RubricType.PASSOFF_TESTS, Rubric.RubricType.QUALITY);

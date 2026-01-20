@@ -79,6 +79,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     image: containrrr/watchtower
+    command: --cleanup
 
 volumes:
     db-data:
