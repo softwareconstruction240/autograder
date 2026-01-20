@@ -1,13 +1,16 @@
 package edu.byu.cs.util;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.KeyPair;
+import io.jsonwebtoken.security.SignatureException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -48,17 +51,38 @@ class JwtUtilsTest {
         assertNull(JwtUtils.validateToken(token));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "validateTokenAgainst{0}Keys")
     @ValueSource(ints = {1, 2, 3})
     void validateTokenAgainstKeys(int size) throws Exception{
         HashMap<Integer, KeyPair> map = generateKeyPairs(size);
         JwkSet set = generateJwks(map);
 
+        String token = generateToken(map.get(size-1).getPrivate(), size-1);
+        byte[] bytes =  new JacksonSerializer<JwkSet>().serialize(set);
+        String serialized = new String(bytes, StandardCharsets.UTF_8);
+        JwtUtils.readJWKs(serialized);
+        String netId = JwtUtils.validateTokenAgainstKeys(token);
+        assertEquals("testNetId", netId);
+    }
+
+    @Test
+    void invalidTokenNotVerifiedByAnyKey() throws Exception{
+        HashMap<Integer, KeyPair> map = generateKeyPairs(3);
+        JwkSet set = generateJwks(map);
+
+        //sign with a fake key
+        KeyPair fake = generateKeyPairs(1).get(0);
+
+        String token = generateToken(fake.getPrivate(), 2);
+        byte[] bytes =  new JacksonSerializer<JwkSet>().serialize(set);
+        String serialized = new String(bytes, StandardCharsets.UTF_8);
+        JwtUtils.readJWKs(serialized);
+        assertThrows(SignatureException.class, ()-> JwtUtils.validateTokenAgainstKeys(token));
     }
 
     private HashMap<Integer,KeyPair> generateKeyPairs(int size) throws NoSuchAlgorithmException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(256);
+        generator.initialize(2048);
         HashMap<Integer, KeyPair> pairs = new HashMap<>();
         for (int i = 0; i < size; i++){
             KeyPair pair = generator.generateKeyPair();
@@ -91,8 +115,11 @@ class JwtUtilsTest {
                 .compact();
     }
 
-    private String generateToken(PrivateKey key){
+    private String generateToken(PrivateKey key, int id){
         return Jwts.builder()
+                .header()
+                .keyId(Integer.toString(id))
+                .and()
                 .subject("testNetId")
                 .signWith(key)
                 .compact();
