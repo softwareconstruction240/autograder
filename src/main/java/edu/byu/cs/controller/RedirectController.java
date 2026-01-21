@@ -29,8 +29,6 @@ public class RedirectController {
         }
         AuthenticationService.TokenResponse response = AuthenticationService.exchangeCodeForTokens(code);
 
-        //String ticket = ctx.queryParam("ticket");
-
         User user;
         try {
             user = AuthenticationService.callback(response.idToken());
