@@ -30,7 +30,7 @@ import edu.byu.cs.properties.ApplicationProperties;
 /**
  * Contains service logic for the {@link RedirectController}. <br> View the
  * <a href="https://developer.byu.edu/data/api-usage/learn-about-oauth-2-0">BYU API documentation</a>
- * to understand OAuth works, if needed. Other sites on this page are a great resource as well,
+ * to understand how OAuth works, if needed. Other sites on this page are a great resource as well,
  * particularly verifying JWT tokens. You should also check out the {@link JwtUtils} class as well.
  * <br><br>
  * The {@code AuthenticationService} ensures the user authenticates before they access
