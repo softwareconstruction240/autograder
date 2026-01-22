@@ -84,14 +84,14 @@ public class JwtUtils {
             }
             return null;
         };
-        String netid;
-            netid = Jwts.parser()
+        String netId;
+            netId = Jwts.parser()
                     .keyLocator(locator)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload()
                     .getSubject();
-        return netid;
+        return netId;
     }
 
     public static void readJWKs(String json){
