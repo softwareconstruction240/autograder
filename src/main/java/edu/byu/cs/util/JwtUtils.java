@@ -78,8 +78,10 @@ public class JwtUtils {
     public static String validateTokenAgainstKeys(String token){
         Locator<Key> locator = header -> {
             for (Jwk<?> key : byuPublicKeys) {
-                if (((ProtectedHeader) header).getKeyId().equals(key.getId())) {
-                    return key.toKey();
+                if (header instanceof ProtectedHeader protectedHeader) {
+                    if (protectedHeader.getKeyId().equals(key.getId())) {
+                        return key.toKey();
+                    }
                 }
             }
             return null;
