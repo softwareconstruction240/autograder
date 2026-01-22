@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class AuthenticationServiceTest {
+class AuthenticationServiceTests {
 
     private UserDao mockUserDao;
     private User testUser;
