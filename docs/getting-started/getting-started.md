@@ -111,6 +111,7 @@ Do the following actions:
 --use-canvas false
 
 #Follow the steps at https://developer.byu.edu/data/api-usage/create-an-oauth-client
+#Please choose the sandbox environment
 #You are going to want to choose the Auth Code + PKCE option
 #For the redirect url, you should use the cas-callback-url
 --client-id <client id>
