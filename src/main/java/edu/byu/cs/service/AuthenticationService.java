@@ -107,9 +107,7 @@ public class AuthenticationService {
      */
     public static String validateToken(String token) throws InternalServerException, IOException, InterruptedException {
         if (isExpired(keyExpiration)){
-            if (isExpired(configExpiration)){
-                cacheBYUOpenIDConfig();
-            }
+            refreshConfig();
             cacheJWK();
 
         }
@@ -117,9 +115,7 @@ public class AuthenticationService {
     }
 
     public static TokenResponse exchangeCodeForTokens(String code) throws IOException, InterruptedException, InternalServerException {
-        if (isExpired(configExpiration)){
-            cacheBYUOpenIDConfig();
-        }
+        refreshConfig();
 
         String formData = "grant_type=authorization_code" +
                 "&client_id=" + URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8) +
@@ -131,6 +127,12 @@ public class AuthenticationService {
 
         return new Gson().fromJson(response.body(), TokenResponse.class);
 
+    }
+
+    private static void refreshConfig() throws InternalServerException, IOException, InterruptedException {
+        if (isExpired(configExpiration)){
+            cacheBYUOpenIDConfig();
+        }
     }
 
 
