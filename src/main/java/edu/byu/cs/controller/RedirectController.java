@@ -1,42 +1,57 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.model.User;
-import edu.byu.cs.properties.ApplicationProperties;
-import edu.byu.cs.service.CasService;
-import edu.byu.cs.service.ConfigService;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import io.javalin.http.HttpStatus;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.model.User;
+import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.service.AuthenticationService;
+import edu.byu.cs.service.ConfigService;
 import static edu.byu.cs.util.JwtUtils.generateToken;
+import io.javalin.http.Context;
+import io.javalin.http.Cookie;
+import io.javalin.http.Handler;
+import io.javalin.http.HttpStatus;
 
 /**
- * Handles CAS-related HTTP endpoints. CAS, standing for <em>Central Authentication Service</em>,
- * is BYU's centralized authentication provider for all BYU users
+ * Handles Redirect related endpoints, including the class chat link (i. e. Slack or Discord)
+ * and authentication redirects.
  */
-public class CasController {
+public class RedirectController {
+
     public static final Handler callbackGet = ctx -> {
-        String ticket = ctx.queryParam("ticket");
+        String code = ctx.queryParam("code");
+        if (code == null){
+            throw new UnauthorizedException();
+        }
+        AuthenticationService.TokenResponse response = AuthenticationService.exchangeCodeForTokens(code);
 
         User user;
         try {
-            user = CasService.callback(ticket);
+            user = AuthenticationService.callback(response.idToken());
         } catch (CanvasException e) {
             String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
             ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
             return;
         }
 
-        // FIXME: secure cookie with httpOnly
-        ctx.cookie("token", generateToken(user.netId()), 14400);
+        ctx.cookie (new Cookie(
+                "token",
+                generateToken(user.netId()),
+                "/",
+                14400,
+                AuthenticationService.isSecure(),
+                0,
+                true
+        ));
 
         redirect(ctx);
     };
+
+
 
     public static final Handler loginGet = ctx -> {
         // check if already logged in
@@ -44,10 +59,13 @@ public class CasController {
             redirect(ctx);
             return;
         }
-        ctx.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
+        ctx.redirect(AuthenticationService.getAuthorizationUrl());
     };
 
-
+    /**
+     * Redirects students to the class chat invite. At the time we used Slack, and therefore all references use
+     * that name
+     */
     private static void redirect(Context ctx) throws DataAccessException {
         String redirectTo;
         if(ctx.sessionAttribute("slack") != null) {
@@ -64,7 +82,7 @@ public class CasController {
             return;
         }
 
-        // TODO: call cas logout endpoint with ticket
+        // TODO: call logout endpoint with token
         ctx.removeCookie("token", "/");
         ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
     };

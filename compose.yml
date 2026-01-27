@@ -31,6 +31,7 @@ services:
         "--canvas-token", "changeme",
         "--use-canvas", "true",
 #        "--disable-compilation", # Enable me, if desired!
+        "--client-id", "changeme",
     ]
     networks:
       - autograder
