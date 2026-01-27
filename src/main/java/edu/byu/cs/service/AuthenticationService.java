@@ -156,12 +156,11 @@ public class AuthenticationService {
             configExpiration = NetworkUtils.getCacheTime(response);
 
             OpenIDConfig config = new Gson().fromJson(response.body(), OpenIDConfig.class);
-            if (isValidConfig(config)){
-                AuthenticationService.config = config;
-            }
-            else {
+            if (!isValidConfig(config)){
                 throw new InternalServerException("Unable to verify OpenID config", null);
             }
+
+            AuthenticationService.config = config;
 
     }
 
