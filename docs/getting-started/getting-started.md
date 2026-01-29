@@ -195,10 +195,6 @@ develop the app).
 
 ### 9. Loading the Configuration Related Tables
 
-> [!IMPORTANT]
-> If you had the autograder prior to 'SUMMER 2024', there is a separate "update" set of SQL commands to use.\
-> See [Update `rubric_config` SQL Statements](db-insert-statements/update-rubric-database.md).
-
 This is required.
 
 As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
