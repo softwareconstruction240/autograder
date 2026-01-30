@@ -132,7 +132,17 @@ cd src/main/resources/frontend
 yarn dev
 ```
 
-### 7. (Optional) Setup Canvas Integration
+### 7. Loading the Configuration Related Tables
+
+This is required.
+
+As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
+able to run the actual grading on the autograder. See [Insert `rubric_config` SQL Statements](db-insert-statements/insert-rubric-database.md).
+
+Insert the commands using a [SQL client](https://github.com/softwareconstruction240/softwareconstruction/blob/main/instruction/mysql/mysql.md#sql-clients)
+of your choice on your machine (MySql Shell, SQLWorkbench, or Intelli-J's built in tools).
+
+### 8. (Optional) Setup Canvas Integration
 
 > [!TIP]
 > This is only required if you hope to transfer data to Canvas during your workflow;\
@@ -183,7 +193,7 @@ To ensure that the assignment IDs and rubric IDs/points are synced with Canvas:
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
 (although the step above should do it automatically). See [Insert `config` SQL Statements](db-insert-statements/insert-config-database.md).
 
-### 8. (Optional) Environment Variables
+### 9. (Optional) Environment Variables
 
 > [!TIP]
 > This is only required when running `Loki` locally;\
@@ -192,17 +202,3 @@ Additionally, if you want (not required), you can insert values into the `config
 If you are running Loki locally (not required), then you must set the `LOKI_URL` environment variable. The value can be
 either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to
 develop the app).
-
-### 9. Loading the Configuration Related Tables
-
-> [!IMPORTANT]
-> If you had the autograder prior to 'SUMMER 2024', there is a separate "update" set of SQL commands to use.\
-> See [Update `rubric_config` SQL Statements](db-insert-statements/update-rubric-database.md).
-
-This is required.
-
-As of right now, you will need to manually insert the correct values into the `rubric_config` table before being
-able to run the actual grading on the autograder. See [Insert `rubric_config` SQL Statements](db-insert-statements/insert-rubric-database.md).
-
-Insert the commands using a [SQL client](https://github.com/softwareconstruction240/softwareconstruction/blob/main/instruction/mysql/mysql.md#sql-clients)
-of your choice on your machine (MySql Shell, SQLWorkbench, or Intelli-J's built in tools).
