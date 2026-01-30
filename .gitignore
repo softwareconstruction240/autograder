@@ -40,6 +40,7 @@ build/
 /tmp-*
 /logs/
 /phases/
+/sql/
 /commit-cache/
 src/test/resources/gitTestRepos/
 

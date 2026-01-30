@@ -32,7 +32,7 @@ public class WebSocketController {
         String netId;
         ctx.enableAutomaticPings(20, TimeUnit.SECONDS);
         try {
-            netId = JwtUtils.validateToken(message);
+            netId = JwtUtils.validateToken(ctx.cookie("token"));
         } catch (Exception e) {
             LOGGER.warn("Exception thrown while validating token: ", e);
             sendError(session, "Invalid token");

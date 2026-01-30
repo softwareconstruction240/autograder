@@ -7,7 +7,6 @@ import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
-import edu.byu.cs.model.User;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -72,8 +71,7 @@ public abstract class SubmissionDaoTest {
         //Submission table has a foreign key constraint, so we need to generate a user
         userDao = newUserDao();
         userID = DaoTestUtils.generateID();
-        Assertions.assertDoesNotThrow(() -> userDao.insertUser(DaoTestUtils.generateStudentUser(userID)),
-                "Could not insert initial user");
+        DaoTestUtils.addUser(userDao, userID);
     }
 
     @Test
@@ -412,8 +410,7 @@ public abstract class SubmissionDaoTest {
     }
 
     private Collection<Submission> generateStudentDummyData(int id) {
-        User user = DaoTestUtils.generateStudentUser(id);
-        Assertions.assertDoesNotThrow(() -> userDao.insertUser(user), "Could not insert user");
+        DaoTestUtils.addUser(userDao, id);
         return generateSubmissionDummyData(id);
     }
 

@@ -2,6 +2,7 @@ package edu.byu.cs.dataAccess.base;
 
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.QueueItem;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,9 @@ import java.util.stream.Stream;
 
 public abstract class QueueDaoTest {
     protected QueueDao dao;
+    protected UserDao userDao;
     protected abstract QueueDao getQueueDao();
+    protected abstract UserDao newUserDao();
     protected abstract void clearQueueItems() throws DataAccessException;
     static Random random = new Random();
 
@@ -30,6 +33,7 @@ public abstract class QueueDaoTest {
     @BeforeEach
     void setup() throws DataAccessException{
         dao = getQueueDao();
+        userDao = newUserDao();
         clearQueueItems();
     }
 
@@ -179,8 +183,10 @@ public abstract class QueueDaoTest {
     }
 
     QueueItem generateQueueItem(){
+        int id = DaoTestUtils.generateID();
+        DaoTestUtils.addUser(userDao, id);
         return new QueueItem(
-                DaoTestUtils.generateNetID(DaoTestUtils.generateID()),
+                DaoTestUtils.generateNetID(id),
                 DaoTestUtils.getRandomPhase(),
                 Instant.now().minusSeconds(random.nextLong(1,86399)).truncatedTo(ChronoUnit.SECONDS),
                 false

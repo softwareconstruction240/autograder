@@ -1,7 +1,6 @@
 package edu.byu.cs.autograder.test;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
 import edu.byu.cs.autograder.GradingContext;
@@ -34,11 +33,6 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected Set<String> packagesToTest() throws GradingException {
         return PhaseUtils.unitTestPackagesToTest(gradingContext.phase());
-    }
-
-    @Override
-    protected Set<String> extraCreditTests() {
-        return new HashSet<>();
     }
 
     @Override

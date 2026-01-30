@@ -3,6 +3,7 @@ package edu.byu.cs.dataAccess.sql;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.base.RepoUpdateDaoTest;
 import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import org.junit.jupiter.api.BeforeAll;
 
 public class RepoUpdateSqlDaoTest extends RepoUpdateDaoTest {
@@ -14,6 +15,11 @@ public class RepoUpdateSqlDaoTest extends RepoUpdateDaoTest {
     @Override
     protected RepoUpdateDao getRepoUpdateDao() {
         return new RepoUpdateSqlDao();
+    }
+
+    @Override
+    protected UserDao newUserDao() {
+        return new UserSqlDao();
     }
 
     @Override

@@ -1,0 +1,12 @@
+{
+  "name": "autograder",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "src/main/resources/frontend"
+  ],
+  "scripts": {
+    "frontend": "npm run start -w src/main/resources/frontend",
+    "frontend:host": "npm run start:host -w src/main/resources/frontend"
+  }
+}

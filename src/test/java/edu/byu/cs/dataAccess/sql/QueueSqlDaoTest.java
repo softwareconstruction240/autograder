@@ -3,6 +3,7 @@ package edu.byu.cs.dataAccess.sql;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.base.QueueDaoTest;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import org.junit.jupiter.api.BeforeAll;
 
 public class QueueSqlDaoTest extends QueueDaoTest {
@@ -14,6 +15,11 @@ public class QueueSqlDaoTest extends QueueDaoTest {
     @Override
     protected QueueDao getQueueDao() {
         return new QueueSqlDao();
+    }
+
+    @Override
+    protected UserDao newUserDao() {
+        return new UserSqlDao();
     }
 
     @Override

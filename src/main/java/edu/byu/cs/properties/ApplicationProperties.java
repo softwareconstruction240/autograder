@@ -58,6 +58,7 @@ public class ApplicationProperties {
         return mustGet("frontend-url");
     }
 
+    public static String clientId() {return mustGet("client-id");}
 
     public static String casCallbackUrl() {
         return mustGet("cas-callback-url");

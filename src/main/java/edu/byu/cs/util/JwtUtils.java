@@ -1,11 +1,15 @@
 package edu.byu.cs.util;
 
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Jwk;
+import io.jsonwebtoken.security.JwkSet;
+import io.jsonwebtoken.security.Jwks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -20,6 +24,7 @@ import java.util.Date;
  */
 public class JwtUtils {
     private static final SecretKey key = generateSecretKey();
+    private static JwkSet byuPublicKeys;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
@@ -69,4 +74,31 @@ public class JwtUtils {
         keyGenerator.init(512, new SecureRandom());
         return keyGenerator.generateKey();
     }
+
+    public static String validateTokenAgainstKeys(String token){
+        Locator<Key> locator = header -> {
+            for (Jwk<?> key : byuPublicKeys) {
+                if (header instanceof ProtectedHeader protectedHeader) {
+                    if (protectedHeader.getKeyId().equals(key.getId())) {
+                        return key.toKey();
+                    }
+                }
+            }
+            return null;
+        };
+        return Jwts.parser()
+                    .keyLocator(locator)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject();
+    }
+
+    public static void readJWKs(String json){
+        byuPublicKeys = Jwks.setParser()
+                .build()
+                .parse(json);
+    }
+
+
 }

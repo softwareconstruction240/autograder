@@ -66,11 +66,12 @@ public abstract class TestGrader {
 
         TestOutput results;
         if (!new File(gradingContext.stagePath(), "tests").exists()) {
-            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), null);
+            results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), null);
             TestNode.countTests(results.root());
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
+                    packagesToTest(), ignoredTests(), modulesToCheckCoverage());
                     packagesToTest(), extraCreditTests(), modulesToCheckCoverage(),
                     PhaseUtils.unitTestPackageForCoverage(gradingContext.phase()));
         }
@@ -83,12 +84,6 @@ public abstract class TestGrader {
         }
 
         results.root().setTestName(testName());
-        if(results.extraCredit() == null || results.extraCredit().getChildren().isEmpty()) {
-            results = new TestOutput(results.root(), null, results.coverage(), results.error());
-        }
-        else {
-            results.extraCredit().setTestName("Extra Credit");
-        }
 
         String notes = getNotes(results);
         float score = getScore(results);
@@ -121,5 +116,9 @@ public abstract class TestGrader {
     protected abstract Rubric.RubricType rubricType();
 
     protected abstract Set<String> modulesToCheckCoverage() throws GradingException;
+
+    protected Set<String> ignoredTests() throws GradingException {
+        return Set.of();
+    }
 
 }

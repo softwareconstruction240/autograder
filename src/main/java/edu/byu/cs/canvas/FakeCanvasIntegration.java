@@ -15,6 +15,16 @@ import java.util.HashSet;
  * A fake {@link CanvasIntegration} if using Canvas is disabled
  */
 public class FakeCanvasIntegration implements CanvasIntegration {
+
+    private static final User TEST_USER = new User(
+            "test",
+            159732,
+            "Test",
+            "Student",
+            null,
+            User.Role.STUDENT
+    );
+
     @Override
     public User getUser(String netId) throws CanvasException {
         User user = null;
@@ -53,7 +63,7 @@ public class FakeCanvasIntegration implements CanvasIntegration {
 
     @Override
     public User getTestStudent() {
-        return null;
+        return TEST_USER;
     }
 
     @Override
