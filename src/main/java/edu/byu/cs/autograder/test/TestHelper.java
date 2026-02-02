@@ -9,7 +9,6 @@ import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.util.FileUtils;
-import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,8 +160,7 @@ public class TestHelper {
      * @return A TestNode object containing the results of the tests.
      */
     TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                             Set<String> ignoredTests, Set<String> coverageModules) throws GradingException {
-                             Set<String> extraCreditTests, Set<String> coverageModules, String packageForCoverage) throws GradingException {
+                             Set<String> ignoredTests, Set<String> coverageModules, String packageForCoverage) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -201,7 +199,6 @@ public class TestHelper {
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
             coverage = removeUnmatchedPackages(Pattern.compile("^" + packageForCoverage), coverage);
-            TestAnalyzer.TestAnalysis testAnalysis = testAnalyzer.parse(junitXmlOutput, extraCreditTests);
             TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput, ignoredTests);
 
             return new TestOutput(testAnalysis, coverage, trimErrorOutput(error));

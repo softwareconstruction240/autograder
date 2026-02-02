@@ -71,13 +71,12 @@ public abstract class TestGrader {
         } else {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
-                    packagesToTest(), ignoredTests(), modulesToCheckCoverage());
-                    packagesToTest(), extraCreditTests(), modulesToCheckCoverage(),
+                    packagesToTest(), ignoredTests(), modulesToCheckCoverage(),
                     PhaseUtils.unitTestPackageForCoverage(gradingContext.phase()));
         }
 
         if (results.root() == null) {
-            results = new TestOutput(new TestNode(), null, new CoverageAnalysis(new HashSet<>()), results.error());
+            results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), results.error());
             TestNode.countTests(results.root());
             LOGGER.error("{} tests failed to run for {} in phase {}", name(), gradingContext.netId(),
                     PhaseUtils.getPhaseAsString(gradingContext.phase()));
@@ -104,8 +103,6 @@ public abstract class TestGrader {
     protected abstract Set<File> testsToCompile() throws GradingException;
 
     protected abstract Set<String> packagesToTest() throws GradingException;
-
-    protected abstract Set<String> extraCreditTests() throws GradingException;
 
     protected abstract String testName();
 
