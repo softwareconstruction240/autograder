@@ -16,6 +16,10 @@ import edu.byu.cs.util.PhaseUtils;
  * Runs and scores the unit tests for the phase a submission is graded for
  */
 public class UnitTestGrader extends TestGrader {
+
+    private final float targetPercent = 0.8F; // how much we want covered, change me if too low or high
+    private final float extraCreditPercent = 0.9F; // double check with professors
+
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
     }
@@ -52,8 +56,10 @@ public class UnitTestGrader extends TestGrader {
         }
 
         float coveragePercent = getCoveragePercent(testOutput.coverage());
-        float targetPercent = 0.8F; // how much we want covered, change me if too low or high
 
+        if (coveragePercent > extraCreditPercent) {
+            return 1.05F;
+        }
         if (coveragePercent > targetPercent){
             return 1;
         }
