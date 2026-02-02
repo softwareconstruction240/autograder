@@ -70,6 +70,23 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected String getNotes(TestOutput testOutput) {
         TestNode testResults = testOutput.root();
+        StringBuilder notes = new StringBuilder();
+
+        float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
+        if (totalTests == 0) {
+            notes.append("Did not find any unit tests. See Rubric for unit test requirement details")
+                    .append("\n");
+            return notes.toString();
+        }
+
+        if (testResults.getNumTestsFailed() > 0) {
+            notes.append(testResults.getNumTestsFailed() + " unit tests failed")
+                    .append("\n")
+                    .append("See Details for failed test")
+                    .append("\n");
+            return notes.toString();
+        }
+
         float coverage = getCoveragePercent(testOutput.coverage());
         notes.append("Coverage: " + coverage*100 + "%")
                 .append("\n");
