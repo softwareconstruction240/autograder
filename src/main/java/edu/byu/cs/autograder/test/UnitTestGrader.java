@@ -71,20 +71,20 @@ public class UnitTestGrader extends TestGrader {
     protected String getNotes(TestOutput testOutput) {
         TestNode testResults = testOutput.root();
         float coverage = getCoveragePercent(testOutput.coverage());
-        StringBuilder notes = new StringBuilder("Coverage: " + coverage*100 + "%");
-        notes.append("\n");
-        //All of this is notes, but it is in the details section, so do we even want this?
+        notes.append("Coverage: " + coverage*100 + "%")
+                .append("\n");
+
         for (ClassCoverageAnalysis i : testOutput.coverage().classAnalyses()){
             var total = (i.covered() + i.missed());
-            notes.append(i.packageName())
+            boolean isGoodCoverage = ((i.covered() * 1.0) / total) > targetPercent;
+            notes.append((isGoodCoverage) ? "✓" : "✗").append(" ")
+                    .append(i.packageName())
                     .append(".")
                     .append(i.className())
-                    .append(":")
-                    .append(i.covered())
-                    .append("/")
-                    .append(total)
                     .append("\n");
         }
+        notes.append("See Details for line coverage count")
+                .append("\n");
         return notes.toString();
     }
 
