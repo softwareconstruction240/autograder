@@ -10,6 +10,6 @@ sequenceDiagram
     participant frontend
     participant service
     participant db@{ "type" : "database" }
-    actor Steve->>frontend: { "phase" : "phase#", "netid" : id, "githubLink" : "link" }
+    Steve->>frontend: { "phase" : "phase#", "netid" : id, "githubLink" : "link" }
     frontend->>service: github link
 ```
