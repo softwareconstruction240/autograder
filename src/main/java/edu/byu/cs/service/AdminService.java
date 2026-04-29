@@ -179,7 +179,7 @@ public class AdminService {
     /**
      * Compile and return a .zip file of students' code in a section for the Honor Checker
      *
-     * @param sectionStr the section of student's to create a .zip file for
+     * @param sectionStr the section of students to create a .zip file for
      * @param os where to output the data of the .zip file
      * @throws CanvasException if there was an issue getting the Canvas section
      * @throws IOException if there was an issue either reading from the .zip file or
