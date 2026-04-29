@@ -19,7 +19,7 @@ sequenceDiagram
     participant dao as DataAccessObject
     participant db@{ "type" : "database" }
     student->>frontend: { "phase" : "phase", "githubLink" : "link" }
-    frontend->>submission-service: github link
+    frontend->>service: github link
     service->>dao:getActivePhases()
     dao->>db:getConfiguration(submissionsEnabled)
     db-->>dao:submissions enabled
