@@ -15,7 +15,7 @@ It will not be covered in the diagram because it happens before access to the au
 sequenceDiagram
     actor student
     participant frontend
-    participant submission-service
+    participant service
     participant dao as DataAccessObject
     participant db@{ "type" : "database" }
     student->>frontend: { "phase" : "phase", "githubLink" : "link" }
