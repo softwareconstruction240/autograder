@@ -19,14 +19,22 @@ sequenceDiagram
     participant dao as DataAccessObject
     participant db@{ "type" : "database" }
     student->>frontend: { "phase" : "phase", "githubLink" : "link" }
-    frontend->>service: github link
+    frontend->>service:  { "user" : {}, "phase" : "phase", "githubLink" : "link" }
     service->>dao:getActivePhases()
     dao->>db:getConfiguration(submissionsEnabled)
-    db-->>dao:submissions enabled
+    db-->>dao:phases currently enabled
     dao-->>service:Collection<Phase>
-    service->>service: verify phase enabled
+    service->>service: isPhaseEnabled()
     
-    service->>db:getSubmissionsForPhase(netid, phase)
-    db-->>service:Collection<Submission>
-    service->>service: compare github link of most recent and current submissions
+    create participant git@{ "type" : "entity" }
+    service->>git:get newest commit
+    git-->>service:newest commit
+    destroy git
+    service->>dao:getSubmissionsForPhase(netid, phase)
+    dao->>db:get student's previous submissions
+    dao-->>service:Collection<Submission>
+    service->>service:getMostRecentSubmission()
+    service->>service:assertHasNewCommits()
+    
+    
 ```
