@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -79,6 +78,8 @@ public class HonorCheckerCompiler {
                     }
                 };
 
+                FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
+
                 try {
                     File userFile = new File(repoPath, "student_info.json");
                     JsonElement jsonElement = gson.toJsonTree(student);
@@ -92,8 +93,6 @@ public class HonorCheckerCompiler {
                         userFile.delete();
                     }
                 }
-
-                FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
 
                 try {
                     FileUtils.zipDirectory(repoPath.getPath(), repoPath.getPath() + ".zip");
