@@ -1,5 +1,7 @@
 package edu.byu.cs.honorChecker;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
@@ -11,8 +13,10 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -45,6 +49,7 @@ public class HonorCheckerCompiler {
         }
 
         try {
+            Gson gson = new Gson();
             for (String netId : studentNetIds) {
                 User student = DaoService.getUserDao().getUser(netId);
                 if (student == null || student.repoUrl() == null ||
@@ -73,6 +78,21 @@ public class HonorCheckerCompiler {
                         file.delete();
                     }
                 };
+
+                try {
+                    File userFile = new File(repoPath, "student_info.json");
+                    JsonElement jsonElement = gson.toJsonTree(student);
+                    jsonElement.getAsJsonObject().addProperty("school", "Brigham Young University");
+                    try (FileWriter writer = new FileWriter(userFile)) {
+                        gson.toJson(jsonElement, writer);
+                    }
+                } catch (Exception e) {
+                    File userFile = new File(repoPath, "student_info.json");
+                    if (userFile.exists()) {
+                        userFile.delete();
+                    }
+                }
+
                 FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
 
                 try {
