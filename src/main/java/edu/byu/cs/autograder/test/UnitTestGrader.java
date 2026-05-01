@@ -56,6 +56,9 @@ public class UnitTestGrader extends TestGrader {
         }
 
         float coveragePercent = getCoveragePercent(testOutput.coverage());
+        if (Float.isNaN(coveragePercent)){
+            return 0;
+        }
 
         if (coveragePercent > extraCreditPercent) {
             return 1.05F;
@@ -88,8 +91,15 @@ public class UnitTestGrader extends TestGrader {
         }
 
         float coverage = getCoveragePercent(testOutput.coverage());
-        notes.append("Coverage: " + coverage*100 + "%")
+        if (Float.isNaN(coverage)){
+            notes.append("Could not calculate Coverage Percent. See Rubric for unit test requirement details")
                 .append("\n");
+            return notes.toString();
+        }
+
+        notes.append("Coverage: " + coverage*100 + "%")
+            .append("\n");
+
 
         for (ClassCoverageAnalysis i : testOutput.coverage().classAnalyses()){
             var total = (i.covered() + i.missed());
