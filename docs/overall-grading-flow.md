@@ -52,16 +52,17 @@ sequenceDiagram
 
 ### Grading flow diagram
 The following diagram represents everything abstracted in the previous diagram by the method executeGrader(). 
-Refer to the class diagram (_not yet created_) to better understand how the mechanism of the grader.
-The graders are managed by an [Executor Service](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) with a threadpool size of 1.
+Refer to the class diagram (_not yet created_) for more information.
+The Graders are managed by an [Executor Service](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) with a threadpool size of 1.
 Upon completion, a Submission is created and uploaded to the database. The diagram has been simplified such that:
 - any communication sent to the frontend is simply received by `client` in the diagram.
-- `PPPTGrader` stands for PreviousPhasePassoffTestGrader.
+- PreviousPhasePassoffTestGrader is abstracted and is represented by Grader.
 - One DAO is used to represent all DAOs used, in addition to `DatabaseHelper`.
-- Various helper classes (`GitHelper`, `CompileHelper`) are identified collectively as `Helper`.
-- The diagram indicates the grading flow for a user without admin status. The logic changes are negligible for the purposes of the diagram.
+- Various helper classes (`GitHelper`, `CompileHelper`, `TestHelper`, `LateDayCalculator`) are identified collectively as `Helper`.
+- The diagram indicates the grading flow for a user without admin status.
 - The timeline of the Sequence Diagram begins with the execution of the run() method in Grader.
 - Exception Handling is largely ignored.
+- It is assumed that the grading is being done for a phase 0-6 and not for the GitHub Repository deliverable or Code Quality, though the differences in logical flow are small.
 ```mermaid
 sequenceDiagram
     participant client
@@ -69,35 +70,115 @@ sequenceDiagram
     participant GradingObserver
     participant Grader
     participant Helper
-    participant ppptg as PPPTGrader
+    participant Scorer
     participant dao as DAO
     
-    Grader->GradingObserver:notifyStart()
-    GradingObserver->dao:markStarted(netid)
-    GradingObserver->TrafficController:notifySubscribers(netid, { "type", "started" })
-    TrafficController->client:notify start
+    Grader->>GradingObserver:notifyStart()
+    GradingObserver->>dao:markStarted(netid)
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "started" })
+    TrafficController->>client:notify start
     
-    Grader->Helper:setUpAndVerifyHistory()
-    Helper->GradingObserver:update("Fetching Repo...")
-    GradingObserver->TrafficController:notifySubscribers(netid, { "type", "update" })
-    TrafficController->client:"Fetching Repo..."
+    Grader->>Helper:setUpAndVerifyHistory()
+    Helper->>GradingObserver:update("Fetching Repo...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    TrafficController->>client:"Fetching Repo..."
     
-    Helper->GradingObserver:update("Verifying Commits...")
-    GradingObserver->TrafficController:notifySubscribers(netid, { "type", "update" })
-    TrafficController->Client:"Verifying Commits..."
+    Helper->>GradingObserver:update("Verifying Commits...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    TrafficController->>client:"Verifying Commits..."
     
     alt git commit verification contains warnings
-        helper->GradingObserver:notifyWarning(warningMessage)
-        GradingObserver->TrafficController:notifySubscribers(netid, { "type", "warning" })
-        TrafficController->Client:Warning Message    
+        Helper->>GradingObserver:notifyWarning(warningMessage)
+        GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "warning" })
+        TrafficController->>client:Warning Message    
     end
-    Helper-->Grader:CommitVerificationReport
+    Helper-->>Grader:CommitVerificationReport
     
-    Grader->dao:Create User
-    Grader->dao:Grant Privileges
-    Grader->dao:inject db.config file into student repo
+    Grader->>dao:setup()
+    dao->>dao:Create User
+    dao->>dao:Grant Privileges
+    dao->>dao:inject db.config file into student repo
     
+    Grader->>Helper:compile()
+    Helper->>Helper:verify()
+    Helper->>Observer:update("Verifying Code...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    TrafficController->>client:"Verifying Code..."
+ 
+    Helper->>Helper:modify necessary files
     
+    Helper->>Helper:build project
+    Helper->>Observer:update("Compiling Code...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    TrafficController->>client:"Compiling Code..."
     
+    Grader->>Grader:run previous passoff tests
+    Grader->>Observer:update("Compiling previous phase passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Compiling previous phase passoff tests..."
+    Grader->>Helper:compileTests()
+    Grader->>Observer:update("Running previous phase passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running previous phase passoff tests..."
+    Grader->>dao:getRubricConfig(phase)
     
+    Grader->>Grader:run passoff tests
+    Grader->>Observer:update("Compiling passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Compiling passoff tests..."
+    Grader->>Helper:compileTests()
+    Grader->>Observer:update("Running passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running passoff tests..."
+    Grader->>dao:getRubricConfig(phase)
+    
+    Grader->>Grader:run unit tests
+    Grader->>Observer:update("Compiling unit tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Compiling unit tests..."
+    Grader->>Helper:compileTests()
+    Grader->>Observer:update("Running unit tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running unit tests..."
+    Grader->>dao:getRubricConfig(phase)
+    
+    Grader->>Grader:run passoff tests
+    Grader->>Observer:update("Compiling passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Compiling passoff tests..."
+    Grader->>Helper:compileTests()
+    Grader->>Observer:update("Running passoff tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running passoff tests..."
+    Grader->>dao:getRubricConfig(phase)
+    
+    Grader->>Grader:run extra credit tests
+    Grader->>Observer:update("Compiling extra credit tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Compiling extra credit tests..."
+    Grader->>Helper:compileTests()
+    Grader->>Observer:update("Running extra credit tests...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running extra credit tests..."
+    Grader->>dao:getRubricConfig(phase)
+    
+    Grader->>Grader:run code quality
+    Grader->>dao:getRubricConfig(phase)
+    Grader->>Observer:update("Running code quality...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Running code quality..."
+    
+    Grader->>Scorer:score(rubric)
+    Scorer->>Observer:update("Grading...")
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    TrafficController->>Client:"Grading..."
+    Scorer->>Helper:calculateLateDays()
+    Scorer->>Scorer:applyLatePenalty()
+    Scorer-->>Grader:Submission
+    
+    Grader->>dao:insertSubmission()
+    Grader->>Observer:notifyDone(submission)
+    Observer->>TrafficController:notifySubscribers(netid, { "type" : "results" })
+    Grader->>dao:db cleanup
+
 ```
