@@ -46,8 +46,9 @@ sequenceDiagram
     dao->>db:add submission to queue
     service->>service:executeGrader()
     service->>dao:addSubmission(submission)
+    dao->>db:insert graded submission
     service->>frontend:{ "results" : {} }
-    frontend->>client:Communicate scoring information
+    frontend->>student:Communicate scoring information
 ```
 
 ### Grading flow diagram
@@ -101,84 +102,84 @@ sequenceDiagram
     
     Grader->>Helper:compile()
     Helper->>Helper:verify()
-    Helper->>Observer:update("Verifying Code...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    Helper->>GradingObserver:update("Verifying Code...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
     TrafficController->>client:"Verifying Code..."
  
     Helper->>Helper:modify necessary files
     
     Helper->>Helper:build project
-    Helper->>Observer:update("Compiling Code...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type", "update" })
+    Helper->>GradingObserver:update("Compiling Code...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
     TrafficController->>client:"Compiling Code..."
     
     Grader->>Grader:run previous passoff tests
-    Grader->>Observer:update("Compiling previous phase passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Compiling previous phase passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Compiling previous phase passoff tests..."
     Grader->>Helper:compileTests()
-    Grader->>Observer:update("Running previous phase passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running previous phase passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running previous phase passoff tests..."
     Grader->>dao:getRubricConfig(phase)
     
     Grader->>Grader:run passoff tests
-    Grader->>Observer:update("Compiling passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Compiling passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Compiling passoff tests..."
     Grader->>Helper:compileTests()
-    Grader->>Observer:update("Running passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running passoff tests..."
     Grader->>dao:getRubricConfig(phase)
     
     Grader->>Grader:run unit tests
-    Grader->>Observer:update("Compiling unit tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Compiling unit tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Compiling unit tests..."
     Grader->>Helper:compileTests()
-    Grader->>Observer:update("Running unit tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running unit tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running unit tests..."
     Grader->>dao:getRubricConfig(phase)
     
     Grader->>Grader:run passoff tests
-    Grader->>Observer:update("Compiling passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Compiling passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Compiling passoff tests..."
     Grader->>Helper:compileTests()
-    Grader->>Observer:update("Running passoff tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running passoff tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running passoff tests..."
     Grader->>dao:getRubricConfig(phase)
     
     Grader->>Grader:run extra credit tests
-    Grader->>Observer:update("Compiling extra credit tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Compiling extra credit tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Compiling extra credit tests..."
     Grader->>Helper:compileTests()
-    Grader->>Observer:update("Running extra credit tests...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running extra credit tests...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running extra credit tests..."
     Grader->>dao:getRubricConfig(phase)
     
     Grader->>Grader:run code quality
     Grader->>dao:getRubricConfig(phase)
-    Grader->>Observer:update("Running code quality...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Grader->>GradingObserver:update("Running code quality...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Running code quality..."
     
     Grader->>Scorer:score(rubric)
-    Scorer->>Observer:update("Grading...")
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "update" })
+    Scorer->>GradingObserver:update("Grading...")
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "update" })
     TrafficController->>Client:"Grading..."
     Scorer->>Helper:calculateLateDays()
     Scorer->>Scorer:applyLatePenalty()
     Scorer-->>Grader:Submission
     
     Grader->>dao:insertSubmission()
-    Grader->>Observer:notifyDone(submission)
-    Observer->>TrafficController:notifySubscribers(netid, { "type" : "results" })
+    Grader->>GradingObserver:notifyDone(submission)
+    GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "results" })
     Grader->>dao:db cleanup
 
 ```
