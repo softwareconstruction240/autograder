@@ -37,7 +37,7 @@ public class CanvasIntegrationImplIT {
         DaoService.initializeMemoryDAOs();
         DaoService.getConfigurationDao().setConfiguration(
                 ConfigurationDao.Configuration.COURSE_NUMBER,
-                26822,
+                33692,
                 Integer.class
         ); // FIXME: ??? Maybe get Course Number dynamically
 
