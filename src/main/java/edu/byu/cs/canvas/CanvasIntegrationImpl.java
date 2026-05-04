@@ -79,7 +79,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
                     CanvasSection.class)
                 .body().students().stream()
-                .map(CanvasSection.CanvasSectionStudent::login_id)
+                .map(CanvasSection.CanvasSectionStudent::loginId)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
@@ -137,10 +137,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
         for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
-            queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
+            queryStringBuilder.append("&rubricAssessment[").append(entry.getKey()).append("][points]=")
                     .append(entry.getValue().points());
             if(entry.getValue().comments() != null) {
-                queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][comments]=")
+                queryStringBuilder.append("&rubricAssessment[").append(entry.getKey()).append("][comments]=")
                         .append(URLEncoder.encode(entry.getValue().comments(), Charset.defaultCharset()));
             }
         }
@@ -167,7 +167,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
         return makeCanvasRequest(
                 "GET",
-                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
+                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubricAssessment",
                 CanvasSubmission.class
         ).body();
     }
@@ -202,10 +202,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 CanvasAssignment[].class
         ).body()[0];
 
-        if (assignment == null || assignment.due_at() == null)
+        if (assignment == null || assignment.dueAt() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
-        return assignment.due_at();
+        return assignment.dueAt();
     }
 
     @Override
