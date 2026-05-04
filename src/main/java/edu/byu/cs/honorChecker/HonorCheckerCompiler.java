@@ -81,7 +81,7 @@ public class HonorCheckerCompiler {
                 FileUtils.modifyDirectory(new File(repoPath.getPath()), action);
 
                 try {
-                    File userFile = new File(repoPath, "student_info.json");
+                    File userFile = new File(repoPath, "studentInfo.json");
                     JsonElement jsonElement = gson.toJsonTree(student);
                     jsonElement.getAsJsonObject().addProperty("school", "Brigham Young University");
                     try (FileWriter writer = new FileWriter(userFile)) {
