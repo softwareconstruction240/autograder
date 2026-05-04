@@ -1,5 +1,6 @@
 package edu.byu.cs.canvas;
 
+import com.google.gson.reflect.TypeToken;
 import edu.byu.cs.canvas.model.*;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
@@ -17,10 +18,14 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -381,6 +386,29 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 loadCourseRelatedItems();
             }
             return rubricInfo;
+        }
+
+        /**
+         * Queries all courses associated with this access token, then gets the one with the nearest future end date.
+         * @return
+         * @throws CanvasException
+         */
+        public int getCurrentCourseIDFromCanvas() throws CanvasException{
+            List<CanvasSection> courses = makePaginatedCanvasRequest("/courses", CanvasSection.class);
+            CanvasSection currentSection = null;
+            for(CanvasSection section : courses) {
+                LocalDate date = LocalDate.parse(section.end_at().substring(0, 10));
+                System.out.print(section.name() + ": " + date + "\n");
+                if(date.isAfter(LocalDate.now())) {
+                    if(currentSection == null || LocalDate.parse(currentSection.end_at().substring(0, 10)).isAfter(date)) {
+                        currentSection = section;
+                    }
+                }
+            }
+            if(currentSection == null) {
+                throw new CanvasException("There is no current course in Canvas");
+            }
+            return currentSection.id();
         }
 
         /**

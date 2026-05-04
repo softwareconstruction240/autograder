@@ -15,6 +15,8 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
@@ -24,12 +26,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CanvasIntegrationImplIT {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CanvasIntegrationImplIT.class);
+
     private CanvasIntegration canvasIntegration;
     private CanvasIntegrationImpl.CourseInfoRetriever retriever;
+    private static int courseID;
 
     @BeforeAll
-    public static void setUp() {
+    public static void setUp() throws CanvasException {
         loadApplicationProperties();
+        courseID = new CanvasIntegrationImpl.CourseInfoRetriever().getCurrentCourseIDFromCanvas();
     }
 
     @BeforeEach
@@ -37,12 +43,59 @@ public class CanvasIntegrationImplIT {
         DaoService.initializeMemoryDAOs();
         DaoService.getConfigurationDao().setConfiguration(
                 ConfigurationDao.Configuration.COURSE_NUMBER,
-                33692,
+                courseID,
                 Integer.class
         ); // FIXME: ??? Maybe get Course Number dynamically
-
+        // TODO: this can be easily fixed. Use the Autograder user's API token to get all courses, then grab the most recent one.
+            // actually, we'll need to get the one with the next end date. There are future courses in Canvas that haven't started yet.
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
+    }
+    // TODO: should test the following:
+    // 1) can get user by net id?
+    // 2) can get all net ids in a section?
+    // 3) can submit a grade (both overloads)
+    // 4) can get a submission for a specific student and assignment?
+    // 5) can get the test student?
+    // 6) can get an assignment's due date for a particular student?
+    // 7) can get all sections in class?
+    // 8) and all of these CourseInfoRetriever test cases:
+        // a) getCanvasAssignments
+        // b) getAssignmentIds
+        // c) getRubricInfo
+        // d) useCourseRelatedInfoFromCanvas
+        // e) loadCourseRelatedItems
+    // should use logger.error() to notify that something is wrong if the API changes
+    @Test
+    @DisplayName("Can get the course number of the current course")
+    public void getMostRecentCourseNumber() {
+        int courseID;
+        try {
+            courseID = retriever.getCurrentCourseIDFromCanvas();
+            System.out.print(courseID);
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get current course id from canvas: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+    }
+    @Test
+    @DisplayName("Can get a user by Net ID")
+    public void getUserByNetID() {
+        User testStudent = null;
+        try {
+            testStudent = canvasIntegration.getUser("test");
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get test user from Canvas: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+        assertNotNull(testStudent, "test student should not be null");
+        assertNotEquals(0, testStudent.canvasUserId(), "Test student's user ID should be non-zero");
+    }
+
+    @Test
+    @DisplayName("Can get all net IDs in a section")
+    public void getNetIdsFromSection() {
+
     }
 
     @Test

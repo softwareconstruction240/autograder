@@ -10,7 +10,7 @@ import java.util.Collection;
  * @param name the name of the section, e.g. CS 240-001: Adv Software Construction
  * @param students the collection of the students in that section
  */
-public record CanvasSection (Integer id, String name, Collection<CanvasSectionStudent> students) {
+public record CanvasSection (Integer id, String name, Collection<CanvasSectionStudent> students, String end_at) {
     /**
      * Represents a student for the section in Canvas
      *

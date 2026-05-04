@@ -73,6 +73,6 @@ public class FakeCanvasIntegration implements CanvasIntegration {
 
     @Override
     public CanvasSection[] getAllSections() throws CanvasException {
-        return new CanvasSection[]{new CanvasSection(0, "Fake Section", new HashSet<>())};
+        return new CanvasSection[]{new CanvasSection(0, "Fake Section", new HashSet<>(), "1970-01-01")};
     }
 }
