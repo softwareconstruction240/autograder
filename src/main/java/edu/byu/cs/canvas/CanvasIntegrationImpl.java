@@ -137,10 +137,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     private String buildRubricSubmissionQueryString(CanvasRubricAssessment assessment, String assignmentComment) {
         StringBuilder queryStringBuilder = new StringBuilder();
         for(Map.Entry<String, CanvasRubricItem> entry : assessment.items().entrySet()) {
-            queryStringBuilder.append("&rubricAssessment[").append(entry.getKey()).append("][points]=")
+            queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][points]=")
                     .append(entry.getValue().points());
             if(entry.getValue().comments() != null) {
-                queryStringBuilder.append("&rubricAssessment[").append(entry.getKey()).append("][comments]=")
+                queryStringBuilder.append("&rubric_assessment[").append(entry.getKey()).append("][comments]=")
                         .append(URLEncoder.encode(entry.getValue().comments(), Charset.defaultCharset()));
             }
         }
@@ -167,7 +167,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
     public CanvasSubmission getSubmission(int userId, int assignmentNum) throws CanvasException {
         return makeCanvasRequest(
                 "GET",
-                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubricAssessment",
+                "/courses/" + getCourseNumber() + "/assignments/" + assignmentNum + "/submissions/" + userId + "?include[]=rubric_assessment",
                 CanvasSubmission.class
         ).body();
     }
