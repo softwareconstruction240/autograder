@@ -25,7 +25,7 @@ sequenceDiagram
     participant dao as DAO
     participant db@{ "type" : "database" }
     
-    client->>Server:POST /submit \n{ "user" : {}, "phase" : "phase", "githubLink" : "link" }
+    client->>Server:POST /submit { "user" : {}, "phase" : "phase", "githubLink" : "link" }
     Server->>SubmissionController:submitPost()
     SubmissionController->>Service:submit()
     Service->>Service:startGrader()
@@ -48,9 +48,6 @@ sequenceDiagram
     Service->>dao:addToQueue(netid, phase)
     dao->>db:add submission to queue
     Service->>Service:executeGrader()
-    Service->>dao:addSubmission(submission)
-    dao->>db:insert graded submission
-    Service->>client:Communicate scoring information
 ```
 
 ### Grading flow diagram
@@ -67,7 +64,7 @@ Upon completion, a `Submission` is created and uploaded to the database. The dia
 - Logical flow is represented only for phases 0–6; grading for the GitHub repository assignment or submissions for code quality alone follow a similar flow with minor variations.
 ```mermaid
 sequenceDiagram
-    participant user
+    actor user
     participant TrafficController
     participant GradingObserver
     participant Grader
@@ -107,9 +104,9 @@ sequenceDiagram
     GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
     TrafficController->>user:"Verifying Code..."
  
-    Helper->>Helper:modify necessary files
+    Helper->>Helper:modify()
     
-    Helper->>Helper:build project
+    Helper->>Helper:packageRepo()
     Helper->>GradingObserver:update("Compiling Code...")
     GradingObserver->>TrafficController:notifySubscribers(netid, { "type", "update" })
     TrafficController->>user:"Compiling Code..."
@@ -185,7 +182,8 @@ sequenceDiagram
 
 Interaction between Canvas and the Autograder during grading is modeled below.
 The Scorer's entry point is the `score()` method, which is traced from beginning to end.
-At the end of the scoring sequence, `Scorer` returns a `Submission` to the `Grader`
+Anything enclosed in carats (`<`,`>`) will be replaced by an actual number or string during execution.
+At the end of the scoring sequence, `Scorer` returns a `Submission` to the `Grader`.
 
 ```mermaid
 sequenceDiagram
@@ -204,7 +202,7 @@ sequenceDiagram
     ci->>dao:getCourseNum()
     dao-->>ci:courseNum
     ci->>cAPI:GET /courses/<courseNum>/submissions/<canvasID>?include[]=rubric_assessment
-    cAPI-->>ci:{ "url" : "" , "rubric_assessment" : {} , "score" : # }
+    cAPI-->>ci:{ "url" : <url> , "rubric_assessment" : {} , "score" : <score> }
     ci-->>Scorer:CanvasSubmission
     
     Scorer->>dao:getRubricConfig()
