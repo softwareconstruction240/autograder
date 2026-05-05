@@ -1,7 +1,7 @@
 ## Overview
 
 The UML diagrams present a high-level representation of the interactions among the system components, clarifying the internal architecture and behavior of the autograder.
-Any changes that impact the flow of the diagram should be accompanied by corresponding updates to ensure the diagram remains relevant.
+Any changes that impact the flow of the diagrams should be accompanied by corresponding updates to ensure the diagrams remain relevant.
 
 The autograder's interaction with BYU's authentication service (OAuth 2.0) is described [here](https://developer.byu.edu/data/api-usage/learn-about-oauth-2-0). 
 You will need to log in to your BYU student account to access the documentation.
@@ -20,8 +20,8 @@ More specific details concerning the grading flow can be seen [here](#grading-fl
 sequenceDiagram
     actor client
     participant Server
-    participant Service
     participant SubmissionController
+    participant Service
     participant dao as DAO
     participant db@{ "type" : "database" }
     
@@ -37,9 +37,10 @@ sequenceDiagram
     
     create participant git@{ "type" : "entity" }
     Service->>git:get newest commit
+    destroy git
     git-->>Service:newest commit
     Service->>dao:getSubmissionsForPhase(netid, phase)
-    dao->>db:get student's previous submissions
+    dao->>db:get student's previous graded submissions
     dao-->>Service:Collection<Submission>
     Service->>Service:getMostRecentSubmission()
     Service->>Service:assertHasNewCommits()
@@ -53,8 +54,7 @@ sequenceDiagram
 ```
 
 ### Grading flow diagram
-The following diagram expands on the `executeGrader()` step from the previous diagram. Only one Grader is executed in the diagram, which models its execution from start to completion.
-Refer to the class diagram (_not yet created_) for more information.
+The following diagram expands on the `executeGrader()` step from the previous diagram. The diagram illustrates the execution of a single Grader from start to completion.
 Multiple Graders are managed by an [Executor Service](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) with a threadpool size of 1. 
 Upon completion, a `Submission` is created and uploaded to the database. The diagram is simplified as follows:
 - `PreviousPhasePassoffTestGrader` is abstracted and is represented by Grader.
@@ -191,9 +191,9 @@ At the end of the scoring sequence, `Scorer` returns a `Submission` to the `Grad
 sequenceDiagram
     participant Helper
     participant Scorer
+    participant dao as DAO
     participant ci as CanvasIntegration
     participant cAPI as CanvasAPI
-    participant dao as DAO
     
     Scorer->>dao:getCanvasUserId(netid)
     dao-->>Scorer:CanvasID
