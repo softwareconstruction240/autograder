@@ -15,7 +15,7 @@ The diagram is simplified as follows:
 - Omits Error handling and paths.
 - Encapsulates supporting utilities and grading infrastructure within the `Service` component for simplicity.
 
-More specific details concerning the grading flow can be seen [here](#grading-flow-diagram)
+More specific details concerning the grading flow (which is handled asynchronously) can be seen [here](#grading-flow-diagram)
 ```mermaid
 sequenceDiagram
     actor client
@@ -47,7 +47,7 @@ sequenceDiagram
     
     Service->>dao:addToQueue(netid, phase)
     dao->>db:add submission to queue
-    Service->>Service:executeGrader()
+    Service->>Service:submit(Grader)
 ```
 
 ### Grading flow diagram
@@ -175,6 +175,7 @@ sequenceDiagram
     Grader->>GradingObserver:notifyDone(submission)
     GradingObserver->>TrafficController:notifySubscribers(netid, { "type" : "results" })
     TrafficController->>user:grading results
+    GradingObserver->>dao:remove(netid) (removes submission from queue)
     Grader->>dao:db cleanup
 ```
 
