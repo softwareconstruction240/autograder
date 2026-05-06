@@ -130,9 +130,10 @@ public class DatabaseTests {
                 TestResult result = operation.get();
                 Assertions.assertEquals(500, serverFacade.getStatusCode(),
                         "Server response code was not 500 Internal Error for " + operationName);
-                Assertions.assertNotNull(result.getMessage(), "Invalid Request didn't return an error message for " + operationName);
-                Assertions.assertTrue(result.getMessage().toLowerCase(Locale.ROOT).contains("error"),
-                        "Error message didn't contain the word \"Error\" for " + operationName);
+                String errorMessage = result.getMessage();
+                Assertions.assertNotNull(errorMessage, "Invalid Request didn't return an error message for " + operationName);
+                Assertions.assertTrue(errorMessage.toLowerCase(Locale.ROOT).contains("error"),
+                        String.format("Error message didn't contain the word \"Error\" for %s. Error message: \"%s\"", operationName, errorMessage));
             }
         } finally {
             Method loadFromResources = databaseManagerClass.getDeclaredMethod("loadPropertiesFromResources");
