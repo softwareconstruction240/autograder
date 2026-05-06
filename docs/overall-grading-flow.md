@@ -15,7 +15,7 @@ The diagram is simplified as follows:
 - Omits Error handling and paths.
 - Encapsulates supporting utilities and grading infrastructure within the `Service` component for simplicity.
 
-More specific details concerning the grading flow (which is handled asynchronously) can be seen [here](#grading-flow-diagram)
+More specific details concerning the grading flow (which is handled asynchronously) can be seen [here](#grading-flow-diagram).
 ```mermaid
 sequenceDiagram
     actor client
@@ -51,7 +51,7 @@ sequenceDiagram
 ```
 
 ### Grading flow diagram
-The following diagram expands on the `executeGrader()` step from the previous diagram. The diagram illustrates the execution of a single Grader from start to completion.
+The following diagram expands on the `submit(Grader)` call at the end of the previous diagram. The diagram illustrates the execution of a single Grader from start to completion.
 Multiple Graders are managed by an [Executor Service](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) with a threadpool size of 1. 
 Upon completion, a `Submission` is created and uploaded to the database. The diagram is simplified as follows:
 - `PreviousPhasePassoffTestGrader` is abstracted and is represented by Grader.
