@@ -95,6 +95,16 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can get all net IDs in a section")
     public void getNetIdsFromSection() {
+        Collection<String> netids = null;
+        try {
+            int sectionID = retriever.getSectionIDFromCanvas(courseID);
+            netids = canvasIntegration.getAllStudentNetIdsBySection(sectionID);
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get Net IDs from current section: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+        assertNotNull(netids);
+    }
 
     }
 
