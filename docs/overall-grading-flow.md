@@ -20,15 +20,31 @@ More specific details concerning the grading flow (which is handled asynchronous
 sequenceDiagram
     actor client
     participant Server
-    participant SubmissionController
+    participant Controller
     participant Service
     participant dao as DAO
     participant db@{ "type" : "database" }
     
     client->>Server:POST /submit { "user" : {}, "phase" : "phase", "githubLink" : "link" }
-    Server->>SubmissionController:submitPost()
-    SubmissionController->>Service:submit()
-    Service->>Service:startGrader()
+    Server->>Controller:SubmissionController.submitPost()
+    Controller->>Service:SubmissionService.submit()
+    Service->>Service:ConfigService.checkForShutdown()
+    Service->>dao:ConfigurationDao.getConfiguration(GRADER_SHUTDOWN_DATE)
+    dao->>db:get scheduled shutdown time
+    dao-->>Service:Instant
+    alt autograder shutdown time has passed
+        Service->>Service:ConfigService.triggerShutdown()
+        Service->>dao:ConfigurationDao.getConfiguration(STUDENT_SUMBISSIONS_ENABLED)
+        dao->>db:get enabled phases
+        dao-->>Service: String
+        Service->>dao:ConfigurationDao.setConfiguration(STUDENT_SUBMISSIONS_ENABLED, [QUALITY])
+        dao->>db:set active phases: quality
+        Service->>dao:ConfigurationDao.setConfiguration(GRADER_SHUTDOWN_DATE, Instant.MAX)
+        dao->>db:set shutdown date to far future
+    end
+    Service->>Service:SubmissionService.isPhaseEnabled()
+    Service->>dao:ConfigurationDao(STUDENT_SUBMISSIONS_ENABLED)
+    
     Service->>dao:getActivePhases()
     dao->>db:getConfiguration(submissionsEnabled)
     db-->>dao:phases currently enabled
@@ -44,10 +60,12 @@ sequenceDiagram
     dao-->>Service:Collection<Submission>
     Service->>Service:getMostRecentSubmission()
     Service->>Service:assertHasNewCommits()
-    
+
+    Service->>Service:startGrader()
     Service->>dao:addToQueue(netid, phase)
     dao->>db:add submission to queue
-    Service->>Service:submit(Grader)
+    Service->>Controller:TrafficController.addGrader(Grader)
+    Service->>Service:ExecutorService.submit(Grader)
 ```
 
 ### Grading flow diagram
