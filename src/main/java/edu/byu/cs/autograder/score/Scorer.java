@@ -389,7 +389,7 @@ public class Scorer {
     private CanvasRubricAssessment getExistingAssessment(int userId, int assignmentNum) throws GradingException {
         try {
             CanvasSubmission submission = CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            return submission.rubric_assessment();
+            return submission.rubricAssessment();
         } catch (CanvasException e) {
             LOGGER.error("Exception from canvas", e);
             throw new GradingException("Could not contact canvas", e);
