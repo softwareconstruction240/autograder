@@ -19,6 +19,7 @@ public class UnitTestGrader extends TestGrader {
 
     private final float targetPercent = 0.8F; // how much we want covered, change me if too low or high
     private final float extraCreditPercent = 0.9F; // double check with professors
+    //TODO: consider making me a config point that is set up on the autograder admin config page like penalty percent
 
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);

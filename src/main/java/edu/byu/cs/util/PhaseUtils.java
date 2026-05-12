@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.model.CoverageRequirement;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
@@ -198,14 +199,14 @@ public class PhaseUtils {
         };
     }
 
-    public static String unitTestPackageForCoverage(Phase phase) throws GradingException {
+    public static CoverageRequirement unitTestCoverageRequirements(Phase phase) throws GradingException {
         return switch (phase){
-            case Phase3 -> "service";
-            case Phase4 -> "dataaccess"; //TODO: may need to have a subpackage
-            case Phase5 -> "facade"; //FIXME: definately needs a subpackage
+            case Phase3 -> new CoverageRequirement( CoverageRequirement.CoverageType.PACKAGE,"service");
+            case Phase4 -> new CoverageRequirement( CoverageRequirement.CoverageType.PACKAGE,"dataaccess.sql");
+            case Phase5 -> new CoverageRequirement(CoverageRequirement.CoverageType.CLASS, "ServerFacade");
+            default -> new CoverageRequirement(CoverageRequirement.CoverageType.PACKAGE,"");
                                 // Originally was "client" which broke the code as there is no client package inside of
                                 // the client module. So changed it to "" to get everything from the client module
-            default -> "";
         };
     }
 

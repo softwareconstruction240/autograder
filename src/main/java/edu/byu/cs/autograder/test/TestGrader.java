@@ -72,7 +72,7 @@ public abstract class TestGrader {
             results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
                     packagesToTest(), ignoredTests(), modulesToCheckCoverage(),
-                    PhaseUtils.unitTestPackageForCoverage(gradingContext.phase()));
+                    PhaseUtils.unitTestCoverageRequirements(gradingContext.phase()));
         }
 
         if (results.root() == null) {
