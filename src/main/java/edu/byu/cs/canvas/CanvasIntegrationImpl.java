@@ -1,6 +1,5 @@
 package edu.byu.cs.canvas;
 
-import com.google.gson.reflect.TypeToken;
 import edu.byu.cs.canvas.model.*;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
@@ -18,13 +17,10 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -390,17 +386,17 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
         /**
          * Queries all courses associated with this access token, then gets the one with the nearest future end date.
-         * @return
+         * @return returns the most current* course
          * @throws CanvasException
          */
         public int getCurrentCourseIDFromCanvas() throws CanvasException{
             List<CanvasSection> courses = makePaginatedCanvasRequest("/courses", CanvasSection.class);
             CanvasSection currentSection = null;
             for(CanvasSection section : courses) {
-                LocalDate date = LocalDate.parse(section.end_at().substring(0, 10));
+                LocalDate date = LocalDate.parse(section.endAt().substring(0, 10));
                 System.out.print(section.name() + ": " + date + "\n");
                 if(date.isAfter(LocalDate.now())) {
-                    if(currentSection == null || LocalDate.parse(currentSection.end_at().substring(0, 10)).isAfter(date)) {
+                    if(currentSection == null || LocalDate.parse(currentSection.endAt().substring(0, 10)).isAfter(date)) {
                         currentSection = section;
                     }
                 }
@@ -411,6 +407,33 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return currentSection.id();
         }
 
+        public int getSectionIDFromCanvas(int courseID) throws CanvasException{
+            List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + courseID + "/sections", CanvasSection.class);
+            return sections.getFirst().id();
+        }
+
+        public int getPhase0IDFromCanvas(int courseID) throws CanvasException {
+            Collection<CanvasAssignment> assignments = getCanvasAssignments();
+            for(CanvasAssignment assignment : assignments) {
+                if(assignment.name().contains("0")) {
+                    return assignment.id();
+                }
+            }
+            throw new CanvasException("No assignment matched the criteria for Phase 0");
+        }
+
+        public User getRandomEnrolledStudent(int courseID) throws CanvasException{
+            //TODO: this is the current dilemma I am facing
+            List<CanvasUser> users = makePaginatedCanvasRequest(
+                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20&enrollment_type[]=student_view",
+                    CanvasUser.class);
+            if(users.getFirst() != null) {
+                CanvasUser user = users.getFirst();
+                return new User(user.login_id(), user.id(), "Test", "Student", "", User.Role.STUDENT);
+            } else {
+                return null;
+            }
+        }
         /**
          * Use Canvas for assignment id, rubric id, and rubric points for the values in the database.
          *

@@ -3,7 +3,11 @@ package integration;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
+import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasAssignment;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
+import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -18,9 +22,7 @@ import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,6 +67,7 @@ public class CanvasIntegrationImplIT {
         // c) getRubricInfo
         // d) useCourseRelatedInfoFromCanvas
         // e) loadCourseRelatedItems
+    // actually CourseInfoRetriever shouldn't be tested since it doesn't exist in the fake Canvas Integration
     // should use logger.error() to notify that something is wrong if the API changes
     @Test
     @DisplayName("Can get the course number of the current course")
@@ -72,7 +75,6 @@ public class CanvasIntegrationImplIT {
         int courseID;
         try {
             courseID = retriever.getCurrentCourseIDFromCanvas();
-            System.out.print(courseID);
         } catch (CanvasException e) {
             LOGGER.error("Could not get current course id from canvas: {}", e.getMessage());
             fail("Exception thrown: ", e);
@@ -81,15 +83,16 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can get a user by Net ID")
     public void getUserByNetID() {
-        User testStudent = null;
+        // throw new RuntimeException("Cannot implement until a Test User is created");
+        User randomStudent = null;
         try {
-            testStudent = canvasIntegration.getUser("test");
+            randomStudent = retriever.getRandomEnrolledStudent(courseID);
         } catch (CanvasException e) {
             LOGGER.error("Could not get test user from Canvas: {}", e.getMessage());
             fail("Exception thrown: ", e);
         }
-        assertNotNull(testStudent, "test student should not be null");
-        assertNotEquals(0, testStudent.canvasUserId(), "Test student's user ID should be non-zero");
+        assertNotNull(randomStudent, "Student should not be null. Ensure the current course has at least one user.");
+        assertNotEquals(0, randomStudent.canvasUserId(), "Student's user ID should be non-zero");
     }
 
     @Test
@@ -106,6 +109,81 @@ public class CanvasIntegrationImplIT {
         assertNotNull(netids);
     }
 
+    @Test
+    @DisplayName("Can submit a grade by number")
+    public void submitGradeNumber() {
+//        throw new RuntimeException("Not implemented");
+        try {
+            User testStudent = canvasIntegration.getTestStudent();
+            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+
+            float expectedScore = new Random().nextFloat(125.0f);
+
+            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, expectedScore, "Canvas Integration Tests");
+            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
+            Assertions.assertEquals(expectedScore, actualScore);
+        } catch (CanvasException e) {
+            LOGGER.error("Could not submit a grade: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+    }
+
+    @Test
+    @DisplayName("Can submit a grade by rubric")
+    public void submitGradeRubric() {
+        throw new RuntimeException("Not implemented");
+//        try {
+//            User testStudent = canvasIntegration.getTestStudent();
+//            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+//
+//            float expectedScore = new Random().nextFloat(125.0f);
+//            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, assessment, "Canvas Integration Tests");
+//            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
+//            Assertions.assertEquals(expectedScore, actualScore);
+//        } catch (CanvasException e) {
+//            LOGGER.error("Could not submit a grade: {}", e.getMessage());
+//            fail("Exception thrown: ", e);
+//        }
+    }
+
+    @Test
+    @DisplayName("Can get an assignment submission from a student")
+    public void getAssignmentSubmission() {
+        try {
+            User testStudent = canvasIntegration.getTestStudent();
+            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+            canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID);
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get assignment submission from a student: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+    }
+
+    @Test
+    @DisplayName("Can get the due date based on assignment and student")
+    public void getDueDate() {
+        try {
+            User testStudent = canvasIntegration.getTestStudent();
+            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+            canvasIntegration.getAssignmentDueDateForStudent(testStudent.canvasUserId(), phase0ID);
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get Phase 0 Due Date for test student: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+
+    }
+
+    @Test
+    @DisplayName("Can get all sections in a class")
+    public void getAllSectionsInClass() {
+        CanvasSection[] sections = null;
+        try {
+            sections = canvasIntegration.getAllSections();
+        } catch (CanvasException e) {
+            LOGGER.error("Could not get all sections from class");
+            fail("Exception thrown: ", e);
+        }
+        assertNotNull(sections);
     }
 
     @Test
