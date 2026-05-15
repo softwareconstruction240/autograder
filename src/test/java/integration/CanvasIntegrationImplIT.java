@@ -1,5 +1,6 @@
 package integration;
 
+import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
@@ -12,10 +13,7 @@ import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
-import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.RubricConfig;
-import edu.byu.cs.model.User;
+import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.junit.jupiter.api.*;
@@ -42,14 +40,14 @@ public class CanvasIntegrationImplIT {
 
     @BeforeEach
     public void setUpEach() throws DataAccessException {
-        DaoService.initializeMemoryDAOs();
-        DaoService.getConfigurationDao().setConfiguration(
-                ConfigurationDao.Configuration.COURSE_NUMBER,
-                courseID,
-                Integer.class
-        ); // FIXME: ??? Maybe get Course Number dynamically
-        // TODO: this can be easily fixed. Use the Autograder user's API token to get all courses, then grab the most recent one.
-            // actually, we'll need to get the one with the next end date. There are future courses in Canvas that haven't started yet.
+        DaoService.initializeSqlDAOs();
+//        DaoService.getConfigurationDao().setConfiguration(
+//                ConfigurationDao.Configuration.COURSE_NUMBER,
+//                courseID,
+//                Integer.class
+//        ); // FIXME: ??? Maybe get Course Number dynamically
+//        // TODO: this can be easily fixed. Use the Autograder user's API token to get all courses, then grab the most recent one.
+//            // actually, we'll need to get the one with the next end date. There are future courses in Canvas that haven't started yet.
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
     }
@@ -61,13 +59,6 @@ public class CanvasIntegrationImplIT {
     // 5) can get the test student?
     // 6) can get an assignment's due date for a particular student?
     // 7) can get all sections in class?
-    // 8) and all of these CourseInfoRetriever test cases:
-        // a) getCanvasAssignments
-        // b) getAssignmentIds
-        // c) getRubricInfo
-        // d) useCourseRelatedInfoFromCanvas
-        // e) loadCourseRelatedItems
-    // actually CourseInfoRetriever shouldn't be tested since it doesn't exist in the fake Canvas Integration
     // should use logger.error() to notify that something is wrong if the API changes
     @Test
     @DisplayName("Can get the course number of the current course")
@@ -87,8 +78,9 @@ public class CanvasIntegrationImplIT {
         User randomStudent = null;
         try {
             randomStudent = retriever.getRandomEnrolledStudent(courseID);
+            canvasIntegration.getUser(randomStudent.netId());
         } catch (CanvasException e) {
-            LOGGER.error("Could not get test user from Canvas: {}", e.getMessage());
+            LOGGER.error("Could not get a user from Canvas: {}", e.getMessage());
             fail("Exception thrown: ", e);
         }
         assertNotNull(randomStudent, "Student should not be null. Ensure the current course has at least one user.");
@@ -100,7 +92,7 @@ public class CanvasIntegrationImplIT {
     public void getNetIdsFromSection() {
         Collection<String> netids = null;
         try {
-            int sectionID = retriever.getSectionIDFromCanvas(courseID);
+            int sectionID = retriever.getSectionIDFromCanvas();
             netids = canvasIntegration.getAllStudentNetIdsBySection(sectionID);
         } catch (CanvasException e) {
             LOGGER.error("Could not get Net IDs from current section: {}", e.getMessage());
@@ -131,19 +123,36 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can submit a grade by rubric")
     public void submitGradeRubric() {
-        throw new RuntimeException("Not implemented");
-//        try {
-//            User testStudent = canvasIntegration.getTestStudent();
-//            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
-//
-//            float expectedScore = new Random().nextFloat(125.0f);
-//            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, assessment, "Canvas Integration Tests");
-//            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
-//            Assertions.assertEquals(expectedScore, actualScore);
-//        } catch (CanvasException e) {
-//            LOGGER.error("Could not submit a grade: {}", e.getMessage());
-//            fail("Exception thrown: ", e);
-//        }
+//        throw new RuntimeException("Not implemented");
+        try {
+            User testStudent = canvasIntegration.getTestStudent();
+            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+
+            float expectedScore = new Random().nextFloat(125.0f);
+            CanvasRubricAssessment assessment = spoofRubricAssessment(expectedScore);
+            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, assessment, "Canvas Integration Tests");
+            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
+            Assertions.assertEquals(Math.round(expectedScore), Math.round(actualScore));
+        } catch (CanvasException | GradingException | DataAccessException e) {
+            LOGGER.error("Could not submit a grade: {}", e.getMessage());
+            fail("Exception thrown: ", e);
+        }
+    }
+
+    CanvasRubricAssessment spoofRubricAssessment(float expectedScore) throws DataAccessException, GradingException {
+        RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(Phase.Phase0);
+        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.PASSOFF_TESTS);
+
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
+        rubricItems.put(Rubric.RubricType.PASSOFF_TESTS,
+                new Rubric.RubricItem(configItem.category(),
+                        new Rubric.Results("test notes", expectedScore, 125, new TestOutput(new TestNode(), null, null), "text results"),
+                        "test criteria"
+                )
+        );
+        Rubric rubric = new Rubric(rubricItems, true, "test notes");
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, Phase.Phase0);
     }
 
     @Test
@@ -291,13 +300,21 @@ public class CanvasIntegrationImplIT {
         if (canvasToken == null) {
             throw new RuntimeException("Environment variable CANVAS_API_TOKEN not set");
         }
+        String username = System.getenv("MYSQL_USERNAME");
+        if (username == null) {
+            throw new RuntimeException("Environment variable MYSQL_USERNAME not set");
+        }
+        String password = System.getenv("MYSQL_PASSWORD");
+        if (password == null) {
+            throw new RuntimeException("Environment variable MYSQL_PASSWORD not set");
+        }
 
         Properties testProperties = new Properties();
-        testProperties.setProperty("db-host", "unused");
-        testProperties.setProperty("db-port", "unused");
-        testProperties.setProperty("db-name", "unused");
-        testProperties.setProperty("db-user", "unused");
-        testProperties.setProperty("db-pass", "unused");
+        testProperties.setProperty("db-host", "localhost");
+        testProperties.setProperty("db-port", "3306");
+        testProperties.setProperty("db-name", "autograder");
+        testProperties.setProperty("db-user", username);
+        testProperties.setProperty("db-pass", password);
         testProperties.setProperty("frontend-url", "unused");
         testProperties.setProperty("cas-callback-url", "unused");
         testProperties.setProperty("canvas-token", canvasToken);

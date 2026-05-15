@@ -407,8 +407,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return currentSection.id();
         }
 
-        public int getSectionIDFromCanvas(int courseID) throws CanvasException{
-            List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + courseID + "/sections", CanvasSection.class);
+        public int getSectionIDFromCanvas() throws CanvasException{
+            List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + getCourseNumber() + "/sections", CanvasSection.class);
             return sections.getFirst().id();
         }
 
@@ -423,9 +423,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         }
 
         public User getRandomEnrolledStudent(int courseID) throws CanvasException{
-            //TODO: this is the current dilemma I am facing
             List<CanvasUser> users = makePaginatedCanvasRequest(
-                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20&enrollment_type[]=student_view",
+                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20",
                     CanvasUser.class);
             if(users.getFirst() != null) {
                 CanvasUser user = users.getFirst();
