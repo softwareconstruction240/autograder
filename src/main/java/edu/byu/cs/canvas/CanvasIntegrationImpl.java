@@ -389,23 +389,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
          * @return returns the most current* course
          * @throws CanvasException
          */
-        public int getCurrentCourseIDFromCanvas() throws CanvasException{
-            List<CanvasSection> courses = makePaginatedCanvasRequest("/courses", CanvasSection.class);
-            CanvasSection currentSection = null;
-            for(CanvasSection section : courses) {
-                LocalDate date = LocalDate.parse(section.endAt().substring(0, 10));
-                System.out.print(section.name() + ": " + date + "\n");
-                if(date.isAfter(LocalDate.now())) {
-                    if(currentSection == null || LocalDate.parse(currentSection.endAt().substring(0, 10)).isAfter(date)) {
-                        currentSection = section;
-                    }
-                }
-            }
-            if(currentSection == null) {
-                throw new CanvasException("There is no current course in Canvas");
-            }
-            return currentSection.id();
-        }
 
         public int getSectionIDFromCanvas() throws CanvasException{
             List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + getCourseNumber() + "/sections", CanvasSection.class);

@@ -13,6 +13,7 @@ import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.sql.ConfigurationSqlDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
@@ -35,7 +36,6 @@ public class CanvasIntegrationImplIT {
     @BeforeAll
     public static void setUp() throws CanvasException {
         loadApplicationProperties();
-        courseID = new CanvasIntegrationImpl.CourseInfoRetriever().getCurrentCourseIDFromCanvas();
     }
 
     @BeforeEach
@@ -50,6 +50,7 @@ public class CanvasIntegrationImplIT {
 //            // actually, we'll need to get the one with the next end date. There are future courses in Canvas that haven't started yet.
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
+        courseID = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, Integer.class);
     }
     // TODO: should test the following:
     // 1) can get user by net id?
@@ -60,17 +61,6 @@ public class CanvasIntegrationImplIT {
     // 6) can get an assignment's due date for a particular student?
     // 7) can get all sections in class?
     // should use logger.error() to notify that something is wrong if the API changes
-    @Test
-    @DisplayName("Can get the course number of the current course")
-    public void getMostRecentCourseNumber() {
-        int courseID;
-        try {
-            courseID = retriever.getCurrentCourseIDFromCanvas();
-        } catch (CanvasException e) {
-            LOGGER.error("Could not get current course id from canvas: {}", e.getMessage());
-            fail("Exception thrown: ", e);
-        }
-    }
     @Test
     @DisplayName("Can get a user by Net ID")
     public void getUserByNetID() {
