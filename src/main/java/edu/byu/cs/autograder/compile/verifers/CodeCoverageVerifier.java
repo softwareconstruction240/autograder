@@ -31,7 +31,8 @@ public class CodeCoverageVerifier implements StudentCodeVerifier {
             }
         }
         else{
-            if (reader.filesMatching(coverage.name()).anyMatch(x->true)){
+
+            if (reader.filesMatching(buildFileRegex(coverage.name())).count() == 0){
                 missingFiles.add(coverage.name());
             }
         }
@@ -59,5 +60,10 @@ public class CodeCoverageVerifier implements StudentCodeVerifier {
                     .append("Please double check the phase's specification.");
         }
         return stringBuilder.toString();
+    }
+
+    private String buildFileRegex(String fileName){
+        String regex = "^.*[\\/]"+ fileName + "\\.java$|^"+ fileName + "\\.java$";
+        return regex;
     }
 }
