@@ -31,7 +31,7 @@ public class CodeCoverageVerifier implements StudentCodeVerifier {
         }
         else{
 
-            if (reader.filesMatching(buildFileRegex(coverage.name())).count() == 0){
+            if (reader.filesMatching(buildFileRegex(coverage.name())).findAny().isEmpty()){
                 missingFiles.add(coverage.name());
             }
         }
@@ -62,7 +62,6 @@ public class CodeCoverageVerifier implements StudentCodeVerifier {
     }
 
     private String buildFileRegex(String fileName){
-        String regex = "^.*[\\/]"+ fileName + "\\.java$|^"+ fileName + "\\.java$";
-        return regex;
+        return "^.*[\\/]"+ fileName + "\\.java$|^"+ fileName + "\\.java$";
     }
 }
