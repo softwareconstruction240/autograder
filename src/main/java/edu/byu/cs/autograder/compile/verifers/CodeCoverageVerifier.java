@@ -23,7 +23,6 @@ public class CodeCoverageVerifier implements StudentCodeVerifier {
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
         Phase currPhase = context.phase();
         CoverageRequirement coverage = PhaseUtils.unitTestCoverageRequirements(currPhase);
-        //FIXME: phases without unit tests
         if (coverage.type() == CoverageRequirement.CoverageType.PACKAGE){
             File packageDirectory = new File(context.stageRepo(), coverage.name());
             if (!packageDirectory.isDirectory()){
