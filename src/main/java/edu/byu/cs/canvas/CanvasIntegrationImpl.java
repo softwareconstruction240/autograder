@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -384,25 +383,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return rubricInfo;
         }
 
-        /**
-         * Queries all courses associated with this access token, then gets the one with the nearest future end date.
-         * @return returns the most current* course
-         * @throws CanvasException
-         */
-
         public int getSectionIDFromCanvas() throws CanvasException{
             List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + getCourseNumber() + "/sections", CanvasSection.class);
             return sections.getFirst().id();
-        }
-
-        public int getPhase0IDFromCanvas(int courseID) throws CanvasException {
-            Collection<CanvasAssignment> assignments = getCanvasAssignments();
-            for(CanvasAssignment assignment : assignments) {
-                if(assignment.name().contains("0")) {
-                    return assignment.id();
-                }
-            }
-            throw new CanvasException("No assignment matched the criteria for Phase 0");
         }
 
         public User getRandomEnrolledStudent(int courseID) throws CanvasException{

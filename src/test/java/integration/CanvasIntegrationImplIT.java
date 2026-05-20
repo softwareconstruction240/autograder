@@ -7,13 +7,12 @@ import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasAssignment;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
-import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
-import edu.byu.cs.dataAccess.sql.ConfigurationSqlDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,20 +34,13 @@ public class CanvasIntegrationImplIT {
     private static int courseID;
 
     @BeforeAll
-    public static void setUp() throws CanvasException {
+    public static void setUp() {
         loadApplicationProperties();
     }
 
     @BeforeEach
     public void setUpEach() throws DataAccessException {
         DaoService.initializeSqlDAOs();
-//        DaoService.getConfigurationDao().setConfiguration(
-//                ConfigurationDao.Configuration.COURSE_NUMBER,
-//                courseID,
-//                Integer.class
-//        ); // FIXME: ??? Maybe get Course Number dynamically
-//        // TODO: this can be easily fixed. Use the Autograder user's API token to get all courses, then grab the most recent one.
-//            // actually, we'll need to get the one with the next end date. There are future courses in Canvas that haven't started yet.
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         courseID = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, Integer.class);
@@ -64,7 +57,6 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can get a user by Net ID")
     public void getUserByNetID() {
-        // throw new RuntimeException("Cannot implement until a Test User is created");
         User randomStudent = null;
         try {
             randomStudent = retriever.getRandomEnrolledStudent(courseID);
@@ -94,16 +86,16 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can submit a grade by number")
     public void submitGradeNumber() {
-//        throw new RuntimeException("Not implemented");
         try {
             User testStudent = canvasIntegration.getTestStudent();
-            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+            for(int phaseID : retriever.getAssignmentIds().values()) {
+                float expectedScore = new Random().nextFloat(155.0f);
+                canvasIntegration.submitGrade(testStudent.canvasUserId(), phaseID, expectedScore, "Canvas Integration Tests");
+                float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phaseID).score();
+                Assertions.assertEquals(expectedScore, actualScore);
 
-            float expectedScore = new Random().nextFloat(125.0f);
+            }
 
-            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, expectedScore, "Canvas Integration Tests");
-            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
-            Assertions.assertEquals(expectedScore, actualScore);
         } catch (CanvasException e) {
             LOGGER.error("Could not submit a grade: {}", e.getMessage());
             fail("Exception thrown: ", e);
@@ -113,36 +105,45 @@ public class CanvasIntegrationImplIT {
     @Test
     @DisplayName("Can submit a grade by rubric")
     public void submitGradeRubric() {
-//        throw new RuntimeException("Not implemented");
         try {
             User testStudent = canvasIntegration.getTestStudent();
-            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
+            Map<Phase, Integer> assignmentIDs = retriever.getAssignmentIds();
+            for(Phase phase : Phase.values()) {
+                if(phase == Phase.Quality || phase == Phase.GitHub)
+                    continue;
+                int phaseID = assignmentIDs.get(phase);
+                float expectedScore = new Random().nextFloat(10.0f);
+                CanvasRubricAssessment rubricAssessment = spoofRubricAssessment(expectedScore, phase);
+                canvasIntegration.submitGrade(testStudent.canvasUserId(), phaseID, rubricAssessment, "Canvas Integration Tests");
 
-            float expectedScore = new Random().nextFloat(125.0f);
-            CanvasRubricAssessment assessment = spoofRubricAssessment(expectedScore);
-            canvasIntegration.submitGrade(testStudent.canvasUserId(), phase0ID, assessment, "Canvas Integration Tests");
-            float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID).score();
-            Assertions.assertEquals(Math.round(expectedScore), Math.round(actualScore));
+                float actualScore = canvasIntegration.getSubmission(testStudent.canvasUserId(), phaseID).score();
+                Assertions.assertEquals(Math.round(expectedScore), Math.round(actualScore));
+            }
         } catch (CanvasException | GradingException | DataAccessException e) {
             LOGGER.error("Could not submit a grade: {}", e.getMessage());
             fail("Exception thrown: ", e);
         }
     }
 
-    CanvasRubricAssessment spoofRubricAssessment(float expectedScore) throws DataAccessException, GradingException {
+    CanvasRubricAssessment spoofRubricAssessment(float expectedScore, Phase phase) throws DataAccessException, GradingException {
         RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
-        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(Phase.Phase0);
-        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.PASSOFF_TESTS);
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(phase);
+        RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.GIT_COMMITS);
 
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
-        rubricItems.put(Rubric.RubricType.PASSOFF_TESTS,
+        rubricItems.put(Rubric.RubricType.GIT_COMMITS,
                 new Rubric.RubricItem(configItem.category(),
-                        new Rubric.Results("test notes", expectedScore, 125, new TestOutput(new TestNode(), null, null), "text results"),
+                        new Rubric.Results(
+                                "Canvas Integration Tests",
+                                expectedScore,
+                                configItem.points(),
+                                new TestOutput(new TestNode(), null, null),
+                                "text results"),
                         "test criteria"
                 )
         );
         Rubric rubric = new Rubric(rubricItems, true, "test notes");
-        return CanvasUtils.convertToAssessment(rubric, rubricConfig, Phase.Phase0);
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, phase);
     }
 
     @Test
@@ -150,8 +151,13 @@ public class CanvasIntegrationImplIT {
     public void getAssignmentSubmission() {
         try {
             User testStudent = canvasIntegration.getTestStudent();
-            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
-            canvasIntegration.getSubmission(testStudent.canvasUserId(), phase0ID);
+            for(Phase phase: Phase.values()) {
+                if(phase == Phase.Quality || phase == Phase.GitHub)
+                    continue;
+                int phaseID = retriever.getAssignmentIds().get(phase);
+                CanvasSubmission submission = canvasIntegration.getSubmission(testStudent.canvasUserId(), phaseID);
+                Assertions.assertNotNull(submission);
+            }
         } catch (CanvasException e) {
             LOGGER.error("Could not get assignment submission from a student: {}", e.getMessage());
             fail("Exception thrown: ", e);
@@ -163,8 +169,13 @@ public class CanvasIntegrationImplIT {
     public void getDueDate() {
         try {
             User testStudent = canvasIntegration.getTestStudent();
-            int phase0ID = retriever.getPhase0IDFromCanvas(courseID);
-            canvasIntegration.getAssignmentDueDateForStudent(testStudent.canvasUserId(), phase0ID);
+            for(Phase phase: Phase.values()) {
+                if(phase == Phase.Quality || phase == Phase.GitHub)
+                    continue;
+                int phaseID = retriever.getAssignmentIds().get(phase);
+                ZonedDateTime dueDate = canvasIntegration.getAssignmentDueDateForStudent(testStudent.canvasUserId(), phaseID);
+                Assertions.assertNotNull(dueDate);
+            }
         } catch (CanvasException e) {
             LOGGER.error("Could not get Phase 0 Due Date for test student: {}", e.getMessage());
             fail("Exception thrown: ", e);
