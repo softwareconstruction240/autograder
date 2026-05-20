@@ -9,6 +9,8 @@ package edu.byu.cs.model.request;
  * @param linesChangedPerCommit the minimum number of lines needed for a commit to count
  * @param clockForgivenessMinutes the number of minutes a commit can be authored
  *                                past the time of submission
+ * @param coveragePercent the percentage of code coverage expected for a submission to receive full credit
+ * @param extraCoveragePercent the percentage of code coverage expected for a submission to receive extra credit
  */
 public record ConfigPenaltyUpdateRequest(
         float perDayLatePenalty,
