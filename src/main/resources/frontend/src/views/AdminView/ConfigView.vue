@@ -160,6 +160,14 @@ onMounted(async () => {
           <span class="infoLabel">Clock Forgiveness: </span
           >{{ config.admin.penalty.clockForgivenessMinutes }} minutes
         </p>
+        <p>
+          <span class="infoLabel">Coverage Percent: </span
+          >{{ Math.round(config.admin.penalty.coveragePercent * 100) }}%
+        </p>
+        <p>
+          <span class="infoLabel">Extra Coverage Percent: </span
+          >{{ Math.round(config.admin.penalty.extraCoveragePercent * 100) }}%
+        </p>
       </template>
     </ConfigSection>
 

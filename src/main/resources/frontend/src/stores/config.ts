@@ -39,6 +39,8 @@ export type PrivateConfig = {
     maxLateDaysPenalized: number;
     linesChangedPerCommit: number;
     clockForgivenessMinutes: number;
+    coveragePercent: number;
+    extraCoveragePercent: number;
   };
 
   courseNumber: number;
