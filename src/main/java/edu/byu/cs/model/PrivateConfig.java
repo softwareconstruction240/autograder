@@ -35,7 +35,8 @@ public record PrivateConfig(
         int maxLateDaysPenalized,
         int linesChangedPerCommit,
         int clockForgivenessMinutes,
-        float coveragePercent
+        float coveragePercent,
+        float extraCoveragePercent
     ){ }
 
     /**

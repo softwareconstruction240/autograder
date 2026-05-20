@@ -84,6 +84,7 @@ public class DaoService {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.LINES_PER_COMMIT_REQUIRED, 5, Integer.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.CLOCK_FORGIVENESS_MINUTES, 3, Integer.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, 0.8f, Float.class);
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, 0.9f, Float.class);
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }

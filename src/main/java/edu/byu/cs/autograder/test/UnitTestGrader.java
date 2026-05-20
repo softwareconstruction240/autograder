@@ -21,20 +21,23 @@ import edu.byu.cs.util.PhaseUtils;
 public class UnitTestGrader extends TestGrader {
 
     private final float targetPercent; // if config can't load, 80%
-    private final float extraCreditPercent = 0.9F; // double check with professors
+    private final float extraCreditPercent; // if config can't load, 90%
     //TODO: consider making me a config point that is set up on the autograder admin config page like penalty percent
 
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
         float percent;
+        float extraPercent;
         try{
             percent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, Float.class);
+            extraPercent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, Float.class);
         }
         catch (DataAccessException e){
             percent = 0.8F;
-            //do something if fails
+            extraPercent = 0.9F;
         }
         targetPercent = percent;
+        extraCreditPercent = extraPercent;
     }
 
     @Override
