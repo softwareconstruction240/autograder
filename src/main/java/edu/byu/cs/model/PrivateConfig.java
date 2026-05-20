@@ -34,7 +34,8 @@ public record PrivateConfig(
         float gitCommitPenalty,
         int maxLateDaysPenalized,
         int linesChangedPerCommit,
-        int clockForgivenessMinutes
+        int clockForgivenessMinutes,
+        float coveragePercent
     ){ }
 
     /**

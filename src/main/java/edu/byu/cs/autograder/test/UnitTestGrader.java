@@ -5,6 +5,9 @@ import java.util.Set;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
@@ -17,12 +20,21 @@ import edu.byu.cs.util.PhaseUtils;
  */
 public class UnitTestGrader extends TestGrader {
 
-    private final float targetPercent = 0.8F; // how much we want covered, change me if too low or high
+    private final float targetPercent; // if config can't load, 80%
     private final float extraCreditPercent = 0.9F; // double check with professors
     //TODO: consider making me a config point that is set up on the autograder admin config page like penalty percent
 
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
+        float percent;
+        try{
+            percent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, Float.class);
+        }
+        catch (DataAccessException e){
+            percent = 0.8F;
+            //do something if fails
+        }
+        targetPercent = percent;
     }
 
     @Override

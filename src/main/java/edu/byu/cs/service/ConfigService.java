@@ -127,7 +127,8 @@ public class ConfigService {
                 dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class),
                 dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class),
                 dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class),
-                dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class)
+                dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class),
+                dao.getConfiguration(Configuration.COVERAGE_PERCENT, Float.class)
         );
     }
 
