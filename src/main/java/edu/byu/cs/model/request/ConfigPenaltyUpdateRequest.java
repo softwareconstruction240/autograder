@@ -15,5 +15,7 @@ public record ConfigPenaltyUpdateRequest(
         int maxLateDaysPenalized,
         float gitCommitPenalty,
         int linesChangedPerCommit,
-        int clockForgivenessMinutes
+        int clockForgivenessMinutes,
+        float coveragePercent,
+        float extraCoveragePercent
 ) {}

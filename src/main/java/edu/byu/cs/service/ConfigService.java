@@ -12,6 +12,7 @@ import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ObjectInputFilter;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -365,12 +366,16 @@ public class ConfigService {
         validateNonNegativeInt(request.clockForgivenessMinutes(), "Clock Forgiveness Minutes");
         validateNonNegativeInt(request.maxLateDaysPenalized(), "Max Late Days Penalized");
         validateNonNegativeInt(request.linesChangedPerCommit(), "Lines Changed Per Commit");
+        validateValidPercentFloat(request.coveragePercent(), "Code Coverage Percent");
+        validateValidPercentFloat(request.extraCoveragePercent(), "Extra Code Coverage Percent");
 
         setConfigItem(user, Configuration.GIT_COMMIT_PENALTY, request.gitCommitPenalty(), Float.class);
         setConfigItem(user, Configuration.PER_DAY_LATE_PENALTY, request.perDayLatePenalty(), Float.class);
         setConfigItem(user, Configuration.CLOCK_FORGIVENESS_MINUTES, request.clockForgivenessMinutes(), Integer.class);
         setConfigItem(user, Configuration.MAX_LATE_DAYS_TO_PENALIZE, request.maxLateDaysPenalized(), Integer.class);
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
+        setConfigItem(user, Configuration.COVERAGE_PERCENT, request.coveragePercent(), Float.class);
+        setConfigItem(user, Configuration.EXTRA_COVERAGE_PERCENT, request.extraCoveragePercent(), Float.class);
     }
 
     /**
