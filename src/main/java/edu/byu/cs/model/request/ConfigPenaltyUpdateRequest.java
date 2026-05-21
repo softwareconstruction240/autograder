@@ -11,6 +11,7 @@ package edu.byu.cs.model.request;
  *                                past the time of submission
  * @param coveragePercent the percentage of code coverage expected for a submission to receive full credit
  * @param extraCoveragePercent the percentage of code coverage expected for a submission to receive extra credit
+ * @param coverageType the type of code coverage to use when calculating penalties (branch or line)
  */
 public record ConfigPenaltyUpdateRequest(
         float perDayLatePenalty,

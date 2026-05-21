@@ -16,7 +16,9 @@ import java.util.HashSet;
 
 /**
  * Parses the code coverage output stored in a JaCoCo CSV file into a
- * {@link CoverageAnalysis} containing the appropriate coverage results
+ * {@link CoverageAnalysis} containing the appropriate coverage results.
+ * <br>
+ * Supports Branch and Line coverage. Default coverage is Line Coverage.
  */
 public class CoverageAnalyzer {
     private final String coverageMissedHeader;
