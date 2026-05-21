@@ -123,6 +123,7 @@ public class ConfigService {
     // PRIVATE CONFIG GENERATORS
     //
     private static PrivateConfig.PenaltyConfig generatePenaltyConfig() throws DataAccessException {
+        String coverageType = dao.getConfiguration(Configuration.COVERAGE_TYPE, String.class);
         return new PrivateConfig.PenaltyConfig(
                 dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class),
                 dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class),
@@ -131,7 +132,8 @@ public class ConfigService {
                 dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class),
                 dao.getConfiguration(Configuration.COVERAGE_PERCENT, Float.class),
                 dao.getConfiguration(Configuration.EXTRA_COVERAGE_PERCENT, Float.class),
-                ConfigPenaltyUpdateRequest.CoverageType.valueOf(dao.getConfiguration(Configuration.COVERAGE_TYPE, String.class))
+                coverageType.isEmpty() ? ConfigPenaltyUpdateRequest.CoverageType.LINE :
+                        ConfigPenaltyUpdateRequest.CoverageType.valueOf(coverageType)
         );
     }
 
@@ -369,6 +371,7 @@ public class ConfigService {
         validateNonNegativeInt(request.linesChangedPerCommit(), "Lines Changed Per Commit");
         validateValidPercentFloat(request.coveragePercent(), "Code Coverage Percent");
         validateValidPercentFloat(request.extraCoveragePercent(), "Extra Code Coverage Percent");
+        validateEnum(request.coverageType().name(), ConfigPenaltyUpdateRequest.CoverageType.class);
 
         setConfigItem(user, Configuration.GIT_COMMIT_PENALTY, request.gitCommitPenalty(), Float.class);
         setConfigItem(user, Configuration.PER_DAY_LATE_PENALTY, request.perDayLatePenalty(), Float.class);
@@ -470,6 +473,10 @@ public class ConfigService {
         if (value < 0) {
             throw new IllegalArgumentException(name + " must be non-negative");
         }
+    }
+
+    private static <E extends Enum<E>> void validateEnum(String value, Class<E>enumName){
+        Enum.valueOf(enumName, value);
     }
 
     private static <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
