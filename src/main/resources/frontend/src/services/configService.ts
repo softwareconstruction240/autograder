@@ -17,7 +17,8 @@ export const setPenalties = async (
   linesChangedPerCommit: number,
   clockForgivenessMinutes: number,
   coveragePercent: number,
-  extraCoveragePercent: number
+  extraCoveragePercent: number,
+  coverageType: 'LINE' | 'BRANCH'
 ) => {
   await doSetConfigItem("/api/admin/config/penalties", {
     maxLateDaysPenalized: maxLateDaysPenalized,
@@ -27,6 +28,7 @@ export const setPenalties = async (
     clockForgivenessMinutes: clockForgivenessMinutes,
     coveragePercent: coveragePercent,
     extraCoveragePercent: extraCoveragePercent,
+    coverageType: coverageType,
   });
 };
 

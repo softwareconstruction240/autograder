@@ -16,6 +16,7 @@ const linesChangedPerCommit = ref<number>(config.admin.penalty.linesChangedPerCo
 const clockForgivenessMinutes = ref<number>(config.admin.penalty.clockForgivenessMinutes);
 const coveragePercent = ref<number>(Math.round(config.admin.penalty.coveragePercent * 100));
 const extraCoveragePercent = ref<number>(Math.round(config.admin.penalty.extraCoveragePercent * 100));
+const coverageType = ref<'LINE' | 'BRANCH'>(config.admin.penalty.coverageType);
 
 const valuesReady = () => {
   return (
@@ -42,7 +43,8 @@ const submit = async () => {
       linesChangedPerCommit.value,
       clockForgivenessMinutes.value,
       coveragePercent.value / 100,
-      extraCoveragePercent.value / 100
+      extraCoveragePercent.value / 100,
+      coverageType.value
     );
 
     closeEditor();
@@ -106,6 +108,14 @@ const submit = async () => {
         The percentage of code coverage expected for unit tests to receive extra credit.
       </p>
       <p><input type="number" v-model="extraCoveragePercent" />%</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Coverage Type</p>
+      <p class="valueDescription">
+        The type of coverage to be measured.
+      </p>
+      <p><input type = "radio" value="LINE" v-model="coverageType" /> Line</p>
+      <p><input type = "radio" value="BRANCH" v-model="coverageType" /> Branch</p>
     </div>
   </div>
 

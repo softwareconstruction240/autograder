@@ -41,6 +41,7 @@ export type PrivateConfig = {
     clockForgivenessMinutes: number;
     coveragePercent: number;
     extraCoveragePercent: number;
+    coverageType: 'LINE' | 'BRANCH';
   };
 
   courseNumber: number;
@@ -81,6 +82,9 @@ export const useConfigStore = defineStore("config", () => {
       maxLateDaysPenalized: -1,
       linesChangedPerCommit: -1,
       clockForgivenessMinutes: -1,
+      coveragePercent: -1,
+      extraCoveragePercent: -1,
+      coverageType: 'LINE',
     },
     courseNumber: -1,
     assignments: [],

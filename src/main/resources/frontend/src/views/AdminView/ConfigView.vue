@@ -168,6 +168,10 @@ onMounted(async () => {
           <span class="infoLabel">Extra Coverage Percent: </span
           >{{ Math.round(config.admin.penalty.extraCoveragePercent * 100) }}%
         </p>
+        <p>
+          <span class="infoLabel">Coverage Type: </span
+          >{{ config.admin.penalty.coverageType.toLocaleLowerCase()}}
+        </p>
       </template>
     </ConfigSection>
 
