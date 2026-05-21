@@ -14,6 +14,8 @@ import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.util.PhaseUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Runs and scores the unit tests for the phase a submission is graded for
@@ -22,7 +24,8 @@ public class UnitTestGrader extends TestGrader {
 
     private final float targetPercent; // if config can't load, 80%
     private final float extraCreditPercent; // if config can't load, 90%
-    //TODO: consider making me a config point that is set up on the autograder admin config page like penalty percent
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnitTestGrader.class);
 
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
@@ -35,6 +38,7 @@ public class UnitTestGrader extends TestGrader {
         catch (DataAccessException e){
             percent = 0.8F;
             extraPercent = 0.9F;
+            LOGGER.error("Could not get coverage percents from config, using default values of 80% and 90%", e);
         }
         targetPercent = percent;
         extraCreditPercent = extraPercent;
