@@ -19,5 +19,12 @@ public record ConfigPenaltyUpdateRequest(
         int linesChangedPerCommit,
         int clockForgivenessMinutes,
         float coveragePercent,
-        float extraCoveragePercent
-) {}
+        float extraCoveragePercent,
+        CoverageType coverageType
+) {
+    public enum CoverageType {
+        LINE,
+        BRANCH
+    }
+}
+

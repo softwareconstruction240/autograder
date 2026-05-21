@@ -1,5 +1,7 @@
 package edu.byu.cs.model;
 
+import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +40,8 @@ public record PrivateConfig(
         int linesChangedPerCommit,
         int clockForgivenessMinutes,
         float coveragePercent,
-        float extraCoveragePercent
+        float extraCoveragePercent,
+        ConfigPenaltyUpdateRequest.CoverageType coverageType
     ){ }
 
     /**

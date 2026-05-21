@@ -38,6 +38,7 @@ public interface ConfigurationDao {
         HOLIDAY_LIST,
         SLACK_LINK,
         COVERAGE_PERCENT,
-        EXTRA_COVERAGE_PERCENT
+        EXTRA_COVERAGE_PERCENT,
+        COVERAGE_TYPE
     }
 }

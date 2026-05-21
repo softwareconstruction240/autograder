@@ -130,7 +130,8 @@ public class ConfigService {
                 dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class),
                 dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class),
                 dao.getConfiguration(Configuration.COVERAGE_PERCENT, Float.class),
-                dao.getConfiguration(Configuration.EXTRA_COVERAGE_PERCENT, Float.class)
+                dao.getConfiguration(Configuration.EXTRA_COVERAGE_PERCENT, Float.class),
+                ConfigPenaltyUpdateRequest.CoverageType.valueOf(dao.getConfiguration(Configuration.COVERAGE_TYPE, String.class))
         );
     }
 
@@ -376,6 +377,7 @@ public class ConfigService {
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
         setConfigItem(user, Configuration.COVERAGE_PERCENT, request.coveragePercent(), Float.class);
         setConfigItem(user, Configuration.EXTRA_COVERAGE_PERCENT, request.extraCoveragePercent(), Float.class);
+        setConfigItem(user, Configuration.COVERAGE_TYPE, request.coverageType().name(), String.class);
     }
 
     /**
