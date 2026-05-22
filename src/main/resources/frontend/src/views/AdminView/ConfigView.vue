@@ -170,7 +170,7 @@ onMounted(async () => {
         </p>
         <p>
           <span class="infoLabel">Coverage Type: </span
-          >{{ config.admin.penalty.coverageType.toLocaleLowerCase()}}
+          >{{ config.admin.penalty.coverageType.toLocaleLowerCase() }}
         </p>
       </template>
     </ConfigSection>

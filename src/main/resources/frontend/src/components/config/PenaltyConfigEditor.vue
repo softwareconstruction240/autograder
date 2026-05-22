@@ -15,8 +15,10 @@ const gitPenalty = ref<number>(Math.round(config.admin.penalty.gitCommitPenalty 
 const linesChangedPerCommit = ref<number>(config.admin.penalty.linesChangedPerCommit);
 const clockForgivenessMinutes = ref<number>(config.admin.penalty.clockForgivenessMinutes);
 const coveragePercent = ref<number>(Math.round(config.admin.penalty.coveragePercent * 100));
-const extraCoveragePercent = ref<number>(Math.round(config.admin.penalty.extraCoveragePercent * 100));
-const coverageType = ref<'LINE' | 'BRANCH'>(config.admin.penalty.coverageType);
+const extraCoveragePercent = ref<number>(
+  Math.round(config.admin.penalty.extraCoveragePercent * 100),
+);
+const coverageType = ref<"LINE" | "BRANCH">(config.admin.penalty.coverageType);
 
 const valuesReady = () => {
   return (
@@ -44,7 +46,7 @@ const submit = async () => {
       clockForgivenessMinutes.value,
       coveragePercent.value / 100,
       extraCoveragePercent.value / 100,
-      coverageType.value
+      coverageType.value,
     );
 
     closeEditor();
@@ -111,11 +113,9 @@ const submit = async () => {
     </div>
     <div class="value">
       <p class="valueName">Coverage Type</p>
-      <p class="valueDescription">
-        The type of coverage to be measured.
-      </p>
-      <p><input type = "radio" value="LINE" v-model="coverageType" /> Line</p>
-      <p><input type = "radio" value="BRANCH" v-model="coverageType" /> Branch</p>
+      <p class="valueDescription">The type of coverage to be measured.</p>
+      <p><input type="radio" value="LINE" v-model="coverageType" /> Line</p>
+      <p><input type="radio" value="BRANCH" v-model="coverageType" /> Branch</p>
     </div>
   </div>
 

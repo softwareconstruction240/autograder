@@ -41,7 +41,7 @@ export type PrivateConfig = {
     clockForgivenessMinutes: number;
     coveragePercent: number;
     extraCoveragePercent: number;
-    coverageType: 'LINE' | 'BRANCH';
+    coverageType: "LINE" | "BRANCH";
   };
 
   courseNumber: number;
@@ -84,7 +84,7 @@ export const useConfigStore = defineStore("config", () => {
       clockForgivenessMinutes: -1,
       coveragePercent: -1,
       extraCoveragePercent: -1,
-      coverageType: 'LINE',
+      coverageType: "LINE",
     },
     courseNumber: -1,
     assignments: [],

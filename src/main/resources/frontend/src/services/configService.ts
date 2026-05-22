@@ -18,7 +18,7 @@ export const setPenalties = async (
   clockForgivenessMinutes: number,
   coveragePercent: number,
   extraCoveragePercent: number,
-  coverageType: 'LINE' | 'BRANCH'
+  coverageType: "LINE" | "BRANCH",
 ) => {
   await doSetConfigItem("/api/admin/config/penalties", {
     maxLateDaysPenalized: maxLateDaysPenalized,
