@@ -3,12 +3,13 @@ networks:
 
 services:
   db:
-    image: mysql:9.0.1
+    image: mysql:9.7.0
+    command: --lower-case-table-names=1
     profiles:
       - with-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_ROOT_PASSWORD: "changeme"
     volumes:
       - db-data:/var/lib/mysql
     ports:

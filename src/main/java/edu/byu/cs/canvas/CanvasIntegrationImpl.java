@@ -79,7 +79,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
                     CanvasSection.class)
                 .body().students().stream()
-                .map(CanvasSection.CanvasSectionStudent::login_id)
+                .map(CanvasSection.CanvasSectionStudent::loginId)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
@@ -202,10 +202,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 CanvasAssignment[].class
         ).body()[0];
 
-        if (assignment == null || assignment.due_at() == null)
+        if (assignment == null || assignment.dueAt() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
-        return assignment.due_at();
+        return assignment.dueAt();
     }
 
     @Override
