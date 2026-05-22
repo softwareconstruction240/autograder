@@ -14,7 +14,7 @@ import {
 } from "@/utils/utils";
 import RubricItemView from "@/views/StudentView/RubricItemView.vue";
 import InfoPanel from "@/components/InfoPanel.vue";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { approveSubmissionPost } from "@/services/adminService";
 import { ref } from "vue";
 
@@ -65,7 +65,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
 
     <div
       v-if="
-        useAuthStore().user?.role == 'ADMIN' &&
+        useUserStore().user?.role == 'ADMIN' &&
         submission.passed &&
         commitVerificationFailed(submission)
       "

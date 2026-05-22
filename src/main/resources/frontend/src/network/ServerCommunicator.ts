@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { ServerError } from "@/network/ServerError";
 import { useConfigStore } from "@/stores/config";
 
@@ -208,7 +208,7 @@ async function doUnprocessedRequest(
   endpoint: string,
   bodyObject: Object | null = null,
 ): Promise<Response> {
-  const authToken = useAuthStore().token ?? "";
+  const authToken = useUserStore().token ?? "";
 
   const response = await fetch(useConfigStore().backendUrl + endpoint, {
     method: method,

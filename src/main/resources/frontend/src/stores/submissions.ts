@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { Phase, type Submission } from "@/types/types";
 import { lastSubmissionGet, submissionsGet, submitGet } from "@/services/submissionService";
 import { useConfigStore } from "@/stores/config";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 
 type SubmissionsByPhase = {
   [phase: string]: Submission[];
@@ -54,10 +54,6 @@ export const useSubmissionStore = defineStore("submission", () => {
 export const subscribeToGradingUpdates = (eventHandler: (event: MessageEvent) => void) => {
   const wsBackendUrl = useConfigStore().backendUrl.replace(/^http/, "ws") + "/ws";
   const ws = new WebSocket(wsBackendUrl);
-  ws.onopen = () => {
-    const token = useAuthStore().token;
-    ws.send(token);
-  };
   ws.onmessage = (event) => {
     eventHandler(event);
   };
