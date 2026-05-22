@@ -80,10 +80,10 @@ public class UnitTestGrader extends TestGrader {
             return 0;
         }
 
-        if (coveragePercent > extraCreditPercent) {
+        if (coveragePercent >= extraCreditPercent) {
             return 1.05F;
         }
-        if (coveragePercent > targetPercent){
+        if (coveragePercent >= targetPercent){
             return 1;
         }
 
