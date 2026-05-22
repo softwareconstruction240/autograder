@@ -54,6 +54,9 @@ export const useSubmissionStore = defineStore("submission", () => {
 export const subscribeToGradingUpdates = (eventHandler: (event: MessageEvent) => void) => {
   const wsBackendUrl = useConfigStore().backendUrl.replace(/^http/, "ws") + "/ws";
   const ws = new WebSocket(wsBackendUrl);
+  ws.onopen = () => {
+    ws.send("");
+  };
   ws.onmessage = (event) => {
     eventHandler(event);
   };
