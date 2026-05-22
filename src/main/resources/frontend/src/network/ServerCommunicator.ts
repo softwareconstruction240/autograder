@@ -207,7 +207,6 @@ async function doUnprocessedRequest(
   endpoint: string,
   bodyObject: Object | null = null,
 ): Promise<Response> {
-
   const response = await fetch(useConfigStore().backendUrl + endpoint, {
     method: method,
     credentials: "include",
