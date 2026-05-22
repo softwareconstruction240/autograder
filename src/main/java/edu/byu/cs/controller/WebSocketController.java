@@ -28,7 +28,6 @@ public class WebSocketController {
 
     public static void onMessage(WsMessageContext ctx) {
         Session session = ctx.session;
-        String message = ctx.message();
         String netId;
         ctx.enableAutomaticPings(20, TimeUnit.SECONDS);
         try {
@@ -54,22 +53,6 @@ public class WebSocketController {
         // notify all queue members of the new queue state.
         TrafficController.addSession(netId, session);
         updateAllQueueMembers();
-    }
-
-    /**
-     * Extracts the token from the WebSocket message, authenticates it.
-     * When the token is valid, it returns the netId of the student it belongs to.
-     *
-     * @param message A WebSocket message
-     * @return The students verified netId, or null if the token is invalid or incomplete.
-     */
-    private String authenticateMessage(String message) {
-        try {
-            return JwtUtils.validateToken(message);
-        } catch (Exception e) {
-            LOGGER.warn("Exception thrown while validating token: ", e);
-            return null;
-        }
     }
 
     /**

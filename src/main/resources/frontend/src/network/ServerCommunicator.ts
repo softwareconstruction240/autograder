@@ -1,4 +1,3 @@
-import { useAuthStore } from "@/stores/auth";
 import { ServerError } from "@/network/ServerError";
 import { useConfigStore } from "@/stores/config";
 
@@ -208,14 +207,11 @@ async function doUnprocessedRequest(
   endpoint: string,
   bodyObject: Object | null = null,
 ): Promise<Response> {
-  const authToken = useAuthStore().token ?? "";
-
   const response = await fetch(useConfigStore().backendUrl + endpoint, {
     method: method,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      Authorization: authToken,
     },
     body: bodyObject ? JSON.stringify(bodyObject) : null,
   });

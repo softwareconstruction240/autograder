@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount } from "vue";
 import { meGet } from "@/services/authService";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import router from "@/router";
 import { uiConfig } from "@/stores/uiConfig";
 import { Phase } from "@/types/types";
@@ -11,7 +11,7 @@ onBeforeMount(async () => {
   const loggedInUser = await meGet();
   if (loggedInUser == null) return;
 
-  useAuthStore().user = loggedInUser;
+  useUserStore().user = loggedInUser;
   router.push({ name: "home" });
 });
 
@@ -30,7 +30,7 @@ const goToApp = () => {
     <a target="_blank" :href="uiConfig.getSpecLink(Phase.GitHub)">
       <span>Click here for more info</span>
     </a>
-    <RepoEditor @repoEditSuccess="goToApp" :user="useAuthStore().user" />
+    <RepoEditor @repoEditSuccess="goToApp" :user="useUserStore().user" />
   </div>
 </template>
 
