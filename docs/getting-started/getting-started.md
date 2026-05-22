@@ -53,7 +53,7 @@ Additionally, you can also leverage Intelli-J's "File > New > New Project from V
 feature which will do it for you given a GitHub link.
 
 ### 2. Use the latest version of the JVM
-The system currently requires version **21+**.
+The system currently requires version **25+**.
 
 Go fish🐟 Specific instructions to update are not included here.
 
