@@ -35,13 +35,20 @@ public class RubricConfigMemoryDao implements RubricConfigDao {
 
         var rubricTypeToConfigItem = rubricConfig.items();
         RubricConfig.RubricConfigItem oldRubricConfigItem = rubricTypeToConfigItem.get(type);
-        RubricConfig.RubricConfigItem newRubricConfigItem = null;
+        RubricConfig.RubricConfigItem newRubricConfigItem;
         if (oldRubricConfigItem != null){
             newRubricConfigItem = new RubricConfig.RubricConfigItem(
                 oldRubricConfigItem.category(),
                 oldRubricConfigItem.criteria(),
                 points,
                 rubric_id
+            );
+        } else {
+            newRubricConfigItem = new RubricConfig.RubricConfigItem(
+                    null,
+                    null,
+                    points,
+                    rubric_id
             );
         }
         rubricTypeToConfigItem.put(type, newRubricConfigItem);

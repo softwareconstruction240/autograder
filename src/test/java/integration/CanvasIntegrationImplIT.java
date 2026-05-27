@@ -40,14 +40,13 @@ public class CanvasIntegrationImplIT {
     @BeforeEach
     public void setUpEach() throws DataAccessException {
         DaoService.initializeMemoryDAOs();
-        // ok dilemma:
-        // sql is convenient for local machine and prod machine, but will run into problems when trying to run on GH actions
-        // I am using it for 3 things:
-            // 1. course number
-            // 2. rubric config
-            // 3. assignment IDs
-        // the big question: can all of these be replaced by an in-memory implementation WITHOUT a ton of maintenance every semester?
         DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, 33692, Integer.class);
+        //TODO: get the course number dynamically, esp. when running on GitHub Actions. Needs to work locally, in GH Actions, and in deployment.
+        // possible solutions:
+        // 1. query the live autogrder's MySQL Config DAO for the course ID (this would require a lot of workarounds)
+        // 2. query the API at cs240.click/api/admin/config (needs OAuth to work)
+        // 3. make a new public autograder endpoint to get the course ID specifically (this would be pretty easy, but should we expose the course ID publicly?)
+        // 4. keep manually updating it either here or as an environment variable in GH Actions
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
     }
@@ -300,21 +299,13 @@ public class CanvasIntegrationImplIT {
         if (canvasToken == null) {
             throw new RuntimeException("Environment variable CANVAS_API_TOKEN not set");
         }
-        String username = System.getenv("MYSQL_USERNAME");
-        if (username == null) {
-            throw new RuntimeException("Environment variable MYSQL_USERNAME not set");
-        }
-        String password = System.getenv("MYSQL_PASSWORD");
-        if (password == null) {
-            throw new RuntimeException("Environment variable MYSQL_PASSWORD not set");
-        }
 
         Properties testProperties = new Properties();
-        testProperties.setProperty("db-host", "localhost");
-        testProperties.setProperty("db-port", "3306");
-        testProperties.setProperty("db-name", "autograder");
-        testProperties.setProperty("db-user", username);
-        testProperties.setProperty("db-pass", password);
+        testProperties.setProperty("db-host", "unused");
+        testProperties.setProperty("db-port", "unused");
+        testProperties.setProperty("db-name", "unused");
+        testProperties.setProperty("db-user", "unused");
+        testProperties.setProperty("db-pass", "unused");
         testProperties.setProperty("frontend-url", "unused");
         testProperties.setProperty("cas-callback-url", "unused");
         testProperties.setProperty("canvas-token", canvasToken);
