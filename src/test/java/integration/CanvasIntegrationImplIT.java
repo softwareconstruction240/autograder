@@ -31,7 +31,6 @@ public class CanvasIntegrationImplIT {
 
     private CanvasIntegration canvasIntegration;
     private CanvasIntegrationImpl.CourseInfoRetriever retriever;
-    private static int courseID;
 
     @BeforeAll
     public static void setUp() {
@@ -40,26 +39,25 @@ public class CanvasIntegrationImplIT {
 
     @BeforeEach
     public void setUpEach() throws DataAccessException {
-        DaoService.initializeSqlDAOs();
+        DaoService.initializeMemoryDAOs();
+        // ok dilemma:
+        // sql is convenient for local machine and prod machine, but will run into problems when trying to run on GH actions
+        // I am using it for 3 things:
+            // 1. course number
+            // 2. rubric config
+            // 3. assignment IDs
+        // the big question: can all of these be replaced by an in-memory implementation WITHOUT a ton of maintenance every semester?
+        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, 33692, Integer.class);
         canvasIntegration = new CanvasIntegrationImpl();
         retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
-        courseID = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, Integer.class);
     }
-    // TODO: should test the following:
-    // 1) can get user by net id?
-    // 2) can get all net ids in a section?
-    // 3) can submit a grade (both overloads)
-    // 4) can get a submission for a specific student and assignment?
-    // 5) can get the test student?
-    // 6) can get an assignment's due date for a particular student?
-    // 7) can get all sections in class?
-    // should use logger.error() to notify that something is wrong if the API changes
+
     @Test
     @DisplayName("Can get a user by Net ID")
     public void getUserByNetID() {
         User randomStudent = null;
         try {
-            randomStudent = retriever.getRandomEnrolledStudent(courseID);
+            randomStudent = retriever.getRandomEnrolledStudent();
             canvasIntegration.getUser(randomStudent.netId());
         } catch (CanvasException e) {
             LOGGER.error("Could not get a user from Canvas: {}", e.getMessage());
@@ -106,6 +104,7 @@ public class CanvasIntegrationImplIT {
     @DisplayName("Can submit a grade by rubric")
     public void submitGradeRubric() {
         try {
+            retriever.useCourseRelatedInfoFromCanvas();
             User testStudent = canvasIntegration.getTestStudent();
             Map<Phase, Integer> assignmentIDs = retriever.getAssignmentIds();
             for(Phase phase : Phase.values()) {

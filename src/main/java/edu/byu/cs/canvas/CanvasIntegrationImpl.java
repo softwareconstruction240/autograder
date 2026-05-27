@@ -1,9 +1,9 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.*;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
@@ -388,7 +388,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return sections.getFirst().id();
         }
 
-        public User getRandomEnrolledStudent(int courseID) throws CanvasException{
+        public User getRandomEnrolledStudent() throws CanvasException{
             List<CanvasUser> users = makePaginatedCanvasRequest(
                     "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20",
                     CanvasUser.class);
