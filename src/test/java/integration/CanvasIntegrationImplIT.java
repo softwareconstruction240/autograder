@@ -67,6 +67,14 @@ public class CanvasIntegrationImplIT {
     }
 
     @Test
+    @DisplayName("Fails to get a user when Net ID doesn't match")
+    public void getUserNoNetID() {
+        Assertions.assertThrows(CanvasException.class, () ->
+            canvasIntegration.getUser(UUID.randomUUID().toString())
+        );
+    }
+
+    @Test
     @DisplayName("Can get all net IDs in a section")
     public void getNetIdsFromSection() {
         Collection<String> netids = null;
@@ -94,7 +102,7 @@ public class CanvasIntegrationImplIT {
             }
 
         } catch (CanvasException e) {
-            LOGGER.error("Could not submit a grade: {}", e.getMessage());
+            LOGGER.error("Could not submit a grade by number: {}", e.getMessage());
             fail("Exception thrown: ", e);
         }
     }
@@ -118,7 +126,7 @@ public class CanvasIntegrationImplIT {
                 Assertions.assertEquals(Math.round(expectedScore), Math.round(actualScore));
             }
         } catch (CanvasException | GradingException | DataAccessException e) {
-            LOGGER.error("Could not submit a grade: {}", e.getMessage());
+            LOGGER.error("Could not submit a grade by rubric: {}", e.getMessage());
             fail("Exception thrown: ", e);
         }
     }

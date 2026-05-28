@@ -50,7 +50,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "GET",
                 "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 CanvasUser[].class).body();
-
+        if(users == null) {
+            throw new CanvasException("User not found in Canvas: " + netId);
+        }
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
                 User.Role role;
