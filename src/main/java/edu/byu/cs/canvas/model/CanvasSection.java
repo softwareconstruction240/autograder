@@ -15,7 +15,7 @@ import java.util.Collection;
 public record CanvasSection (
         Integer id,
         String name,
-        Collection<CanvasSectionStudent> students, @SerializedName("end_at") String endAt) {
+        Collection<CanvasSectionStudent> students) {
     /**
      * Represents a student for the section in Canvas
      *
