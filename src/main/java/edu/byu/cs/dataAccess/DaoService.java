@@ -4,12 +4,6 @@ import edu.byu.cs.dataAccess.daoInterface.*;
 import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.dataAccess.sql.*;
 import edu.byu.cs.model.Phase;
-import edu.byu.cs.model.RubricConfig;
-
-import java.util.EnumMap;
-import java.util.Map;
-
-import static edu.byu.cs.model.Rubric.RubricType.*;
 
 /**
  * Provides centralized access and management for all DAOs.
