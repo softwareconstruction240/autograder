@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import AdminView from "@/views/AdminView/AdminView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 
@@ -13,11 +13,11 @@ const router = createRouter({
       name: "home",
       component: HomeView,
       beforeEnter: (to, from) => {
-        if (!useAuthStore().isLoggedIn)
+        if (!useUserStore().isLoggedIn)
           // query must be included for login error messages to work correctly
           return { name: "login", query: to.query };
-        if (!useAuthStore().isFullyRegistered) return "/register";
-        if (useAuthStore().user?.role === "ADMIN") return "/admin";
+        if (!useUserStore().isFullyRegistered) return "/register";
+        if (useUserStore().user?.role === "ADMIN") return "/admin";
       },
     },
     {
@@ -25,8 +25,8 @@ const router = createRouter({
       name: "register",
       component: RegisterView,
       beforeEnter: (to, from) => {
-        if (useAuthStore().isFullyRegistered) return "/";
-        if (!useAuthStore().isLoggedIn) return "login";
+        if (useUserStore().isFullyRegistered) return "/";
+        if (!useUserStore().isLoggedIn) return "login";
       },
     },
     {
@@ -34,7 +34,7 @@ const router = createRouter({
       name: "admin",
       component: AdminView,
       beforeEnter: (to, from) => {
-        if (useAuthStore().user?.role !== "ADMIN") return "/";
+        if (useUserStore().user?.role !== "ADMIN") return "/";
       },
     },
     {

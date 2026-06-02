@@ -9,19 +9,13 @@ type User = {
   role: "STUDENT" | "ADMIN";
 };
 
-export const useAuthStore = defineStore("auth", () => {
+export const useUserStore = defineStore("user", () => {
   const user = ref<User | null>(null);
-
-  const token =
-    document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token"))
-      ?.split("=")[1] || "";
 
   const isLoggedIn = computed(() => user.value !== null);
 
   const isFullyRegistered = computed(() => {
-    const user = useAuthStore().user;
+    const user = useUserStore().user;
     if (user == null) {
       return false;
     }
@@ -33,5 +27,5 @@ export const useAuthStore = defineStore("auth", () => {
     return true;
   });
 
-  return { user, token, isLoggedIn, isFullyRegistered };
+  return { user, isLoggedIn, isFullyRegistered };
 });

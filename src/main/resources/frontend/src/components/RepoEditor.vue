@@ -3,7 +3,7 @@ import { isPlausibleRepoUrl } from "@/utils/utils";
 import { defineEmits, reactive } from "vue";
 import { adminUpdateRepo, studentUpdateRepo } from "@/services/userService";
 import type { User } from "@/types/types";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 
 const { user } = defineProps<{
   user: User | null;
@@ -24,7 +24,7 @@ const submitAndCheckRepo = async (sendEmit: (event: any) => void) => {
   waitingForRepoCheck.value = true;
 
   try {
-    if (useAuthStore().user?.role == "ADMIN" && user != null) {
+    if (useUserStore().user?.role == "ADMIN" && user != null) {
       await adminUpdateRepo(newRepoUrl.value, user.netId);
     } else {
       await studentUpdateRepo(newRepoUrl.value);

@@ -2,7 +2,7 @@ import { reactive, readonly, ref } from "vue";
 import { defineStore } from "pinia";
 import { Phase, type RubricInfo, type RubricType } from "@/types/types";
 import { getAdminConfig, getPublicConfig } from "@/services/configService";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 
 type ImportMeta = {
   VITE_APP_BACKEND_URL: string;
@@ -86,7 +86,7 @@ export const useConfigStore = defineStore("config", () => {
   });
 
   const updateConfig = async () => {
-    if (useAuthStore().isLoggedIn) await updateAdminConfig();
+    if (useUserStore().isLoggedIn) await updateAdminConfig();
     await updatePublicConfig();
   };
 

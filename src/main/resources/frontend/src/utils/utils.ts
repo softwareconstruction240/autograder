@@ -9,7 +9,7 @@ import {
   type TestNode,
   VerifiedStatus,
 } from "@/types/types";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -83,7 +83,7 @@ export const nameFromNetId = (netId: string) => {
  * @param submission
  */
 export const nameOnSubmission = (submission: Submission) => {
-  const user = useAuthStore().user;
+  const user = useUserStore().user;
   if (!user) {
     console.error("Asking for name on submission while logged out");
     return "?";
@@ -304,5 +304,5 @@ export const isLastDateWithinXDays = (dates: Date[] | string[], days: number) =>
 };
 
 export const isAdmin = (): boolean => {
-  return useAuthStore().user?.role === "ADMIN";
+  return useUserStore().user?.role === "ADMIN";
 };
