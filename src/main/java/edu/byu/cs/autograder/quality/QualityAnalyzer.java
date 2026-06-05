@@ -60,7 +60,7 @@ public class QualityAnalyzer {
 
         if(!checkstyleFinished(output)) {
             LOGGER.error("Quality Analysis finished with problems: {}", error);
-            return new QualityAnalysis(0, "", "Could not complete code quality analysis. Please go see a TA.");
+            return new QualityAnalysis(0, error, "Could not complete code quality analysis. Please go see a TA.");
         }
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
