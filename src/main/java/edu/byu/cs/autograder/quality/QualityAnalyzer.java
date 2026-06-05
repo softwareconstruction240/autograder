@@ -3,6 +3,8 @@ package edu.byu.cs.autograder.quality;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 import edu.byu.cs.util.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -22,6 +24,8 @@ public class QualityAnalyzer {
     protected static final String checkStyleJarPath;
 
     private static final QualityRubric qualityRubricItems;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QualityAnalyzer.class);
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
@@ -45,13 +49,17 @@ public class QualityAnalyzer {
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo/shared", "repo/server", "repo/client");
 
         String output;
+        String error;
         try {
-            output = ProcessUtils.runProcess(processBuilder).stdOut();
+            var processOutput = ProcessUtils.runProcess(processBuilder);
+            output = processOutput.stdOut();
+            error = processOutput.stdErr();
         } catch (ProcessUtils.ProcessException e) {
             throw new GradingException("Error running code quality: " + e.getMessage(), e);
         }
 
         if(!checkstyleFinished(output)) {
+            LOGGER.error("Quality Analysis finished with problems: {}", error);
             return new QualityAnalysis(0, "", "Could not complete code quality analysis. Please go see a TA.");
         }
 
