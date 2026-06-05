@@ -3,8 +3,6 @@ package edu.byu.cs.autograder.quality;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.util.ProcessUtils;
 import edu.byu.cs.util.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -24,8 +22,6 @@ public class QualityAnalyzer {
     protected static final String checkStyleJarPath;
 
     private static final QualityRubric qualityRubricItems;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(QualityAnalyzer.class);
 
     static {
         Path libsPath = new File("phases", "libs").toPath();
