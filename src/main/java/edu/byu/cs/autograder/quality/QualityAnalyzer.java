@@ -59,8 +59,11 @@ public class QualityAnalyzer {
         }
 
         if(!checkstyleFinished(output)) {
-            LOGGER.error("Quality Analysis finished with problems: {}", error);
-            return new QualityAnalysis(0, error, "Could not complete code quality analysis. Please go see a TA.");
+            return new QualityAnalysis(
+                    0,
+                    sanitizeErrorStream(error),
+                    "Could not complete code quality analysis. Please go see a TA."
+            );
         }
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
@@ -183,6 +186,20 @@ public class QualityAnalyzer {
 
     private boolean checkstyleFinished(String output) {
         return output.endsWith("Audit done.\n");
+    }
+
+    /**
+     * Strips path names up to the repo folder
+     *
+     * @param error stream from process builder
+     * @return a new string without full path names
+     */
+    private String sanitizeErrorStream(String error) {
+        String sanitized = error;
+        if (error.contains("repo")) {
+            sanitized = error.replaceAll("[/\\S]*repo/", "");
+        }
+        return sanitized;
     }
 
     /**
