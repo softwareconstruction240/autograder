@@ -36,6 +36,9 @@ public interface ConfigurationDao {
         CLOCK_FORGIVENESS_MINUTES,
         MAX_ERROR_OUTPUT_CHARS,
         HOLIDAY_LIST,
-        SLACK_LINK
+        SLACK_LINK,
+        COVERAGE_PERCENT,
+        EXTRA_COVERAGE_PERCENT,
+        COVERAGE_TYPE
     }
 }

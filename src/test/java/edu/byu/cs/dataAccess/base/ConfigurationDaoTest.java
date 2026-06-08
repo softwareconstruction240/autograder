@@ -96,8 +96,10 @@ public abstract class ConfigurationDaoTest {
                     -> random.nextInt(1000000,2000000);
             case MAX_ERROR_OUTPUT_CHARS -> random.nextInt(1, 10000);
             case GRADER_SHUTDOWN_WARNING_MILLISECONDS -> 86400000; //24 hours in milliseconds
-            case GIT_COMMIT_PENALTY, PER_DAY_LATE_PENALTY -> random.nextFloat(0, 1);
+            case GIT_COMMIT_PENALTY, PER_DAY_LATE_PENALTY, COVERAGE_PERCENT, EXTRA_COVERAGE_PERCENT
+                    -> random.nextFloat(0, 1);
             case SLACK_LINK, BANNER_LINK, BANNER_COLOR, BANNER_MESSAGE-> "https://slack.com";
+            case COVERAGE_TYPE -> "LINE";
             case STUDENT_SUBMISSIONS_ENABLED -> random.nextBoolean();
             case GRADER_SHUTDOWN_DATE, HOLIDAY_LIST, BANNER_EXPIRATION-> Instant.now();
         };
