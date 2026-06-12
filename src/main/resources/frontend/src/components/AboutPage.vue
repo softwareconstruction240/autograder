@@ -170,6 +170,13 @@ onUnmounted(() => {
           contributions="Spent a heroic amount of time writing integration tests for Canvas"
           fa-icon="fa-solid fa-crow"
         />
+        <AboutPagePerson
+          name="Grant Harris"
+          url="https://github.com/TwoLettuce"
+          tenure="Jan 2026-Current"
+          contributions="Backend sequence diagrams. Also developed the Discord Bot for the Help Queue."
+          fa-icon="fa-solid fa-user-secret"
+        />
         <!--
         New Autograder Developers!
         Add yourself to the list right above this comment
