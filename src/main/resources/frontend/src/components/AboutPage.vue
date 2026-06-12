@@ -163,6 +163,13 @@ onUnmounted(() => {
           contributions="Updated authentication system and implemented grading with code coverage"
           fa-icon="fa-solid fa-chess-queen"
         />
+        <AboutPagePerson 
+          name="Jacob Memmott"
+          url="https://github.com/bsharplydian"
+          tenure="Sep 2025-Jun 2026"
+          contributions="Spent a heroic amount of time writing integration tests for Canvas"
+          fa-icon="fa-solid fa-crow"
+        />
         <!--
         New Autograder Developers!
         Add yourself to the list right above this comment
