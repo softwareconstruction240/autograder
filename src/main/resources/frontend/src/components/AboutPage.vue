@@ -163,7 +163,7 @@ onUnmounted(() => {
           contributions="Updated authentication system and implemented grading with code coverage"
           fa-icon="fa-solid fa-chess-queen"
         />
-        <AboutPagePerson 
+        <AboutPagePerson
           name="Jacob Memmott"
           url="https://github.com/bsharplydian"
           tenure="Sep 2025-Jun 2026"
