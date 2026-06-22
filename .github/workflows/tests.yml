@@ -45,7 +45,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: '25'
+          java-version: '23'
 
       - name: Test with Maven
         run: mvn test
