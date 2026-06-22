@@ -46,3 +46,6 @@ src/test/resources/gitTestRepos/
 
 ### .env files ###
 *.env
+
+### Node Dependencies ###
+node_modules/
