@@ -177,6 +177,13 @@ onUnmounted(() => {
           contributions="Backend sequence diagrams. Also developed the Discord Bot for the Help Queue."
           fa-icon="fa-solid fa-user-secret"
         />
+        <AboutPagePerson
+          name="Tristan Weech"
+          url="https://github.com/ZakkeryDaRebel"
+          tenure="Sep 2024-Aug 2026"
+          contributions="Added checker for prior phase passing submissions and worked on the code quality checker."
+          fa-icon="fa-solid fa-volleyball"
+        />
         <!--
         New Autograder Developers!
         Add yourself to the list right above this comment
