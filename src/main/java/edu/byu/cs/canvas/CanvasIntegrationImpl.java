@@ -1,9 +1,9 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.*;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
@@ -50,7 +50,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "GET",
                 "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 CanvasUser[].class).body();
-
+        if(users == null) {
+            throw new CanvasException("User not found in Canvas: " + netId);
+        }
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
                 User.Role role;
@@ -383,6 +385,22 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return rubricInfo;
         }
 
+        public int getSectionIDFromCanvas() throws CanvasException{
+            List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + getCourseNumber() + "/sections", CanvasSection.class);
+            return sections.getFirst().id();
+        }
+
+        public User getRandomEnrolledStudent() throws CanvasException{
+            List<CanvasUser> users = makePaginatedCanvasRequest(
+                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20",
+                    CanvasUser.class);
+            if(users.getFirst() != null) {
+                CanvasUser user = users.getFirst();
+                return new User(user.login_id(), user.id(), "Test", "Student", "", User.Role.STUDENT);
+            } else {
+                return null;
+            }
+        }
         /**
          * Use Canvas for assignment id, rubric id, and rubric points for the values in the database.
          *
