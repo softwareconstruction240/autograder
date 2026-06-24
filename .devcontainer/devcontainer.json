@@ -1,7 +1,7 @@
 // Make sure to use "Clone sources" instead of "Mount sources", otherwise IntelliJ will be super slow
 {
 	"name": "Java",
-	"image": "mcr.microsoft.com/devcontainers/java:23",
+	"image": "mcr.microsoft.com/devcontainers/java:25",
 	"remoteEnv": {
 		"JAVA_HOME": "/usr/lib/jvm/msopenjdk-current"
 	},
