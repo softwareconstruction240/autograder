@@ -184,6 +184,13 @@ onUnmounted(() => {
           contributions="Added checker for prior phase passing submissions and worked on the code quality checker."
           fa-icon="fa-solid fa-volleyball"
         />
+        <AboutPagePerson
+          name="Cameron Chamberlain"
+          url="https://github.com/camchamb"
+          tenure="Sep 2025-Current"
+          contributions="Fixed frontend bugs and worked on honorchecker."
+          fa-icon="fa-solid fa-burger"
+        />
         <!--
         New Autograder Developers!
         Add yourself to the list right above this comment
