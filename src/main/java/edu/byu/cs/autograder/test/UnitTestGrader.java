@@ -1,21 +1,47 @@
 package edu.byu.cs.autograder.test;
 
-import edu.byu.cs.autograder.GradingContext;
-import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.model.Rubric;
-import edu.byu.cs.model.TestOutput;
-import edu.byu.cs.model.TestNode;
-import edu.byu.cs.util.PhaseUtils;
-
 import java.io.File;
 import java.util.Set;
+
+import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.model.ClassCoverageAnalysis;
+import edu.byu.cs.model.CoverageAnalysis;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.TestNode;
+import edu.byu.cs.model.TestOutput;
+import edu.byu.cs.util.PhaseUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Runs and scores the unit tests for the phase a submission is graded for
  */
 public class UnitTestGrader extends TestGrader {
+
+    private final float targetPercent; // if config can't load, 80%
+    private final float extraCreditPercent; // if config can't load, 90%
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnitTestGrader.class);
+
     public UnitTestGrader(GradingContext gradingContext) {
         super(gradingContext);
+        float percent;
+        float extraPercent;
+        try{
+            percent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, Float.class);
+            extraPercent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, Float.class);
+        }
+        catch (DataAccessException e){
+            percent = 0.8F;
+            extraPercent = 0.9F;
+            LOGGER.error("Could not get coverage percents from config, using default values of 80% and 90%", e);
+        }
+        targetPercent = percent;
+        extraCreditPercent = extraPercent;
     }
 
     @Override
@@ -45,25 +71,78 @@ public class UnitTestGrader extends TestGrader {
 
         if (totalTests == 0) return 0;
 
-        int minTests = PhaseUtils.minUnitTests(gradingContext.phase());
+        if (testResults.getNumTestsFailed() > 0) {
+            return 0;
+        }
 
-        if (totalTests < minTests) return (float) testResults.getNumTestsPassed() / minTests;
+        float coveragePercent = getCoveragePercent(testOutput.coverage());
+        if (Float.isNaN(coveragePercent)){
+            return 0;
+        }
 
-        return testResults.getNumTestsPassed() / totalTests;
+        if (coveragePercent >= extraCreditPercent) {
+            return 1.05F;
+        }
+        if (coveragePercent >= targetPercent){
+            return 1;
+        }
+
+        return coveragePercent / targetPercent;
     }
 
     @Override
-    protected String getNotes(TestOutput testOutput) throws GradingException {
+    protected String getNotes(TestOutput testOutput) {
         TestNode testResults = testOutput.root();
-        Integer totalTestsRun = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
-        if (testResults.getNumTestsPassed() + testResults.getNumTestsFailed() < PhaseUtils.minUnitTests(gradingContext.phase()))
-            return "Not enough tests: each " + PhaseUtils.unitTestCodeUnderTest(gradingContext.phase()) +
-                    " method should have a positive and negative test";
-        return switch (testResults.getNumTestsFailed()) {
-            case 0 -> testResults.getNumTestsPassed() + "/" + totalTestsRun + " tests passed";
-            case 1 -> "1/" + totalTestsRun + " test failed";
-            default -> testResults.getNumTestsFailed() + "/" + totalTestsRun + " tests failed";
-        };
+        StringBuilder notes = new StringBuilder();
+
+        float totalTests = testResults.getNumTestsFailed() + testResults.getNumTestsPassed();
+        if (totalTests == 0) {
+            notes.append("Did not find any unit tests. See Rubric for unit test requirement details")
+                    .append("\n");
+            return notes.toString();
+        }
+
+        if (testResults.getNumTestsFailed() > 0) {
+            notes.append(testResults.getNumTestsFailed() + " unit tests failed")
+                    .append("\n")
+                    .append("See Details for failed test")
+                    .append("\n");
+            return notes.toString();
+        }
+
+        float coverage = getCoveragePercent(testOutput.coverage());
+        if (Float.isNaN(coverage)){
+            notes.append("Could not calculate Coverage Percent. See Rubric for unit test requirement details")
+                .append("\n");
+            return notes.toString();
+        }
+
+        notes.append("Coverage: " + coverage*100 + "%")
+            .append("\n");
+
+
+        for (ClassCoverageAnalysis i : testOutput.coverage().classAnalyses()){
+            var total = (i.covered() + i.missed());
+            boolean isGoodCoverage = ((i.covered() * 1.0) / total) > targetPercent;
+            notes.append((isGoodCoverage) ? "✓" : "✗").append(" ")
+                    .append(i.packageName())
+                    .append(".")
+                    .append(i.className())
+                    .append("\n");
+        }
+        notes.append("See Details for line coverage count")
+                .append("\n");
+        return notes.toString();
+    }
+
+    private float getCoveragePercent(CoverageAnalysis coverage) {
+        float covered = 0;
+        float total = 0;
+        for (ClassCoverageAnalysis i : coverage.classAnalyses()){
+            covered += i.covered();
+            total += (i.covered() + i.missed());
+        }
+        return covered / total;
     }
 
     @Override
