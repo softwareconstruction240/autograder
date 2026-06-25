@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { ServerCommunicator } from "@/network/ServerCommunicator";
 
 type MeResponse = {
@@ -16,7 +16,7 @@ export const loadUser = async () => {
   const loggedInUser = await meGet();
   if (loggedInUser == null) return;
 
-  useAuthStore().user = loggedInUser;
+  useUserStore().user = loggedInUser;
 };
 
 export const logoutPost = () => {

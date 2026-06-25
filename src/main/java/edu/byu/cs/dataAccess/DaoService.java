@@ -3,6 +3,7 @@ package edu.byu.cs.dataAccess;
 import edu.byu.cs.dataAccess.daoInterface.*;
 import edu.byu.cs.dataAccess.memory.*;
 import edu.byu.cs.dataAccess.sql.*;
+import edu.byu.cs.model.Phase;
 
 /**
  * Provides centralized access and management for all DAOs.
@@ -76,7 +77,7 @@ public class DaoService {
         DaoService.setConfigurationDao(new ConfigurationMemoryDao());
         DaoService.setRepoUpdateDao(new RepoUpdateMemoryDao());
 
-        /* Initialize crucial default values in Config for testing purposes */
+        /* Initialize crucial default values in Config and RubricConfig for testing purposes */
         try {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, 0.1f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
@@ -86,6 +87,16 @@ public class DaoService {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, 0.8f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, 0.9f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, "LINE", String.class);
+
+            rubricConfigDao.setRubricConfig(Phase.GitHub, RubricConfigDao.defaultGitHubConfig);
+            rubricConfigDao.setRubricConfig(Phase.Phase0, RubricConfigDao.defaultPhase0Config);
+            rubricConfigDao.setRubricConfig(Phase.Phase1, RubricConfigDao.defaultPhase1Config);
+            rubricConfigDao.setRubricConfig(Phase.Phase3, RubricConfigDao.defaultPhase3Config);
+            rubricConfigDao.setRubricConfig(Phase.Phase4, RubricConfigDao.defaultPhase4Config);
+            rubricConfigDao.setRubricConfig(Phase.Phase5, RubricConfigDao.defaultPhase5Config);
+            rubricConfigDao.setRubricConfig(Phase.Phase6, RubricConfigDao.defaultPhase6Config);
+            rubricConfigDao.setRubricConfig(Phase.Quality, RubricConfigDao.defaultQualityConfig);
+
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }

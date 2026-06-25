@@ -156,6 +156,41 @@ onUnmounted(() => {
           contributions="Truncated and tested error output"
           fa-icon="fa-solid fa-ice-cream"
         />
+        <AboutPagePerson
+          name="Makenna Wilkerson"
+          url="https://github.com/mewilker"
+          tenure="Jan 2024-Apr 2027"
+          contributions="Updated authentication system and implemented grading with code coverage"
+          fa-icon="fa-solid fa-chess-queen"
+        />
+        <AboutPagePerson
+          name="Jacob Memmott"
+          url="https://github.com/bsharplydian"
+          tenure="Sep 2025-Jun 2026"
+          contributions="Spent a heroic amount of time writing integration tests for Canvas"
+          fa-icon="fa-solid fa-crow"
+        />
+        <AboutPagePerson
+          name="Grant Harris"
+          url="https://github.com/TwoLettuce"
+          tenure="Jan 2026-Current"
+          contributions="Backend sequence diagrams. Also developed the Discord Bot for the Help Queue."
+          fa-icon="fa-solid fa-user-secret"
+        />
+        <AboutPagePerson
+          name="Tristan Weech"
+          url="https://github.com/ZakkeryDaRebel"
+          tenure="Sep 2024-Aug 2026"
+          contributions="Added checker for prior phase passing submissions and worked on the code quality checker."
+          fa-icon="fa-solid fa-volleyball"
+        />
+        <AboutPagePerson
+          name="Cameron Chamberlain"
+          url="https://github.com/camchamb"
+          tenure="Sep 2025-Current"
+          contributions="Fixed frontend bugs and worked on honorchecker."
+          fa-icon="fa-solid fa-burger"
+        />
         <!--
         New Autograder Developers!
         Add yourself to the list right above this comment

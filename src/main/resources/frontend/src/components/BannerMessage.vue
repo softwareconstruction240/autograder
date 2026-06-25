@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { useConfigStore } from "@/stores/config";
 
-const authStore = useAuthStore();
+const authStore = useUserStore();
 const config = useConfigStore();
 
 const bannerProps = computed(() => {

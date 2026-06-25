@@ -4,6 +4,8 @@ import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
+import edu.byu.cs.service.AuthenticationService;
+import io.javalin.http.Cookie;
 import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,14 @@ public class AdminController {
 
     public static final Handler testModeGet = ctx -> {
         User testStudent = AdminService.updateTestStudent();
-        ctx.cookie("token", generateToken(testStudent.netId()), 14400);
+        ctx.cookie(new Cookie("token",
+                generateToken(testStudent.netId()),
+                "/",
+                14400,
+                AuthenticationService.isSecure(),
+                0,
+                true)
+        );
     };
 
     public static final Handler commitAnalyticsGet = ctx -> {

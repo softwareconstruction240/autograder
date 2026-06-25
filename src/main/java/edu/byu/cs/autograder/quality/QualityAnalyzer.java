@@ -45,14 +45,21 @@ public class QualityAnalyzer {
                 .command("java", "-jar", checkStyleJarPath, "-c", "cs240_checks.xml", "repo/shared", "repo/server", "repo/client");
 
         String output;
+        String error;
         try {
-            output = ProcessUtils.runProcess(processBuilder).stdOut();
+            var processOutput = ProcessUtils.runProcess(processBuilder);
+            output = processOutput.stdOut();
+            error = processOutput.stdErr();
         } catch (ProcessUtils.ProcessException e) {
             throw new GradingException("Error running code quality: " + e.getMessage(), e);
         }
 
         if(!checkstyleFinished(output)) {
-            return new QualityAnalysis(0, "", "Could not complete code quality analysis. Please go see a TA.");
+            return new QualityAnalysis(
+                    0,
+                    sanitizeErrorStream(error),
+                    "Could not complete code quality analysis. Please go see a TA."
+            );
         }
 
         output = output.replaceAll(stageRepo.getAbsolutePath(), "");
@@ -175,6 +182,20 @@ public class QualityAnalyzer {
 
     private boolean checkstyleFinished(String output) {
         return output.endsWith("Audit done.\n");
+    }
+
+    /**
+     * Strips path names up to the repo folder
+     *
+     * @param error stream from process builder
+     * @return a new string without full path names
+     */
+    private String sanitizeErrorStream(String error) {
+        String sanitized = error;
+        if (error.contains("repo")) {
+            sanitized = error.replaceAll("[/\\S]*repo/", "");
+        }
+        return sanitized;
     }
 
     /**
