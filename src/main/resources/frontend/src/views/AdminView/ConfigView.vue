@@ -172,19 +172,21 @@ onMounted(async () => {
       </template>
     </ConfigSection>
 
-    <ConfigSection
-      title="Slack Link"
-      description="The invitation link to the Slack page of the current semester/term"
-    >
-      <template #editor="{ closeEditor }">
-        <SlackLinkConfigEditor :closeEditor="closeEditor" />
-      </template>
-      <template #current>
-        <p>
-          <span class="infoLabel">Slack Link: </span><em>{{ config.public.slackLink }}</em>
-        </p>
-      </template>
-    </ConfigSection>
+    <div class="full-width">
+      <ConfigSection
+        title="Slack Link"
+        description="The invitation link to the Slack page of the current semester/term"
+      >
+        <template #editor="{ closeEditor }">
+          <SlackLinkConfigEditor :closeEditor="closeEditor" />
+        </template>
+        <template #current>
+          <p>
+            <span class="infoLabel">Slack Link: </span><em>{{ config.public.slackLink }}</em>
+          </p>
+        </template>
+      </ConfigSection>
+    </div>
   </div>
 </template>
 
@@ -200,6 +202,10 @@ onMounted(async () => {
 
 .infoLabel {
   font-weight: bold;
+}
+
+.full-width {
+  grid-column: 1 / -1;
 }
 
 #configContainer {
