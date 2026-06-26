@@ -182,7 +182,8 @@ onMounted(async () => {
         </template>
         <template #current>
           <p>
-            <span class="infoLabel">Class Community Link: </span><em>{{ config.public.slackLink }}</em>
+            <span class="infoLabel">Class Community Link: </span
+            ><em>{{ config.public.slackLink }}</em>
           </p>
         </template>
       </ConfigSection>
