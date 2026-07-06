@@ -5,6 +5,8 @@ import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +15,30 @@ import java.util.Map;
 
 public class RubricConfigSqlDao implements RubricConfigDao {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RubricConfigDao.class);
+
     // NOTE: This class skipped for conversion to SqlReader since it wouldn't improve readability of this file.
     // This file isn't heavy in SQl queries, but in the logic of joining together the results.
+
+    public RubricConfigSqlDao () throws DataAccessException{
+        setDefaultConfigIfNotExists();
+    }
+
+    @Override
+    public void setDefaultConfigIfNotExists() throws DataAccessException {
+        for (Phase phase : Phase.values()){
+        //see if an existing rubric config exists
+            RubricConfig config = getRubricConfig(phase);
+        //write out the default rubric config if none exist
+            RubricConfig defalt = RubricConfigDao.getDefaultRubricConfig(phase);
+            if (config.items().isEmpty()){
+                setRubricConfig(phase, defalt);
+            }
+            else if (!defalt.equals(config)){
+                LOGGER.warn("Rubric config does not match default: {}", config.toString());
+            }
+        }
+    }
 
     @Override
     public RubricConfig getRubricConfig(Phase phase) throws DataAccessException {
