@@ -85,15 +85,6 @@ public class DaoService {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.LINES_PER_COMMIT_REQUIRED, 5, Integer.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.CLOCK_FORGIVENESS_MINUTES, 3, Integer.class);
 
-            rubricConfigDao.setRubricConfig(Phase.GitHub, RubricConfigDao.defaultGitHubConfig);
-            rubricConfigDao.setRubricConfig(Phase.Phase0, RubricConfigDao.defaultPhase0Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase1, RubricConfigDao.defaultPhase1Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase3, RubricConfigDao.defaultPhase3Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase4, RubricConfigDao.defaultPhase4Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase5, RubricConfigDao.defaultPhase5Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase6, RubricConfigDao.defaultPhase6Config);
-            rubricConfigDao.setRubricConfig(Phase.Quality, RubricConfigDao.defaultQualityConfig);
-
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
