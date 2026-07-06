@@ -19,7 +19,7 @@ import java.util.Random;
 public abstract class RubricConfigDaoTest {
 
     protected RubricConfigDao dao;
-    protected abstract RubricConfigDao getRubricConfigDao();
+    protected abstract RubricConfigDao getRubricConfigDao() throws DataAccessException;
     protected abstract void clearRubricConfigDao() throws DataAccessException;
     static Random random = new Random();
 
