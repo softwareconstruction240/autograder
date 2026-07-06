@@ -97,6 +97,19 @@ public interface RubricConfigDao {
         return total;
     }
 
+    static RubricConfig getDefaultRubricConfig(Phase phase) {
+        return switch (phase){
+            case Phase0 -> defaultPhase0Config;
+            case Phase1 -> defaultPhase1Config;
+            case Phase3 -> defaultPhase3Config;
+            case Phase4 -> defaultPhase4Config;
+            case Phase5 -> defaultPhase5Config;
+            case Phase6 -> defaultPhase6Config;
+            case Quality -> defaultQualityConfig;
+            case GitHub -> defaultGitHubConfig;
+        };
+    }
+
     void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;
 
     void setRubricIdAndPoints(Phase phase, Rubric.RubricType type, Integer points, String rubric_id) throws DataAccessException;
