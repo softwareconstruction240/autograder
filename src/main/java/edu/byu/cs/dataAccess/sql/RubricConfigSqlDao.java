@@ -31,13 +31,22 @@ public class RubricConfigSqlDao implements RubricConfigDao {
             RubricConfig config = getRubricConfig(phase);
         //write out the default rubric config if none exist
             RubricConfig defalt = RubricConfigDao.getDefaultRubricConfig(phase);
-            if (config.items().isEmpty()){
+            if (config.items().isEmpty() || isEmptyConfig(config)){
                 setRubricConfig(phase, defalt);
             }
             else if (!defalt.equals(config)){
                 LOGGER.warn("Rubric config does not match default: {}", config.toString());
             }
         }
+    }
+
+    private boolean isEmptyConfig(RubricConfig config){
+        for (RubricConfig.RubricConfigItem item : config.items().values()){
+            if (item != null){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
