@@ -112,9 +112,9 @@ public abstract class RubricConfigDaoTest {
     @EnumSource (Phase.class)
     void daoInitializesWithDefaultConfig(Phase phase) throws DataAccessException {
         dao = getRubricConfigDao();
-        RubricConfig defalt = RubricConfigDao.getDefaultRubricConfig(phase);
+        RubricConfig defaultRubricConfig = RubricConfigDao.getDefaultRubricConfig(phase);
         RubricConfig startup = dao.getRubricConfig(phase);
-        Assertions.assertEquals(defalt, startup);
+        Assertions.assertEquals(defaultRubricConfig, startup);
     }
 
     RubricConfig generateRubricConfig(Phase phase){

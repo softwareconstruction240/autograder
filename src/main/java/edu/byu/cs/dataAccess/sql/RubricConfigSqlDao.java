@@ -29,11 +29,11 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     public void setDefaultConfigIfNotExists() throws DataAccessException {
         for (Phase phase : Phase.values()){
             RubricConfig config = getRubricConfig(phase);
-            RubricConfig defalt = RubricConfigDao.getDefaultRubricConfig(phase);
+            RubricConfig defaultRubricConfig = RubricConfigDao.getDefaultRubricConfig(phase);
             if (config.items().isEmpty() || isEmptyConfig(config)){
-                setRubricConfig(phase, defalt);
+                setRubricConfig(phase, defaultRubricConfig);
             }
-            else if (!defalt.equals(config)){
+            else if (!defaultRubricConfig.equals(config)){
                 suppressRubricIdWarnings(config);
             }
         }
