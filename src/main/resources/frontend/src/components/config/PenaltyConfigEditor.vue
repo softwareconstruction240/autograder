@@ -14,6 +14,11 @@ const maxLateDays = ref<number>(config.admin.penalty.maxLateDaysPenalized);
 const gitPenalty = ref<number>(Math.round(config.admin.penalty.gitCommitPenalty * 100));
 const linesChangedPerCommit = ref<number>(config.admin.penalty.linesChangedPerCommit);
 const clockForgivenessMinutes = ref<number>(config.admin.penalty.clockForgivenessMinutes);
+const coveragePercent = ref<number>(Math.round(config.admin.penalty.coveragePercent * 100));
+const extraCoveragePercent = ref<number>(
+  Math.round(config.admin.penalty.extraCoveragePercent * 100),
+);
+const coverageType = ref<"LINE" | "BRANCH">(config.admin.penalty.coverageType);
 
 const valuesReady = () => {
   return (
@@ -23,7 +28,11 @@ const valuesReady = () => {
     latePenalty.value <= 100 &&
     maxLateDays.value >= 0 &&
     linesChangedPerCommit.value >= 0 &&
-    clockForgivenessMinutes.value >= 0
+    clockForgivenessMinutes.value >= 0 &&
+    coveragePercent.value >= 0 &&
+    coveragePercent.value <= 100 &&
+    extraCoveragePercent.value >= 0 &&
+    extraCoveragePercent.value <= 100
   );
 };
 
@@ -35,6 +44,9 @@ const submit = async () => {
       latePenalty.value / 100,
       linesChangedPerCommit.value,
       clockForgivenessMinutes.value,
+      coveragePercent.value / 100,
+      extraCoveragePercent.value / 100,
+      coverageType.value,
     );
 
     closeEditor();
@@ -84,6 +96,26 @@ const submit = async () => {
         Commit Verification.
       </p>
       <p><input type="number" v-model="clockForgivenessMinutes" /> minutes</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Coverage Percent</p>
+      <p class="valueDescription">
+        The percentage of code coverage expected for unit tests to receive full credit.
+      </p>
+      <p><input type="number" v-model="coveragePercent" />%</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Extra Coverage Percent</p>
+      <p class="valueDescription">
+        The percentage of code coverage expected for unit tests to receive extra credit.
+      </p>
+      <p><input type="number" v-model="extraCoveragePercent" />%</p>
+    </div>
+    <div class="value">
+      <p class="valueName">Coverage Type</p>
+      <p class="valueDescription">The type of coverage to be measured.</p>
+      <p><input type="radio" value="LINE" v-model="coverageType" /> Line</p>
+      <p><input type="radio" value="BRANCH" v-model="coverageType" /> Branch</p>
     </div>
   </div>
 

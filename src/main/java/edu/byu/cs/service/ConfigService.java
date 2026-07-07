@@ -12,6 +12,7 @@ import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ObjectInputFilter;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -122,12 +123,17 @@ public class ConfigService {
     // PRIVATE CONFIG GENERATORS
     //
     private static PrivateConfig.PenaltyConfig generatePenaltyConfig() throws DataAccessException {
+        String coverageType = dao.getConfiguration(Configuration.COVERAGE_TYPE, String.class);
         return new PrivateConfig.PenaltyConfig(
                 dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class),
                 dao.getConfiguration(Configuration.GIT_COMMIT_PENALTY, Float.class),
                 dao.getConfiguration(Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class),
                 dao.getConfiguration(Configuration.LINES_PER_COMMIT_REQUIRED, Integer.class),
-                dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class)
+                dao.getConfiguration(Configuration.CLOCK_FORGIVENESS_MINUTES, Integer.class),
+                dao.getConfiguration(Configuration.COVERAGE_PERCENT, Float.class),
+                dao.getConfiguration(Configuration.EXTRA_COVERAGE_PERCENT, Float.class),
+                coverageType.isEmpty() ? ConfigPenaltyUpdateRequest.CoverageType.LINE :
+                        ConfigPenaltyUpdateRequest.CoverageType.valueOf(coverageType)
         );
     }
 
@@ -363,12 +369,18 @@ public class ConfigService {
         validateNonNegativeInt(request.clockForgivenessMinutes(), "Clock Forgiveness Minutes");
         validateNonNegativeInt(request.maxLateDaysPenalized(), "Max Late Days Penalized");
         validateNonNegativeInt(request.linesChangedPerCommit(), "Lines Changed Per Commit");
+        validateValidPercentFloat(request.coveragePercent(), "Code Coverage Percent");
+        validateValidPercentFloat(request.extraCoveragePercent(), "Extra Code Coverage Percent");
+        validateEnum(request.coverageType().name(), ConfigPenaltyUpdateRequest.CoverageType.class);
 
         setConfigItem(user, Configuration.GIT_COMMIT_PENALTY, request.gitCommitPenalty(), Float.class);
         setConfigItem(user, Configuration.PER_DAY_LATE_PENALTY, request.perDayLatePenalty(), Float.class);
         setConfigItem(user, Configuration.CLOCK_FORGIVENESS_MINUTES, request.clockForgivenessMinutes(), Integer.class);
         setConfigItem(user, Configuration.MAX_LATE_DAYS_TO_PENALIZE, request.maxLateDaysPenalized(), Integer.class);
         setConfigItem(user, Configuration.LINES_PER_COMMIT_REQUIRED, request.linesChangedPerCommit(), Integer.class);
+        setConfigItem(user, Configuration.COVERAGE_PERCENT, request.coveragePercent(), Float.class);
+        setConfigItem(user, Configuration.EXTRA_COVERAGE_PERCENT, request.extraCoveragePercent(), Float.class);
+        setConfigItem(user, Configuration.COVERAGE_TYPE, request.coverageType().name(), String.class);
     }
 
     /**
@@ -461,6 +473,10 @@ public class ConfigService {
         if (value < 0) {
             throw new IllegalArgumentException(name + " must be non-negative");
         }
+    }
+
+    private static <E extends Enum<E>> void validateEnum(String value, Class<E>enumName){
+        Enum.valueOf(enumName, value);
     }
 
     private static <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
