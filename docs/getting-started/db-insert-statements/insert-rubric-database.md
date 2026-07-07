@@ -11,10 +11,11 @@ The primary things that needs to be updated on an ongoing basis are:
 ## Statements
 > [!NOTE]
 > As of **SUMMER 2026** this step is no longer necessary. Rubric Configs are defined in the `RubricConfigDao` interface.
-> If you would like to make a change, please update the default configs there.
+upda> If you would like to make a change, please update the default configs there. **Live edits still require alter 
+> statments.**
 > 
 > Do make sure that in the config tab, under the course ids that you press the `Reload assignment/rubric ids` button
-> especially if you do not change the course number on this page
+> especially if you do not change the course number in the autograder config.
 
 ```mysql
 INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) VALUES
