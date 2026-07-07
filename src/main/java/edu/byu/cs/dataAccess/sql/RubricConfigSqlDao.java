@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RubricConfigSqlDao implements RubricConfigDao {
 
@@ -27,15 +28,13 @@ public class RubricConfigSqlDao implements RubricConfigDao {
     @Override
     public void setDefaultConfigIfNotExists() throws DataAccessException {
         for (Phase phase : Phase.values()){
-        //see if an existing rubric config exists
             RubricConfig config = getRubricConfig(phase);
-        //write out the default rubric config if none exist
             RubricConfig defalt = RubricConfigDao.getDefaultRubricConfig(phase);
             if (config.items().isEmpty() || isEmptyConfig(config)){
                 setRubricConfig(phase, defalt);
             }
             else if (!defalt.equals(config)){
-                LOGGER.warn("Rubric config does not match default: {}", config.toString());
+                suppressRubricIdWarnings(config);
             }
         }
     }
@@ -47,6 +46,19 @@ public class RubricConfigSqlDao implements RubricConfigDao {
             }
         }
         return true;
+    }
+
+    private void suppressRubricIdWarnings(RubricConfig config){
+        RubricConfig rubricDefault = RubricConfigDao.getDefaultRubricConfig(config.phase());
+        for (var key : config.items().keySet()){
+            var defaultItem = rubricDefault.items().get(key);
+            var configItem = config.items().get(key);
+            if (configItem.points() != defaultItem.points() ||
+                    !Objects.equals(configItem.criteria(), defaultItem.criteria()) ||
+                    !Objects.equals(configItem.category(), defaultItem.category())) {
+                LOGGER.warn("Rubric config does not match default: {}", config);
+            }
+        }
     }
 
     @Override
