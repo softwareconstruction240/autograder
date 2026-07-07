@@ -53,9 +53,9 @@ public class RubricConfigSqlDao implements RubricConfigDao {
         for (var key : config.items().keySet()){
             var defaultItem = rubricDefault.items().get(key);
             var configItem = config.items().get(key);
-            if (configItem.points() != defaultItem.points() ||
+            if ( configItem != null && (configItem.points() != defaultItem.points() ||
                     !Objects.equals(configItem.criteria(), defaultItem.criteria()) ||
-                    !Objects.equals(configItem.category(), defaultItem.category())) {
+                    !Objects.equals(configItem.category(), defaultItem.category()))) {
                 LOGGER.warn("Rubric config does not match default: {}", config);
             }
         }
