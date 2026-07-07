@@ -1,4 +1,4 @@
-FROM maven:4.0.0-rc-5-amazoncorretto-25-debian-trixie AS builder
+FROM maven:3.9.16-amazoncorretto-25-debian-trixie AS builder
 
 WORKDIR /app
 
