@@ -10,8 +10,8 @@ The primary things that needs to be updated on an ongoing basis are:
 
 ## Statements
 > [!NOTE]
-> As of **SUMMER 2026** this step is no longer necessary. Rubric Configs are defined in the `RubricConfigDao` interface.
-upda> If you would like to make a change, please update the default configs there. **Live edits still require alter 
+> As of **SUMMER 2026** this step is no longer necessary. Rubric Configs are defined in the `RubricConfigDao` interface. 
+> If you would like to make a change, please update the default configs there. **Live edits still require alter 
 > statments.**
 > 
 > Do make sure that in the config tab, under the course ids that you press the `Reload assignment/rubric ids` button
