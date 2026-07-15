@@ -12,6 +12,7 @@ import {
   submissionScoreDisplayText,
   sortedItems,
 } from "@/utils/utils";
+import CommitsByDayView from "@/views/AdminView/CommitsByDayView.vue"
 import RubricItemView from "@/views/StudentView/RubricItemView.vue";
 import InfoPanel from "@/components/InfoPanel.vue";
 import { useUserStore } from "@/stores/user";
@@ -78,6 +79,7 @@ const approve = async (penalize: boolean, emit: (event: string, ...args: any[]) 
           You may, at your discretion, deduct 10% if it looks like the student is not learning the
           value/habit of repeated commits
         </p>
+        <CommitsByDayView/>
         <div id="approvalButtons" v-if="unapproved">
           <button @click="approve(true, $emit)">Approve with penalty</button>
           <button
