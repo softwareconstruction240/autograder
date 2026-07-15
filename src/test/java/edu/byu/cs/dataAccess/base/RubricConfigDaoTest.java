@@ -19,7 +19,7 @@ import java.util.Random;
 public abstract class RubricConfigDaoTest {
 
     protected RubricConfigDao dao;
-    protected abstract RubricConfigDao getRubricConfigDao();
+    protected abstract RubricConfigDao getRubricConfigDao() throws DataAccessException;
     protected abstract void clearRubricConfigDao() throws DataAccessException;
     static Random random = new Random();
 
@@ -106,6 +106,15 @@ public abstract class RubricConfigDaoTest {
     void getPhaseTotalPossiblePointsWithNoConfig(Phase phase) throws DataAccessException {
         int obtained = dao.getPhaseTotalPossiblePoints(phase);
         Assertions.assertEquals(0, obtained);
+    }
+
+    @ParameterizedTest
+    @EnumSource (Phase.class)
+    void daoInitializesWithDefaultConfig(Phase phase) throws DataAccessException {
+        dao = getRubricConfigDao();
+        RubricConfig defaultRubricConfig = RubricConfigDao.getDefaultRubricConfig(phase);
+        RubricConfig startup = dao.getRubricConfig(phase);
+        Assertions.assertEquals(defaultRubricConfig, startup);
     }
 
     RubricConfig generateRubricConfig(Phase phase){

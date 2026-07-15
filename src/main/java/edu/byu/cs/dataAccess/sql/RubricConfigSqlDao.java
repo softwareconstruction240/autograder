@@ -5,16 +5,61 @@ import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RubricConfigSqlDao implements RubricConfigDao {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RubricConfigDao.class);
+
     // NOTE: This class skipped for conversion to SqlReader since it wouldn't improve readability of this file.
     // This file isn't heavy in SQl queries, but in the logic of joining together the results.
+
+    public RubricConfigSqlDao () throws DataAccessException{
+        setDefaultConfigIfNotExists();
+    }
+
+    @Override
+    public void setDefaultConfigIfNotExists() throws DataAccessException {
+        for (Phase phase : Phase.values()){
+            RubricConfig config = getRubricConfig(phase);
+            RubricConfig defaultRubricConfig = RubricConfigDao.getDefaultRubricConfig(phase);
+            if (config.items().isEmpty() || isEmptyConfig(config)){
+                setRubricConfig(phase, defaultRubricConfig);
+            }
+            else if (!defaultRubricConfig.equals(config)){
+                suppressRubricIdWarnings(config);
+            }
+        }
+    }
+
+    private boolean isEmptyConfig(RubricConfig config){
+        for (RubricConfig.RubricConfigItem item : config.items().values()){
+            if (item != null){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void suppressRubricIdWarnings(RubricConfig config){
+        RubricConfig rubricDefault = RubricConfigDao.getDefaultRubricConfig(config.phase());
+        for (var key : config.items().keySet()){
+            var defaultItem = rubricDefault.items().get(key);
+            var configItem = config.items().get(key);
+            if ( configItem != null && (configItem.points() != defaultItem.points() ||
+                    !Objects.equals(configItem.criteria(), defaultItem.criteria()) ||
+                    !Objects.equals(configItem.category(), defaultItem.category()))) {
+                LOGGER.warn("Rubric config does not match default: {}", config);
+            }
+        }
+    }
 
     @Override
     public RubricConfig getRubricConfig(Phase phase) throws DataAccessException {
