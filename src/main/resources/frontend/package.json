@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "yarn dev",
+    "start:host": "yarn dev --host",
     "dev": "vite --mode dev",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",

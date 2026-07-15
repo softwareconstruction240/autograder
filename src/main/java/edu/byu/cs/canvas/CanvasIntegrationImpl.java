@@ -1,9 +1,9 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.canvas.model.*;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
@@ -50,7 +50,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "GET",
                 "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 CanvasUser[].class).body();
-
+        if(users == null) {
+            throw new CanvasException("User not found in Canvas: " + netId);
+        }
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
                 User.Role role;
@@ -79,7 +81,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     "/courses/" + getCourseNumber() + "/sections/" + sectionID + "?include[]=students",
                     CanvasSection.class)
                 .body().students().stream()
-                .map(CanvasSection.CanvasSectionStudent::login_id)
+                .map(CanvasSection.CanvasSectionStudent::loginId)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
@@ -202,10 +204,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 CanvasAssignment[].class
         ).body()[0];
 
-        if (assignment == null || assignment.due_at() == null)
+        if (assignment == null || assignment.dueAt() == null)
             throw new CanvasException("Unable to get due date for assignment");
 
-        return assignment.due_at();
+        return assignment.dueAt();
     }
 
     @Override
@@ -328,6 +330,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "test cases", Rubric.RubricType.PASSOFF_TESTS,
                 "web api works", Rubric.RubricType.PASSOFF_TESTS,
                 "pass off tests", Rubric.RubricType.PASSOFF_TESTS,
+                "extra credit", Rubric.RubricType.EXTRA_CREDIT,
                 "code quality", Rubric.RubricType.QUALITY,
                 "unit tests", Rubric.RubricType.UNIT_TESTS,
                 "git commits", Rubric.RubricType.GIT_COMMITS,
@@ -382,6 +385,22 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             return rubricInfo;
         }
 
+        public int getSectionIDFromCanvas() throws CanvasException{
+            List<CanvasSection> sections = makePaginatedCanvasRequest("/courses/" + "740700000000" + getCourseNumber() + "/sections", CanvasSection.class);
+            return sections.getFirst().id();
+        }
+
+        public User getRandomEnrolledStudent() throws CanvasException{
+            List<CanvasUser> users = makePaginatedCanvasRequest(
+                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + "&include[]=enrollments?per_page=20",
+                    CanvasUser.class);
+            if(users.getFirst() != null) {
+                CanvasUser user = users.getFirst();
+                return new User(user.login_id(), user.id(), "Test", "Student", "", User.Role.STUDENT);
+            } else {
+                return null;
+            }
+        }
         /**
          * Use Canvas for assignment id, rubric id, and rubric points for the values in the database.
          *
@@ -433,11 +452,18 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 for (String desc : RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.keySet()) {
                     if (rubric.description().toLowerCase().contains(desc)) {
                         Rubric.RubricType rubricType = RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES.get(desc);
+                        if (rubricType == Rubric.RubricType.EXTRA_CREDIT) {
+                            rubric = changePoints(rubric, PhaseUtils.extraCreditScore(phase));
+                        }
                         rubricInfo.get(phase).put(rubricType, rubric);
                         break;
                     }
                 }
             }
+        }
+
+        private static CanvasAssignment.CanvasRubric changePoints(CanvasAssignment.CanvasRubric rubric, int points) {
+            return new CanvasAssignment.CanvasRubric(rubric.id(), points, rubric.description());
         }
 
         /**

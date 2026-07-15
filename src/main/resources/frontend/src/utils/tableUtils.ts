@@ -10,6 +10,11 @@ import {
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "phase"
  */
 export const renderPhaseCell = (params: ValueGetterParams): string => {
+  const phase = params.data.phase;
+  if (typeof phase !== "string") {
+    console.error("Failed to get phase");
+    return "";
+  }
   return params.data.phase.toLowerCase().replace("phase", "");
 };
 
@@ -17,6 +22,11 @@ export const renderPhaseCell = (params: ValueGetterParams): string => {
  * @param params is an ValueGetterParams Object from AG-Grid that contains a field called "timestamp"
  */
 export const renderTimestampCell = (params: ValueGetterParams): string => {
+  const stamp = params.data.timestamp;
+  if (typeof stamp !== "string") {
+    console.error("Failed to get Timestamp");
+    return "";
+  }
   return simpleTimestamp(params.data.timestamp);
 };
 

@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-and-push-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
@@ -25,10 +25,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22 # Compatible Node.js version
-      
-      - 
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
         
       -
         name: Set up Docker Buildx

@@ -36,6 +36,12 @@ let adminRepo = reactive({
   value: "",
 });
 
+const gridApi = ref<any>(null);
+
+const onGridReady = (params: any) => {
+  gridApi.value = params.api;
+};
+
 onMounted(async () => {
   await resetPage();
 });
@@ -68,7 +74,7 @@ const loadSubmissionsToTable = (submissionsData: Submission[]) => {
       name: nameFromNetId(submission.netId),
     });
   });
-  rowData.value = dataToShow;
+  gridApi.value!.setGridOption("rowData", dataToShow);
 };
 
 const openSubmission = (event: CellClickedEvent) => {
@@ -167,6 +173,7 @@ const adminSubmit = async () => {
     :columnDefs="columnDefs"
     :rowData="rowData.value"
     :defaultColDef="standardColSettings"
+    @grid-ready="onGridReady"
   ></ag-grid-vue>
 
   <div class="container">

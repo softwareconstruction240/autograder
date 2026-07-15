@@ -3,12 +3,13 @@ networks:
 
 services:
   db:
-    image: mysql:9.0.1
+    image: mysql:9.7.0
+    command: --lower-case-table-names=1
     profiles:
       - with-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_ROOT_PASSWORD: "changeme"
     volumes:
       - db-data:/var/lib/mysql
     ports:
@@ -31,6 +32,7 @@ services:
         "--canvas-token", "changeme",
         "--use-canvas", "true",
 #        "--disable-compilation", # Enable me, if desired!
+        "--client-id", "changeme",
     ]
     networks:
       - autograder
@@ -78,6 +80,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     image: containrrr/watchtower
+    command: --cleanup
 
 volumes:
     db-data:

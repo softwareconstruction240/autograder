@@ -10,7 +10,7 @@ The primary things that needs to be updated on an ongoing basis are:
 
 ## Statements
 > [!NOTE]
-> Updated as of **SUMMER 2024**
+> Updated as of **WINTER 2026**
 
 ```mysql
 INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) VALUES
@@ -18,6 +18,7 @@ INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id) V
 ('Phase0', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90342_649'),
 ('Phase0', 'PASSOFF_TESTS', 'Functionality', 'All pass off test cases succeed', 125, '_1958'),
 ('Phase1', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90342_7800'),
+('Phase1', 'EXTRA_CREDIT', 'Extra Credit', 'Castling and En Passant', 10, '90342_7835'),
 ('Phase1', 'PASSOFF_TESTS', 'Functionality', 'All pass off test cases succeed', 125, '_1958'),
 ('Phase3', 'GIT_COMMITS', 'Git Commits', 'Necessary commit amount', 0, '90344_2520'),
 ('Phase3', 'PASSOFF_TESTS', 'Web API Works', 'All pass off test cases in StandardAPITests.java succeed', 125, '_5202'),

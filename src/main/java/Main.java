@@ -90,6 +90,9 @@ public class Main {
             if (cmd.hasOption("disable-compilation")) {
                 properties.setProperty("run-compilation", "false");
             }
+            if(cmd.hasOption("client-id")){
+                properties.setProperty("client-id", cmd.getOptionValue("client-id"));
+            }
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line arguments", e);
         }
@@ -109,6 +112,7 @@ public class Main {
         options.addOption(null, "canvas-token", true, "Canvas Token");
         options.addOption(null, "use-canvas", true, "Using Canvas");
         options.addOption(null, "disable-compilation", false, "Turn off student code compilation");
+        options.addOption(null, "client-id", true, "Client ID for BYU OAuth");
         return options;
     }
 

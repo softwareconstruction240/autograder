@@ -13,7 +13,6 @@ import java.util.Map;
 public class TestNode implements Comparable<TestNode>, Cloneable {
     private String testName;
     private Boolean passed;
-    private String ecCategory;
     private String errorMessage;
     private Map<String, TestNode> children = new HashMap<>();
 
@@ -33,10 +32,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
 
     public Boolean getPassed() {
         return passed;
-    }
-
-    public String getEcCategory() {
-        return ecCategory;
     }
 
     public String getErrorMessage() {
@@ -63,10 +58,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
         this.passed = passed;
     }
 
-    public void setEcCategory(String ecCategory) {
-        this.ecCategory = ecCategory;
-    }
-
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
@@ -80,7 +71,6 @@ public class TestNode implements Comparable<TestNode>, Cloneable {
 
     private void printNode(TestNode node, StringBuilder sb, String indent) {
         sb.append(indent).append(node.testName);
-        if (node.ecCategory != null) sb.append(" (Extra Credit)");
         if (node.passed != null) {
             sb.append(node.passed ? " : SUCCESSFUL" : " : FAILED");
             if (node.errorMessage != null && !node.errorMessage.isEmpty()) {

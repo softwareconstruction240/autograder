@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { loadUser, logoutPost } from "@/services/authService";
 import router from "@/router";
 import "@/assets/fontawesome/css/fontawesome.css";
@@ -13,15 +13,15 @@ import AboutPage from "@/components/AboutPage.vue";
 import { ServerError } from "@/network/ServerError";
 
 const greeting = computed(() => {
-  if (useAuthStore().isLoggedIn) {
-    return `${useAuthStore().user?.firstName} ${useAuthStore().user?.lastName} - ${useAuthStore().user?.netId} (${useAuthStore().user?.role.toLowerCase()}) - `;
+  if (useUserStore().isLoggedIn) {
+    return `${useUserStore().user?.firstName} ${useUserStore().user?.lastName} - ${useUserStore().user?.netId} (${useUserStore().user?.role.toLowerCase()}) - `;
   }
 });
 
 const logOut = async () => {
   try {
     await logoutPost();
-    useAuthStore().user = null;
+    useUserStore().user = null;
   } catch (e) {
     if (e instanceof ServerError) {
       alert(e.message);
@@ -49,9 +49,9 @@ const repoEditDone = () => {
   <header>
     <h1>CS 240 Autograder</h1>
     <h3>This is where you can submit your assignments and view your scores.</h3>
-    <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
-    <p v-if="useAuthStore().user?.repoUrl" @click="openRepoEditor = true" style="cursor: pointer">
-      {{ useAuthStore().user?.repoUrl }}
+    <p>{{ greeting }} <a v-if="useUserStore().isLoggedIn" @click="logOut">Logout</a></p>
+    <p v-if="useUserStore().user?.repoUrl" @click="openRepoEditor = true" style="cursor: pointer">
+      {{ useUserStore().user?.repoUrl }}
       <i class="fa-solid fa-pen-to-square" />
     </p>
     <BannerMessage />
@@ -59,7 +59,7 @@ const repoEditDone = () => {
   <main>
     <PopUp id="repoEditorPopUp" v-if="openRepoEditor" @closePopUp="openRepoEditor = false">
       <h2>Change Repo</h2>
-      <RepoEditor @repoEditSuccess="repoEditDone" :user="useAuthStore().user" />
+      <RepoEditor @repoEditSuccess="repoEditDone" :user="useUserStore().user" />
       This will not affect previous submissions.
     </PopUp>
 

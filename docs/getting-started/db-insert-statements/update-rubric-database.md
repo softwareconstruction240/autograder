@@ -13,7 +13,14 @@ The primary things that needs to be updated on an ongoing basis are:
 
 ## Statements
 > [!NOTE]
-> Updated as of **SUMMER 2024**
+> Updated as of **WINTER 2026**
+
+```mysql
+INSERT INTO rubric_config (phase, type, category, criteria, points, rubric_id)
+VALUES ('Phase1', 'EXTRA_CREDIT', 'Extra Credit', 'Castling and En Passant', 10, '90342_7835')
+```
+
+If updating prior to **SUMMER 2024**, run these statements before running the ones above.
 
 ```mysql
 ALTER TABLE rubric_config ADD rubric_id VARCHAR(15);

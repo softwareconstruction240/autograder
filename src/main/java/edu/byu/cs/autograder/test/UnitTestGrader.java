@@ -8,7 +8,6 @@ import edu.byu.cs.model.TestNode;
 import edu.byu.cs.util.PhaseUtils;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,11 +31,6 @@ public class UnitTestGrader extends TestGrader {
     @Override
     protected Set<String> packagesToTest() throws GradingException {
         return PhaseUtils.unitTestPackagesToTest(gradingContext.phase());
-    }
-
-    @Override
-    protected Set<String> extraCreditTests() {
-        return new HashSet<>();
     }
 
     @Override

@@ -389,7 +389,7 @@ public class Scorer {
     private CanvasRubricAssessment getExistingAssessment(int userId, int assignmentNum) throws GradingException {
         try {
             CanvasSubmission submission = CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
-            return submission.rubric_assessment();
+            return submission.rubricAssessment();
         } catch (CanvasException e) {
             LOGGER.error("Exception from canvas", e);
             throw new GradingException("Could not contact canvas", e);
@@ -415,6 +415,11 @@ public class Scorer {
 
         if (totalPossiblePoints == 0) {
             throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
+        }
+
+        if (DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase()) instanceof RubricConfig rubricConfig &&
+                rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
+            totalPossiblePoints -= item.points();
         }
 
         float score = 0;
