@@ -1,6 +1,13 @@
 networks:
   autograder:
 
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "500m"
+      max-file: "3"
+
 services:
   db:
     image: mysql:9.7.0
@@ -16,6 +23,7 @@ services:
       - "3306:3306"
     networks:
       - autograder
+    <<: *default-logging
 
   app:
     image: ghcr.io/softwareconstruction240/autograder:latest
@@ -36,6 +44,7 @@ services:
     ]
     networks:
       - autograder
+    <<: *default-logging
 
   watchtower:
     container_name: watchtower
@@ -43,6 +52,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     image: containrrr/watchtower
     command: --cleanup
+    <<: *default-logging
 
 volumes:
     db-data:
