@@ -28,33 +28,7 @@
         </encoder>
     </appender>
 
-    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-        <http>
-            <url>http://${LOKI_URL}/loki/api/v1/push</url>
-        </http>
-        <format>
-            <label>
-                <pattern>app=autograder</pattern>
-            </label>
-            <message class="com.github.loki4j.logback.JsonLayout">
-                <threadName>
-                    <enabled>false</enabled>
-                </threadName>
-                <loggerName>
-                    <fieldName>class</fieldName>
-                </loggerName>
-            </message>
-        </format>
-        <batchMaxItems>
-            10
-        </batchMaxItems>
-        <batchTimeoutMs>
-            10000
-        </batchTimeoutMs>
-    </appender>
-
     <logger name="edu.byu.cs" level="INFO">
-        <appender-ref ref="LOKI" />
         <appender-ref ref="FILE" />
     </logger>
 
