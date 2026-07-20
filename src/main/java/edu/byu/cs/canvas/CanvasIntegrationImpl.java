@@ -337,6 +337,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "github repository", Rubric.RubricType.GITHUB_REPO
         );
 
+        private final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace Days";
+        private int CANVAS_GRACE_DAYS_ASSIGNMENT_ID;
+
         private final Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
         private final Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo
                 = new EnumMap<>(Phase.class);
@@ -344,7 +347,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         private boolean hasRetrievedFromCanvas = false;
 
         /**
-         * Gets the auto-graded Canvas assignments if the retriever is being asked for the first time.
+         * Gets the auto-graded Canvas assignments and grace days assignment if the retriever is being asked for the first time.
          * Otherwise, it returns the Canvas assignments from the initial retrieval.
          *
          * @return A list of Canvas assignments.
@@ -416,7 +419,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
         /**
          * Makes a paginated request from Canvas to read the course's assignments. It filters
-         * out the non-auto-graded assignments and reads the relevant assignments' data.
+         * out the non-auto-graded assignments (except the grace days assignment) and reads the relevant assignments' data.
          * Can access the updated data through the getters.
          *
          * @throws CanvasException when an error occurs when contacting Canvas
@@ -428,7 +431,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             );
             hasRetrievedFromCanvas = true;
             canvasAssignments.removeIf(canvasAssignment ->
-                    !CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES.contains(canvasAssignment.name())
+                    !CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES.contains(canvasAssignment.name()) || !Objects.equals(canvasAssignment.name(), CANVAS_GRACE_DAYS_ASSIGNMENT_NAME)
             );
             readCourseRelatedItems();
         }
@@ -437,6 +440,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             assignmentIds.clear();
             rubricInfo.clear();
             for (CanvasAssignment assignment : canvasAssignments) {
+                if (Objects.equals(assignment.name(), CANVAS_GRACE_DAYS_ASSIGNMENT_NAME)) {
+                    CANVAS_GRACE_DAYS_ASSIGNMENT_ID = assignment.id();
+                    continue;
+                }
                 Phase phase = PhaseUtils.getPhaseFromString(assignment.name());
                 assignmentIds.put(phase, assignment.id());
                 rubricInfo.put(phase, new HashMap<>());
@@ -488,6 +495,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     rubricConfigDao.setRubricIdAndPoints(phase, rubricType, points, rubricId);
                 }
             }
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, CANVAS_GRACE_DAYS_ASSIGNMENT_ID, Integer.class);
         }
 
     }
