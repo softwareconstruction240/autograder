@@ -192,13 +192,3 @@ To ensure that the assignment IDs and rubric IDs/points are synced with Canvas:
 
 Additionally, if you want (not required), you can insert values into the `configuration` table manually
 (although the step above should do it automatically). See [Insert `config` SQL Statements](db-insert-statements/insert-config-database.md).
-
-### 9. (Optional) Environment Variables
-
-> [!TIP]
-> This is only required when running `Loki` locally;\
-> otherwise, simply skip this step.
-
-If you are running Loki locally (not required), then you must set the `LOKI_URL` environment variable. The value can be
-either `localhost:3100` (if you are NOT using docker to develop the app) or `loki:3100` (if you are using docker to
-develop the app).
