@@ -54,5 +54,17 @@ services:
     command: --cleanup
     <<: *default-logging
 
+  bot:
+    image: ghcr.io/softwareconstruction240/discordqueuebot:latest
+    environment:
+      - TOKEN=changme
+      - USER=changeme
+      - PASSWORD=changeme
+      - HOST=changeme
+      - PORT=changeme
+    networks:
+      - autograder #necessary to access a database
+    <<: *default-logging
+
 volumes:
     db-data:
