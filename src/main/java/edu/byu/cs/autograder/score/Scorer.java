@@ -4,6 +4,8 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
+import edu.byu.cs.autograder.score.latepenalties.LatePenaltyCalculator;
+import edu.byu.cs.autograder.score.latepenalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
@@ -37,25 +39,14 @@ import static edu.byu.cs.model.Submission.VerifiedStatus;
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
 
-    /**
-     * The penalty to be applied per day to a late submission.
-     * This is out of 1. So putting 0.1 would be a 10% deduction per day
-     */
-    private final float PER_DAY_LATE_PENALTY;
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
+    private final LatePenaltyCalculator penaltyCalculator;
 
     public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
-
-        try {
-            ConfigurationDao dao = DaoService.getConfigurationDao();
-            PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
-        } catch (DataAccessException e) {
-            LOGGER.error("Error while getting Per Day Late Penalty for Scorer.");
-            throw new RuntimeException(e);
-        }
+        this.penaltyCalculator = new PercentPenaltyCalculator();
     }
 
     /**
@@ -83,7 +74,7 @@ public class Scorer {
         }
 
         int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        rubric = applyLatePenalty(rubric, daysLate);
+        rubric = penaltyCalculator.applyLatePenalty(rubric, daysLate, gradingContext);
         ScorePair scores = getScores(rubric);
 
         // Validate several conditions before submitting to the grade-book
@@ -308,64 +299,8 @@ public class Scorer {
         }
         return true;
     }
-
-    private Rubric applyLatePenalty(Rubric rubric, int daysLate) throws DataAccessException {
-        Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
-        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
-        float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
-        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
-            Rubric.RubricType rubricType = entry.getKey();
-            Rubric.RubricItem rubricItem = entry.getValue();
-            rubricItem = addLateNotesToRubricItem(rubricItem, daysLate, maxLateDays);
-            Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmissions, lateScoreMultiplier);
-            rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
-            items.put(rubricType, rubricItem);
-        }
-        return new Rubric(items, rubric.passed(), rubric.notes());
-    }
     
-    private RubricItem addLateNotesToRubricItem(RubricItem rubricItem, int daysLate, int maxLateDays){
-        Rubric.Results results = rubricItem.results();
-        results = new Rubric.Results(
-            makeLatePenaltyNotes(daysLate, maxLateDays, results.notes()),
-            results.score(),
-            results.rawScore(),
-            results.possiblePoints(),
-            results.testResults(),
-            results.textResults());
-        return new RubricItem(rubricItem.category(), results, rubricItem.criteria());
-    }
 
-    private Rubric.Results mergeResultsWithPrevious(Rubric.RubricType rubricType, Rubric.RubricItem rubricItem,
-                                                    Collection<Submission> previousSubmissions, float scoreMultiplier) {
-        Rubric.Results results = rubricItem.results();
-
-        String notes = results.notes();
-        float startingScore = results.score() * scoreMultiplier;
-        float score = startingScore;
-
-        for (Submission previousSubmission : previousSubmissions) {
-            if(previousSubmission.passed()) {
-                Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
-                if (previousItem != null && previousItem.results().rawScore() <= results.rawScore()) {
-                    score = Math.max(score, previousItem.results().score());
-                }
-            }
-        }
-
-        if(score > startingScore) {
-            notes = String.format("Deferring to less-penalized prior score of %s/%d\n%s",
-                    Math.round(score * 100) / 100.0, rubricItem.results().possiblePoints(), notes);
-        }
-
-        return new Rubric.Results(notes,
-                score,
-                results.score(),
-                results.possiblePoints(),
-                results.testResults(),
-                results.textResults());
-    }
 
     /**
      * Returns a new CanvasRubricAssessment that represents the result of merging `assessment` into `existing`.
@@ -465,7 +400,7 @@ public class Scorer {
 
         Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
 
-        notes = makeLatePenaltyNotes(numDaysLate, maxLateDays, notes);
+        notes = penaltyCalculator.makeLatePenaltyNotes(numDaysLate, maxLateDays, notes);
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
@@ -497,25 +432,6 @@ public class Scorer {
                 commitVerificationResult,
                 null
         );
-    }
-
-    private String makeLatePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes) {
-        if (numDaysLate <= 0) {
-            return origNotes;
-        }
-
-        String penaltyPercentage = String.format("-%d%%", (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100));
-        String lateNotes;
-        if (numDaysLate >= maxLateDays) {
-            lateNotes = "Late penalty maxed out: " + penaltyPercentage;
-        } else {
-            lateNotes = String.format("%d days late: %s", numDaysLate, penaltyPercentage);
-        }
-
-        if (origNotes == null || origNotes.isBlank()) {
-            return lateNotes;
-        }
-        return String.format("%s\n%s", origNotes, lateNotes);
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
