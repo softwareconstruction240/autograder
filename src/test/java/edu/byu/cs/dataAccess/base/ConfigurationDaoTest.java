@@ -100,6 +100,7 @@ public abstract class ConfigurationDaoTest {
             case SLACK_LINK, BANNER_LINK, BANNER_COLOR, BANNER_MESSAGE-> "https://slack.com";
             case STUDENT_SUBMISSIONS_ENABLED -> random.nextBoolean();
             case GRADER_SHUTDOWN_DATE, HOLIDAY_LIST, BANNER_EXPIRATION-> Instant.now();
+            case GRACE_DAYS_ASSIGNMENT_NUMBER -> -1;
         };
     }
 
