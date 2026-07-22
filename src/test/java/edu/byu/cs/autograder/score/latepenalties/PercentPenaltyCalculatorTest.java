@@ -8,13 +8,12 @@ import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.Rubric;
 
 public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
-    private static float penaltyPerDay;
+    private float penaltyPerDay;
 
     @BeforeAll
     static void setUpPercentPenalty() throws DataAccessException {
         setUp();
         latePenaltyCalculator = new PercentPenaltyCalculator();
-        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
     }
 
     int daysLate;
@@ -30,8 +29,9 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     @Override
     void testOnTimeSubmission() throws DataAccessException {
         daysLate = 0;
+        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubric, daysLate, gradingContext);
+        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
         Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
 
         Assertions.assertEquals(passoffTestResults.rawScore(), passoffTestResults.score());
@@ -41,8 +41,9 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     @Override
     public void testOneDayLate() throws DataAccessException {
         daysLate = 1;
-        
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubric, daysLate, gradingContext);
+        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+
+        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
         Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
 
         Assertions.assertEquals(passoffTestResults.rawScore() * (1 - daysLate * penaltyPerDay), passoffTestResults.score());
@@ -51,47 +52,74 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
 
     @Test
     @Override
-    public void testOneWeekLate() throws DataAccessException {
-        daysLate = 7;
+    public void testMaxLate() throws DataAccessException {
+        // The LateDayCalculator is the object that reduces the days late to the maximum late days value,
+        // so we can't use an arbitrarily high number in this test.
+        daysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
+        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubric, daysLate, gradingContext);
+        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
         Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
 
-        Assertions.assertEquals(passoffTestResults.rawScore() * (1 - maxDaysPenaliized * penaltyPerDay), passoffTestResults.score());
+        Assertions.assertEquals(passoffTestResults.rawScore() * (1 - daysLate * penaltyPerDay), passoffTestResults.score());
     }
 
     @Test
     @Override
-    public void testOneMonthLate() throws DataAccessException {
-        daysLate = 30;
+    public void testLatePenaltyNotesFormat() throws DataAccessException {
+        daysLate = 1;
+        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubric, daysLate, gradingContext);
-        Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
+        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
+        String testNotes = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results().notes();
 
-        Assertions.assertEquals(passoffTestResults.rawScore() * (1 - maxDaysPenaliized * penaltyPerDay), passoffTestResults.score());
+        containsExpected(testNotes, String.format("-%d%%", (int) (daysLate * penaltyPerDay * 100)), "late");
 
+        daysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
+
+        resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
+        testNotes = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results().notes();
+
+
+        containsExpected(testNotes, String.format("-%d%%", (int) (daysLate * penaltyPerDay * 100)), "late", "penalty", "maxed");
     }
 
+    @Override
     @Test
-    @Disabled
     public void testPenaltyConfigOverride() throws DataAccessException {
         ConfigurationDao configurationDao = DaoService.getConfigurationDao();
+
         // capture original rubric config values so they can be reinserted later to not interfere with later tests
         int origMaxLateDays = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        int origLatePenalty = configurationDao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Integer.class);
+        float origLatePenalty = configurationDao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
         configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 10, Integer.class);
-        configurationDao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 7, Integer.class);
+        configurationDao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 0.07f, Float.class);
+
+        // the calculator is optimized to only retrieve PER_LATE_DAY_PENALTY on initialization, so we must recreate the object
+        latePenaltyCalculator = new PercentPenaltyCalculator();
+        testMaxLate();
+        testOneDayLate();
+        testOnTimeSubmission();
+        testEarlySubmission();
+        testLatePenaltyNotesFormat();
 
         // reinsert original rubric configuration values
         configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, origMaxLateDays, Integer.class);
-        configurationDao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, origLatePenalty, Integer.class);
+        configurationDao.setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, origLatePenalty, Float.class);
+        latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
-    @Test
     @Override
-    @Disabled
-    public void testLatePenaltyNotesFormat() throws DataAccessException {
+    public void testMultipleRubricItems() throws DataAccessException {
 
+    }
+
+
+    // helper methods
+    private void containsExpected(String container, String... expected){
+        for (String pattern : expected) {
+            Assertions.assertTrue(container.toLowerCase().contains(pattern), () -> String.format("String did not contain expected value: %s\nSource: %s", pattern, container));
+        }
     }
 }

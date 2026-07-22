@@ -8,8 +8,6 @@ import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Rubric;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -22,8 +20,9 @@ public abstract class LatePenaltyCalculatorTest {
     static protected ArrayList<RubricConfig> rubricConfigs;
     static protected LatePenaltyCalculator latePenaltyCalculator;
     static protected GradingContext gradingContext;
-    static protected Rubric testRubric;
-    static protected int maxDaysPenaliized;
+    static protected Rubric testRubricOneItem;
+    static protected Rubric testRubricTwoItems;
+    static protected Rubric testRubricThreeItems;
 
     protected static void setUp() throws DataAccessException {
         //dao init
@@ -33,7 +32,6 @@ public abstract class LatePenaltyCalculatorTest {
         //config values init
         DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 0.1f, Float.class);
         DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
-        maxDaysPenaliized = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
 
         rubricConfigs = new ArrayList<>();
         for (Phase phase : Phase.values()) {
@@ -51,7 +49,11 @@ public abstract class LatePenaltyCalculatorTest {
         Rubric.Results results = new Rubric.Results("notes", 10.0f, 10, null, "textResults");
         Rubric.RubricItem rubricItem = new Rubric.RubricItem("testCategory", results, "testCriteria");
         items.put(Rubric.RubricType.PASSOFF_TESTS, rubricItem);
-        testRubric = new Rubric(items, true, "");
+        testRubricOneItem = new Rubric(items, true, "");
+        items.put(Rubric.RubricType.QUALITY, rubricItem);
+        testRubricTwoItems = new Rubric(items, true, "");
+        items.put(Rubric.RubricType.UNIT_TESTS, rubricItem);
+        testRubricThreeItems = new Rubric(items, true, "");
     }
 
     @Test
@@ -64,10 +66,13 @@ public abstract class LatePenaltyCalculatorTest {
     abstract void testOneDayLate() throws DataAccessException;
 
     @Test
-    abstract void testOneWeekLate() throws DataAccessException;
+    abstract void testMaxLate() throws DataAccessException;
 
     @Test
-    abstract void testOneMonthLate() throws DataAccessException;
+    abstract public void testPenaltyConfigOverride() throws DataAccessException;
+
+    @Test
+    abstract public void testMultipleRubricItems() throws DataAccessException;
 
     @Test
     abstract void testLatePenaltyNotesFormat() throws DataAccessException;
