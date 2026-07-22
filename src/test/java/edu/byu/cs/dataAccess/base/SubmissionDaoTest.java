@@ -311,7 +311,6 @@ public abstract class SubmissionDaoTest {
 
     @ParameterizedTest
     @EnumSource(value = Phase.class)
-    @Disabled
     void getBestSubmissionWithDuplicateScore(Phase phase) throws DataAccessException {
         Collection<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < SUBMISSIONS_PER_PHASE; i++) {
@@ -321,7 +320,6 @@ public abstract class SubmissionDaoTest {
             submissions.add(duplicate);
         }
 
-        //FIXME: what is the tie-breaker here? because it's not time and the code doesn't seem to care
         Submission expected = findFirstPassing(submissions);
         Submission actual = dao.getBestSubmissionForPhase(DaoTestUtils.generateNetID(userID), phase);
         assertSubmissionDeepEquals(expected, actual, "Best Submissions do not match");
