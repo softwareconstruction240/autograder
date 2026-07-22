@@ -7,7 +7,10 @@ import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.Rubric;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
 
 public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     private float penaltyPerDay;
@@ -20,39 +23,44 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
 
     int daysLate;
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getRubrics")
     @Override
-    public void testEarlySubmission() throws DataAccessException {
+    public void testEarlySubmission(Rubric testRubric) throws DataAccessException {
         // For this implementation, early submissions are treated as if they were on time,
         // because LateDayCalculator resolves early submissions as 0 days late.
-        testOnTimeSubmission();
+        testOnTimeSubmission(testRubric);
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getRubrics")
     @Override
-    void testOnTimeSubmission() throws DataAccessException {
+    void testOnTimeSubmission(Rubric testRubric) throws DataAccessException {
         calculateAndEvaluateScore(testRubricOneItem, 0);
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getRubrics")
     @Override
-    public void testOneDayLate() throws DataAccessException {
+    public void testOneDayLate(Rubric testRubric) throws DataAccessException {
         calculateAndEvaluateScore(testRubricOneItem, 1);
     }
 
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getRubrics")
     @Override
-    public void testMaxLate() throws DataAccessException {
+    public void testMaxLate(Rubric testRubric) throws DataAccessException {
         // The LateDayCalculator is the object that reduces the days late to the maximum late days value,
         // so we can't use an arbitrarily high number in this test.
         daysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
         calculateAndEvaluateScore(testRubricOneItem, daysLate);
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getRubrics")
     @Override
-    public void testLatePenaltyNotesFormat() throws DataAccessException {
+    public void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException {
         daysLate = 1;
         penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
@@ -74,8 +82,9 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     }
 
     @Override
-    @Test
-    public void testPenaltyConfigOverride() throws DataAccessException {
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    public void testPenaltyConfigOverride(Rubric testRubric) throws DataAccessException {
         ConfigurationDao configurationDao = DaoService.getConfigurationDao();
 
         // capture original rubric config values so they can be reinserted later to not interfere with later tests
@@ -87,11 +96,11 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
 
         // the calculator is optimized to only retrieve PER_LATE_DAY_PENALTY on initialization, so we must recreate the object
         latePenaltyCalculator = new PercentPenaltyCalculator();
-        testMaxLate();
-        testOneDayLate();
-        testOnTimeSubmission();
-        testEarlySubmission();
-        testLatePenaltyNotesFormat();
+        testMaxLate(testRubric);
+        testOneDayLate(testRubric);
+        testOnTimeSubmission(testRubric);
+        testEarlySubmission(testRubric);
+        testLatePenaltyNotesFormat(testRubric);
 
         // reinsert original rubric configuration values
         configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, origMaxLateDays, Integer.class);
@@ -99,7 +108,10 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
         latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
-    // helper methods
+    /**
+     *  ================ helper methods ================
+     */
+
     private void containsExpected(String container, String... expected){
         for (String pattern : expected) {
             Assertions.assertTrue(container.toLowerCase().contains(pattern), () -> String.format("String did not contain expected value: %s\nSource: %s", pattern, container));
@@ -116,4 +128,5 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
             Assertions.assertEquals(results.rawScore() * (1 - daysLate * penaltyPerDay), results.score());
         }
     }
+
 }

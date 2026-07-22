@@ -10,10 +10,13 @@ import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Rubric;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 
 public abstract class LatePenaltyCalculatorTest {
 
@@ -57,21 +60,31 @@ public abstract class LatePenaltyCalculatorTest {
         testRubricThreeItems = new Rubric(items, true, "");
     }
 
-    @Test
-    abstract void testEarlySubmission() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract void testEarlySubmission(Rubric testRubric) throws DataAccessException;
 
-    @Test
-    abstract void testOnTimeSubmission() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract void testOnTimeSubmission(Rubric testRubric) throws DataAccessException;
 
-    @Test
-    abstract void testOneDayLate() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract void testOneDayLate(Rubric testRubric) throws DataAccessException;
 
-    @Test
-    abstract void testMaxLate() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract void testMaxLate(Rubric testRubric) throws DataAccessException;
 
-    @Test
-    abstract public void testPenaltyConfigOverride() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract public void testPenaltyConfigOverride(Rubric testRubric) throws DataAccessException;
 
-    @Test
-    abstract void testLatePenaltyNotesFormat() throws DataAccessException;
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    abstract void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException;
+
+    protected static Iterable<? extends Arguments> getRubrics(){
+        return List.of(Arguments.of(testRubricOneItem), Arguments.of(testRubricTwoItems), Arguments.of(testRubricThreeItems));
+    }
 }
