@@ -6,6 +6,8 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.Rubric;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     private float penaltyPerDay;
@@ -21,32 +23,21 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
     @Test
     @Override
     public void testEarlySubmission() throws DataAccessException {
-        // For this implementation, early submissions are treated as if they were on time
+        // For this implementation, early submissions are treated as if they were on time,
+        // because LateDayCalculator resolves early submissions as 0 days late.
         testOnTimeSubmission();
     }
 
     @Test
     @Override
     void testOnTimeSubmission() throws DataAccessException {
-        daysLate = 0;
-        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
-
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
-        Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
-
-        Assertions.assertEquals(passoffTestResults.rawScore(), passoffTestResults.score());
+        calculateAndEvaluateScore(testRubricOneItem, 0);
     }
 
     @Test
     @Override
     public void testOneDayLate() throws DataAccessException {
-        daysLate = 1;
-        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
-
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
-        Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
-
-        Assertions.assertEquals(passoffTestResults.rawScore() * (1 - daysLate * penaltyPerDay), passoffTestResults.score());
+        calculateAndEvaluateScore(testRubricOneItem, 1);
     }
 
 
@@ -56,12 +47,7 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
         // The LateDayCalculator is the object that reduces the days late to the maximum late days value,
         // so we can't use an arbitrarily high number in this test.
         daysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
-        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
-
-        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
-        Rubric.Results passoffTestResults = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results();
-
-        Assertions.assertEquals(passoffTestResults.rawScore() * (1 - daysLate * penaltyPerDay), passoffTestResults.score());
+        calculateAndEvaluateScore(testRubricOneItem, daysLate);
     }
 
     @Test
@@ -71,17 +57,20 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
         penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
 
         Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
-        String testNotes = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results().notes();
 
-        containsExpected(testNotes, String.format("-%d%%", (int) (daysLate * penaltyPerDay * 100)), "late");
+        int maxDaysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
 
-        daysLate = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE,  Integer.class);
+        Rubric resultRubricMax = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, maxDaysLate, gradingContext);
 
-        resultRubric = latePenaltyCalculator.applyLatePenalty(testRubricOneItem, daysLate, gradingContext);
-        testNotes = resultRubric.items().get(Rubric.RubricType.PASSOFF_TESTS).results().notes();
+        String testNotes;
+        String testNotesMax;
 
-
-        containsExpected(testNotes, String.format("-%d%%", (int) (daysLate * penaltyPerDay * 100)), "late", "penalty", "maxed");
+        for (Rubric.RubricType type: resultRubric.items().keySet()) {
+            testNotes = resultRubric.items().get(type).results().notes();
+            testNotesMax = resultRubricMax.items().get(type).results().notes();
+            containsExpected(testNotes, String.format("-%d%%", (int) (daysLate * penaltyPerDay * 100)), "late");
+            containsExpected(testNotesMax, String.format("-%d%%", (int) (maxDaysLate * penaltyPerDay * 100)), "late", "penalty", "maxed");
+        }
     }
 
     @Override
@@ -110,16 +99,21 @@ public class PercentPenaltyCalculatorTest extends LatePenaltyCalculatorTest {
         latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
-    @Override
-    public void testMultipleRubricItems() throws DataAccessException {
-
-    }
-
-
     // helper methods
     private void containsExpected(String container, String... expected){
         for (String pattern : expected) {
             Assertions.assertTrue(container.toLowerCase().contains(pattern), () -> String.format("String did not contain expected value: %s\nSource: %s", pattern, container));
+        }
+    }
+
+    private void calculateAndEvaluateScore(Rubric rubric, int daysLate) throws DataAccessException{
+        penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+
+        Rubric resultRubric = latePenaltyCalculator.applyLatePenalty(rubric, daysLate, gradingContext);
+
+        for (Rubric.RubricItem item : resultRubric.items().values()){
+            Rubric.Results results = item.results();
+            Assertions.assertEquals(results.rawScore() * (1 - daysLate * penaltyPerDay), results.score());
         }
     }
 }

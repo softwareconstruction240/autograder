@@ -9,6 +9,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Rubric;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,9 +71,6 @@ public abstract class LatePenaltyCalculatorTest {
 
     @Test
     abstract public void testPenaltyConfigOverride() throws DataAccessException;
-
-    @Test
-    abstract public void testMultipleRubricItems() throws DataAccessException;
 
     @Test
     abstract void testLatePenaltyNotesFormat() throws DataAccessException;
