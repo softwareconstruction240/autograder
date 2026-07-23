@@ -17,7 +17,6 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.*;
-import edu.byu.cs.model.Rubric.RubricItem;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
@@ -25,9 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Map;
 
 import static edu.byu.cs.model.Submission.VerifiedStatus;
 
@@ -331,7 +328,8 @@ public class Scorer {
         }
     }
 
-    private static float totalPoints(CanvasRubricAssessment assessment) {
+    //TODO: move to penalty calculator?
+    public static float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
         for(CanvasRubricItem item : assessment.items().values()) {
@@ -430,7 +428,8 @@ public class Scorer {
                 verifiedStatus,
                 commitVerificationReport.context(),
                 commitVerificationResult,
-                null
+                null,
+                -numDaysLate
         );
     }
 
@@ -448,6 +447,7 @@ public class Scorer {
         }
     }
 
+    //TODO: move to penalty calculator
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
     }
