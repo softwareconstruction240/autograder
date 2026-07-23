@@ -4,8 +4,8 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
-import edu.byu.cs.autograder.score.latepenalties.LatePenaltyCalculator;
-import edu.byu.cs.autograder.score.latepenalties.PercentPenaltyCalculator;
+import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
+import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
@@ -41,12 +41,12 @@ public class Scorer {
 
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
-    private final LatePenaltyCalculator penaltyCalculator;
+    private final PenaltyCalculator latePenaltyCalculator;
 
     public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
-        this.penaltyCalculator = new PercentPenaltyCalculator();
+        this.latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
     /**
@@ -74,7 +74,7 @@ public class Scorer {
         }
 
         int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        rubric = penaltyCalculator.applyLatePenalty(rubric, daysLate, gradingContext);
+        rubric = latePenaltyCalculator.applyPenalty(rubric, daysLate, gradingContext);
         ScorePair scores = getScores(rubric);
 
         // Validate several conditions before submitting to the grade-book
@@ -400,7 +400,7 @@ public class Scorer {
 
         Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
 
-        notes = penaltyCalculator.makeLatePenaltyNotes(numDaysLate, maxLateDays, notes);
+        notes = latePenaltyCalculator.makePenaltyNotes(numDaysLate, maxLateDays, notes);
 
         ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
         Submission.VerifiedStatus verifiedStatus;
