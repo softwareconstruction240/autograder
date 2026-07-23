@@ -155,7 +155,7 @@ public class Grader implements Runnable {
             return;
         }
         try {
-            Submission submission = scorer.generateSubmissionObject(ge.asRubric(), cvr, 0, new Scorer.ScorePair(0f, 0f), ge.getMessage());
+            Submission submission = scorer.generateSubmissionObject(ge.asRubric(), cvr, 0, new Rubric.ScorePair(0f, 0f), ge.getMessage());
             DaoService.getSubmissionDao().insertSubmission(submission);
             observer.notifyError(ge.getMessage(), submission);
         } catch (Exception ex) {

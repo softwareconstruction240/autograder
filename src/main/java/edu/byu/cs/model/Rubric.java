@@ -1,5 +1,9 @@
 package edu.byu.cs.model;
 
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+
 import java.util.EnumMap;
 
 /**
@@ -68,5 +72,35 @@ public record Rubric(
         GIT_COMMITS,
         GITHUB_REPO,
         GRADING_ISSUE;
+    }
+
+    public record ScorePair(float score, float rawScore) {}
+
+    /**
+     * Gets the score and rawScore for the rubric and phase
+     *
+     * @return a ScorePair with both the score and rawScore as a percentage value from [0-1].
+     */
+    public ScorePair getScores(Phase phase) throws GradingException, DataAccessException{
+        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
+
+        if (totalPossiblePoints == 0) {
+            throw new GradingException("Total possible points for phase " + phase + " is 0");
+        }
+
+        if (DaoService.getRubricConfigDao().getRubricConfig(phase) instanceof RubricConfig rubricConfig &&
+                rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
+            totalPossiblePoints -= item.points();
+        }
+
+        float score = 0;
+        float rawScore = 0;
+        for (Rubric.RubricType type : Rubric.RubricType.values()) {
+            var rubricItem = this.items().get(type);
+            if (rubricItem == null) continue;
+            score += rubricItem.results().score();
+            rawScore += rubricItem.results().rawScore();
+        }
+        return new ScorePair(score/totalPossiblePoints, rawScore/totalPossiblePoints);
     }
 }

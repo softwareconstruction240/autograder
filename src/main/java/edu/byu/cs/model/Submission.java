@@ -142,6 +142,27 @@ public record Submission(
         );
     }
 
+    public Submission updateNotes(String newNotes){
+        return new Submission(
+                this.netId(),
+                this.repoUrl(),
+                this.headHash(),
+                this.timestamp(),
+                this.phase(),
+                this.passed(),
+                this.score(),
+                this.rawScore(),
+                this.notes() + newNotes,
+                this.rubric(),
+                this.admin(),
+                this.verifiedStatus(),
+                this.commitContext(),
+                this.commitResult(),
+                this.verification(),
+                this.graceDaysEarned()
+        );
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

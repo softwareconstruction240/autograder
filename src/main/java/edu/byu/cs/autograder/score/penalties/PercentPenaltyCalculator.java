@@ -1,6 +1,8 @@
 package edu.byu.cs.autograder.score.penalties;
 
 import edu.byu.cs.autograder.GradingContext;
+import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
@@ -52,7 +54,7 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
         return String.format("%s\n%s", origNotes, lateNotes);
     }
 
-    public Rubric applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext) throws DataAccessException {
+    public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext, CommitVerificationReport commitReport) throws DataAccessException, GradingException {
         Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
@@ -65,7 +67,8 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
             rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
             items.put(rubricType, rubricItem);
         }
-        return new Rubric(items, rubric.passed(), rubric.notes());
+        Rubric finalRubric = new Rubric(items, rubric.passed(), rubric.notes());
+        return generateSubmissionObject(finalRubric, commitReport, daysLate, rubric.getScores(gradingContext.phase()), "", gradingContext);
     }
 
     private Rubric.RubricItem addLateNotesToRubricItem(Rubric.RubricItem rubricItem, int daysLate, int maxLateDays){
