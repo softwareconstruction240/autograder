@@ -2,6 +2,7 @@ package edu.byu.cs.autograder.score.penalties;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSubmission;
@@ -33,29 +34,34 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     }
 
     @Override
-    public Rubric applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext)
-            throws DataAccessException {
+    public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext,
+                               CommitVerificationReport commitReport) throws DataAccessException, GradingException {
         Submission bestSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
         Integer initialGraceDays = getGraceDays();
         int graceDaysEarned = 0;
 
         if (bestSubmission != null){
             if (totalRubricScore(rubric) <= totalRubricScore(bestSubmission.rubric())) {
-                return rubric;
+                return generateSubmissionObject(rubric,commitReport, daysLate, rubric.getScores(gradingContext.phase()),
+                        "Submission not sent to Canvas due to worse score. Grace days unaffected.", gradingContext);
             }
             graceDaysEarned = bestSubmission.graceDaysEarned();
         }
 
         int graceDayDifference = initialGraceDays - graceDaysEarned - daysLate;
         if (graceDayDifference < 0){
-            return zeroScore(rubric, daysLate, initialGraceDays);
+            Rubric zero = zeroScore(rubric, daysLate, initialGraceDays);
+            return generateSubmissionObject(zero, commitReport, daysLate, zero.getScores(gradingContext.phase()),
+                    "Score is zero due to not enough Grace Days available. Grace days unaffected.", gradingContext);
         }
         Integer finalGraceDays = sendGraceDaysToCanvas(graceDayDifference);
-        return new Rubric(
+        rubric = new Rubric(
                 rubric.items(),
                 rubric.passed(),
                 makePenaltyNotes(daysLate, finalGraceDays, rubric.notes())
         );
+        return generateSubmissionObject(rubric, commitReport, daysLate, rubric.getScores(gradingContext.phase()),
+                "", gradingContext);
     }
 
     @Override
