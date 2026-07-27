@@ -454,7 +454,8 @@ public abstract class SubmissionDaoTest {
                 true,
                 verification ? Submission.VerifiedStatus.ApprovedManually : null,
                 null, null,
-                verification ? new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0) : null
+                verification ? new Submission.ScoreVerification(100.1f, "cosmo_boss", Instant.now(), 0) : null,
+                0
         );
     }
 
