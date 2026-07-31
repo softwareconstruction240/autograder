@@ -13,7 +13,7 @@ import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.model.Rubric;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -26,7 +26,7 @@ import java.util.List;
 
 public abstract class PenaltyCalculatorTest {
 
-    static protected PenaltyCalculator latePenaltyCalculator;
+    static protected PenaltyCalculator penaltyCalculator;
     static protected RubricConfigDao rubricConfigDao;
     static protected ArrayList<RubricConfig> rubricConfigs;
     static protected GradingContext gradingContext;
@@ -113,5 +113,11 @@ public abstract class PenaltyCalculatorTest {
 
     protected static Iterable<? extends Arguments> getRubrics(){
         return List.of(Arguments.of(testRubricOneItem), Arguments.of(testRubricTwoItems), Arguments.of(testRubricThreeItems));
+    }
+
+    protected void containsExpected(String container, String... expected){
+        for (String pattern : expected) {
+            Assertions.assertTrue(container.toLowerCase().contains(pattern), () -> String.format("String did not contain expected value: %s\nSource: %s", pattern, container));
+        }
     }
 }
