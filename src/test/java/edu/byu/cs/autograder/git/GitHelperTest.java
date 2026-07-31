@@ -46,7 +46,7 @@ class GitHelperTest {
     }
 
     @Test
-    void multiPhaseSuccessfullPassoff() {
+    void multiPhaseSuccessfulPassoff() {
         utils.evaluateTest("multi-phase-successful-passoff", List.of(
                 new VerificationCheckpoint(
                         repoContext -> {

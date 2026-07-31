@@ -105,8 +105,14 @@ public class SubmissionMemoryDao implements SubmissionDao {
         Collection<Submission> submissions = getSubmissionsForPhase(netId, phase);
         Submission bestSubmission =  null;
         for (Submission s : submissions) {
-            if (bestSubmission == null) { bestSubmission = s; }
-            else if (s.score() > bestSubmission.score() && s.passed()) { bestSubmission = s; }
+            if (bestSubmission == null) {
+                bestSubmission = s;
+            }
+            else if (s.score() > bestSubmission.score() && s.passed()) {
+                bestSubmission = s;
+            } else if (s.score().equals(bestSubmission.score()) && s.passed() && s.timestamp().getEpochSecond() < bestSubmission.timestamp().getEpochSecond()) {
+                bestSubmission = s;
+            }
         }
         if (bestSubmission == null || !bestSubmission.passed()){
             return null;
