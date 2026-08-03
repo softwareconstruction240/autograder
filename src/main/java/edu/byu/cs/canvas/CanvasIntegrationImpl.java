@@ -316,6 +316,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     public static class CourseInfoRetriever {
 
+        private static final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace days";
+
         public static final Set<String> CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES = Set.of(
                 "Chess GitHub Repository",
                 "♕ Phase 0: Chess Moves",
@@ -323,7 +325,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "♕ Phase 3: Chess Web API",
                 "♕ Phase 4: Chess Database",
                 "♕ Phase 5: Chess Pregame",
-                "♕ Phase 6: Chess Gameplay (Pass Off)"
+                "♕ Phase 6: Chess Gameplay (Pass Off)",
+                CANVAS_GRACE_DAYS_ASSIGNMENT_NAME
         );
 
         private static final Map<String, Rubric.RubricType> RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES = Map.of(
@@ -337,7 +340,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "github repository", Rubric.RubricType.GITHUB_REPO
         );
 
-        private final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace Days";
         private int CANVAS_GRACE_DAYS_ASSIGNMENT_ID;
 
         private final Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
@@ -431,7 +433,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             );
             hasRetrievedFromCanvas = true;
             canvasAssignments.removeIf(canvasAssignment ->
-                    !CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES.contains(canvasAssignment.name()) || !Objects.equals(canvasAssignment.name(), CANVAS_GRACE_DAYS_ASSIGNMENT_NAME)
+                    !CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES.contains(canvasAssignment.name())
             );
             readCourseRelatedItems();
         }
