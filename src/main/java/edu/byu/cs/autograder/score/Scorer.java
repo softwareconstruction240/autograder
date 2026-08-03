@@ -4,6 +4,7 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
+import edu.byu.cs.autograder.score.penalties.GraceDayPenaltyCalculator;
 import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
 import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
@@ -43,7 +44,11 @@ public class Scorer {
     public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
-        this.latePenaltyCalculator = new PercentPenaltyCalculator();
+      try {
+        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()));
+      } catch (GradingException | DataAccessException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     /**
@@ -77,8 +82,8 @@ public class Scorer {
             );
         }
 
-        int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysLate, gradingContext, commitVerificationReport);
+        int daysSinceDue = lateDayCalculator.calculateDaysSinceDue(gradingContext.phase(), gradingContext.netId());
+        Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysSinceDue, gradingContext, commitVerificationReport);
 
         // Validate several conditions before submitting to the grade-book
         CommitVerificationResult commitVerificationResult = commitVerificationReport.result();

@@ -167,6 +167,35 @@ public class LateDayCalculator {
 
     /**
      * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
+     * the number of days since due from the student-specific due date hand-in date.
+     * <br>
+     * This computation considers specific policies like:
+     * <ul>
+     *     <li>Configured holidays</li>
+     *     <li>Maximum number of late days penalized</li>
+     * </ul>
+     * <br>
+     * <b>Performance:</b> The first time this is run for a netId-phase combination will result in a cache-miss
+     * which requires a slow lookup process from multiple external sources. After the context is available, the
+     * computation is a <pre>O(n)</pre> iterative algorithm based on the number of days late.
+     *
+     * @param phase The current phase to consider.
+     * @param netId The student netId being evaluated.
+     * @return An integer indicating the number of days the assignment was submitted since the due date. Negative numbers meaning they submitted early.
+     * @throws GradingException When other business rules are violated during processing.
+     * @throws DataAccessException When our internal database experiences issues.
+     */
+    public int calculateDaysSinceDue(Phase phase, String netId) throws GradingException, DataAccessException {
+        var context = getLateDayContext(phase, netId);
+        int daysEarly = getNumDaysEarly(context.handInDate, context.dueDate);
+        if (daysEarly > 0) {
+            return -daysEarly;
+        }
+        return Math.min(getNumDaysLate(context.handInDate, context.dueDate), context.maxLateDaysToPenalize);
+    }
+
+    /**
+     * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
      * the number of days early from the hand-in date to the student-specific due date.
      * <br>
      * This does not count holidays.
