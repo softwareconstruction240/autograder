@@ -79,14 +79,17 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     }
 
     public String makePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes, boolean isRelativeToPreviousSubmission) {
+        String lateNotes;
         if (numDaysLate == 0){
-            return "Assignment turned in on time. Grace days unaffected.";
+            lateNotes =  "Assignment turned in on time. Grace days unaffected.";
         } else if (numDaysLate < 0){
-            return String.format("Assignment turned in %d day%s early. New total grace days: %d.", -numDaysLate, numDaysLate == -1 ? "" : "s", maxLateDays);
+            lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d.", -numDaysLate, numDaysLate == -1 ? "" : "s", maxLateDays);
         } else {
             String lateContext = isRelativeToPreviousSubmission ? " (relative to a previous early submission)" : "";
-            return String.format("Assignment turned in %d day%s late%s. New total grace days: %d.", numDaysLate, numDaysLate == 1 ? "" : "s", lateContext, maxLateDays);
+            lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d.", numDaysLate, numDaysLate == 1 ? "" : "s", lateContext, maxLateDays);
         }
+
+        return String.format("%s\n%s", origNotes, lateNotes);
     }
 
     public Integer getGraceDays() throws GradingException {
