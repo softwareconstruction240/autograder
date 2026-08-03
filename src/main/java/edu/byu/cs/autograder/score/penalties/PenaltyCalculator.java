@@ -51,7 +51,7 @@ public interface PenaltyCalculator {
         String headHash = commitVerificationResult.headHash();
         String netId = gradingContext.netId();
 
-        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        int maxLateDays = getMaxLateDays();
 
         notes = makePenaltyNotes(numDaysLate, maxLateDays, notes);
 
@@ -87,4 +87,6 @@ public interface PenaltyCalculator {
                 -numDaysLate
         );
     }
+
+    int getMaxLateDays() throws GradingException;
 }

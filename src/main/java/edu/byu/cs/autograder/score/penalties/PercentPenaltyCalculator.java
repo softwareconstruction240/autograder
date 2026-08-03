@@ -54,6 +54,15 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
         return String.format("%s\n%s", origNotes, lateNotes);
     }
 
+    @Override
+    public int getMaxLateDays() throws GradingException {
+        try {
+            return DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        } catch (DataAccessException e) {
+            throw new GradingException(e);
+        }
+    }
+
     public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext, CommitVerificationReport commitReport) throws DataAccessException, GradingException {
         Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
