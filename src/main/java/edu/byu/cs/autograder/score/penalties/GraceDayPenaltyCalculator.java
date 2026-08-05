@@ -93,7 +93,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     @Override
     public int getMaxLateDays() throws GradingException {
-        return getGraceDays();
+        return totalGraceDays;
     }
 
     public String makePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes, boolean isRelativeToPreviousSubmission) {
