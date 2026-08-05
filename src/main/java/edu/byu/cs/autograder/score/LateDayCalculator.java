@@ -352,12 +352,10 @@ public class LateDayCalculator {
         // Do not throw errors when configured with an empty list. Possibly configured this way.
         if (publicHolidays.isEmpty()) return;
 
-        // Throw errors when configured with dates, but none in the future.
-        // This represents stale data that needs to be maintained.
         LocalDate maxDate = publicHolidays.stream().max(LocalDate::compareTo).get();
         LocalDate now = LocalDate.now();
         if (maxDate.isBefore(now)) {
-            throw new RuntimeException("There are public holidays configured, but none of them are in the future. " +
+            LOGGER.warning("There are public holidays configured, but none of them are in the future. " +
                     "This likely represents a stale configuration error which results in holidays not being respected.");
         }
     }
