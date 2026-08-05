@@ -23,34 +23,36 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     private final Integer graceDaysAssignmentId;
     private final int canvasUserId;
+    private final int totalGraceDays;
 
-    public GraceDayPenaltyCalculator (int canvasUserId) throws GradingException {
+    public GraceDayPenaltyCalculator(int canvasUserId) throws GradingException {
         this.canvasUserId = canvasUserId;
         try {
             graceDaysAssignmentId = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, Integer.class);
         } catch (DataAccessException e) {
             throw new GradingException(e);
         }
+        totalGraceDays = getGraceDays();
     }
 
     @Override
     public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext,
-                               CommitVerificationReport commitReport) throws DataAccessException, GradingException {
+                                   CommitVerificationReport commitReport) throws DataAccessException, GradingException {
         Submission bestSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
-        Integer initialGraceDays = getGraceDays();
+        int initialGraceDays = totalGraceDays;
         int graceDaysEarned = 0;
 
-        if (bestSubmission != null){
+        if (bestSubmission != null) {
             if (totalRubricScore(rubric) <= totalRubricScore(bestSubmission.rubric())) {
-                return generateSubmissionObject(rubric,commitReport, daysLate, rubric.getScores(gradingContext.phase()),
+                return generateSubmissionObject(rubric, commitReport, daysLate, rubric.getScores(gradingContext.phase()),
                         "Submission not sent to Canvas due to worse score. Grace days unaffected.", gradingContext);
             }
             graceDaysEarned = bestSubmission.graceDaysEarned();
         }
 
         int graceDayDifference = initialGraceDays - graceDaysEarned - daysLate;
-        if (graceDayDifference < 0){
-            Rubric zero = zeroScore(rubric, daysLate, initialGraceDays);
+        if (graceDayDifference < 0) {
+            Rubric zero = zeroScore(rubric);
             return generateSubmissionObject(zero, commitReport, daysLate, zero.getScores(gradingContext.phase()),
                     "Score is zero due to not enough Grace Days available. Grace days unaffected.", gradingContext);
         }
@@ -117,22 +119,16 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         }
     }
 
-    private Integer sendGraceDaysToCanvas(int days, String comment) throws GradingException{
-        Integer totalGraceDays = getGraceDays();
-        // FIXME: I believe checks in this method are unnecessary. We have already validated that we have enough grace days to cover the assignment by this point, and the name of the method makes it sound like it should just send the grace days to canvas.
-        // It's also less efficient to use getGraceDays multiple times.
-      //if (totalGraceDays-days < 0){
-      //    return 0;
-      //}
-      //if (days == 0){
-      //    return totalGraceDays;
-      //}
-      //totalGraceDays -= days;
+    private Integer sendGraceDaysToCanvas(int days, String comment) throws GradingException {
+        //if the score will remain the same, short circuit the canvas call
+        if (days == 0) {
+            return totalGraceDays;
+        }
         try {
             CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) days).floatValue(), comment);
             if (totalGraceDays > days){
                 LOGGER.info("Subtracted {} grace days (total {}) from Canvas for UserId {}", totalGraceDays - days, days, canvasUserId);
-            } else if (totalGraceDays == days){
+            } else if (totalGraceDays == days) {
                 LOGGER.info("Grace days unaffected for UserId {}", canvasUserId);
             } else {
                 LOGGER.info("Added {} grace days (total {}) to Canvas for UserId {}", days - totalGraceDays, days, canvasUserId);
@@ -143,15 +139,15 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         }
     }
 
-    private float totalRubricScore(Rubric rubric){
+    private float totalRubricScore(Rubric rubric) {
         float score = 0;
-        for (Rubric.RubricItem item : rubric.items().values()){
+        for (Rubric.RubricItem item : rubric.items().values()) {
             score += item.results().rawScore();
         }
         return score;
     }
 
-    private Rubric zeroScore(Rubric rubric, int daysLate, int initialGraceDays){
+    private Rubric zeroScore(Rubric rubric) {
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
             Rubric.RubricType rubricType = entry.getKey();
