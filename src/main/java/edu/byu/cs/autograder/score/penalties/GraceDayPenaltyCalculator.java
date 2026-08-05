@@ -54,7 +54,8 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
             return generateSubmissionObject(zero, commitReport, daysLate, zero.getScores(gradingContext.phase()),
                     "Score is zero due to not enough Grace Days available. Grace days unaffected.", gradingContext);
         }
-        Integer finalGraceDays = sendGraceDaysToCanvas(graceDayDifference);
+        String comment = makeCommentNotes(gradingContext, graceDayDifference - initialGraceDays);
+        Integer finalGraceDays = sendGraceDaysToCanvas(graceDayDifference, comment);
 
         // Compute effective days late: accounts for previous early submission
         int effectiveDaysLate = daysLate;
@@ -73,6 +74,16 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 "", gradingContext);
     }
 
+    private String makeCommentNotes(GradingContext gradingContext, int graceDayDifference) {
+        if (graceDayDifference > 0){
+            return "Added %d to grace days for %s".formatted(graceDayDifference, gradingContext.phase());
+        } else if (graceDayDifference < 0){
+            return "Subtracted %d from grace days for %s".formatted(-graceDayDifference, gradingContext.phase());
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public String makePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes) {
         return makePenaltyNotes(numDaysLate, maxLateDays, origNotes, false);
@@ -86,12 +97,12 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     public String makePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes, boolean isRelativeToPreviousSubmission) {
         String lateNotes;
         if (numDaysLate == 0){
-            lateNotes =  "Assignment turned in on time. Grace days unaffected.";
+            lateNotes =  "Assignment turned in on time. Grace days unaffected. ";
         } else if (numDaysLate < 0){
-            lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d.", -numDaysLate, numDaysLate == -1 ? "" : "s", maxLateDays);
+            lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d. ", -numDaysLate, numDaysLate == -1 ? "" : "s", maxLateDays);
         } else {
             String lateContext = isRelativeToPreviousSubmission ? " (relative to a previous early submission)" : "";
-            lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d.", numDaysLate, numDaysLate == 1 ? "" : "s", lateContext, maxLateDays);
+            lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d. ", numDaysLate, numDaysLate == 1 ? "" : "s", lateContext, maxLateDays);
         }
 
         return String.format("%s\n%s", origNotes, lateNotes);
@@ -106,7 +117,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         }
     }
 
-    private Integer sendGraceDaysToCanvas(int days) throws GradingException{
+    private Integer sendGraceDaysToCanvas(int days, String comment) throws GradingException{
         Integer totalGraceDays = getGraceDays();
         // FIXME: I believe checks in this method are unnecessary. We have already validated that we have enough grace days to cover the assignment by this point, and the name of the method makes it sound like it should just send the grace days to canvas.
         // It's also less efficient to use getGraceDays multiple times.
@@ -118,7 +129,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
       //}
       //totalGraceDays -= days;
         try {
-            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) days).floatValue(), null);
+            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) days).floatValue(), comment);
             if (totalGraceDays > days){
                 LOGGER.info("Subtracted {} grace days (total {}) from Canvas for UserId {}", totalGraceDays - days, days, canvasUserId);
             } else if (totalGraceDays == days){
