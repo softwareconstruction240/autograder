@@ -185,7 +185,7 @@ public class LateDayCalculator {
      * @throws GradingException When other business rules are violated during processing.
      * @throws DataAccessException When our internal database experiences issues.
      */
-    public int calculateDaysSinceDue(Phase phase, String netId) throws GradingException, DataAccessException {
+    public int calculateDaysAfterDue(Phase phase, String netId) throws GradingException, DataAccessException {
         var context = getLateDayContext(phase, netId);
         int daysEarly = getNumDaysEarly(context.handInDate, context.dueDate);
         if (daysEarly > 0) {

@@ -23,7 +23,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     private final Integer graceDaysAssignmentId;
     private final int canvasUserId;
-    private final int totalGraceDays;
+    private int initialGraceDays;
 
     public GraceDayPenaltyCalculator(int canvasUserId) throws GradingException {
         this.canvasUserId = canvasUserId;
@@ -32,38 +32,39 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         } catch (DataAccessException e) {
             throw new GradingException(e);
         }
-        totalGraceDays = getGraceDays();
+        initialGraceDays = getGraceDays();
     }
 
     @Override
-    public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext,
+    public Submission applyPenalty(Rubric rubric, int daysAfterDue, GradingContext gradingContext,
                                    CommitVerificationReport commitReport) throws DataAccessException, GradingException {
         Submission bestSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
-        int initialGraceDays = totalGraceDays;
-        int graceDaysEarned = 0;
+//        int initialGraceDays =this.initialGraceDays;
+        int graceDaysPreviouslyEarned = 0;
 
         if (bestSubmission != null) {
             if (totalRubricScore(rubric) <= totalRubricScore(bestSubmission.rubric())) {
-                return generateSubmissionObject(rubric, commitReport, daysLate, rubric.getScores(gradingContext.phase()),
+                return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
                         "Submission not sent to Canvas due to worse score. Grace days unaffected.", gradingContext);
             }
-            graceDaysEarned = bestSubmission.graceDaysEarned();
+            graceDaysPreviouslyEarned = bestSubmission.graceDaysEarned();
         }
 
-        int graceDayDifference = initialGraceDays - graceDaysEarned - daysLate;
-        if (graceDayDifference < 0) {
+        int newGraceDayTotal = initialGraceDays - graceDaysPreviouslyEarned - daysAfterDue;
+        if (newGraceDayTotal < 0) {
             Rubric zero = zeroScore(rubric);
-            return generateSubmissionObject(zero, commitReport, daysLate, zero.getScores(gradingContext.phase()),
+            return generateSubmissionObject(zero, commitReport, daysAfterDue, zero.getScores(gradingContext.phase()),
                     "Score is zero due to not enough Grace Days available. Grace days unaffected.", gradingContext);
         }
-        String comment = makeCommentNotes(gradingContext, graceDayDifference - initialGraceDays);
-        Integer finalGraceDays = sendGraceDaysToCanvas(graceDayDifference, comment);
+        int changeInGraceDays = newGraceDayTotal - initialGraceDays;
+        String comment = makeCommentNotes(gradingContext, changeInGraceDays);
+        Integer finalGraceDays = sendGraceDaysToCanvas(changeInGraceDays, newGraceDayTotal, comment);
 
         // Compute effective days late: accounts for previous early submission
-        int effectiveDaysLate = daysLate;
+        int effectiveDaysLate = daysAfterDue;
         boolean isRelativeToPrevious = false;
-        if (bestSubmission != null && graceDaysEarned > 0) {
-            effectiveDaysLate = graceDaysEarned + daysLate;
+        if (bestSubmission != null && graceDaysPreviouslyEarned > 0) {
+            effectiveDaysLate = graceDaysPreviouslyEarned + daysAfterDue;
             isRelativeToPrevious = true;
         }
 
@@ -76,11 +77,11 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 "", gradingContext);
     }
 
-    private String makeCommentNotes(GradingContext gradingContext, int graceDayDifference) {
-        if (graceDayDifference > 0){
-            return "Added %d to grace days for %s".formatted(graceDayDifference, gradingContext.phase());
-        } else if (graceDayDifference < 0){
-            return "Subtracted %d from grace days for %s".formatted(-graceDayDifference, gradingContext.phase());
+    private String makeCommentNotes(GradingContext gradingContext, int changeInGraceDays) {
+        if (changeInGraceDays > 0){
+            return "Added %d to grace days for %s".formatted(changeInGraceDays, gradingContext.phase());
+        } else if (changeInGraceDays < 0){
+            return "Subtracted %d from grace days for %s".formatted(-changeInGraceDays, gradingContext.phase());
         } else {
             return null;
         }
@@ -92,19 +93,19 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     }
 
     @Override
-    public int getMaxLateDays() throws GradingException {
-        return totalGraceDays;
+    public int getMaxLateDays() {
+        return initialGraceDays;
     }
 
-    public String makePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes, boolean isRelativeToPreviousSubmission) {
+    public String makePenaltyNotes(int daysAfterDue, int newTotalGraceDays, String origNotes, boolean isRelativeToPreviousSubmission) {
         String lateNotes;
-        if (numDaysLate == 0){
+        if (daysAfterDue == 0){
             lateNotes =  "Assignment turned in on time. Grace days unaffected. ";
-        } else if (numDaysLate < 0){
-            lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d. ", -numDaysLate, numDaysLate == -1 ? "" : "s", maxLateDays);
+        } else if (daysAfterDue < 0){
+            lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d. ", -daysAfterDue, daysAfterDue == -1 ? "" : "s", newTotalGraceDays);
         } else {
             String lateContext = isRelativeToPreviousSubmission ? " (relative to a previous early submission)" : "";
-            lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d. ", numDaysLate, numDaysLate == 1 ? "" : "s", lateContext, maxLateDays);
+            lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d. ", daysAfterDue, daysAfterDue == 1 ? "" : "s", lateContext, newTotalGraceDays);
         }
 
         return String.format("%s\n%s", origNotes, lateNotes);
@@ -119,21 +120,21 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         }
     }
 
-    private Integer sendGraceDaysToCanvas(int days, String comment) throws GradingException {
-        //if the score will remain the same, short circuit the canvas call
-        if (days == 0) {
-            return totalGraceDays;
-        }
+    public void updateGraceDays() throws GradingException {
+        this.initialGraceDays = getGraceDays();
+    }
+
+    private Integer sendGraceDaysToCanvas(int changeInGraceDays, int newGraceDayTotal, String comment) throws GradingException {
         try {
-            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) days).floatValue(), comment);
-            if (totalGraceDays > days){
-                LOGGER.info("Subtracted {} grace days (total {}) from Canvas for UserId {}", totalGraceDays - days, days, canvasUserId);
-            } else if (totalGraceDays == days) {
+            CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) newGraceDayTotal).floatValue(), comment);
+            if (initialGraceDays > newGraceDayTotal){
+                LOGGER.info("Subtracted {} grace days (total {}) from Canvas for UserId {}", -changeInGraceDays, newGraceDayTotal, canvasUserId);
+            } else if (initialGraceDays == newGraceDayTotal) {
                 LOGGER.info("Grace days unaffected for UserId {}", canvasUserId);
             } else {
-                LOGGER.info("Added {} grace days (total {}) to Canvas for UserId {}", days - totalGraceDays, days, canvasUserId);
+                LOGGER.info("Added {} grace days (total {}) to Canvas for UserId {}", changeInGraceDays, newGraceDayTotal, canvasUserId);
             }
-            return days;
+            return newGraceDayTotal;
         } catch (CanvasException e) {
             throw new GradingException("Could not update Grace Days from Canvas", e);
         }

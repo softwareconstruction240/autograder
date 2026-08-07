@@ -47,8 +47,8 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     }
 
     @BeforeEach
-    public void resetGraceDays() throws DataAccessException {
-        canvasIntegration.setGraceDays(0);
+    public void resetGraceDays() throws DataAccessException, GradingException {
+        setGraceDays(0);
         DaoService.getSubmissionDao().removeSubmissionsByNetId(gradingContext.netId(), 0);
     }
 
@@ -57,7 +57,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testEarlySubmission(Rubric testRubric) throws DataAccessException, GradingException {
         calculateAndEvaluateScore(testRubric, -2, 0);
-        canvasIntegration.setGraceDays(5);
+        setGraceDays(5);
         calculateAndEvaluateScore(testRubric, -1, 5);
     }
 
@@ -68,7 +68,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         int daysEarlyFirstSubmission = 2;
         int daysEarlySecondSubmission = 1;
         DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null,null, null, null, 2));
-        canvasIntegration.setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
+        setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
 
         Submission resultSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -daysEarlySecondSubmission, gradingContext, mockCommitReport);
         int expectedEffectiveDaysLate = daysEarlyFirstSubmission - daysEarlySecondSubmission;
@@ -89,7 +89,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testOnTimeSubmission(Rubric testRubric) throws DataAccessException, GradingException {
         calculateAndEvaluateScore(testRubric, 0, 0);
-        canvasIntegration.setGraceDays(5);
+        setGraceDays(5);
         calculateAndEvaluateScore(testRubric, 0, 5);
     }
 
@@ -98,7 +98,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testOneDayLate(Rubric testRubric) throws DataAccessException, GradingException {
         calculateAndEvaluateScore(testRubric, 1, 0);
-        canvasIntegration.setGraceDays(5);
+        setGraceDays(5);
         calculateAndEvaluateScore(testRubric, 1, 5);
     }
 
@@ -110,7 +110,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         int daysEarlyFirstSubmission = 2;
         int daysLateSecondSubmission = 3;
         DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null,null, null, null, 2));
-        canvasIntegration.setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
+        setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
 
         Submission resultSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, daysLateSecondSubmission, gradingContext, mockCommitReport);
         int expectedEffectiveDaysLate = daysEarlyFirstSubmission + daysLateSecondSubmission;
@@ -131,7 +131,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testMaxLate(Rubric testRubric) throws DataAccessException, GradingException {
         // There are no max days late, so I'll just throw in 1000 and make sure it works because it shouldn't ever get anywhere close to that
-        canvasIntegration.setGraceDays(10);
+        setGraceDays(10);
         calculateAndEvaluateScore(testRubric, 1000, 10);
     }
 
@@ -148,11 +148,11 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException, GradingException {
         Submission earlySubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -3, gradingContext, mockCommitReport);
-        canvasIntegration.setGraceDays(0);
+        setGraceDays(0);
         Submission onTimeSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 0, gradingContext, mockCommitReport);
-        canvasIntegration.setGraceDays(3);
+        setGraceDays(3);
         Submission lateSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 3, gradingContext, mockCommitReport);
-        canvasIntegration.setGraceDays(1);
+        setGraceDays(1);
         Submission insufficientGraceDaysSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 100, gradingContext, mockCommitReport);
 
         String testNotesEarly = earlySubmission.rubric().notes();
@@ -168,10 +168,15 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
 
         // Test resubmission after early another early submission: notes should explain grace day deduction relative to previous submission
         DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null, null, null, null, 3));
-        canvasIntegration.setGraceDays(5);
+        setGraceDays(5);
         Submission resubmissionAfterEarly = graceDayPenaltyCalculator.applyPenalty(testRubric, -1, gradingContext, mockCommitReport);
         String testNotesResubmission = resubmissionAfterEarly.rubric().notes();
         containsExpected(testNotesResubmission, "late", "previous", "grace day");
+    }
+
+    private void setGraceDays(int graceDays) throws GradingException {
+        canvasIntegration.setGraceDays(graceDays);
+        graceDayPenaltyCalculator.updateGraceDays();
     }
 
     private void calculateAndEvaluateScore(Rubric rubric, int daysLate, int graceDays) throws DataAccessException, GradingException {
