@@ -44,7 +44,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         if (bestSubmission != null) {
             if (totalRubricScore(rubric) <= totalRubricScore(bestSubmission.rubric())) {
                 return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
-                        "Submission not sent to Canvas due to worse score. Grace days unaffected.", gradingContext);
+                        "Submission not sent to Canvas due to worse score. Grace days unaffected. ", gradingContext);
             }
             graceDaysPreviouslyEarned = bestSubmission.graceDaysEarned();
         }
@@ -53,7 +53,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         if (newGraceDayTotal < 0) {
             Rubric zero = zeroScore(rubric);
             return generateSubmissionObject(zero, commitReport, daysAfterDue, zero.getScores(gradingContext.phase()),
-                    "Score is zero due to not enough Grace Days available. Grace days unaffected.", gradingContext);
+                    "Score is zero due to not enough Grace Days available. Grace days unaffected. ", gradingContext);
         }
         int changeInGraceDays = newGraceDayTotal - totalGraceDays;
         Integer finalGraceDays = sendGraceDaysToCanvas(changeInGraceDays, newGraceDayTotal);
