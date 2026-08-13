@@ -6,6 +6,7 @@ import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.score.penalties.GraceDayPenaltyCalculator;
 import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
+import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
@@ -34,16 +35,12 @@ public class Scorer {
 
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
-    private final PenaltyCalculator latePenaltyCalculator;
+    private PenaltyCalculator latePenaltyCalculator;
 
     public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
-      try {
-        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()));
-      } catch (GradingException | DataAccessException e) {
-        throw new RuntimeException(e);
-      }
+        this.latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
     /**
@@ -67,6 +64,7 @@ public class Scorer {
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
+            //use a percent penalty calculator when the score is not important to minimize canvas calls
             return latePenaltyCalculator.generateSubmissionObject(
                     rubric,
                     commitVerificationReport,
@@ -76,6 +74,7 @@ public class Scorer {
                     gradingContext
             );
         }
+        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()));
 
         int daysAfterDue = lateDayCalculator.calculateDaysAfterDue(gradingContext.phase(), gradingContext.netId());
         Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysAfterDue, gradingContext, commitVerificationReport);
@@ -321,7 +320,6 @@ public class Scorer {
         }
     }
 
-    //TODO: move to penalty calculator?
     public static float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
@@ -352,7 +350,6 @@ public class Scorer {
         }
     }
 
-    //TODO: move to penalty calculator
     public static float prepareModifiedScore(float originalScore, int penaltyPct) {
         return originalScore * (100 - penaltyPct) / 100f;
     }

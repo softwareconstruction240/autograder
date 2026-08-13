@@ -2,35 +2,58 @@ package edu.byu.cs.autograder.score.latepenalties;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
-import edu.byu.cs.model.Submission;
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.model.*;
 import org.junit.jupiter.api.*;
 
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
-import edu.byu.cs.model.Rubric;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.time.Instant;
+import java.util.EnumMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class PercentPenaltyCalculatorTest extends PenaltyCalculatorTest {
     private float penaltyPerDay;
 
+    private static final int PASSOFF_POSSIBLE_POINTS = 10;
+    private static final int CODE_QUALITY_POSSIBLE_POINTS = 7;
+    private static final int UNIT_TESTS_POSSIBLE_POINTS = 6;
+
     @BeforeAll
     static void setUpPercentPenalty() throws DataAccessException {
         setUp();
-        penaltyCalculator = new PercentPenaltyCalculator();
+        RubricConfig phase3RubricConfig = new RubricConfig(
+                Phase.Phase3,
+                new EnumMap<>(Map.of(
+                        Rubric.RubricType.PASSOFF_TESTS, new RubricConfig.RubricConfigItem("testCategory1", "testCriteria1", PASSOFF_POSSIBLE_POINTS, "testRubricId1"),
+                        Rubric.RubricType.QUALITY, new RubricConfig.RubricConfigItem("testCategory2", "testCriteria2", CODE_QUALITY_POSSIBLE_POINTS, "testRubricId2"),
+                        Rubric.RubricType.UNIT_TESTS, new RubricConfig.RubricConfigItem("testCategory3", "testCriteria3", UNIT_TESTS_POSSIBLE_POINTS, "testRubricId3"),
+                        Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory4", "testCriteria4", 0, "testRubricId4")
+                )));
+        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase3, phase3RubricConfig);
     }
 
+
     int daysLate;
+    @BeforeEach
+    void setUpCalculator() throws DataAccessException{
+        this.penaltyCalculator = new PercentPenaltyCalculator();
+        //resets the database for each test
+        DaoService.initializeMemoryDAOs();
+        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase4, Instant.now(), true));
+    }
 
     @ParameterizedTest
     @MethodSource("getRubrics")
     @Override
     public void testEarlySubmission(Rubric testRubric) throws DataAccessException, GradingException {
-        // For this implementation, early submissions are treated as if they were on time,
-        // because LateDayCalculator resolves early submissions as 0 days late.
-        // Since on-time submissions are already tested, this test is unnecessary in this implementation
-        // We will not call testOnTimeSubmission(testRubric) because that would be running a duplicate test.
+        calculateAndEvaluateScore(testRubric, -1);
     }
 
     @ParameterizedTest
@@ -117,10 +140,78 @@ public class PercentPenaltyCalculatorTest extends PenaltyCalculatorTest {
         penaltyCalculator = new PercentPenaltyCalculator();
     }
 
+    @Test
+    void score_doesNotDecrease_when_higherPriorScore() throws CanvasException, DataAccessException {
+        float newestPassoffPoints = PASSOFF_POSSIBLE_POINTS;
+        float newestQualityPoints = CODE_QUALITY_POSSIBLE_POINTS - 1;
+        float newestUnitTestPoints = UNIT_TESTS_POSSIBLE_POINTS;
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, 1, 1, -1, true),
+                //TODO: change value back to 30 when max late days logic goes into penalty calculator
+                new Phase3SubmissionValues(newestPassoffPoints, newestQualityPoints, newestUnitTestPoints, 5, true)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals(newestPassoffPoints/PASSOFF_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals((newestQualityPoints / 2) / CODE_QUALITY_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals((newestUnitTestPoints / 2) / UNIT_TESTS_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
+    @Test
+    void score_doesDecrease_when_higherPriorRawScore() throws CanvasException, DataAccessException {
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, 0, UNIT_TESTS_POSSIBLE_POINTS, -1, true),
+                //TODO: change value back to 30 when max late days logic goes into penalty calculator
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, 0, 5, true)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals(1, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals((CODE_QUALITY_POSSIBLE_POINTS / 2.0f) / CODE_QUALITY_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(0, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
+    @Test
+    void score_doesNotDecrease_when_distributedHigherPriorScore() throws CanvasException, DataAccessException {
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, 0, UNIT_TESTS_POSSIBLE_POINTS, -1, true),
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, 0, -1, true),
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, UNIT_TESTS_POSSIBLE_POINTS, 5, true)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals(1, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals(1, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals(1, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
+    @Test
+    void score_doesDecrease_when_higherPriorScoreOfFailedSubmission() throws CanvasException, DataAccessException {
+        Submission lastSubmission = previousSubmissionHelper(
+                new Phase3SubmissionValues(0, CODE_QUALITY_POSSIBLE_POINTS, UNIT_TESTS_POSSIBLE_POINTS, -1, false),
+                //TODO: change value back to 30 when max late days logic goes into penalty calculator
+                new Phase3SubmissionValues(PASSOFF_POSSIBLE_POINTS, CODE_QUALITY_POSSIBLE_POINTS, UNIT_TESTS_POSSIBLE_POINTS, 5, true)
+        );
+
+        Assertions.assertNotNull(lastSubmission);
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = lastSubmission.rubric().items();
+
+        Assertions.assertEquals((PASSOFF_POSSIBLE_POINTS / 2f) / PASSOFF_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.PASSOFF_TESTS).results().score());
+        Assertions.assertEquals((CODE_QUALITY_POSSIBLE_POINTS / 2f) / CODE_QUALITY_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.QUALITY).results().score());
+        Assertions.assertEquals((UNIT_TESTS_POSSIBLE_POINTS / 2f)/ UNIT_TESTS_POSSIBLE_POINTS, rubricItems.get(Rubric.RubricType.UNIT_TESTS).results().score());
+    }
+
     /**
      *  ================ helper methods ================
      */
 
+    record Phase3SubmissionValues(float passoffPoints, float qualityPoints, float unitTestPoints, int daysLate, boolean passed) {}
 
     private void calculateAndEvaluateScore(Rubric rubric, int daysLate) throws DataAccessException, GradingException {
         penaltyPerDay = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
@@ -131,6 +222,49 @@ public class PercentPenaltyCalculatorTest extends PenaltyCalculatorTest {
             Rubric.Results results = item.results();
             Assertions.assertEquals(results.rawScore() * (1 - daysLate * penaltyPerDay), results.score());
         }
+    }
+
+    private Submission previousSubmissionHelper(Phase3SubmissionValues... values) throws DataAccessException, CanvasException {
+
+        for (int i = 0; i < values.length; i++) {
+            Phase3SubmissionValues value = values[i];
+
+            Rubric rubric =  constructRubric(value.passoffPoints() / PASSOFF_POSSIBLE_POINTS,
+                    value.qualityPoints() / CODE_QUALITY_POSSIBLE_POINTS,
+                    value.unitTestPoints() / UNIT_TESTS_POSSIBLE_POINTS,
+                    value.passed);
+            Submission submission = value.daysLate < 0 ? scoreRubric(rubric, 0) : scoreRubric(rubric, value.daysLate);
+
+            if (i == values.length - 1) {
+                return submission;
+            }
+            else {
+                DaoService.getSubmissionDao().insertSubmission(submission);
+            }
+        }
+
+        return null;
+    }
+
+    private Rubric constructRubric(float passoffScore, float qualityScore, float unitTestScore, boolean passed) {
+        Rubric.Results passoffResults = new Rubric.Results("testNotes1", passoffScore, PASSOFF_POSSIBLE_POINTS, null, "testTextResults1");
+        Rubric.Results qualityResults = new Rubric.Results("testNotes2", qualityScore, CODE_QUALITY_POSSIBLE_POINTS, null, "testTextResults2");
+        Rubric.Results unitTestResults = new Rubric.Results("testNotes3", unitTestScore, UNIT_TESTS_POSSIBLE_POINTS, null, "testTextResults3");
+
+        return new Rubric(new EnumMap<>(Map.of(
+                Rubric.RubricType.PASSOFF_TESTS, new Rubric.RubricItem("testCategory1", passoffResults, "testCriteria1"),
+                Rubric.RubricType.QUALITY, new Rubric.RubricItem("testCategory2", qualityResults, "testCriteria2"),
+                Rubric.RubricType.UNIT_TESTS, new Rubric.RubricItem("testCategory3", unitTestResults, "testCriteria3"))),
+                passed, "testNotes");
+    }
+
+    private Submission scoreRubric(Rubric rubric, int daysLate) {
+        try {
+            return penaltyCalculator.applyPenalty(rubric, daysLate, gradingContext, mockCommitReport);
+        } catch (Exception e) {
+            fail("Unexpected exception thrown: ", e);
+        }
+        return null;
     }
 
 }

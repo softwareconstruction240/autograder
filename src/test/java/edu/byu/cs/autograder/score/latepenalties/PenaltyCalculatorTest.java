@@ -26,7 +26,7 @@ import java.util.List;
 
 public abstract class PenaltyCalculatorTest {
 
-    static protected PenaltyCalculator penaltyCalculator;
+    protected PenaltyCalculator penaltyCalculator;
     static protected RubricConfigDao rubricConfigDao;
     static protected ArrayList<RubricConfig> rubricConfigs;
     static protected GradingContext gradingContext;
@@ -50,7 +50,7 @@ public abstract class PenaltyCalculatorTest {
         }
 
         gradingContext = new GradingContext(
-                "testNetId", Phase.Phase0, "testPhasesPath", "testStagePath",
+                "testNetId", Phase.Phase3, "testPhasesPath", "testStagePath",
                 "testRepoUrl", new File(""),
                 null, null, false
         );
