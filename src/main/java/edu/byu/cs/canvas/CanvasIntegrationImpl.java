@@ -428,7 +428,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
          */
         public void loadCourseRelatedItems() throws CanvasException {
             canvasAssignments = makePaginatedCanvasRequest(
-                    "/courses/" + getCourseNumber() + "/assignments",
+                    "/courses/" + getCourseNumber() + "/assignments?per_page=50",
                     CanvasAssignment.class
             );
             hasRetrievedFromCanvas = true;
