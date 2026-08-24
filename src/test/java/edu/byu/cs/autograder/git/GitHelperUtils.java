@@ -8,6 +8,7 @@ import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.score.MockLateDayCalculator;
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
@@ -49,6 +50,7 @@ public class GitHelperUtils {
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
+        DaoService.initializeMemoryDAOs();
     }
 
     public void setGradingContext(GradingContext gradingContext) {
