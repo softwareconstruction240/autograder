@@ -8,7 +8,6 @@ import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
 import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.score.MockLateDayCalculator;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.annotations.Nullable;
@@ -50,7 +49,6 @@ public class GitHelperUtils {
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
-        DaoService.initializeMemoryDAOs();
     }
 
     public void setGradingContext(GradingContext gradingContext) {
@@ -273,7 +271,7 @@ public class GitHelperUtils {
     }
 
     void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {
-        Assertions.assertEquals(expected.verified(), actual.verified());
+        Assertions.assertEquals(expected.verified(), actual.verified(), actual.failureMessage());
         Assertions.assertEquals(expected.isCachedResponse(), actual.isCachedResponse());
         Assertions.assertEquals(expected.totalCommits(), actual.totalCommits());
         Assertions.assertEquals(expected.significantCommits(), actual.significantCommits());
