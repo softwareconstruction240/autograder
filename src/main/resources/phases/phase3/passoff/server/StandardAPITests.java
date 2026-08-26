@@ -90,7 +90,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     @DisplayName("Login Unauthorized (Multiple Forms)")
     public void loginUnauthorized() {
         TestUser[] unauthorizedLoginRequests = { newUser, new TestUser(existingUser.getUsername(), "BAD!PASSWORD") };
@@ -104,7 +104,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     @DisplayName("Normal User Registration")
     public void registerSuccess() {
         //submit register request
@@ -117,7 +117,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     @DisplayName("Re-Register User")
     public void registerTwice() {
         //submit register request trying to register existing user
@@ -128,7 +128,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
     @DisplayName("Register Bad Request")
     public void registerBadRequest() {
         //attempt to register a user without a password
@@ -140,7 +140,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     @DisplayName("Normal Logout")
     public void logoutSuccess() {
         //log out existing user
@@ -150,7 +150,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(7)
+    @Order(9)
     @DisplayName("Invalid Auth Logout")
     public void logoutTwice() {
         //log out user twice
@@ -162,7 +162,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(8)
+    @Order(10)
     @DisplayName("Valid Creation")
     public void createGameSuccess() {
         TestCreateResult createResult = serverFacade.createGame(createRequest, existingAuth);
@@ -173,7 +173,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(9)
+    @Order(11)
     @DisplayName("Create with Bad Authentication")
     public void createGameUnauthorized() {
         //log out user so auth is invalid
@@ -186,7 +186,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(9)
+    @Order(12)
     @DisplayName("Create Bad Request")
     public void createGameBadRequest() {
         TestCreateResult createResult = serverFacade.createGame(new TestCreateRequest(null), existingAuth);
@@ -196,7 +196,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(10)
+    @Order(13)
     @DisplayName("Join Created Game")
     public void joinGameSuccess() {
         //create game
@@ -221,7 +221,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(11)
+    @Order(14)
     @DisplayName("Join Bad Authentication")
     public void joinGameUnauthorized() {
         //create game
@@ -236,7 +236,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(11)
+    @Order(15)
     @DisplayName("Join Bad Team Color")
     public void joinGameBadColor() {
         TestCreateResult createResult = serverFacade.createGame(createRequest, existingAuth);
@@ -249,7 +249,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(11)
+    @Order(16)
     @DisplayName("Join Steal Team Color")
     public void joinGameStealColor() {
         //create game
@@ -270,7 +270,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(11)
+    @Order(17)
     @DisplayName("Join Bad Game ID")
     public void joinGameBadGameId() {
         //create game
@@ -286,7 +286,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(12)
+    @Order(18)
     @DisplayName("List No Games")
     public void listGamesEmpty() {
         TestListResult result = serverFacade.listGames(existingAuth);
@@ -297,7 +297,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(12)
+    @Order(19)
     @DisplayName("List Multiple Games")
     public void listGamesSuccess() {
         //register a few users to create games
@@ -356,7 +356,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(13)
+    @Order(20)
     @DisplayName("Unique Authtoken Each Login")
     public void uniqueAuthorizationTokens() {
         TestAuthResult loginOne = serverFacade.login(existingUser);
@@ -373,7 +373,18 @@ public class StandardAPITests {
                 "Authtoken returned by login matched authtoken from prior register");
         Assertions.assertNotEquals(loginOne.getAuthToken(), loginTwo.getAuthToken(),
                 "Authtoken returned by login matched authtoken from prior login");
+    }
 
+    @Test
+    @Order(21)
+    @DisplayName("Authtokens Valid Individually") {
+        TestAuthResult loginOne = serverFacade.login(existingUser);
+        assertHttpOk(loginOne);
+        Assertions.assertNotNull(loginOne.getAuthToken(), "Login result did not contain an authToken");
+
+        TestAuthResult loginTwo = serverFacade.login(existingUser);
+        assertHttpOk(loginTwo);
+        Assertions.assertNotNull(loginTwo.getAuthToken(), "Login result did not contain an authToken");
 
         TestCreateResult createResult = serverFacade.createGame(createRequest, existingAuth);
         assertHttpOk(createResult);
@@ -397,7 +408,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(14)
+    @Order(22)
     @DisplayName("Clear Test")
     public void clearData() {
         //create filler games
@@ -446,7 +457,7 @@ public class StandardAPITests {
     }
 
     @Test
-    @Order(14)
+    @Order(23)
     @DisplayName("Multiple Clears")
     public void clearMultipleTimes() {
 
