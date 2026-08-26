@@ -40,7 +40,8 @@ public class SubmissionSqlDao implements SubmissionDao {
             new ColumnDefinition<Submission>("verified_status", Submission::serializeVerifiedStatus),
             new ColumnDefinition<Submission>("commit_context", Submission::serializeCommitContext),
             new ColumnDefinition<Submission>("commit_result", Submission::serializeCommitResult),
-            new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification)
+            new ColumnDefinition<Submission>("verification", Submission::serializeScoreVerification),
+            new ColumnDefinition<Submission>("grace_days", Submission::graceDaysEarned)
     };
 
     private static Submission readSubmission(ResultSet rs) throws SQLException {
@@ -61,6 +62,8 @@ public class SubmissionSqlDao implements SubmissionDao {
         String commitResultJson = rs.getString("commit_result");
         String verificationJson = rs.getString("verification");
 
+        int graceDays = rs.getInt("grace_days");
+
         Submission.VerifiedStatus verifiedStatus =
                 verifiedStatusStr == null ? null :
                 Submission.VerifiedStatus.valueOf(verifiedStatusStr);
@@ -74,7 +77,7 @@ public class SubmissionSqlDao implements SubmissionDao {
         return new Submission(
                 netId, repoUrl, headHash, timestamp, phase,
                 passed, score, rawScore, notes, rubric,
-                admin, verifiedStatus, commitContext, commitResult, scoreVerification);
+                admin, verifiedStatus, commitContext, commitResult, scoreVerification, graceDays);
     }
 
     private final SqlReader<Submission> sqlReader = new SqlReader<Submission>(

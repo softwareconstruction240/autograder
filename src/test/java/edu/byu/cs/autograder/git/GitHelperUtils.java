@@ -271,7 +271,7 @@ public class GitHelperUtils {
     }
 
     void assertCommitVerification(CommitVerificationResult expected, CommitVerificationResult actual) {
-        Assertions.assertEquals(expected.verified(), actual.verified());
+        Assertions.assertEquals(expected.verified(), actual.verified(), actual.failureMessage());
         Assertions.assertEquals(expected.isCachedResponse(), actual.isCachedResponse());
         Assertions.assertEquals(expected.totalCommits(), actual.totalCommits());
         Assertions.assertEquals(expected.significantCommits(), actual.significantCommits());

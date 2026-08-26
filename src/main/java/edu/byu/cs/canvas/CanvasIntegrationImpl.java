@@ -316,6 +316,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     public static class CourseInfoRetriever {
 
+        private static final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace Days";
+
         public static final Set<String> CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES = Set.of(
                 "Chess GitHub Repository",
                 "♕ Phase 0: Chess Moves",
@@ -323,7 +325,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "♕ Phase 3: Chess Web API",
                 "♕ Phase 4: Chess Database",
                 "♕ Phase 5: Chess Pregame",
-                "♕ Phase 6: Chess Gameplay (Pass Off)"
+                "♕ Phase 6: Chess Gameplay (Pass Off)",
+                CANVAS_GRACE_DAYS_ASSIGNMENT_NAME
         );
 
         private static final Map<String, Rubric.RubricType> RUBRIC_DESCRIPTIONS_TO_RUBRIC_TYPES = Map.of(
@@ -337,6 +340,8 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "github repository", Rubric.RubricType.GITHUB_REPO
         );
 
+        private int CANVAS_GRACE_DAYS_ASSIGNMENT_ID;
+
         private final Map<Phase, Integer> assignmentIds = new EnumMap<>(Phase.class);
         private final Map<Phase, Map<Rubric.RubricType, CanvasAssignment.CanvasRubric>> rubricInfo
                 = new EnumMap<>(Phase.class);
@@ -344,7 +349,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         private boolean hasRetrievedFromCanvas = false;
 
         /**
-         * Gets the auto-graded Canvas assignments if the retriever is being asked for the first time.
+         * Gets the auto-graded Canvas assignments and grace days assignment if the retriever is being asked for the first time.
          * Otherwise, it returns the Canvas assignments from the initial retrieval.
          *
          * @return A list of Canvas assignments.
@@ -416,14 +421,14 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
         /**
          * Makes a paginated request from Canvas to read the course's assignments. It filters
-         * out the non-auto-graded assignments and reads the relevant assignments' data.
+         * out the non-auto-graded assignments (except the grace days assignment) and reads the relevant assignments' data.
          * Can access the updated data through the getters.
          *
          * @throws CanvasException when an error occurs when contacting Canvas
          */
         public void loadCourseRelatedItems() throws CanvasException {
             canvasAssignments = makePaginatedCanvasRequest(
-                    "/courses/" + getCourseNumber() + "/assignments",
+                    "/courses/" + getCourseNumber() + "/assignments?per_page=50",
                     CanvasAssignment.class
             );
             hasRetrievedFromCanvas = true;
@@ -437,6 +442,10 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
             assignmentIds.clear();
             rubricInfo.clear();
             for (CanvasAssignment assignment : canvasAssignments) {
+                if (Objects.equals(assignment.name(), CANVAS_GRACE_DAYS_ASSIGNMENT_NAME)) {
+                    CANVAS_GRACE_DAYS_ASSIGNMENT_ID = assignment.id();
+                    continue;
+                }
                 Phase phase = PhaseUtils.getPhaseFromString(assignment.name());
                 assignmentIds.put(phase, assignment.id());
                 rubricInfo.put(phase, new HashMap<>());
@@ -488,6 +497,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                     rubricConfigDao.setRubricIdAndPoints(phase, rubricType, points, rubricId);
                 }
             }
+            configurationDao.setConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, CANVAS_GRACE_DAYS_ASSIGNMENT_ID, Integer.class);
         }
 
     }
