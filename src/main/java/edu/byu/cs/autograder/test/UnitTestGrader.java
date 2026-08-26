@@ -138,6 +138,9 @@ public class UnitTestGrader extends TestGrader {
     private float getCoveragePercent(CoverageAnalysis coverage) {
         float covered = 0;
         float total = 0;
+        if (coverage == null || coverage.classAnalyses() == null){
+            return Float.NaN;
+        }
         for (ClassCoverageAnalysis i : coverage.classAnalyses()){
             covered += i.covered();
             total += (i.covered() + i.missed());
