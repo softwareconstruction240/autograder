@@ -377,7 +377,8 @@ public class StandardAPITests {
 
     @Test
     @Order(21)
-    @DisplayName("Authtokens Valid Individually") {
+    @DisplayName("Authtokens Valid Individually") 
+    public void uniqueAuthorizationTokensAllWork(){
         TestAuthResult loginOne = serverFacade.login(existingUser);
         assertHttpOk(loginOne);
         Assertions.assertNotNull(loginOne.getAuthToken(), "Login result did not contain an authToken");
