@@ -3,7 +3,9 @@ package edu.byu.cs.autograder.test;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.CoverageAnalysis;
+import edu.byu.cs.model.CoverageRequirement;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.model.TestOutput;
@@ -15,10 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * A helper class for running common test operations
@@ -161,7 +161,7 @@ public class TestHelper {
      * @return A TestNode object containing the results of the tests.
      */
     TestOutput runJUnitTests(File uberJar, File compiledTests, Set<String> packagesToTest,
-                             Set<String> ignoredTests, Set<String> coverageModules) throws GradingException {
+                             Set<String> ignoredTests, Set<String> coverageModules, CoverageRequirement coverageRequirement) throws GradingException {
         // Process cannot handle relative paths or wildcards,
         // so we need to only use absolute paths and find
         // to get the files
@@ -199,6 +199,7 @@ public class TestHelper {
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
             CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
+            coverage = removeUnmatchedPackages(coverageRequirement, coverage);
             TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput, ignoredTests);
 
             return new TestOutput(testAnalysis, coverage, trimErrorOutput(error));
@@ -206,6 +207,29 @@ public class TestHelper {
             LOGGER.error("Error running tests", e);
             throw new GradingException("Error running tests", e);
         }
+    }
+
+    private CoverageAnalysis removeUnmatchedPackages(CoverageRequirement requirement, CoverageAnalysis coverage) {
+        if (coverage == null || coverage.classAnalyses() == null || requirement == null) {
+            return coverage;
+        }
+        Pattern pattern = Pattern.compile("^" + requirement.name());
+        if (pattern.pattern().isEmpty()){
+            return coverage;
+        }
+        Collection<ClassCoverageAnalysis> matchedList = new ArrayList<>();
+        for (ClassCoverageAnalysis classCoverageAnalysis : coverage.classAnalyses()) {
+            if (requirement.type() == CoverageRequirement.CoverageType.CLASS) {
+                if (pattern.matcher(classCoverageAnalysis.className()).find()) {
+                    matchedList.add(classCoverageAnalysis);
+                }
+            } else {
+                if (pattern.matcher(classCoverageAnalysis.packageName()).find()) {
+                    matchedList.add(classCoverageAnalysis);
+                }
+            }
+        }
+        return new CoverageAnalysis(matchedList);
     }
 
     private static List<String> getRunCommands(Set<String> packagesToTest, String uberJarPath) {

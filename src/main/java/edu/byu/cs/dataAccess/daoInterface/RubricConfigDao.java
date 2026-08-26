@@ -33,7 +33,7 @@ public interface RubricConfigDao {
             QUALITY, new RubricConfig.RubricConfigItem("Code Quality", "Chess Code Quality Rubric (see GitHub)", 30, "_3003"),
             UNIT_TESTS, new RubricConfig.RubricConfigItem(
                     "Unit Tests",
-                    "All test cases pass\nEach public method on your Service classes has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type",
+                    "All test cases pass\nCode coverage on service package must be at least 80% line coverage\nEvery test case includes an Assert statement of some type",
                     25,
                     "90344_776")
     )));
@@ -44,7 +44,7 @@ public interface RubricConfigDao {
                     QUALITY, new RubricConfig.RubricConfigItem("Code Quality", "Chess Code Quality Rubric (see GitHub)", 30, "90346_8398"),
                     UNIT_TESTS, new RubricConfig.RubricConfigItem(
                             "Unit Tests",
-                            "All test cases pass\nEach public method on DAO classes has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type",
+                            "All test cases pass\nCode coverage on dataaccess.sql package must be at least 80% line coverage\nEvery test case includes an Assert statement of some type",
                             25,
                             "90346_5755")
             )));
@@ -53,7 +53,7 @@ public interface RubricConfigDao {
             QUALITY, new RubricConfig.RubricConfigItem("Code Quality", "Chess Code Quality Rubric (see GitHub)", 30, "90347_9378"),
             UNIT_TESTS, new RubricConfig.RubricConfigItem(
                     "Unit Tests",
-                    "All test cases pass\nEach public method on the Server Facade class has two test cases, one positive test and one negative test\nEvery test case includes an Assert statement of some type",
+                    "All test cases pass\nCode coverage on facade package must be at least 80% line coverage\nEvery test case includes an Assert statement of some type",
                     25,
                     "90347_2215")
     )));
@@ -61,7 +61,7 @@ public interface RubricConfigDao {
             GIT_COMMITS, new RubricConfig.RubricConfigItem("Git Commits", "Necessary commit amount", 0, "90348_9048"),
             PASSOFF_TESTS, new RubricConfig.RubricConfigItem(
                     "Automated Pass Off Test Cases",
-                    "Each provided test case passed is worth a proportional number of points ((passed / total) * 50).",
+                    "All pass off test cases succeed",
                     50,
                     "90348_899"),
             QUALITY, new RubricConfig.RubricConfigItem("Code Quality", "Chess Code Quality Rubric (see GitHub)", 30, "90348_3792")

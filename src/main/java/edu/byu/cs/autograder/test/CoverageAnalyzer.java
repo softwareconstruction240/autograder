@@ -1,9 +1,14 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -11,18 +16,31 @@ import java.util.HashSet;
 
 /**
  * Parses the code coverage output stored in a JaCoCo CSV file into a
- * {@link CoverageAnalysis} containing the appropriate coverage results
+ * {@link CoverageAnalysis} containing the appropriate coverage results.
+ * <br>
+ * Supports Branch and Line coverage. Default coverage is Line Coverage.
  */
 public class CoverageAnalyzer {
-    /**
-     * The type of coverage to be tested for. This is the only value that should be
-     * updated if coverage requirements change.
-     */
-    private static final String COVERAGE_TESTED = "BRANCH";
-    private static final String COVERAGE_MISSED_HEADER = COVERAGE_TESTED + "_MISSED";
-    private static final String COVERAGE_COVERED_HEADER = COVERAGE_TESTED + "_COVERED";
+    private final String coverageMissedHeader;
+    private final String coverageCoveredHeader;
     private static final String PACKAGE_HEADER = "PACKAGE";
     private static final String CLASS_HEADER = "CLASS";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoverageAnalyzer.class);
+
+    public CoverageAnalyzer(){
+        String coverageTested = "LINE";
+        try{
+            String config = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, String.class);
+            if (config.equals("BRANCH")){ //ensure the value is valid
+                coverageTested = config;
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error("Could not get coverage type, using line coverage", e);
+        }
+        coverageMissedHeader = coverageTested + "_MISSED";
+        coverageCoveredHeader = coverageTested + "_COVERED";
+    }
 
     /**
      * Parses the output of a JaCoCo CSV file, if it exists,
@@ -52,8 +70,14 @@ public class CoverageAnalyzer {
             switch (s) {
                 case CLASS_HEADER -> classHeader = i;
                 case PACKAGE_HEADER -> packageHeader = i;
-                case COVERAGE_MISSED_HEADER -> coverageMissedHeader = i;
-                case COVERAGE_COVERED_HEADER -> coverageCoveredHeader = i;
+                default -> {
+                    if (s.equals(this.coverageMissedHeader)){
+                        coverageMissedHeader = i;
+                    }
+                    else if (s.equals(this.coverageCoveredHeader)) {
+                        coverageCoveredHeader = i;
+                    }
+                }
             }
         }
 

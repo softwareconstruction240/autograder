@@ -31,7 +31,6 @@ const areErrorDetailsOpen = ref<boolean>(false);
   <span
     id="testResults"
     v-if="
-      isAdmin() && //TODO: Remove this line when we start grading students on coverage
       testResults?.coverage &&
       testResults?.coverage.classAnalyses &&
       testResults?.coverage.classAnalyses.length > 0
