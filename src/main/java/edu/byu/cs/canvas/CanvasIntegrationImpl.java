@@ -316,7 +316,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
 
     public static class CourseInfoRetriever {
 
-        private static final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace days";
+        private static final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace Days";
 
         public static final Set<String> CANVAS_AUTO_GRADED_ASSIGNMENT_NAMES = Set.of(
                 "Chess GitHub Repository",
