@@ -12,7 +12,7 @@ public class RubricConfigSqlDaoTest extends RubricConfigDaoTest {
     }
 
     @Override
-    protected RubricConfigDao getRubricConfigDao() {
+    protected RubricConfigDao getRubricConfigDao() throws DataAccessException {
         return new RubricConfigSqlDao();
     }
 

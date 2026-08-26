@@ -1,6 +1,7 @@
 package edu.byu.cs.model;
 
 import java.util.EnumMap;
+import java.util.Objects;
 
 /**
  * Represents the configuration of rubric items for a single phase
@@ -28,4 +29,20 @@ public record RubricConfig(
             String rubric_id
     ) { }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof RubricConfig that)) return false;
+        if (phase != that.phase) return false;
+        for (var key : items.keySet()){
+            if (!Objects.equals(items.get(key), that.items.get(key))){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(phase, items);
+    }
 }

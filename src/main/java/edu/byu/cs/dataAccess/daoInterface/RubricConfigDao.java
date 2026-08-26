@@ -69,6 +69,12 @@ public interface RubricConfigDao {
     RubricConfig defaultQualityConfig = new RubricConfig(Phase.Quality, new EnumMap<>(Map.of(
             QUALITY, new RubricConfig.RubricConfigItem("Code Quality", "Chess Code Quality Rubric (see GitHub)", 30, null)
     )));
+
+    /**
+     * Initializes the rubric config table if one is not detected on startup
+     */
+    void setDefaultConfigIfNotExists() throws DataAccessException;
+
     /**
      * Gets the rubric for the given phase
      *
@@ -89,6 +95,19 @@ public interface RubricConfigDao {
             }
         }
         return total;
+    }
+
+    static RubricConfig getDefaultRubricConfig(Phase phase) {
+        return switch (phase){
+            case Phase0 -> defaultPhase0Config;
+            case Phase1 -> defaultPhase1Config;
+            case Phase3 -> defaultPhase3Config;
+            case Phase4 -> defaultPhase4Config;
+            case Phase5 -> defaultPhase5Config;
+            case Phase6 -> defaultPhase6Config;
+            case Quality -> defaultQualityConfig;
+            case GitHub -> defaultGitHubConfig;
+        };
     }
 
     void setRubricConfig(Phase phase, RubricConfig rubricConfig) throws DataAccessException;

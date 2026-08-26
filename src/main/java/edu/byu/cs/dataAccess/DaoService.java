@@ -88,15 +88,6 @@ public class DaoService {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, 0.9f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, "LINE", String.class);
 
-            rubricConfigDao.setRubricConfig(Phase.GitHub, RubricConfigDao.defaultGitHubConfig);
-            rubricConfigDao.setRubricConfig(Phase.Phase0, RubricConfigDao.defaultPhase0Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase1, RubricConfigDao.defaultPhase1Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase3, RubricConfigDao.defaultPhase3Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase4, RubricConfigDao.defaultPhase4Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase5, RubricConfigDao.defaultPhase5Config);
-            rubricConfigDao.setRubricConfig(Phase.Phase6, RubricConfigDao.defaultPhase6Config);
-            rubricConfigDao.setRubricConfig(Phase.Quality, RubricConfigDao.defaultQualityConfig);
-
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }

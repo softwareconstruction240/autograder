@@ -10,6 +10,18 @@ import java.util.Map;
 
 public class RubricConfigMemoryDao implements RubricConfigDao {
     private final Map<Phase, RubricConfig> rubricConfigs = new EnumMap<>(Phase.class);
+
+    public RubricConfigMemoryDao() {
+        setDefaultConfigIfNotExists();
+    }
+
+    @Override
+    public void setDefaultConfigIfNotExists() {
+        for (Phase phase: Phase.values()) {
+            this.setRubricConfig(phase, RubricConfigDao.getDefaultRubricConfig(phase));
+        }
+    }
+
     @Override
     public RubricConfig getRubricConfig(Phase phase) {
         return rubricConfigs.get(phase);
