@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `submission` (
     `commit_result` JSON,
     `verification` JSON,
     `admin` BOOL NOT NULL,
+    `grace_days` INT,
     PRIMARY KEY (`id`),
     INDEX sort_index (`net_id`,`phase`,`passed`,`score`,`timestamp`),
     CONSTRAINT `submission_net_id`

@@ -167,6 +167,35 @@ public class LateDayCalculator {
 
     /**
      * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
+     * the number of days since due from the student-specific due date hand-in date.
+     * <br>
+     * This computation considers specific policies like:
+     * <ul>
+     *     <li>Configured holidays</li>
+     *     <li>Maximum number of late days penalized</li>
+     * </ul>
+     * <br>
+     * <b>Performance:</b> The first time this is run for a netId-phase combination will result in a cache-miss
+     * which requires a slow lookup process from multiple external sources. After the context is available, the
+     * computation is a <pre>O(n)</pre> iterative algorithm based on the number of days late.
+     *
+     * @param phase The current phase to consider.
+     * @param netId The student netId being evaluated.
+     * @return An integer indicating the number of days the assignment was submitted since the due date. Negative numbers meaning they submitted early.
+     * @throws GradingException When other business rules are violated during processing.
+     * @throws DataAccessException When our internal database experiences issues.
+     */
+    public int calculateDaysAfterDue(Phase phase, String netId) throws GradingException, DataAccessException {
+        var context = getLateDayContext(phase, netId);
+        int daysEarly = getNumDaysEarly(context.handInDate, context.dueDate);
+        if (daysEarly > 0) {
+            return -daysEarly;
+        }
+        return Math.min(getNumDaysLate(context.handInDate, context.dueDate), context.maxLateDaysToPenalize);
+    }
+
+    /**
+     * For the phase in the {@link edu.byu.cs.autograder.GradingContext}, calculates
      * the number of days early from the hand-in date to the student-specific due date.
      * <br>
      * This does not count holidays.
@@ -323,12 +352,10 @@ public class LateDayCalculator {
         // Do not throw errors when configured with an empty list. Possibly configured this way.
         if (publicHolidays.isEmpty()) return;
 
-        // Throw errors when configured with dates, but none in the future.
-        // This represents stale data that needs to be maintained.
         LocalDate maxDate = publicHolidays.stream().max(LocalDate::compareTo).get();
         LocalDate now = LocalDate.now();
         if (maxDate.isBefore(now)) {
-            throw new RuntimeException("There are public holidays configured, but none of them are in the future. " +
+            LOGGER.warning("There are public holidays configured, but none of them are in the future. " +
                     "This likely represents a stale configuration error which results in holidays not being respected.");
         }
     }

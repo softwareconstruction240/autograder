@@ -4,30 +4,26 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
+import edu.byu.cs.autograder.score.penalties.GraceDayPenaltyCalculator;
+import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
+import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.*;
-import edu.byu.cs.model.Rubric.RubricItem;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Map;
-
-import static edu.byu.cs.model.Submission.VerifiedStatus;
 
 /**
  * Scores a submission, applying appropriate penalties before attempting to send the score to Canvas.
@@ -37,25 +33,14 @@ import static edu.byu.cs.model.Submission.VerifiedStatus;
 public class Scorer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scorer.class);
 
-    /**
-     * The penalty to be applied per day to a late submission.
-     * This is out of 1. So putting 0.1 would be a 10% deduction per day
-     */
-    private final float PER_DAY_LATE_PENALTY;
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
+    private PenaltyCalculator latePenaltyCalculator;
 
     public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
-
-        try {
-            ConfigurationDao dao = DaoService.getConfigurationDao();
-            PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
-        } catch (DataAccessException e) {
-            LOGGER.error("Error while getting Per Day Late Penalty for Scorer.");
-            throw new RuntimeException(e);
-        }
+        this.latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
     /**
@@ -79,24 +64,28 @@ public class Scorer {
 
         // Exit early when the score isn't important
         if (gradingContext.admin() || !PhaseUtils.isPhaseGraded(gradingContext.phase())) {
-            return generateSubmissionObject(rubric, commitVerificationReport, 0, getScores(rubric), "");
+            //use a percent penalty calculator when the score is not important to minimize canvas calls
+            return latePenaltyCalculator.generateSubmissionObject(
+                    rubric,
+                    commitVerificationReport,
+                    0,
+                    rubric.getScores(gradingContext.phase()),
+                    "",
+                    gradingContext
+            );
         }
+        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()));
 
-        int daysLate = lateDayCalculator.calculateLateDays(gradingContext.phase(), gradingContext.netId());
-        rubric = applyLatePenalty(rubric, daysLate);
-        ScorePair scores = getScores(rubric);
+        int daysAfterDue = lateDayCalculator.calculateDaysAfterDue(gradingContext.phase(), gradingContext.netId());
+        Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysAfterDue, gradingContext, commitVerificationReport);
 
         // Validate several conditions before submitting to the grade-book
-        if (!rubric.passed()) {
-            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, "");
-        }
-
         CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
-        if (!commitVerificationResult.verified()) {
-            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, commitVerificationResult.failureMessage());
+        if (!rubric.passed() || !commitVerificationResult.verified()) {
+            return submission;
         } else {
             // The student (may) receive a score in canvas!
-            return successfullyProcessSubmission(rubric, commitVerificationReport, daysLate, scores);
+            return successfullyProcessSubmission(submission);
         }
     }
 
@@ -121,29 +110,20 @@ public class Scorer {
      * <br>
      * Calling this method constitutes a successful, verified submission that will be submitted to canvas.
      *
-     * @param rubric                   The rubric for the submission
-     * @param commitVerificationReport Required when originally creating a submission.
-     *                                 Can be null when sending scores to Canvas; this will disable
-     *                                 any automatic point deductions for verification, and also result in
-     *                                 <code>null</code> being returned instead of a {@link Submission}.
-     * @param daysLate                 Required. Used to add a note to the resulting submission object.
-     * @param scores                Required. Used to place values in the {@link Submission} object.
-     *                                 The Canvas grade is based entirely on the provided {@link Rubric}.
+     * @param submission                   The submission to process
      * @return A construction Submission for continued processing
      * @throws DataAccessException When the database can't be reached.
      * @throws GradingException    When other conditions fail.
      */
-    private Submission successfullyProcessSubmission(Rubric rubric, CommitVerificationReport commitVerificationReport,
-                                                     int daysLate, ScorePair scores) throws DataAccessException, GradingException {
+    private Submission successfullyProcessSubmission(Submission submission) throws DataAccessException, GradingException {
 
         if (!ApplicationProperties.useCanvas()) {
-            return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores,
-                    "Would have attempted grade-book submission, but skipped due to application properties.");
+            return submission.updateNotes("Would have attempted grade-book submission, but skipped due to application properties.");
         }
 
-        CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
-        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(rubric, commitVerificationResult);
-        return generateSubmissionObject(rubric, commitVerificationReport, daysLate, scores, submittalRemnants.notes);
+        CommitVerificationResult commitVerificationResult = submission.commitResult();
+        AssessmentSubmittalRemnants submittalRemnants = attemptSendToCanvas(submission.rubric(), commitVerificationResult);
+        return submission.updateNotes(submittalRemnants.notes);
     }
 
     /**
@@ -308,64 +288,8 @@ public class Scorer {
         }
         return true;
     }
-
-    private Rubric applyLatePenalty(Rubric rubric, int daysLate) throws DataAccessException {
-        Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
-        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
-        float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
-        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-        for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
-            Rubric.RubricType rubricType = entry.getKey();
-            Rubric.RubricItem rubricItem = entry.getValue();
-            rubricItem = addLateNotesToRubricItem(rubricItem, daysLate, maxLateDays);
-            Rubric.Results results = mergeResultsWithPrevious(rubricType, rubricItem, previousSubmissions, lateScoreMultiplier);
-            rubricItem = new Rubric.RubricItem(rubricItem.category(), results, rubricItem.criteria());
-            items.put(rubricType, rubricItem);
-        }
-        return new Rubric(items, rubric.passed(), rubric.notes());
-    }
     
-    private RubricItem addLateNotesToRubricItem(RubricItem rubricItem, int daysLate, int maxLateDays){
-        Rubric.Results results = rubricItem.results();
-        results = new Rubric.Results(
-            makeLatePenaltyNotes(daysLate, maxLateDays, results.notes()),
-            results.score(),
-            results.rawScore(),
-            results.possiblePoints(),
-            results.testResults(),
-            results.textResults());
-        return new RubricItem(rubricItem.category(), results, rubricItem.criteria());
-    }
 
-    private Rubric.Results mergeResultsWithPrevious(Rubric.RubricType rubricType, Rubric.RubricItem rubricItem,
-                                                    Collection<Submission> previousSubmissions, float scoreMultiplier) {
-        Rubric.Results results = rubricItem.results();
-
-        String notes = results.notes();
-        float startingScore = results.score() * scoreMultiplier;
-        float score = startingScore;
-
-        for (Submission previousSubmission : previousSubmissions) {
-            if(previousSubmission.passed()) {
-                Rubric.RubricItem previousItem = previousSubmission.rubric().items().get(rubricType);
-                if (previousItem != null && previousItem.results().rawScore() <= results.rawScore()) {
-                    score = Math.max(score, previousItem.results().score());
-                }
-            }
-        }
-
-        if(score > startingScore) {
-            notes = String.format("Deferring to less-penalized prior score of %s/%d\n%s",
-                    Math.round(score * 100) / 100.0, rubricItem.results().possiblePoints(), notes);
-        }
-
-        return new Rubric.Results(notes,
-                score,
-                results.score(),
-                results.possiblePoints(),
-                results.testResults(),
-                results.textResults());
-    }
 
     /**
      * Returns a new CanvasRubricAssessment that represents the result of merging `assessment` into `existing`.
@@ -396,7 +320,7 @@ public class Scorer {
         }
     }
 
-    private static float totalPoints(CanvasRubricAssessment assessment) {
+    public static float totalPoints(CanvasRubricAssessment assessment) {
         float points = 0;
         if(assessment == null) return points;
         for(CanvasRubricItem item : assessment.items().values()) {
@@ -405,117 +329,11 @@ public class Scorer {
         return points;
     }
 
-    /**
-     * Gets the score and rawScore for the rubric and phase
-     *
-     * @return a ScorePair with both the score and rawScore as a percentage value from [0-1].
-     */
-    private ScorePair getScores(Rubric rubric) throws GradingException, DataAccessException {
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(gradingContext.phase());
-
-        if (totalPossiblePoints == 0) {
-            throw new GradingException("Total possible points for phase " + gradingContext.phase() + " is 0");
-        }
-
-        if (DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase()) instanceof RubricConfig rubricConfig &&
-                rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
-            totalPossiblePoints -= item.points();
-        }
-
-        float score = 0;
-        float rawScore = 0;
-        for (Rubric.RubricType type : Rubric.RubricType.values()) {
-            var rubricItem = rubric.items().get(type);
-            if (rubricItem == null) continue;
-            score += rubricItem.results().score();
-            rawScore += rubricItem.results().rawScore();
-        }
-
-        return new ScorePair(score / totalPossiblePoints, rawScore / totalPossiblePoints);
-    }
-
-    /**
-     * Prepares the necessary data pieces to construct a {@link Submission}.
-     * This can be saved in the database, and has information which is
-     * displayed to the user.
-     * <br>
-     * Note that this object is not sent directly to any grade-book.
-     * Other objects are constructed independently for that purpose.
-     *
-     * @param rubric A fully transformed and populated Rubric.
-     * @param commitVerificationReport Results from the commit verification system.
-     *                                 If this value is null, the function will return null.
-     * @param numDaysLate The number of days late this submission was handed-in.
-     *                    For note generating purposes only; this is not used to
-     *                    calculate any penalties.
-     * @param scores The final approved score and rawScore on the submission represented in points.
-     * @param notes Any notes that are associated with the submission.
-     *              More comments may be added to this string while preparing the Submission.
-     */
     public Submission generateSubmissionObject(Rubric rubric, CommitVerificationReport commitVerificationReport,
-                                                int numDaysLate, ScorePair scores, String notes)
-            throws GradingException, DataAccessException {
-        if (commitVerificationReport == null) {
-            return null; // This is allowed.
-        }
-
-        CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
-        String headHash = commitVerificationResult.headHash();
-        String netId = gradingContext.netId();
-
-        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
-
-        notes = makeLatePenaltyNotes(numDaysLate, maxLateDays, notes);
-
-        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
-        Submission.VerifiedStatus verifiedStatus;
-        if (commitVerificationResult.verified()) {
-            verifiedStatus = commitVerificationResult.isCachedResponse() ?
-                    VerifiedStatus.PreviouslyApproved : VerifiedStatus.ApprovedAutomatically;
-        } else {
-            verifiedStatus = VerifiedStatus.Unapproved;
-        }
-        if (commitVerificationResult.penaltyPct() > 0) {
-            scores = new ScorePair(prepareModifiedScore(scores.score(), commitVerificationResult.penaltyPct()), scores.rawScore());
-            notes += "Commit history approved with a penalty of %d%%".formatted(commitVerificationResult.penaltyPct());
-        }
-
-        return new Submission(
-                netId,
-                gradingContext.repoUrl(),
-                headHash,
-                handInDate.toInstant(),
-                gradingContext.phase(),
-                rubric.passed(),
-                scores.score(),
-                scores.rawScore(),
-                notes,
-                rubric,
-                gradingContext.admin(),
-                verifiedStatus,
-                commitVerificationReport.context(),
-                commitVerificationResult,
-                null
-        );
-    }
-
-    private String makeLatePenaltyNotes(int numDaysLate, int maxLateDays, String origNotes) {
-        if (numDaysLate <= 0) {
-            return origNotes;
-        }
-
-        String penaltyPercentage = String.format("-%d%%", (int)(numDaysLate * PER_DAY_LATE_PENALTY * 100));
-        String lateNotes;
-        if (numDaysLate >= maxLateDays) {
-            lateNotes = "Late penalty maxed out: " + penaltyPercentage;
-        } else {
-            lateNotes = String.format("%d days late: %s", numDaysLate, penaltyPercentage);
-        }
-
-        if (origNotes == null || origNotes.isBlank()) {
-            return lateNotes;
-        }
-        return String.format("%s\n%s", origNotes, lateNotes);
+                                               int numDaysLate, Rubric.ScorePair scores, String notes)
+            throws DataAccessException, GradingException{
+        return this.latePenaltyCalculator.generateSubmissionObject(rubric, commitVerificationReport,
+                numDaysLate, scores, notes, gradingContext);
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
@@ -536,5 +354,4 @@ public class Scorer {
         return originalScore * (100 - penaltyPct) / 100f;
     }
 
-    public record ScorePair(float score, float rawScore) {}
 }

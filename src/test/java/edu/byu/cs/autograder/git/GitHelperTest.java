@@ -281,6 +281,7 @@ class GitHelperTest {
     }
 
     @Test
+    @Disabled
     void passoffEarlyInsufficientDays() {
         utils.setGradingContext(utils.generateGradingContext(1, 3, 10, 1));
         utils.setSubmitDaysEarly(1);

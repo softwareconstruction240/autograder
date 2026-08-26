@@ -102,6 +102,7 @@ public abstract class ConfigurationDaoTest {
             case COVERAGE_TYPE -> "LINE";
             case STUDENT_SUBMISSIONS_ENABLED -> random.nextBoolean();
             case GRADER_SHUTDOWN_DATE, HOLIDAY_LIST, BANNER_EXPIRATION-> Instant.now();
+            case GRACE_DAYS_ASSIGNMENT_NUMBER -> -1;
         };
     }
 
