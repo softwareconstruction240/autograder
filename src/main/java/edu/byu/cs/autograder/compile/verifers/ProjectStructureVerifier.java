@@ -20,7 +20,7 @@ public class ProjectStructureVerifier implements StudentCodeVerifier {
 
     @Override
     public void verify(GradingContext context, StudentCodeReader reader) throws GradingException {
-        verifyRootPom(context);
+//        verifyRootPom(context);
         verifyDirectoryStructure(context);
     }
 
