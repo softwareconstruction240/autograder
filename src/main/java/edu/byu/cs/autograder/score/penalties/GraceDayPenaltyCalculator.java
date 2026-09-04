@@ -49,6 +49,11 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
             graceDaysPreviouslyEarned = bestSubmission.graceDaysEarned();
         }
 
+        if (!rubric.passed()) {
+            return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
+                    "Score is zero due to failing submission. Grace days unaffected. ", gradingContext);
+        }
+
         int newGraceDayTotal = totalGraceDays - graceDaysPreviouslyEarned - daysAfterDue;
         if (newGraceDayTotal < 0) {
             Rubric zero = zeroScore(rubric);
