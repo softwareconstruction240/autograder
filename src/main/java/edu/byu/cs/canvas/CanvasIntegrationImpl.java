@@ -51,7 +51,15 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 CanvasUser[].class).body();
         if(users == null) {
-            throw new CanvasException("User not found in Canvas: " + netId);
+            users = makeCanvasRequest(
+                    "GET",
+                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId
+                    + URLEncoder.encode("@byu.edu", Charset.defaultCharset()) + "&include[]=enrollments",
+                    CanvasUser[].class
+                ).body();
+            if (users == null){
+                throw new CanvasException("User not found in Canvas: " + netId);
+            }
         }
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
