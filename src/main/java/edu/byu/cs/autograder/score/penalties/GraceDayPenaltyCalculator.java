@@ -2,7 +2,9 @@ package edu.byu.cs.autograder.score.penalties;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
+import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSubmission;
@@ -16,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.EnumMap;
 import java.util.Map;
+
+import java.time.ZonedDateTime;
 
 public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
@@ -163,5 +167,48 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
             items.put(rubricType, rubricItem);
         }
         return new Rubric(items, rubric.passed(), "Score is zero due to not enough Grace Days available. Grace days unaffected. ");
+    }
+
+    @Override
+    public Submission generateSubmissionObject(Rubric rubric, CommitVerificationReport commitVerificationReport,
+                                                       int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext)
+            throws GradingException, DataAccessException {
+        if (rubric.passed() == true) {
+            return PenaltyCalculator.super.generateSubmissionObject(rubric, commitVerificationReport, numDaysLate, scores, notes + " Score is zero due to failing submission. Grace days unaffected. ", gradingContext);
+        }
+        else {
+
+            String headHash = commitVerificationReport.result().headHash();
+            String netId = gradingContext.netId();
+            ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+            CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
+
+            Submission.VerifiedStatus verifiedStatus;
+            if (commitVerificationResult.verified()) {
+                verifiedStatus = commitVerificationResult.isCachedResponse() ?
+                        Submission.VerifiedStatus.PreviouslyApproved : Submission.VerifiedStatus.ApprovedAutomatically;
+            } else {
+                verifiedStatus = Submission.VerifiedStatus.Unapproved;
+            }
+
+            return new Submission(
+                netId,
+                gradingContext.repoUrl(),
+                headHash,
+                handInDate.toInstant(),
+                gradingContext.phase(),
+                rubric.passed(),
+                scores.score(),
+                scores.rawScore(),
+                notes,
+                rubric,
+                gradingContext.admin(),
+                verifiedStatus,
+                commitVerificationReport.context(),
+                commitVerificationResult,
+                null,
+                -numDaysLate
+            );
+        }
     }
 }
