@@ -174,7 +174,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                                                        int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext)
             throws GradingException, DataAccessException {
         if (rubric.passed() == true) {
-            return PenaltyCalculator.super.generateSubmissionObject(rubric, commitVerificationReport, numDaysLate, scores, notes + " Score is zero due to failing submission. Grace days unaffected. ", gradingContext);
+            return PenaltyCalculator.super.generateSubmissionObject(rubric, commitVerificationReport, numDaysLate, scores, notes, gradingContext);
         }
         else {
 
