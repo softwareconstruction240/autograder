@@ -51,18 +51,41 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
                 "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId + "&include[]=enrollments",
                 CanvasUser[].class).body();
         if(users == null) {
-            users = makeCanvasRequest(
-                    "GET",
-                    "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId
-                    + URLEncoder.encode("@byu.edu", Charset.defaultCharset()) + "&include[]=enrollments",
-                    CanvasUser[].class
-                ).body();
-            if (users == null){
-                throw new CanvasException("User not found in Canvas: " + netId);
-            }
+            throw new CanvasException("User not found in Canvas" + netId);
         }
         for (CanvasUser user : users) {
             if (user.login_id().equalsIgnoreCase(netId)) {
+                User.Role role;
+                if (user.enrollments.length == 0) role = null;
+                else role = switch (user.enrollments[0].type()) {
+                    case StudentEnrollment -> User.Role.STUDENT;
+                    case TeacherEnrollment, TaEnrollment -> User.Role.ADMIN;
+                    case DesignerEnrollment, ObserverEnrollment ->
+                            throw new CanvasException("Unsupported role: " + user.enrollments[0]);
+                };
+
+                String[] names = user.sortable_name().split(",");
+                String firstName = ((names.length >= 2) ? names[1] : "").trim();
+                String lastName = ((names.length >= 1) ? names[0] : "").trim();
+
+                return new User(netId, user.id(), firstName, lastName, null, role);
+            }
+        }
+
+        //missed search by netid, search by netid@byu.edu
+
+        users = makeCanvasRequest(
+                "GET",
+                "/courses/" + getCourseNumber() + "/search_users?search_term=" + netId
+                        + URLEncoder.encode("@byu.edu", Charset.defaultCharset()) + "&include[]=enrollments",
+                CanvasUser[].class
+        ).body();
+        if (users == null){
+            throw new CanvasException("User not found in Canvas: " + netId);
+        }
+
+        for (CanvasUser user : users) {
+            if (user.login_id().equalsIgnoreCase(netId + "@byu.edu")) {
                 User.Role role;
                 if (user.enrollments.length == 0) role = null;
                 else role = switch (user.enrollments[0].type()) {
