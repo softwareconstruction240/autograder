@@ -81,6 +81,16 @@ export type Rubric = {
   notes: string;
 };
 
+export type CommitsByDay = {
+  linearizedCommits: string[];
+  linearizedLineChanges: number[];
+  erroringCommits: Record<string, string[]>;
+};
+
+export type CommitVerificationContext = {
+  commitsByDay: CommitsByDay;
+};
+
 export type Submission = {
   netId: string;
   repoUrl: string;
@@ -94,6 +104,7 @@ export type Submission = {
   passed: boolean;
   admin: boolean;
   verifiedStatus: VerifiedStatus;
+  commitContext: CommitVerificationContext;
 };
 
 export enum VerifiedStatus {
