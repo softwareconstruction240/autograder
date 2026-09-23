@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -141,6 +142,38 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @Disabled
     public void testPenaltyConfigOverride(Rubric testRubric) throws DataAccessException, GradingException {
         // wait to test until/if configurable settings are established.
+    }
+
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    public void testMultipleBetterSubmissions(Rubric testRubric) throws DataAccessException, GradingException {
+        setGraceDays(5);
+        Submission passingSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -5, gradingContext, mockCommitReport);
+        Assertions.assertEquals(5, passingSubmission.graceDaysEarned());
+        DaoService.getSubmissionDao().insertSubmission(passingSubmission);
+
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
+        for  (Rubric.RubricType type : testRubric.items().keySet()){
+            Rubric.Results betterResults = new Rubric.Results("notes", 11.0f, 10, null, "textResults");
+            Rubric.RubricItem rubricItem = new Rubric.RubricItem("testCategory", betterResults, "testCriteria");
+            items.put(type, rubricItem);
+        }
+
+
+        Rubric betterRubric = new Rubric(items, true, "");
+        Submission betterSubmission = graceDayPenaltyCalculator.applyPenalty(betterRubric, -5, gradingContext, mockCommitReport);
+        Assertions.assertEquals(0, betterSubmission.graceDaysEarned());
+        DaoService.getSubmissionDao().insertSubmission(betterSubmission);
+
+        items = new EnumMap<>(Rubric.RubricType.class);
+        for(Rubric.RubricType type : testRubric.items().keySet()){
+            Rubric.Results bestResults = new Rubric.Results("notes", 12.0f, 10, null, "textResults");
+            Rubric.RubricItem rubricItem = new Rubric.RubricItem("testCategory", bestResults, "testCriteria");
+            items.put(type, rubricItem);
+        }
+        Rubric bestRubric = new Rubric(items, true, "");
+        Submission bestSubmission = graceDayPenaltyCalculator.applyPenalty(bestRubric, -5, gradingContext, mockCommitReport);
+        Assertions.assertEquals(0, bestSubmission.graceDaysEarned());
     }
 
     @Override
