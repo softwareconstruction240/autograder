@@ -172,8 +172,8 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
             items.put(type, rubricItem);
         }
         Rubric bestRubric = new Rubric(items, true, "");
-        Submission bestSubmission = graceDayPenaltyCalculator.applyPenalty(bestRubric, -5, gradingContext, mockCommitReport);
-        Assertions.assertEquals(0, bestSubmission.graceDaysEarned());
+        Submission bestSubmission = graceDayPenaltyCalculator.applyPenalty(bestRubric, -4, gradingContext, mockCommitReport);
+        Assertions.assertEquals(-1, bestSubmission.graceDaysEarned());
     }
 
     @Override

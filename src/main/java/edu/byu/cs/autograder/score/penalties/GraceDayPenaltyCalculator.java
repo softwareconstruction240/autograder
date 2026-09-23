@@ -50,7 +50,9 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
                         "Submission not sent to Canvas due to worse score. Grace days unaffected. ", gradingContext);
             }
-            graceDaysPreviouslyEarned = bestSubmission.graceDaysEarned();
+            for (Submission submission : DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase())){
+                graceDaysPreviouslyEarned += submission.graceDaysEarned();
+            }
         }
 
         if (!rubric.passed()) {
