@@ -5,6 +5,7 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
+import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
@@ -109,10 +110,24 @@ public abstract class PenaltyCalculatorTest {
 
     @ParameterizedTest
     @MethodSource("getRubrics")
-    abstract void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException, GradingException;
+    abstract void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException, GradingException, CanvasException;
 
     protected static Iterable<? extends Arguments> getRubrics(){
         return List.of(Arguments.of(testRubricOneItem), Arguments.of(testRubricTwoItems), Arguments.of(testRubricThreeItems));
+    }
+
+    /**
+    Some tests require a rubric with a better score, so this method will increment the score by one for each RubricItem in the given Rubric.
+     @param originalRubric The rubric whose items and scores will be used to generate a Rubric with better scores
+    **/
+    protected Rubric incrementRubricScore(Rubric originalRubric){
+        EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
+        for(Rubric.RubricType type : originalRubric.items().keySet()){
+            Rubric.Results bestResults = new Rubric.Results("notes", originalRubric.items().get(type).results().score() + 1, 10, null, "textResults");
+            Rubric.RubricItem rubricItem = new Rubric.RubricItem("testCategory", bestResults, "testCriteria");
+            items.put(type, rubricItem);
+        }
+        return new Rubric(items, true, "");
     }
 
     protected void containsExpected(String container, String... expected){

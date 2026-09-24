@@ -50,9 +50,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
                         "Submission not sent to Canvas due to worse score. Grace days unaffected. ", gradingContext);
             }
-            for (Submission submission : DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase())){
-                graceDaysPreviouslyEarned += submission.graceDaysEarned();
-            }
+            graceDaysPreviouslyEarned += bestSubmission.graceDaysEarned();
         }
 
         if (!rubric.passed()) {
@@ -82,7 +80,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 rubric.passed(),
                 makePenaltyNotes(effectiveDaysLate, finalGraceDays, rubric.notes(), isRelativeToPrevious)
         );
-        return generateSubmissionObject(rubric, commitReport, effectiveDaysLate, rubric.getScores(gradingContext.phase()),
+        return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
                 "", gradingContext);
     }
 
@@ -98,12 +96,12 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     public String makePenaltyNotes(int daysAfterDue, int newTotalGraceDays, String origNotes, boolean isRelativeToPreviousSubmission) {
         String lateNotes;
+        String lateContext = isRelativeToPreviousSubmission ? " (relative to a previous early submission)" : "";
         if (daysAfterDue == 0){
-            lateNotes =  "Assignment turned in on time. Grace days unaffected. ";
+            lateNotes =  String.format("Assignment turned in on time%s. Grace days unaffected. ", lateContext);
         } else if (daysAfterDue < 0){
             lateNotes =  String.format("Assignment turned in %d day%s early. New total grace days: %d. ", -daysAfterDue, daysAfterDue == -1 ? "" : "s", newTotalGraceDays);
         } else {
-            String lateContext = isRelativeToPreviousSubmission ? " (relative to a previous early submission)" : "";
             lateNotes = String.format("Assignment turned in %d day%s late%s. New total grace days: %d. ", daysAfterDue, daysAfterDue == 1 ? "" : "s", lateContext, newTotalGraceDays);
         }
 
