@@ -41,10 +41,6 @@ public abstract class PenaltyCalculatorTest {
         DaoService.initializeMemoryDAOs();
         rubricConfigDao = DaoService.getRubricConfigDao();
 
-        //config values init
-        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 0.1f, Float.class);
-        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
-
         rubricConfigs = new ArrayList<>();
         for (Phase phase : Phase.values()) {
             rubricConfigs.add(rubricConfigDao.getRubricConfig(phase));
@@ -117,7 +113,7 @@ public abstract class PenaltyCalculatorTest {
     }
 
     /**
-    Some tests require a rubric with a better score, so this method will increment the score by one for each RubricItem in the given Rubric.
+    Some tests require a rubric with a better score to handle multiple submissions, so this method will increment the score by one for each RubricItem in the given Rubric.
      @param originalRubric The rubric whose items and scores will be used to generate a Rubric with better scores
     **/
     protected Rubric incrementRubricScore(Rubric originalRubric){

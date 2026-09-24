@@ -139,7 +139,7 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     @Disabled
     public void testPenaltyConfigOverride(Rubric testRubric) throws DataAccessException, GradingException {
-        // wait to test until/if configurable settings are established.
+        // currently, no configurable settings for grace days exist
     }
 
     @ParameterizedTest
