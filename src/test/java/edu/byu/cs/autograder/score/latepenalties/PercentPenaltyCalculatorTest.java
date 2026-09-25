@@ -28,6 +28,11 @@ public class PercentPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @BeforeAll
     static void setUpPercentPenalty() throws DataAccessException {
         setUp();
+
+        //config values init
+        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, 0.1f, Float.class);
+        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
+
         RubricConfig phase3RubricConfig = new RubricConfig(
                 Phase.Phase3,
                 new EnumMap<>(Map.of(

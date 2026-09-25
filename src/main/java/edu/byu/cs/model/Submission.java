@@ -50,8 +50,8 @@ import java.util.Objects;
  * @param commitResult Debug. Holds the raw commit verification results including computed values.
  * @param verification Represents the manual approval of the submission.
  *                     Added only after the submission is approved manually.
- * @param graceDaysEarned the number of grace days earned on the submission. Value will be negative
- *                        if student turned in assignment late.
+ * @param graceDaysEarned the net number of grace days earned for submissions for given phase.
+ *                        Value will be negative if grace days were deducted.
  */
 public record Submission(
         String netId,

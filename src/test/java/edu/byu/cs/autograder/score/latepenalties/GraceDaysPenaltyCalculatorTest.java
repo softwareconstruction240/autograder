@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -65,23 +66,20 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     void testLaterEarlySubmissionSubtractsGraceDays(Rubric testRubric) throws DataAccessException, GradingException {
         int startingGraceDays = 2;
-        int daysEarlyFirstSubmission = 2;
+        int daysEarlyFirstSubmission = 4;
         int daysEarlySecondSubmission = 1;
-        DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null,null, null, null, 2));
+        Submission firstSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -daysEarlyFirstSubmission, gradingContext, mockCommitReport);
+        DaoService.getSubmissionDao().insertSubmission(firstSubmission);
+        Assertions.assertEquals(daysEarlyFirstSubmission, firstSubmission.graceDaysEarned(), "Did not earn/deduct correct number of grace days");
         setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
 
-        Submission resultSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -daysEarlySecondSubmission, gradingContext, mockCommitReport);
-        int expectedEffectiveDaysLate = daysEarlyFirstSubmission - daysEarlySecondSubmission;
-        Assertions.assertEquals(-expectedEffectiveDaysLate, resultSubmission.graceDaysEarned(), "Did not earn/deduct correct number of grace days");
+        Rubric betterRubric = incrementRubricScore(testRubric);
+        Submission secondSubmission = graceDayPenaltyCalculator.applyPenalty(betterRubric, -daysEarlySecondSubmission, gradingContext, mockCommitReport);
+        Assertions.assertEquals(daysEarlySecondSubmission, secondSubmission.graceDaysEarned());
 
         int totalGraceDaysAfterSubmission = canvasIntegration.getGraceDays();
-        int expectedGraceDaysLeft = startingGraceDays + daysEarlyFirstSubmission - expectedEffectiveDaysLate;
+        int expectedGraceDaysLeft = startingGraceDays + daysEarlySecondSubmission;
         Assertions.assertEquals(expectedGraceDaysLeft, totalGraceDaysAfterSubmission, "Incorrect number of grace days saved to canvas");
-
-        for (Rubric.RubricItem item : resultSubmission.rubric().items().values()){
-            Rubric.Results results = item.results();
-                Assertions.assertEquals(results.rawScore(), results.score(), "Deducted from score when student had sufficient grace days");
-        }
     }
 
     @Override
@@ -109,18 +107,19 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         int startingGraceDays = 7;
         int daysEarlyFirstSubmission = 2;
         int daysLateSecondSubmission = 3;
-        DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null,null, null, null, 2));
-        setGraceDays(startingGraceDays + daysEarlyFirstSubmission);
+        setGraceDays(startingGraceDays);
+        Submission firstSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -daysEarlyFirstSubmission, gradingContext, mockCommitReport);
+        DaoService.getSubmissionDao().insertSubmission(firstSubmission);
 
-        Submission resultSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, daysLateSecondSubmission, gradingContext, mockCommitReport);
-        int expectedEffectiveDaysLate = daysEarlyFirstSubmission + daysLateSecondSubmission;
-        Assertions.assertEquals(-expectedEffectiveDaysLate, resultSubmission.graceDaysEarned(), "Did not earn/deduct correct number of grace days");
+        Rubric betterRubric = incrementRubricScore(testRubric);
+        Submission secondSubmission = graceDayPenaltyCalculator.applyPenalty(betterRubric, daysLateSecondSubmission, gradingContext, mockCommitReport);
+        Assertions.assertEquals(-daysLateSecondSubmission, secondSubmission.graceDaysEarned(), "Did not earn/deduct correct number of grace days");
 
         int totalGraceDaysAfterSubmission = canvasIntegration.getGraceDays();
-        int expectedGraceDaysLeft = startingGraceDays + daysEarlyFirstSubmission - expectedEffectiveDaysLate;
+        int expectedGraceDaysLeft = startingGraceDays - daysLateSecondSubmission;
         Assertions.assertEquals(expectedGraceDaysLeft, totalGraceDaysAfterSubmission, "Incorrect number of grace days saved to canvas");
 
-        for (Rubric.RubricItem item : resultSubmission.rubric().items().values()){
+        for (Rubric.RubricItem item : secondSubmission.rubric().items().values()){
             Rubric.Results results = item.results();
             Assertions.assertEquals(results.rawScore(), results.score(), "Deducted from score when student had sufficient grace days");
         }
@@ -140,13 +139,31 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
     @MethodSource("getRubrics")
     @Disabled
     public void testPenaltyConfigOverride(Rubric testRubric) throws DataAccessException, GradingException {
-        // wait to test until/if configurable settings are established.
+        // currently, no configurable settings for grace days exist
+    }
+
+    @ParameterizedTest
+    @MethodSource("getRubrics")
+    public void testMultipleBetterSubmissions(Rubric testRubric) throws DataAccessException, GradingException {
+        setGraceDays(5);
+        Submission passingSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -5, gradingContext, mockCommitReport);
+        Assertions.assertEquals(5, passingSubmission.graceDaysEarned());
+        DaoService.getSubmissionDao().insertSubmission(passingSubmission);
+
+        Rubric betterRubric = incrementRubricScore(testRubric);
+        Submission betterSubmission = graceDayPenaltyCalculator.applyPenalty(betterRubric, -5, gradingContext, mockCommitReport);
+        Assertions.assertEquals(5, betterSubmission.graceDaysEarned());
+        DaoService.getSubmissionDao().insertSubmission(betterSubmission);
+
+        Rubric bestRubric = incrementRubricScore(betterRubric);
+        Submission bestSubmission = graceDayPenaltyCalculator.applyPenalty(bestRubric, -4, gradingContext, mockCommitReport);
+        Assertions.assertEquals(4, bestSubmission.graceDaysEarned());
     }
 
     @Override
     @ParameterizedTest
     @MethodSource("getRubrics")
-    void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException, GradingException {
+    void testLatePenaltyNotesFormat(Rubric testRubric) throws DataAccessException, GradingException, CanvasException {
         Submission earlySubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, -3, gradingContext, mockCommitReport);
         setGraceDays(0);
         Submission onTimeSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 0, gradingContext, mockCommitReport);
@@ -154,24 +171,29 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         Submission lateSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 3, gradingContext, mockCommitReport);
         setGraceDays(1);
         Submission insufficientGraceDaysSubmission = graceDayPenaltyCalculator.applyPenalty(testRubric, 100, gradingContext, mockCommitReport);
+        DaoService.getSubmissionDao().insertSubmission(earlySubmission);
+        setGraceDays(3);
+        Rubric betterScore = incrementRubricScore(testRubric);
+        Submission onTimeRelativeToPreviousSubmission = graceDayPenaltyCalculator.applyPenalty(betterScore, -3, gradingContext, mockCommitReport);
 
         String testNotesEarly = earlySubmission.rubric().notes();
         String testNotesOnTime = onTimeSubmission.rubric().notes();
         String testNotesLate = lateSubmission.rubric().notes();
         String testNotesMax = insufficientGraceDaysSubmission.rubric().notes();
+        String testNotesRelative = onTimeRelativeToPreviousSubmission.rubric().notes();
         Assertions.assertThrows(AssertionError.class, () -> containsExpected(testNotesEarly, String.format("-%d%%", 0), "late"));
         Assertions.assertThrows(AssertionError.class, () -> containsExpected(testNotesOnTime, String.format("-%d%%", 0), "late"));
         containsExpected(testNotesEarly, "early", "grace day");
         containsExpected(testNotesOnTime, "on time", "unaffected");
         containsExpected(testNotesLate, "late", "grace day");
         containsExpected(testNotesMax, "zero", "not enough", "grace day", "unaffected");
+        containsExpected(testNotesRelative, "relative to a previous early submission");
 
         // Test resubmission after early another early submission: notes should explain grace day deduction relative to previous submission
-        DaoService.getSubmissionDao().insertSubmission(new Submission(gradingContext.netId(), "", "", Instant.now(), gradingContext.phase(), true, 5f, 5f, null, halfCreditRubric, false, null, null, null, null, 3));
         setGraceDays(5);
-        Submission resubmissionAfterEarly = graceDayPenaltyCalculator.applyPenalty(testRubric, -1, gradingContext, mockCommitReport);
-        String testNotesResubmission = resubmissionAfterEarly.rubric().notes();
-        containsExpected(testNotesResubmission, "late", "previous", "grace day");
+        Submission laterResubmissionAfterEarly = graceDayPenaltyCalculator.applyPenalty(betterScore, -1, gradingContext, mockCommitReport);
+        String testNotesRelativeLateResubmission = laterResubmissionAfterEarly.rubric().notes();
+        containsExpected(testNotesRelativeLateResubmission, "relative to a previous early submission");
     }
 
     private void setGraceDays(int graceDays) throws GradingException {
@@ -181,7 +203,6 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
 
     private void calculateAndEvaluateScore(Rubric rubric, int daysLate, int graceDays) throws DataAccessException, GradingException {
         float insufficientGraceDaysPenalty = 1f;
-
         Submission resultSubmission = graceDayPenaltyCalculator.applyPenalty(rubric, daysLate, gradingContext, mockCommitReport);
         Assertions.assertEquals(-daysLate, resultSubmission.graceDaysEarned(), "Did not earn/deduct correct number of grace days");
 
@@ -193,7 +214,6 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         Assertions.assertEquals(expectedGraceDaysLeft, totalGraceDaysAfterSubmission, "Incorrect number of grace days saved to canvas");
 
         for (Rubric.RubricItem item : resultSubmission.rubric().items().values()){
-
             Rubric.Results results = item.results();
             if (graceDays >= daysLate) {
                 Assertions.assertEquals(results.rawScore(), results.score(), "Deducted from score when student had sufficient grace days");
