@@ -9,20 +9,20 @@ import edu.byu.cs.properties.ApplicationProperties;
  * Otherwise, it will provide a {@link FakeCanvasIntegration}.
  */
 public class CanvasService {
-    private static CanvasIntegration canvasIntegration;
+    private CanvasIntegration canvasIntegration;
 
-    static {
+    public CanvasService() {
         if (ApplicationProperties.useCanvas())
             canvasIntegration = new CanvasIntegrationImpl();
         else
             canvasIntegration = new FakeCanvasIntegration();
     }
 
-    public static CanvasIntegration getCanvasIntegration() {
+    public CanvasIntegration getCanvasIntegration() {
         return canvasIntegration;
     }
 
-    public static void setCanvasIntegration(CanvasIntegration canvasIntegration) {
-        CanvasService.canvasIntegration = canvasIntegration;
+    public void setCanvasIntegration(CanvasIntegration canvasIntegration) {
+        this.canvasIntegration = canvasIntegration;
     }
 }
