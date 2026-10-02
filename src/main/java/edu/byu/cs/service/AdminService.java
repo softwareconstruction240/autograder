@@ -1,24 +1,24 @@
 package edu.byu.cs.service;
 
-import edu.byu.cs.analytics.CommitAnalyticsRouter;
-import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
-import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.controller.exception.ResourceNotFoundException;
-import edu.byu.cs.dataAccess.DaoService;
-import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.ItemNotFoundException;
-import edu.byu.cs.dataAccess.daoInterface.UserDao;
-import edu.byu.cs.honorChecker.HonorCheckerCompiler;
-import edu.byu.cs.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.byu.cs.analytics.CommitAnalyticsRouter;
+import edu.byu.cs.canvas.CanvasException;
+import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.controller.exception.ResourceNotFoundException;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.honorChecker.HonorCheckerCompiler;
+import edu.byu.cs.model.User;
 
 /**
  * Contains service logic for the {@link edu.byu.cs.controller.AdminController}.
@@ -38,15 +38,23 @@ public class AdminService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminService.class);
 
+    private final UserDao userDao;
+    private final SubmissionDao submissionDao;
+    private final CanvasIntegration canvasIntegration;
+
+    public AdminService(UserDao userDao, SubmissionDao submissionDao, CanvasIntegration canvasIntegration) {
+        this.userDao = userDao;
+        this.submissionDao = submissionDao;
+        this.canvasIntegration = canvasIntegration;
+    }
+
     /**
      * Gets all users stored in database of the AutoGrader
      *
      * @return the collection of users
      * @throws DataAccessException if there was an issue accessing the database
      */
-    public static Collection<User> getUsers() throws DataAccessException {
-        UserDao userDao = DaoService.getUserDao();
-
+    public Collection<User> getUsers() throws DataAccessException {
         Collection<User> users;
         try {
             users = userDao.getUsers();
@@ -65,8 +73,7 @@ public class AdminService {
      * @throws DataAccessException if there was an issue accessing the database
      * @throws ResourceNotFoundException if the user could not be found in the database
      */
-    public static void updateUser(User user) throws DataAccessException, ResourceNotFoundException {
-        UserDao userDao = DaoService.getUserDao();
+    public void updateUser(User user) throws DataAccessException, ResourceNotFoundException {
         User existingUser;
         try {
             existingUser = userDao.getUser(user.netId());
@@ -112,16 +119,15 @@ public class AdminService {
      * @throws CanvasException if there was an issue getting the test student from Canvas
      * @throws DataAccessException if there was an issue accessing the database
      */
-    public static User updateTestStudent() throws CanvasException, DataAccessException {
+    public User updateTestStudent() throws CanvasException, DataAccessException {
         User latestTestStudent;
         try {
-            latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+            latestTestStudent = canvasIntegration.getTestStudent();
         } catch (CanvasException e) {
             LOGGER.error("Error getting test student", e);
             throw e;
         }
 
-        UserDao userDao = DaoService.getUserDao();
         User user;
         try {
             user = userDao.getUser("test");
@@ -146,7 +152,7 @@ public class AdminService {
         }
 
         try {
-            DaoService.getSubmissionDao().removeSubmissionsByNetId(user.netId(), 0);
+            submissionDao.removeSubmissionsByNetId(user.netId(), 0);
         } catch (DataAccessException e) {
             LOGGER.error("Error removing submissions", e);
             throw e;
@@ -167,7 +173,7 @@ public class AdminService {
      * @throws CanvasException if there was an issue getting students from Canvas
      * @throws DataAccessException if there was an issue getting students in the database
      */
-    public static String getCommitAnalytics(String option) throws CanvasException, DataAccessException {
+    public String getCommitAnalytics(String option) throws CanvasException, DataAccessException {
         return switch (option) {
             case "update" -> CommitAnalyticsRouter.update();
             case "cached" -> CommitAnalyticsRouter.cached();
@@ -186,7 +192,7 @@ public class AdminService {
      * writing to the output
      * @throws DataAccessException if there was an issue getting a student in the database
      */
-    public static void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException, DataAccessException {
+    public void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException, DataAccessException {
         String filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr));
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
@@ -209,8 +215,8 @@ public class AdminService {
      * @return an array of {@link CanvasSection}
      * @throws CanvasException if there was an issue getting the sections in Canvas
      */
-    public static CanvasSection[] getAllSections() throws CanvasException {
-        return CanvasService.getCanvasIntegration().getAllSections();
+    public CanvasSection[] getAllSections() throws CanvasException {
+        return canvasIntegration.getAllSections();
     }
 
 }
