@@ -18,10 +18,9 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
@@ -41,10 +40,18 @@ public class AuthenticationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     //initializing these 30 seconds behind the current time ensures the config is cached on start
-    private static Instant configExpiration = Instant.now().minusSeconds(30);
-    private static Instant keyExpiration = Instant.now().minusSeconds(30);
+    private Instant configExpiration = Instant.now().minusSeconds(30);
+    private Instant keyExpiration = Instant.now().minusSeconds(30);
 
-    public static OpenIDConfig config;
+    private OpenIDConfig config;
+
+    private final UserDao userDao;
+    private final CanvasIntegration canvasIntegration;
+
+    public AuthenticationService(UserDao userDao, CanvasIntegration canvasIntegration) {
+        this.userDao = userDao;
+        this.canvasIntegration = canvasIntegration;
+    }
 
 
     /**
@@ -60,10 +67,10 @@ public class AuthenticationService {
      * @throws DataAccessException     if there was an issue storing the user in the database
      * @throws CanvasException         if there was an issue getting the user from Canvas
      */
-    public static User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
+    public User callback(String ticket) throws InternalServerException, BadRequestException, DataAccessException, CanvasException {
         String netId;
         try {
-            netId = AuthenticationService.validateToken(ticket);
+            netId = validateToken(ticket);
         } catch (IOException | InterruptedException e) {
             LOGGER.error("Error validating ticket", e);
             throw new InternalServerException("Error validating ticket", e);
@@ -72,8 +79,6 @@ public class AuthenticationService {
         if (netId == null) {
             throw new BadRequestException("Ticket validation failed");
         }
-
-        UserDao userDao = DaoService.getUserDao();
 
         User user;
         // Check if student is already in the database
@@ -87,7 +92,7 @@ public class AuthenticationService {
         // If there isn't a student in the database with this netId
         if (user == null) {
             try {
-                user = CanvasService.getCanvasIntegration().getUser(netId);
+                user = canvasIntegration.getUser(netId);
             } catch (CanvasException e) {
                 LOGGER.error("Error getting user from canvas", e);
                 throw e;
@@ -105,7 +110,7 @@ public class AuthenticationService {
      * @return the JWT subject (currently the netid)
      * @throws InternalServerException when unable to grab keys or OpenID config
      */
-    public static String validateToken(String token) throws InternalServerException, IOException, InterruptedException {
+    public String validateToken(String token) throws InternalServerException, IOException, InterruptedException {
         if (isExpired(keyExpiration)){
             refreshConfig();
             cacheJWK();
@@ -114,7 +119,7 @@ public class AuthenticationService {
         return JwtUtils.validateTokenAgainstKeys(token);
     }
 
-    public static TokenResponse exchangeCodeForTokens(String code) throws IOException, InterruptedException, InternalServerException {
+    public TokenResponse exchangeCodeForTokens(String code) throws IOException, InterruptedException, InternalServerException {
         refreshConfig();
 
         String formData = "grant_type=authorization_code" +
@@ -129,7 +134,7 @@ public class AuthenticationService {
 
     }
 
-    private static void refreshConfig() throws InternalServerException, IOException, InterruptedException {
+    private void refreshConfig() throws InternalServerException, IOException, InterruptedException {
         if (isExpired(configExpiration)){
             cacheBYUOpenIDConfig();
         }
@@ -149,7 +154,7 @@ public class AuthenticationService {
      * Caches the info from the api needed to complete the OAuth transaction.
      * @throws InternalServerException when there is something suspicious about the OpenID config
      */
-    private static void cacheBYUOpenIDConfig() throws InternalServerException, IOException, InterruptedException {
+    private void cacheBYUOpenIDConfig() throws InternalServerException, IOException, InterruptedException {
             HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(BYU_API_URL +
                     "/.well-known/openid-configuration");
 
@@ -160,7 +165,7 @@ public class AuthenticationService {
                 throw new InternalServerException("Unable to verify OpenID config", null);
             }
 
-            AuthenticationService.config = config;
+            this.config = config;
 
     }
 
@@ -169,9 +174,9 @@ public class AuthenticationService {
      * JWTs received are in fact from BYU. The sandbox api should usually only have one at a time, but they
      * can rotate the keys whenever, so we must be able to account for multiple.
      */
-    private static void cacheJWK () throws IOException, InterruptedException, InternalServerException {
+    private void cacheJWK () throws IOException, InterruptedException, InternalServerException {
 
-        HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(config.keyUri);
+        HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(config.keyUri());
 
         keyExpiration = NetworkUtils.getCacheTime(response);
 
@@ -204,11 +209,11 @@ public class AuthenticationService {
      * @param config an OpenID config
      * @return true if valid, false if there's a glaring problem
      */
-    private static boolean isValidConfig(OpenIDConfig config){
+    private boolean isValidConfig(OpenIDConfig config){
         if (!config.issuer().equals(BYU_API_URL)){
             return false;
         }
-        if (!config.equals(AuthenticationService.config) && AuthenticationService.config != null){
+        if (!config.equals(this.config) && this.config != null){
             LOGGER.info("OpenID config has changed: {}", config);
         }
         if (config.scopes().size()!= 1){
@@ -254,7 +259,7 @@ public class AuthenticationService {
      * @return authorization url with parameters filled in
      * @throws InternalServerException when unable to reload OpenID config
      */
-    public static String getAuthorizationUrl() throws InternalServerException{
+    public String getAuthorizationUrl() throws InternalServerException{
         try {
             if (isExpired(configExpiration)) {
                 cacheBYUOpenIDConfig();
@@ -263,7 +268,7 @@ public class AuthenticationService {
             LOGGER.error("Unable to cache OpenID Config", e);
             throw new InternalServerException("Unable to verify identity", e);
         }
-        return AuthenticationService.config.authorizationEndpoint()
+        return config.authorizationEndpoint()
             + "?response_type=code&client_id=" + URLEncoder.encode(ApplicationProperties.clientId(), StandardCharsets.UTF_8)
             + "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8)
             + "&scope=" + URLEncoder.encode("openid", StandardCharsets.UTF_8);

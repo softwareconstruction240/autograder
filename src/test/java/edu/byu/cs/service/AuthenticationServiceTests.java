@@ -1,9 +1,9 @@
 package edu.byu.cs.service;
 
 import com.google.gson.Gson;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -29,12 +29,16 @@ import static org.mockito.Mockito.*;
 class AuthenticationServiceTests {
 
     private UserDao mockUserDao;
+    private CanvasIntegration mockCanvasIntegration;
+    private AuthenticationService authenticationService;
     private User testUser;
 
 
     @BeforeEach
     void setUp() {
         mockUserDao = mock(UserDao.class);
+        mockCanvasIntegration = mock(CanvasIntegration.class);
+        authenticationService = new AuthenticationService(mockUserDao, mockCanvasIntegration);
         testUser = new User("test_netid",
                 0,
                 "FirstName",
@@ -49,17 +53,15 @@ class AuthenticationServiceTests {
     @Test
     @DisplayName("callback should return user from database if user exists")
     void callback_returnUserFromDatabase_whenUserExists() throws Exception {
-        try (MockedStatic<DaoService> daoServiceMock = mockStatic(DaoService.class);
-             MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
+        try (MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
              MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class)) {
 
-            daoServiceMock.when(DaoService::getUserDao).thenReturn(mockUserDao);
             when(mockUserDao.getUser("test_netid")).thenReturn(testUser);
             jwtUtilsMock.when(() -> JwtUtils.validateTokenAgainstKeys("valid_token")).thenReturn("test_netid");
 
             setupMockedValidOpenIDConfig(networkUtilsMock);
 
-            User result = AuthenticationService.callback("valid_token");
+            User result = authenticationService.callback("valid_token");
 
             assertEquals(testUser, result);
             verify(mockUserDao).getUser("test_netid");
@@ -70,20 +72,16 @@ class AuthenticationServiceTests {
     @Test
     @DisplayName("callback should fetch user from Canvas and store in database if user doesn't exist")
     void callback_fetchFromCanvasAndStore_whenUserNotInDatabase() throws Exception {
-        try (MockedStatic<DaoService> daoServiceMock = mockStatic(DaoService.class);
-             MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
-             MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class);
-             MockedStatic<ApplicationProperties> appPropsMock = mockStatic(ApplicationProperties.class)) {
+        try (MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
+             MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class)) {
 
-            daoServiceMock.when(DaoService::getUserDao).thenReturn(mockUserDao);
             when(mockUserDao.getUser("test_netid")).thenReturn(null);
+            when(mockCanvasIntegration.getUser("test_netid")).thenReturn(testUser);
             jwtUtilsMock.when(() -> JwtUtils.validateTokenAgainstKeys("valid_token")).thenReturn("test_netid");
-
-            appPropsMock.when(ApplicationProperties::useCanvas).thenReturn(false);
 
             setupMockedValidOpenIDConfig(networkUtilsMock);
 
-            User result = AuthenticationService.callback("valid_token");
+            User result = authenticationService.callback("valid_token");
 
             assertEquals(testUser, result);
             verify(mockUserDao).insertUser(testUser);
@@ -99,28 +97,23 @@ class AuthenticationServiceTests {
             jwtUtilsMock.when(() -> JwtUtils.validateTokenAgainstKeys("invalid_token")).thenReturn(null);
             setupMockedValidOpenIDConfig(networkUtilsMock);
 
-            assertThrows(BadRequestException.class, () -> AuthenticationService.callback("invalid_token"));
+            assertThrows(BadRequestException.class, () -> authenticationService.callback("invalid_token"));
         }
     }
 
     @Test
     @DisplayName("callback should throw InternalErrorException when OpenID returned is suspicious")
     void callback_throwInternalErrorException_whenOpenIDCacheLooksSuspicious() throws Exception {
-        try (MockedStatic<DaoService> daoServiceMock = mockStatic(DaoService.class);
-             MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
-             MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class);
-             MockedStatic<ApplicationProperties> appPropsMock = mockStatic(ApplicationProperties.class)) {
+        try (MockedStatic<JwtUtils> jwtUtilsMock = mockStatic(JwtUtils.class);
+             MockedStatic<NetworkUtils> networkUtilsMock = mockStatic(NetworkUtils.class)) {
 
-            daoServiceMock.when(DaoService::getUserDao).thenReturn(mockUserDao);
             when(mockUserDao.getUser("test_netid")).thenReturn(null);
             jwtUtilsMock.when(() -> JwtUtils.validateTokenAgainstKeys("valid_token")).thenReturn("test_netid");
-
-            appPropsMock.when(ApplicationProperties::useCanvas).thenReturn(false);
 
             setupSuspiciousValidOpenIDConfig(networkUtilsMock);
 
             Assertions.assertThrows(InternalServerException.class,
-                    ()-> AuthenticationService.callback("valid_token"));
+                    ()-> authenticationService.callback("valid_token"));
 
             verify(mockUserDao, times(0)).insertUser(testUser);
         }
@@ -166,7 +159,7 @@ class AuthenticationServiceTests {
                             "&redirect_uri=" +
                             URLEncoder.encode("https://cs240.click/auth/callback", StandardCharsets.UTF_8) +
                             "&scope=openid",
-                    AuthenticationService.getAuthorizationUrl());
+                    authenticationService.getAuthorizationUrl());
 
         }
     }
