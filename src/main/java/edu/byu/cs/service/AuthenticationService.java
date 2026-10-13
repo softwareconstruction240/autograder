@@ -8,9 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collection;
 
-import edu.byu.cs.controller.RedirectController;
-import edu.byu.cs.util.JwtUtils;
-import edu.byu.cs.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +16,15 @@ import com.google.gson.annotations.SerializedName;
 
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.controller.RedirectController;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.util.JwtUtils;
+import edu.byu.cs.util.NetworkUtils;
 
 /**
  * Contains service logic for the {@link RedirectController}. <br> View the
@@ -128,7 +128,7 @@ public class AuthenticationService {
                 "&redirect_uri=" + URLEncoder.encode(ApplicationProperties.casCallbackUrl(), StandardCharsets.UTF_8);
 
 
-        HttpResponse<String> response = NetworkUtils.makeParameterizedPostRequest(config.tokenEndpoint, formData);
+        HttpResponse<String> response = NetworkUtils.makeParameterizedPostRequest(config.tokenEndpoint(), formData);
 
         return new Gson().fromJson(response.body(), TokenResponse.class);
 
@@ -158,15 +158,13 @@ public class AuthenticationService {
             HttpResponse<String> response = NetworkUtils.makeJsonGetRequest(BYU_API_URL +
                     "/.well-known/openid-configuration");
 
-            configExpiration = NetworkUtils.getCacheTime(response);
+        OpenIDConfig newConfig = new Gson().fromJson(response.body(), OpenIDConfig.class);
+        if (!isValidConfig(newConfig)) {
+            throw new InternalServerException("Unable to verify OpenID config", null);
+        }
 
-            OpenIDConfig config = new Gson().fromJson(response.body(), OpenIDConfig.class);
-            if (!isValidConfig(config)){
-                throw new InternalServerException("Unable to verify OpenID config", null);
-            }
-
-            this.config = config;
-
+        this.config = newConfig;
+        configExpiration = NetworkUtils.getCacheTime(response);
     }
 
     /**
@@ -277,7 +275,7 @@ public class AuthenticationService {
     /**
      * Evaluates the frontend url and if it is secure returns true.
      */
-    public static boolean isSecure() {
+    public boolean isSecure() {
         return ApplicationProperties.frontendUrl().startsWith("https");
     }
 }

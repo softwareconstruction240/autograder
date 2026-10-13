@@ -127,7 +127,7 @@ class AuthenticationServiceTests {
         try (MockedStatic<ApplicationProperties> appPropsMock = mockStatic(ApplicationProperties.class)) {
             appPropsMock.when(ApplicationProperties::frontendUrl).thenReturn("https://example.com");
 
-            assertTrue(AuthenticationService.isSecure());
+            assertTrue(authenticationService.isSecure());
         }
     }
 
@@ -137,7 +137,7 @@ class AuthenticationServiceTests {
         try (MockedStatic<ApplicationProperties> appPropsMock = mockStatic(ApplicationProperties.class)) {
             appPropsMock.when(ApplicationProperties::frontendUrl).thenReturn("http://example.com");
 
-            assertFalse(AuthenticationService.isSecure());
+            assertFalse(authenticationService.isSecure());
         }
     }
 
