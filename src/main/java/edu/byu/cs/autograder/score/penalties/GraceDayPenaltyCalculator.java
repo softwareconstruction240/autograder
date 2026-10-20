@@ -6,7 +6,7 @@ import edu.byu.cs.autograder.score.ScorerHelper;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -27,10 +27,12 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     private final Integer graceDaysAssignmentId;
     private final int canvasUserId;
+    private final CanvasIntegration canvasIntegration;
     private int totalGraceDays;
 
-    public GraceDayPenaltyCalculator(int canvasUserId) throws GradingException {
+    public GraceDayPenaltyCalculator(int canvasUserId, CanvasIntegration canvasIntegration) throws GradingException {
         this.canvasUserId = canvasUserId;
+        this.canvasIntegration = canvasIntegration;
         try {
             graceDaysAssignmentId = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, Integer.class);
         } catch (DataAccessException e) {
@@ -110,7 +112,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     public Integer getGraceDays() throws GradingException {
         try {
-            CanvasSubmission submission = CanvasService.getCanvasIntegration().getSubmission(canvasUserId, graceDaysAssignmentId);
+            CanvasSubmission submission = canvasIntegration.getSubmission(canvasUserId, graceDaysAssignmentId);
             return submission.score().intValue();
         } catch (CanvasException e) {
             throw new GradingException("Unable to retrieve Grace Days from Canvas", e);
@@ -125,7 +127,7 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
         try {
             //if the score will remain the same, short circuit the canvas call
             if (changeInGraceDays != 0){
-                CanvasService.getCanvasIntegration().submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) newGraceDayTotal).floatValue(), null);
+                canvasIntegration.submitGrade(canvasUserId, graceDaysAssignmentId, ((Integer) newGraceDayTotal).floatValue(), null);
             }
             if (totalGraceDays > newGraceDayTotal){
                 LOGGER.info("Subtracted {} grace days (total {}) from Canvas for UserId {}", -changeInGraceDays, newGraceDayTotal, canvasUserId);

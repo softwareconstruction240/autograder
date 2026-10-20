@@ -2,6 +2,7 @@ package edu.byu.cs.util;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.Scorer;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
@@ -58,7 +59,8 @@ public class SubmissionUtils {
             @NonNull String studentNetId,
             @NonNull Phase phase,
             @NonNull String approverNetId,
-            @NonNull Integer penaltyPct
+            @NonNull Integer penaltyPct,
+            @NonNull CanvasIntegration canvasIntegration
     ) throws DataAccessException, GradingException {
 
         // Validate params
@@ -87,7 +89,7 @@ public class SubmissionUtils {
         float approvedScore = Scorer.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
         Scorer.attemptSendToCanvas(withheldSubmission.rubric(), withheldSubmission.phase(), withheldSubmission.netId(),
-                penaltyPct, gitCommitsComment);
+                penaltyPct, gitCommitsComment, canvasIntegration);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."

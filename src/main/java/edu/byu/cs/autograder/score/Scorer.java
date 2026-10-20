@@ -8,7 +8,7 @@ import edu.byu.cs.autograder.score.penalties.GraceDayPenaltyCalculator;
 import edu.byu.cs.autograder.score.penalties.PenaltyCalculator;
 import edu.byu.cs.autograder.score.penalties.PercentPenaltyCalculator;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
@@ -35,11 +35,13 @@ public class Scorer {
 
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
+    private final CanvasIntegration canvasIntegration;
     private PenaltyCalculator latePenaltyCalculator;
 
-    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator) {
+    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator, CanvasIntegration canvasIntegration) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
+        this.canvasIntegration = canvasIntegration;
         this.latePenaltyCalculator = new PercentPenaltyCalculator();
     }
 
@@ -74,7 +76,7 @@ public class Scorer {
                     gradingContext
             );
         }
-        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()));
+        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()), canvasIntegration);
 
         int daysAfterDue = lateDayCalculator.calculateDaysAfterDue(gradingContext.phase(), gradingContext.netId());
         Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysAfterDue, gradingContext, commitVerificationReport);
@@ -140,7 +142,9 @@ public class Scorer {
      * @throws GradingException When preconditions are not met.
      * @throws DataAccessException When the database cannot be reached.
      */
-    public static void attemptSendToCanvas(Rubric rubric, Phase phase, String netId, int penaltyPct, String commitPenaltyMsg) throws GradingException, DataAccessException {
+    public static void attemptSendToCanvas(Rubric rubric, Phase phase, String netId, int penaltyPct,
+                                           String commitPenaltyMsg, CanvasIntegration canvasIntegration)
+            throws GradingException, DataAccessException {
         int canvasUserId = getCanvasUserId(netId);
         int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
 
@@ -150,7 +154,7 @@ public class Scorer {
             setCommitVerificationPenalty(newAssessment, phase, penaltyPct, commitPenaltyMsg);
         }
 
-        sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes(), netId);
+        sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes(), netId, canvasIntegration);
     }
 
     /**
@@ -312,7 +316,7 @@ public class Scorer {
 
     private CanvasRubricAssessment getExistingAssessment(int userId, int assignmentNum) throws GradingException {
         try {
-            CanvasSubmission submission = CanvasService.getCanvasIntegration().getSubmission(userId, assignmentNum);
+            CanvasSubmission submission = canvasIntegration.getSubmission(userId, assignmentNum);
             return submission.rubricAssessment();
         } catch (CanvasException e) {
             LOGGER.error("Exception from canvas", e);
@@ -338,12 +342,13 @@ public class Scorer {
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)
             throws GradingException {
-        sendToCanvas(userId, assignmentNum, assessment, notes, gradingContext.netId());
+        sendToCanvas(userId, assignmentNum, assessment, notes, gradingContext.netId(), canvasIntegration);
     }
 
-    private static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes, String netId) throws GradingException {
+    private static void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment,
+                                     String notes, String netId, CanvasIntegration canvasIntegration) throws GradingException {
         try {
-            CanvasService.getCanvasIntegration().submitGrade(userId, assignmentNum, assessment, notes);
+            canvasIntegration.submitGrade(userId, assignmentNum, assessment, notes);
         } catch (CanvasException e) {
             LOGGER.error("Error submitting to canvas for user {}", netId, e);
             throw new GradingException("Error contacting canvas to record scores");

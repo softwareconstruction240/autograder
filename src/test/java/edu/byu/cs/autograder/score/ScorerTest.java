@@ -8,7 +8,6 @@ import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSubmission;
@@ -64,7 +63,6 @@ class ScorerTest {
     @BeforeEach
     void setUp() throws DataAccessException {
         spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
-        CanvasService.setCanvasIntegration(spyCanvasIntegration);
 
         try {
             when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
@@ -235,7 +233,7 @@ class ScorerTest {
     // Helper Methods for constructing
 
     private Scorer constructScorer(int daysLate, int maxLateDaysToPenalize) {
-        return new Scorer(gradingContext, new MockLateDayCalculator(daysLate, maxLateDaysToPenalize));
+        return new Scorer(gradingContext, new MockLateDayCalculator(daysLate, maxLateDaysToPenalize), spyCanvasIntegration);
     }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS

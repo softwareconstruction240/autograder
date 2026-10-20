@@ -2,7 +2,7 @@ package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -43,12 +43,15 @@ public class LateDayCalculator {
 
     private Set<LocalDate> publicHolidays;
     private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
+    private final CanvasIntegration canvasIntegration;
 
-    public LateDayCalculator() {
+    public LateDayCalculator(CanvasIntegration canvasIntegration) {
+        this.canvasIntegration = canvasIntegration;
         System.out.println("Initializing standard LateDayCalculator");
         initializePublicHolidays(getEncodedPublicHolidays());
     }
-    protected LateDayCalculator(@Nullable String encodedHolidays) {
+    protected LateDayCalculator(CanvasIntegration canvasIntegration, @Nullable String encodedHolidays) {
+        this.canvasIntegration = canvasIntegration;
         if (encodedHolidays == null) {
             initializePublicHolidays();
         } else {
@@ -134,7 +137,7 @@ public class LateDayCalculator {
         int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
 
         try {
-            return CanvasService.getCanvasIntegration().getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
+            return canvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
         } catch (CanvasException e) {
             throw new GradingException("Failed to get due date for assignment " + assignmentNum + " for user " + netId, e);
         }

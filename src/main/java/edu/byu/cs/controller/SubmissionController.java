@@ -4,7 +4,7 @@ import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.UnauthorizedException;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
-import edu.byu.cs.dataAccess.*;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.model.User;
@@ -23,33 +23,42 @@ import java.util.*;
 public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
+    private final SubmissionService submissionService;
 
-    public static final Handler submitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public SubmissionController(SubmissionService submissionService) {
+        this.submissionService = submissionService;
+    }
 
-        GradeRequest request = validateAndUnpackRequest(ctx);
-        SubmissionService.submit(user, request);
-    };
+    public Handler submitPost() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
 
-    public static final Handler adminRepoSubmitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
+            GradeRequest request = validateAndUnpackRequest(ctx);
+            submissionService.submit(user, request);
+        };
+    }
 
-        GradeRequest request = validateAndUnpackRequest(ctx);
+    public Handler adminRepoSubmitPost() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
+            if (user == null) {
+                throw new UnauthorizedException("No user credentials found");
+            }
 
-        SubmissionService.adminRepoSubmit(user.netId(), request);
-    };
+            GradeRequest request = validateAndUnpackRequest(ctx);
 
-    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException, UnauthorizedException {
+            submissionService.adminRepoSubmit(user.netId(), request);
+        };
+    }
+
+    private GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException, UnauthorizedException {
         User user = ctx.sessionAttribute("user");
         if (user == null) {
             throw new UnauthorizedException("No user credentials found");
         }
         String netId = user.netId();
 
-        if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
+        if (submissionService.isAlreadyInQueue(netId)) {
             throw new BadRequestException("You are already in the queue");
         }
 
@@ -71,80 +80,96 @@ public class SubmissionController {
         return request;
     }
 
-    public static final Handler submitGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        boolean inQueue = SubmissionService.isAlreadyInQueue(user.netId());
-        ctx.json(Map.of("inQueue", inQueue));
-    };
-
-    public static final Handler latestSubmissionForMeGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
-        ctx.json(submission);
-    };
-
-    public static final Handler submissionXGet = ctx -> {
-        Phase phase;
-        if(ctx.pathParamMap().containsKey("phase")) {
-            try {
-                phase = Phase.valueOf(ctx.pathParam("phase"));
-            } catch (IllegalArgumentException e) {
-                LOGGER.error("Invalid phase", e);
-                throw new BadRequestException("Invalid phase", e);
+    public Handler submitGet() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
+            if (user == null) {
+                throw new UnauthorizedException("No user credentials found");
             }
-        } else {
-            phase = null;
-        }
+            boolean inQueue = submissionService.isAlreadyInQueue(user.netId());
+            ctx.json(Map.of("inQueue", inQueue));
+        };
+    }
 
-        User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
-        ctx.json(submissions);
-    };
+    public Handler latestSubmissionForMeGet() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
+            if (user == null) {
+                throw new UnauthorizedException("No user credentials found");
+            }
+            Submission submission = submissionService.getLastSubmissionForUser(user.netId());
+            ctx.json(submission);
+        };
+    }
 
-    public static final Handler latestSubmissionsGet = ctx -> {
-        int count = -1;
-        if (ctx.pathParamMap().containsKey("count")) {
-            String countString = ctx.pathParam("count");
-            count = Integer.parseInt(countString);
-        }
+    public Handler submissionXGet() {
+        return ctx -> {
+            Phase phase;
+            if(ctx.pathParamMap().containsKey("phase")) {
+                try {
+                    phase = Phase.valueOf(ctx.pathParam("phase"));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("Invalid phase", e);
+                    throw new BadRequestException("Invalid phase", e);
+                }
+            } else {
+                phase = null;
+            }
 
-        Collection<Submission> submissions = SubmissionService.getLatestSubmissions(count);
-        ctx.json(submissions);
-    };
+            User user = ctx.sessionAttribute("user");
+            if (user == null) {
+                throw new UnauthorizedException("No user credentials found");
+            }
+            Collection<Submission> submissions = submissionService.getXSubmissionsForUser(user.netId(), phase);
+            ctx.json(submissions);
+        };
+    }
 
-    public static final Handler submissionsActiveGet = ctx -> {
-        List<String> inQueue = SubmissionService.getActiveInQueue();
-        List<String> currentlyGrading = SubmissionService.getCurrentlyGrading();
-        ctx.json(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
-    };
+    public Handler latestSubmissionsGet() {
+        return ctx -> {
+            int count = -1;
+            if (ctx.pathParamMap().containsKey("count")) {
+                String countString = ctx.pathParam("count");
+                count = Integer.parseInt(countString);
+            }
 
-    public static final Handler studentSubmissionsGet = ctx -> {
-        String netId = ctx.pathParam("netId");
-        Collection<Submission> submissions = SubmissionService.getSubmissionsForUser(netId);
-        ctx.json(submissions);
-    };
+            Collection<Submission> submissions = submissionService.getLatestSubmissions(count);
+            ctx.json(submissions);
+        };
+    }
 
-    public static final Handler approveSubmissionPost = ctx -> {
-        User adminUser = ctx.sessionAttribute("user");
-        if (adminUser == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
-        ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
-        SubmissionService.approveSubmission(adminUser.netId(), request);
-    };
+    public Handler submissionsActiveGet() {
+        return ctx -> {
+            List<String> inQueue = submissionService.getActiveInQueue();
+            List<String> currentlyGrading = submissionService.getCurrentlyGrading();
+            ctx.json(Map.of("currentlyGrading", currentlyGrading, "inQueue", inQueue));
+        };
+    }
 
-    public static final Handler submissionsReRunPost = ctx -> {
-        SubmissionService.reRunSubmissionsInQueue();
-        ctx.json(Map.of("message", "re-running submissions in queue"));
-    };
+    public Handler studentSubmissionsGet() {
+        return ctx -> {
+            String netId = ctx.pathParam("netId");
+            Collection<Submission> submissions = submissionService.getSubmissionsForUser(netId);
+            ctx.json(submissions);
+        };
+    }
+
+    public Handler approveSubmissionPost() {
+        return ctx -> {
+            User adminUser = ctx.sessionAttribute("user");
+            if (adminUser == null) {
+                throw new UnauthorizedException("No user credentials found");
+            }
+            ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
+            submissionService.approveSubmission(adminUser.netId(), request);
+        };
+    }
+
+    public Handler submissionsReRunPost() {
+        return ctx -> {
+            submissionService.reRunSubmissionsInQueue();
+            ctx.json(Map.of("message", "re-running submissions in queue"));
+        };
+    }
 
 }

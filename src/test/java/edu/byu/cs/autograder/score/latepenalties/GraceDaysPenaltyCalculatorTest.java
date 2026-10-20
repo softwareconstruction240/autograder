@@ -35,8 +35,8 @@ public class GraceDaysPenaltyCalculatorTest extends PenaltyCalculatorTest {
         props.setProperty("use-canvas", "false");
         ApplicationProperties.loadProperties(props);
         canvasIntegration = new FakeGraceDaysCanvasIntegration();
-        CanvasService.setCanvasIntegration(canvasIntegration);
-        graceDayPenaltyCalculator = new GraceDayPenaltyCalculator(CanvasService.getCanvasIntegration().getTestStudent().canvasUserId());
+        graceDayPenaltyCalculator = new GraceDayPenaltyCalculator(
+                canvasIntegration.getTestStudent().canvasUserId(), canvasIntegration);
 
         EnumMap<Rubric.RubricType, Rubric.RubricItem> halfCreditItems = new EnumMap<>(Rubric.RubricType.class);
         Rubric.Results halfCreditResults = new Rubric.Results("", 5f, 10, null, "");

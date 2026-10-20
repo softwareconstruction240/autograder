@@ -14,6 +14,7 @@ import edu.byu.cs.autograder.test.ExtraCreditGrader;
 import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
@@ -59,7 +60,8 @@ public class Grader implements Runnable {
      * @param observer the observer to notify of updates
      * @param phase    the phase to grade
      */
-    public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin) throws IOException, GradingException {
+    public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin,
+                  CanvasIntegration canvasIntegration) throws IOException, GradingException {
         // Init files
         if (!admin) {
             repoUrl = RepoUrlValidator.clean(repoUrl);
@@ -78,12 +80,12 @@ public class Grader implements Runnable {
                     cvConfig, observer, admin);
 
         // Init helpers
-        LateDayCalculator lateDayCalculator = new LateDayCalculator();
+        LateDayCalculator lateDayCalculator = new LateDayCalculator(canvasIntegration);
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
         this.gitHelper = new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator));
         this.compileHelper = new CompileHelper(gradingContext);
 
-        this.scorer = new Scorer(gradingContext, lateDayCalculator);
+        this.scorer = new Scorer(gradingContext, lateDayCalculator, canvasIntegration);
     }
 
     /**

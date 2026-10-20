@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder.score;
 
+import edu.byu.cs.canvas.FakeCanvasIntegration;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -371,10 +372,10 @@ class LateDayCalculatorTest {
     @Test
     void detectsPublicHolidayStaleConfiguration() {
         Assertions.assertDoesNotThrow(
-                () -> new LateDayCalculator(null).initializePublicHolidays(),
+                () -> new LateDayCalculator(new FakeCanvasIntegration(), null).initializePublicHolidays(),
                 "LateDayCalculator should accept an empty list of holidays.");
         Assertions.assertThrows(RuntimeException.class,
-                () -> new LateDayCalculator(null).initializePublicHolidays(null),
+                () -> new LateDayCalculator(new FakeCanvasIntegration(), null).initializePublicHolidays(null),
                 "LateDayCalculator should throw when holidays are initialized as null. Provide empty collection instead.");
     }
 

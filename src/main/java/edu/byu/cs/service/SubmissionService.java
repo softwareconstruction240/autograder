@@ -4,14 +4,16 @@ import edu.byu.cs.autograder.Grader;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.GradingObserver;
 import edu.byu.cs.autograder.GradingObserverImpl;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.TrafficController;
 import edu.byu.cs.controller.netmodel.ApprovalRequest;
 import edu.byu.cs.controller.netmodel.GradeRequest;
-import edu.byu.cs.dataAccess.*;
+import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
@@ -46,6 +48,23 @@ import static edu.byu.cs.util.PhaseUtils.isPhaseEnabled;
 public class SubmissionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
+    private final QueueDao queueDao;
+    private final SubmissionDao submissionDao;
+    private final UserDao userDao;
+    private final ConfigurationDao configurationDao;
+    private final ConfigService configService;
+    private final CanvasIntegration canvasIntegration;
+
+    public SubmissionService(QueueDao queueDao, SubmissionDao submissionDao, UserDao userDao,
+                             ConfigurationDao configurationDao, ConfigService configService,
+                             CanvasIntegration canvasIntegration) {
+        this.queueDao = queueDao;
+        this.submissionDao = submissionDao;
+        this.userDao = userDao;
+        this.configurationDao = configurationDao;
+        this.configService = configService;
+        this.canvasIntegration = canvasIntegration;
+    }
 
     /**
      * Submits a request for grading from a student
@@ -57,8 +76,8 @@ public class SubmissionService {
      * @throws DataAccessException if an error occurred accessing the database
      * @throws InternalServerException if an error occurred starting the grader
      */
-    public static void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
-        ConfigService.checkForShutdown();
+    public void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
+        configService.checkForShutdown();
 
         if (!isPhaseEnabled(request.phase())) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
@@ -80,18 +99,18 @@ public class SubmissionService {
      * @throws DataAccessException if an error occurred accessing the database
      * @throws InternalServerException if an error occurred starting the grader
      */
-    public static void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
+    public void adminRepoSubmit(String netId, GradeRequest request) throws DataAccessException, InternalServerException, BadRequestException {
         LOGGER.info("Admin {} submitted phase {} on repo {} for test grading", netId, request.phase(),
                 request.repoUrl());
 
-        DaoService.getSubmissionDao().removeSubmissionsByNetId(netId, 3);
+        submissionDao.removeSubmissionsByNetId(netId, 3);
 
         startGrader(netId, request.phase(), request.repoUrl(), true);
     }
 
-    private static void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
+    private void startGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws DataAccessException, BadRequestException, InternalServerException {
         QueueItem qItem = new QueueItem(netId, phase, Instant.now(), false);
-        DaoService.getQueueDao().add(qItem);
+        queueDao.add(qItem);
 
         try {
             Grader grader = getGrader(netId, phase, repoUrl, adminSubmission);
@@ -107,7 +126,7 @@ public class SubmissionService {
         }
     }
 
-    private static void assertHasNewCommits(User user, Phase phase) throws DataAccessException, BadRequestException {
+    private void assertHasNewCommits(User user, Phase phase) throws DataAccessException, BadRequestException {
         String headHash;
         try {
             headHash = SubmissionUtils.getRemoteHeadHash(user.repoUrl());
@@ -130,8 +149,8 @@ public class SubmissionService {
      * @return the most recent submission, or null if there are no submissions for this student in this phase
      * @throws DataAccessException if an error occurs accessing the database
      */
-    private static Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
-        Collection<Submission> submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
+    private Submission getMostRecentSubmission(String netId, Phase phase) throws DataAccessException {
+        Collection<Submission> submissions = submissionDao.getSubmissionsForPhase(netId, phase);
         Submission mostRecent = null;
 
         for (Submission submission : submissions) {
@@ -149,8 +168,8 @@ public class SubmissionService {
      * @return {@code true} if the user is in the queue waiting to be graded
      * @throws DataAccessException if an error occurs accessing the database
      */
-    public static boolean isAlreadyInQueue(String netId) throws DataAccessException {
-        return DaoService.getQueueDao().isAlreadyInQueue(netId);
+    public boolean isAlreadyInQueue(String netId) throws DataAccessException {
+        return queueDao.isAlreadyInQueue(netId);
     }
 
     /**
@@ -160,9 +179,9 @@ public class SubmissionService {
      * @return the {@link Submission}
      * @throws DataAccessException if an error occurs accessing the database
      */
-    public static Submission getLastSubmissionForUser(String netId) throws DataAccessException {
+    public Submission getLastSubmissionForUser(String netId) throws DataAccessException {
         try {
-            return DaoService.getSubmissionDao().getLastSubmissionForUser(netId);
+            return submissionDao.getLastSubmissionForUser(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error getting submissions for user {}", netId, e);
             throw e;
@@ -178,13 +197,13 @@ public class SubmissionService {
      * @return all submissions from the user (for a phase specified)
      * @throws DataAccessException if an error occurred accessing the database
      */
-    public static Collection<Submission> getXSubmissionsForUser(String netId, Phase phase) throws DataAccessException {
+    public Collection<Submission> getXSubmissionsForUser(String netId, Phase phase) throws DataAccessException {
         Collection<Submission> submissions;
         try {
             if (phase == null) {
-                submissions = DaoService.getSubmissionDao().getSubmissionsForUser(netId);
+                submissions = submissionDao.getSubmissionsForUser(netId);
             } else {
-                submissions = DaoService.getSubmissionDao().getSubmissionsForPhase(netId, phase);
+                submissions = submissionDao.getSubmissionsForPhase(netId, phase);
             }
         } catch (DataAccessException e) {
             LOGGER.error("Error getting submissions for user {}", netId, e);
@@ -200,10 +219,10 @@ public class SubmissionService {
      * @return a collection of the latest submissions
      * @throws DataAccessException if an error occurred accessing the database
      */
-    public static Collection<Submission> getLatestSubmissions(int count) throws DataAccessException {
+    public Collection<Submission> getLatestSubmissions(int count) throws DataAccessException {
         Collection<Submission> submissions;
         try {
-            submissions = DaoService.getSubmissionDao().getAllLatestSubmissions(count);
+            submissions = submissionDao.getAllLatestSubmissions(count);
         } catch (DataAccessException e) {
             LOGGER.error("Error getting latest submissions", e);
             throw e;
@@ -217,10 +236,10 @@ public class SubmissionService {
      * @return a list of netIds of users who submitted and is NOT currently being graded
      * @throws DataAccessException if an error occurs accessing the database
      */
-    public static List<String> getActiveInQueue() throws DataAccessException {
+    public List<String> getActiveInQueue() throws DataAccessException {
         List<String> inQueue;
         try {
-            inQueue = DaoService.getQueueDao().getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
+            inQueue = queueDao.getAll().stream().filter((queueItem) -> !queueItem.started()).map(QueueItem::netId).toList();
         } catch (DataAccessException e) {
             LOGGER.error("Error getting active submissions", e);
             throw e;
@@ -234,10 +253,10 @@ public class SubmissionService {
      * @return a list of netIds of users who submitted and is currently being graded
      * @throws DataAccessException if an error occurs accessing the database
      */
-    public static List<String> getCurrentlyGrading() throws DataAccessException {
+    public List<String> getCurrentlyGrading() throws DataAccessException {
         List<String> currentlyGrading;
         try {
-            currentlyGrading = DaoService.getQueueDao().getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
+            currentlyGrading = queueDao.getAll().stream().filter(QueueItem::started).map(QueueItem::netId).toList();
         } catch (DataAccessException e) {
             LOGGER.error("Error getting active submissions", e);
             throw e;
@@ -252,7 +271,7 @@ public class SubmissionService {
      * @return all submissions from the user
      * @throws DataAccessException if an error occurs accessing the database
      */
-    public static Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException {
+    public Collection<Submission> getSubmissionsForUser(String netId) throws DataAccessException {
         return getXSubmissionsForUser(netId, null);
     }
 
@@ -267,13 +286,13 @@ public class SubmissionService {
      * @throws DataAccessException if an error occurs accessing or modifying submission details
      * in the database
      */
-    public static void approveSubmission(String adminNetId, ApprovalRequest request) throws GradingException, DataAccessException {
+    public void approveSubmission(String adminNetId, ApprovalRequest request) throws GradingException, DataAccessException {
         int penalty = 0;
         if (request.penalize()) {
-            penalty = Math.round((DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100));
+            penalty = Math.round((configurationDao.getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100));
         }
 
-        SubmissionUtils.approveSubmission(request.netId(), request.phase(), adminNetId, penalty);
+        SubmissionUtils.approveSubmission(request.netId(), request.phase(), adminNetId, penalty, canvasIntegration);
     }
 
     /**
@@ -285,9 +304,9 @@ public class SubmissionService {
      * @return the grader
      * @throws IOException if there is an error creating the grader
      */
-    private static Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
+    private Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
         GradingObserver observer = new GradingObserverImpl(netId);
-        return new Grader(repoUrl, netId, observer, phase, adminSubmission);
+        return new Grader(repoUrl, netId, observer, phase, adminSubmission, canvasIntegration);
     }
 
     /**
@@ -295,9 +314,7 @@ public class SubmissionService {
      * Used if the queue got stuck or if the server crashed while submissions were
      * waiting in the queue.
      */
-    public static void reRunSubmissionsInQueue() throws IOException, DataAccessException, GradingException {
-        QueueDao queueDao = DaoService.getQueueDao();
-        UserDao userDao = DaoService.getUserDao();
+    public void reRunSubmissionsInQueue() throws IOException, DataAccessException, GradingException {
         Collection<QueueItem> inQueue = queueDao.getAll();
 
         for (QueueItem queueItem : inQueue) {
@@ -306,9 +323,7 @@ public class SubmissionService {
                 queueDao.markNotStarted(queueItem.netId());
 
                 TrafficController.getInstance().addGrader(
-                        getGrader(queueItem.netId(),
-                                queueItem.phase(),
-                                currentUser.repoUrl(),
+                        getGrader(queueItem.netId(), queueItem.phase(), currentUser.repoUrl(),
                                 currentUser.role() == User.Role.ADMIN));
             } else {
                 queueDao.remove(queueItem.netId());

@@ -1,5 +1,6 @@
 package edu.byu.cs.autograder.score;
 
+import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.model.Phase;
 
 import java.time.ZonedDateTime;
@@ -12,7 +13,7 @@ public class MockLateDayCalculator extends LateDayCalculator {
     }
 
     public MockLateDayCalculator(int daysBeforeDueDate, int maxLateDaysToPenalize) {
-        super(null);
+        super(new FakeCanvasIntegration(), null);
         initializePublicHolidays(); // Initialize as blank; without reading default values
         var now = ZonedDateTime.now();
         fixedContext = new LateDayContext(now, now.minusDays(daysBeforeDueDate), maxLateDaysToPenalize);
