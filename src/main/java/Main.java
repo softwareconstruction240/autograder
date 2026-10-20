@@ -1,19 +1,36 @@
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.server.endpointprovider.EndpointProvider;
-import edu.byu.cs.server.endpointprovider.EndpointProviderImpl;
+import edu.byu.cs.canvas.CanvasIntegration;
+import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.controller.AdminController;
+import edu.byu.cs.controller.AuthController;
+import edu.byu.cs.controller.ConfigController;
+import edu.byu.cs.controller.RedirectController;
+import edu.byu.cs.controller.SubmissionController;
+import edu.byu.cs.controller.UserController;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.server.Server;
+import edu.byu.cs.server.endpointprovider.EndpointProvider;
+import edu.byu.cs.server.endpointprovider.EndpointProviderImpl;
+import edu.byu.cs.service.AdminService;
+import edu.byu.cs.service.AuthenticationService;
+import edu.byu.cs.service.ConfigService;
 import edu.byu.cs.service.SubmissionService;
+import edu.byu.cs.service.UserService;
 import edu.byu.cs.util.ResourceUtils;
-import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * The main entry point for starting the application for the AutoGrader.
@@ -30,8 +47,6 @@ import java.util.Properties;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static final EndpointProvider endpointProvider = new EndpointProviderImpl();
-
     public static void main(String[] args) {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
@@ -43,10 +58,27 @@ public class Main {
             throw new RuntimeException(e);
         }
 
+        CanvasIntegration canvasIntegration = CanvasService.createIntegration();
+        ConfigService configService = new ConfigService(
+                DaoService.getConfigurationDao(), DaoService.getRubricConfigDao());
+        AuthenticationService authenticationService = new AuthenticationService(
+                DaoService.getUserDao(), canvasIntegration);
+        AdminService adminService = new AdminService(
+                DaoService.getUserDao(), DaoService.getSubmissionDao(), canvasIntegration);
+        SubmissionService submissionService = new SubmissionService(
+                DaoService.getQueueDao(), DaoService.getSubmissionDao(), DaoService.getUserDao(),
+                DaoService.getConfigurationDao(), configService, canvasIntegration);
+        EndpointProvider endpointProvider = new EndpointProviderImpl(
+                new UserController(new UserService(DaoService.getUserDao(), DaoService.getRepoUpdateDao())),
+                new AdminController(adminService, authenticationService),
+                new SubmissionController(submissionService),
+                new ConfigController(configService),
+                new RedirectController(authenticationService, configService),
+                new AuthController());
         new Server(endpointProvider).start();
 
         try {
-            SubmissionService.reRunSubmissionsInQueue();
+            submissionService.reRunSubmissionsInQueue();
         } catch (IOException | DataAccessException | GradingException e) {
             LOGGER.error("Error rerunning submissions already in queue", e);
         }

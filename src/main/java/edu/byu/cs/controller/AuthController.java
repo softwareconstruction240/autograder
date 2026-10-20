@@ -24,56 +24,62 @@ public class AuthController {
      * A handler that verifies that the request has a valid JWT in the Authorization header.
      * If the request is valid, the netId is added to the session for later use.
      */
-    public static final Handler verifyAuthenticatedMiddleware = ctx -> {
-        String token = ctx.cookie("token");
+    public Handler verifyAuthenticatedMiddleware() {
+        return ctx -> {
+            String token = ctx.cookie("token");
 
-        if (token == null) {
-            throw new UnauthorizedException();
-        }
-        String netId = validateToken(token);
+            if (token == null) {
+                throw new UnauthorizedException();
+            }
+            String netId = validateToken(token);
 
-        // token is expired or invalid
-        if (netId == null) {
-            ctx.cookie("token", "", 0);
-            throw new UnauthorizedException();
-        }
+            // token is expired or invalid
+            if (netId == null) {
+                ctx.cookie("token", "", 0);
+                throw new UnauthorizedException();
+            }
 
-        UserDao userDao = DaoService.getUserDao();
-        User user;
-        try {
-            user = userDao.getUser(netId);
-        } catch (DataAccessException e) {
-            LOGGER.error("Error getting user from database", e);
-            throw new InternalServerException("Error getting user from database", e);
-        }
+            UserDao userDao = DaoService.getUserDao();
+            User user;
+            try {
+                user = userDao.getUser(netId);
+            } catch (DataAccessException e) {
+                LOGGER.error("Error getting user from database", e);
+                throw new InternalServerException("Error getting user from database", e);
+            }
 
-        if (user == null) {
-            LOGGER.error("Received request from unregistered user. This shouldn't be possible: {}", netId);
-            throw new BadRequestException("You must register first.");
-        }
+            if (user == null) {
+                LOGGER.error("Received request from unregistered user. This shouldn't be possible: {}", netId);
+                throw new BadRequestException("You must register first.");
+            }
 
-        ctx.sessionAttribute("user", user);
-    };
+            ctx.sessionAttribute("user", user);
+        };
+    }
 
-    public static final Handler verifyAdminMiddleware = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public Handler verifyAdminMiddleware() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
 
-        if (user == null) {
-            throw new UnauthorizedException("No user credentials found");
-        }
+            if (user == null) {
+                throw new UnauthorizedException("No user credentials found");
+            }
 
-        if (user.role() != User.Role.ADMIN) {
-            throw new ResourceForbiddenException();
-        }
-    };
+            if (user.role() != User.Role.ADMIN) {
+                throw new ResourceForbiddenException();
+            }
+        };
+    }
 
-    public static final Handler meGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        if (user == null) {
-            ctx.result("No user found.");
-        } else {
-            ctx.json(user);
-        }
-    };
+    public Handler meGet() {
+        return ctx -> {
+            User user = ctx.sessionAttribute("user");
+            if (user == null) {
+                ctx.result("No user found.");
+            } else {
+                ctx.json(user);
+            }
+        };
+    }
 
 }

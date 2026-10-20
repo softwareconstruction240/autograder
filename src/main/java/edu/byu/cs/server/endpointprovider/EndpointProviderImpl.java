@@ -11,6 +11,23 @@ import io.javalin.http.HttpStatus;
  * handlers/controllers for the endpoints
  */
 public class EndpointProviderImpl implements EndpointProvider {
+    private final UserController userController;
+    private final AdminController adminController;
+    private final SubmissionController submissionController;
+    private final ConfigController configController;
+    private final RedirectController redirectController;
+    private final AuthController authController;
+
+    public EndpointProviderImpl(UserController userController, AdminController adminController,
+                                SubmissionController submissionController, ConfigController configController,
+                                RedirectController redirectController, AuthController authController) {
+        this.userController = userController;
+        this.adminController = adminController;
+        this.submissionController = submissionController;
+        this.configController = configController;
+        this.redirectController = redirectController;
+        this.authController = authController;
+    }
 
     // Wildcard endpoints
 
@@ -49,181 +66,181 @@ public class EndpointProviderImpl implements EndpointProvider {
 
     @Override
     public Handler usersGet() {
-        return AdminController.usersGet;
+        return adminController.usersGet();
     }
 
     @Override
     public Handler testModeGet() {
-        return AdminController.testModeGet;
+        return adminController.testModeGet();
     }
 
     @Override
     public Handler commitAnalyticsGet() {
-        return AdminController.commitAnalyticsGet;
+        return adminController.commitAnalyticsGet();
     }
 
     @Override
     public Handler honorCheckerZipGet() {
-        return AdminController.honorCheckerZipGet;
+        return adminController.honorCheckerZipGet();
     }
 
     @Override
     public Handler sectionsGet() {
-        return AdminController.sectionsGet;
+        return adminController.sectionsGet();
     }
 
     // AuthController
 
     @Override
     public Handler verifyAuthenticatedMiddleware() {
-        return AuthController.verifyAuthenticatedMiddleware;
+        return authController.verifyAuthenticatedMiddleware();
     }
 
     @Override
     public Handler verifyAdminMiddleware() {
-        return AuthController.verifyAdminMiddleware;
+        return authController.verifyAdminMiddleware();
     }
 
     @Override
     public Handler meGet() {
-        return AuthController.meGet;
+        return authController.meGet();
     }
 
     // CasController
 
     @Override
     public Handler callbackGet() {
-        return RedirectController.callbackGet;
+        return redirectController.callbackGet();
     }
 
     @Override
     public Handler loginGet() {
-        return RedirectController.loginGet;
+        return redirectController.loginGet();
     }
 
     @Override
     public Handler logoutPost() {
-        return RedirectController.logoutPost;
+        return redirectController.logoutPost();
     }
 
     // ConfigController
 
     @Override
     public Handler getConfigAdmin() {
-        return ConfigController.getConfigAdmin;
+        return configController.getConfigAdmin();
     }
 
     @Override
     public Handler getConfigStudent() {
-        return ConfigController.getConfigStudent;
+        return configController.getConfigStudent();
     }
 
     @Override
     public Handler updateLivePhases() {
-        return ConfigController.updateLivePhases;
+        return configController.updateLivePhases();
     }
 
     @Override
     public Handler scheduleShutdown() {
-        return ConfigController.scheduleShutdown;
+        return configController.scheduleShutdown();
     }
 
     @Override
     public Handler updateBannerMessage() {
-        return ConfigController.updateBannerMessage;
+        return configController.updateBannerMessage();
     }
 
     @Override
     public Handler updateCourseIdPost() {
-        return ConfigController.updateCourseIdPost;
+        return configController.updateCourseIdPost();
     }
 
     @Override
     public Handler reloadCourseAssignmentIds() {
-        return ConfigController.updateCourseIdsUsingCanvasGet;
+        return configController.updateCourseIdsUsingCanvasGet();
     }
 
     @Override
     public Handler updatePenalties() {
-        return ConfigController.updatePenalties;
+        return configController.updatePenalties();
     }
 
     @Override
     public Handler updateHolidays() {
-        return ConfigController.updateHolidays;
+        return configController.updateHolidays();
     }
 
     @Override
     public Handler updateSlackLink() {
-        return ConfigController.updateSlackLink;
+        return configController.updateSlackLink();
     }
 
     // SubmissionController
 
     @Override
     public Handler submitPost() {
-        return SubmissionController.submitPost;
+        return submissionController.submitPost();
     }
 
     @Override
     public Handler adminRepoSubmitPost() {
-        return SubmissionController.adminRepoSubmitPost;
+        return submissionController.adminRepoSubmitPost();
     }
 
     @Override
     public Handler submitGet() {
-        return SubmissionController.submitGet;
+        return submissionController.submitGet();
     }
 
     @Override
     public Handler latestSubmissionForMeGet() {
-        return SubmissionController.latestSubmissionForMeGet;
+        return submissionController.latestSubmissionForMeGet();
     }
 
     @Override
     public Handler submissionXGet() {
-        return SubmissionController.submissionXGet;
+        return submissionController.submissionXGet();
     }
 
     @Override
     public Handler latestSubmissionsGet() {
-        return SubmissionController.latestSubmissionsGet;
+        return submissionController.latestSubmissionsGet();
     }
 
     @Override
     public Handler submissionsActiveGet() {
-        return SubmissionController.submissionsActiveGet;
+        return submissionController.submissionsActiveGet();
     }
 
     @Override
     public Handler studentSubmissionsGet() {
-        return SubmissionController.studentSubmissionsGet;
+        return submissionController.studentSubmissionsGet();
     }
 
     @Override
     public Handler approveSubmissionPost() {
-        return SubmissionController.approveSubmissionPost;
+        return submissionController.approveSubmissionPost();
     }
 
     @Override
     public Handler submissionsReRunPost() {
-        return SubmissionController.submissionsReRunPost;
+        return submissionController.submissionsReRunPost();
     }
 
     // UserController
 
     @Override
     public Handler setRepoUrl() {
-        return UserController.setRepoUrl;
+        return userController.setRepoUrl();
     }
 
     @Override
     public Handler setRepoUrlAdmin() {
-        return UserController.setRepoUrlAdmin;
+        return userController.setRepoUrlAdmin();
     }
 
     @Override
     public Handler repoHistoryAdminGet() {
-        return UserController.repoHistoryAdminGet;
+        return userController.repoHistoryAdminGet();
     }
 }

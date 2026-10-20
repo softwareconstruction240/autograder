@@ -3,26 +3,16 @@ package edu.byu.cs.canvas;
 import edu.byu.cs.properties.ApplicationProperties;
 
 /**
- * A service class providing a {@link CanvasIntegration} to allow communication with Canvas.
- * <br>
- * If enabled to use Canvas, the {@code CanvasService} will provide a {@link CanvasIntegrationImpl}.
- * Otherwise, it will provide a {@link FakeCanvasIntegration}.
+ * Creates the application's {@link CanvasIntegration} implementation.
+ * Call once during startup and share the resulting integration with its consumers.
  */
-public class CanvasService {
-    private CanvasIntegration canvasIntegration;
+public final class CanvasService {
+    private CanvasService() { }
 
-    public CanvasService() {
-        if (ApplicationProperties.useCanvas())
-            canvasIntegration = new CanvasIntegrationImpl();
-        else
-            canvasIntegration = new FakeCanvasIntegration();
-    }
-
-    public CanvasIntegration getCanvasIntegration() {
-        return canvasIntegration;
-    }
-
-    public void setCanvasIntegration(CanvasIntegration canvasIntegration) {
-        this.canvasIntegration = canvasIntegration;
+    public static CanvasIntegration createIntegration() {
+        if (ApplicationProperties.useCanvas()) {
+            return new CanvasIntegrationImpl();
+        }
+        return new FakeCanvasIntegration();
     }
 }
