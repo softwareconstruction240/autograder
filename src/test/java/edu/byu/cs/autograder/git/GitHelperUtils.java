@@ -1,5 +1,20 @@
 package edu.byu.cs.autograder.git;
 
+import java.io.File;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jgit.annotations.Nullable;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.junit.jupiter.api.Assertions;
+import org.mockito.Mockito;
+
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
@@ -10,20 +25,6 @@ import edu.byu.cs.autograder.score.LateDayCalculator;
 import edu.byu.cs.autograder.score.MockLateDayCalculator;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.util.FileUtils;
-import org.eclipse.jgit.annotations.Nullable;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
-
-import java.io.File;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class GitHelperUtils {
 
@@ -207,6 +208,7 @@ public class GitHelperUtils {
             var commitCommand = git.commit();
             commitCommand.setMessage(content);
             commitCommand.setAuthor(authorIdent);
+            commitCommand.setSign(false);
             if (setCommitter) {
                 commitCommand.setCommitter(authorIdent);
             }
