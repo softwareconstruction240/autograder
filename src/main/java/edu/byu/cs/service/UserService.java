@@ -4,8 +4,9 @@ import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.exception.UnprocessableEntityException;
 import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.util.RepoUrlValidator;
 import org.slf4j.Logger;
@@ -25,6 +26,14 @@ import java.util.Objects;
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
+    private final UserDao userDao;
+    private final RepoUpdateDao repoUpdateDao;
+
+    public UserService(UserDao userDao, RepoUpdateDao repoUpdateDao) {
+        this.userDao = userDao;
+        this.repoUpdateDao = repoUpdateDao;
+    }
+
     /**
      * Update a repo url for a given student
      *
@@ -36,13 +45,13 @@ public class UserService {
      * and saving of the repo url
      * @throws WordOfWisdomViolationException if repo was blocked due to prior claim
      */
-    public static void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+    public void updateRepoUrl(String studentNetId, String repoUrl, String adminNetId)
             throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         String cleanRepoUrl = requireCleanRepoUrl(repoUrl);
         setRepoUrl(studentNetId, cleanRepoUrl, adminNetId);
     }
 
-    public static Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
+    public Collection<RepoUpdate> adminGetRepoHistory(String repoUrl, String netId)
             throws InternalServerException, UnprocessableEntityException {
         Collection<RepoUpdate> updates = new ArrayList<>();
         if (repoUrl == null && netId == null) {
@@ -51,10 +60,10 @@ public class UserService {
 
         try {
             if (repoUrl != null) {
-                updates.addAll(DaoService.getRepoUpdateDao().getUpdatesForRepo(repoUrl));
+                updates.addAll(repoUpdateDao.getUpdatesForRepo(repoUrl));
             }
             if (netId != null) {
-                updates.addAll(DaoService.getRepoUpdateDao().getUpdatesForUser(netId));
+                updates.addAll(repoUpdateDao.getUpdatesForUser(netId));
             }
         } catch (Exception e) {
             LOGGER.error("Error getting repo updates:", e);
@@ -64,7 +73,7 @@ public class UserService {
         return updates;
     }
 
-    private static void setRepoUrl(String studentNetId, String repoUrl, String adminNetId)
+    private void setRepoUrl(String studentNetId, String repoUrl, String adminNetId)
             throws BadRequestException, InternalServerException, WordOfWisdomViolationException {
         try {
             if (!isValidRepoUrl(repoUrl)) {
@@ -94,8 +103,8 @@ public class UserService {
 
         try {
             RepoUpdate update = new RepoUpdate(Instant.now(), studentNetId, repoUrl, adminNetId != null, adminNetId);
-            DaoService.getUserDao().setRepoUrl(studentNetId, repoUrl);
-            DaoService.getRepoUpdateDao().insertUpdate(update);
+            userDao.setRepoUrl(studentNetId, repoUrl);
+            repoUpdateDao.insertUpdate(update);
         } catch (DataAccessException e) {
             throw new InternalServerException("There was an internal server error in saving the GitHub Repo URL", e);
         }
@@ -119,8 +128,8 @@ public class UserService {
      * @param netId the user trying to claim the url, so that they can claim urls they previously claimed
      * @return null if the repo is available for that user. returns the update that prevents the user from claiming the url.
      */
-    private static RepoUpdate verifyRepoIsAvailableForUser(String url, String netId) throws DataAccessException {
-        Collection<RepoUpdate> updates = DaoService.getRepoUpdateDao().getUpdatesForRepo(url);
+    private RepoUpdate verifyRepoIsAvailableForUser(String url, String netId) throws DataAccessException {
+        Collection<RepoUpdate> updates = repoUpdateDao.getUpdatesForRepo(url);
         if (updates.isEmpty()) {
             return null;
         }
