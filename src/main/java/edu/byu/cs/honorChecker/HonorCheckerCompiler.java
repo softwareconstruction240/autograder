@@ -3,7 +3,7 @@ package edu.byu.cs.honorChecker;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -31,8 +31,8 @@ public class HonorCheckerCompiler {
      * @param sectionID the section ID
      * @return the path to the .zip file
      */
-    public static String compileSection(int sectionID) throws CanvasException, DataAccessException {
-        Optional<CanvasSection> canvasSection = Arrays.stream(CanvasService.getCanvasIntegration().getAllSections())
+    public static String compileSection(int sectionID, CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
+        Optional<CanvasSection> canvasSection = Arrays.stream(canvasIntegration.getAllSections())
                 .filter(cs -> sectionID == cs.id()).findFirst();
         if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
         String tmpDir = "tmp-section-" + sectionID;
@@ -42,7 +42,7 @@ public class HonorCheckerCompiler {
 
         Collection<String> studentNetIds;
         try {
-            studentNetIds = CanvasService.getCanvasIntegration().getAllStudentNetIdsBySection(sectionID);
+            studentNetIds = canvasIntegration.getAllStudentNetIdsBySection(sectionID);
         } catch (CanvasException e) {
             throw new RuntimeException("Canvas Exception: " + e.getMessage());
         }

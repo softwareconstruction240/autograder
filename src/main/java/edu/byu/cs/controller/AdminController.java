@@ -1,19 +1,19 @@
 package edu.byu.cs.controller;
 
+import java.io.OutputStream;
+import java.util.Collection;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.AdminService;
 import edu.byu.cs.service.AuthenticationService;
+import static edu.byu.cs.util.JwtUtils.generateToken;
 import io.javalin.http.Cookie;
 import io.javalin.http.Handler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.OutputStream;
-import java.util.Collection;
-
-import static edu.byu.cs.util.JwtUtils.generateToken;
 
 /**
  * Handles admin-specific HTTP endpoints
@@ -21,55 +21,72 @@ import static edu.byu.cs.util.JwtUtils.generateToken;
 public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
+    private final AdminService adminService;
+    private final AuthenticationService authenticationService;
 
-    public static final Handler usersGet = ctx -> {
-        Collection<User> users = AdminService.getUsers();
-        ctx.json(users);
-    };
+    public AdminController(AdminService adminService, AuthenticationService authenticationService) {
+        this.adminService = adminService;
+        this.authenticationService = authenticationService;
+    }
 
-    public static final Handler testModeGet = ctx -> {
-        User testStudent = AdminService.updateTestStudent();
-        ctx.cookie(new Cookie("token",
-                generateToken(testStudent.netId()),
-                "/",
-                14400,
-                AuthenticationService.isSecure(),
-                0,
-                true)
-        );
-    };
+    public Handler usersGet() {
+        return ctx -> {
+            Collection<User> users = adminService.getUsers();
+            ctx.json(users);
+        };
+    }
 
-    public static final Handler commitAnalyticsGet = ctx -> {
-        String option = ctx.pathParam("option");
-        try {
-            String data = AdminService.getCommitAnalytics(option);
-            ctx.result(data);
-        } catch (IllegalStateException e) {
-            LOGGER.error(e.getMessage());
-            throw new ResourceNotFoundException(e.getMessage(), e);
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        }
-    };
+    public Handler testModeGet() {
+        return ctx -> {
+            User testStudent = adminService.updateTestStudent();
+            ctx.cookie(new Cookie("token",
+                    generateToken(testStudent.netId()),
+                    "/",
+                    14400,
+                    authenticationService.isSecure(),
+                    0,
+                    true)
+            );
+        };
+    }
 
-    public static final Handler honorCheckerZipGet = ctx -> {
-        String sectionStr = ctx.pathParam("section");
+    public Handler commitAnalyticsGet() {
+        return ctx -> {
+            String option = ctx.pathParam("option");
+            try {
+                String data = adminService.getCommitAnalytics(option);
+                ctx.result(data);
+            } catch (IllegalStateException e) {
+                LOGGER.error(e.getMessage());
+                throw new ResourceNotFoundException(e.getMessage(), e);
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage());
+                throw e;
+            }
+        };
+    }
 
-        try (OutputStream os = ctx.res().getOutputStream()) {
-            AdminService.streamHonorCheckerZip(sectionStr, os);
+    public Handler honorCheckerZipGet() {
+        return ctx -> {
+            String sectionStr = ctx.pathParam("section");
 
-        } catch (Exception e) {
-            LOGGER.error("Error compiling honor checker", e);
-            throw e;
-        }
+            try (OutputStream os = ctx.res().getOutputStream()) {
+                adminService.streamHonorCheckerZip(sectionStr, os);
 
-        ctx.header("Content-Type", "application/zip");
-        ctx.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
-    };
+            } catch (Exception e) {
+                LOGGER.error("Error compiling honor checker", e);
+                throw e;
+            }
 
-    public static Handler sectionsGet = ctx -> {
-        CanvasSection[] sections = AdminService.getAllSections();
-        ctx.json(sections);
-    };
+            ctx.header("Content-Type", "application/zip");
+            ctx.header("Content-Disposition", "attachment; filename=" + "downloaded_file.zip");
+        };
+    }
+
+    public Handler sectionsGet() {
+        return ctx -> {
+            CanvasSection[] sections = adminService.getAllSections();
+            ctx.json(sections);
+        };
+    }
 }

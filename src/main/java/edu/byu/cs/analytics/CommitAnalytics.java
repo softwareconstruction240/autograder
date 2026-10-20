@@ -1,7 +1,7 @@
 package edu.byu.cs.analytics;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasService;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
@@ -424,10 +424,10 @@ public class CommitAnalytics {
      *
      * @return a serialized version of the data
      */
-    public static String generateCSV() throws CanvasException, DataAccessException {
+    public static String generateCSV(CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
         SubmissionDao submissionDao = DaoService.getSubmissionDao();
 
-        Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile();
+        Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile(canvasIntegration);
 
         ArrayList<CommitDatum> csvData = new ArrayList<>();
         ArrayList<Phase> phases = new ArrayList<>();
@@ -471,18 +471,18 @@ public class CommitAnalytics {
      *
      * @return A map section to map of netID to list of timestamp
      */
-    private static Map<String, Map<String, ArrayList<Integer>>> compile() throws CanvasException, DataAccessException {
+    private static Map<String, Map<String, ArrayList<Integer>>> compile(CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
 
         Map<String, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
-        CanvasSection[] sections = CanvasService.getCanvasIntegration().getAllSections();
+        CanvasSection[] sections = canvasIntegration.getAllSections();
         for (CanvasSection section: sections) {
 
             Collection<String> studentNetIds;
             Map<String, ArrayList<Integer>> commitMap = new TreeMap<>();
 
             try {
-                studentNetIds = CanvasService.getCanvasIntegration().getAllStudentNetIdsBySection(section.id());
+                studentNetIds = canvasIntegration.getAllStudentNetIdsBySection(section.id());
             } catch (CanvasException e) {
                 throw new RuntimeException("Canvas Exception: " + e.getMessage());
             }
