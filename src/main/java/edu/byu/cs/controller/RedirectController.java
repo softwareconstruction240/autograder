@@ -21,70 +21,83 @@ import io.javalin.http.HttpStatus;
  * and authentication redirects.
  */
 public class RedirectController {
+    private final AuthenticationService authenticationService;
+    private final ConfigService configService;
 
-    public static final Handler callbackGet = ctx -> {
-        String code = ctx.queryParam("code");
-        if (code == null){
-            throw new UnauthorizedException();
-        }
-        AuthenticationService.TokenResponse response = AuthenticationService.exchangeCodeForTokens(code);
+    public RedirectController(AuthenticationService authenticationService, ConfigService configService) {
+        this.authenticationService = authenticationService;
+        this.configService = configService;
+    }
 
-        User user;
-        try {
-            user = AuthenticationService.callback(response.idToken());
-        } catch (CanvasException e) {
-            String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
-            return;
-        }
+    public Handler callbackGet() {
+        return ctx -> {
+            String code = ctx.queryParam("code");
+            if (code == null){
+                throw new UnauthorizedException();
+            }
+            AuthenticationService.TokenResponse response = authenticationService.exchangeCodeForTokens(code);
 
-        ctx.cookie (new Cookie(
-                "token",
-                generateToken(user.netId()),
-                "/",
-                14400,
-                AuthenticationService.isSecure(),
-                0,
-                true
-        ));
+            User user;
+            try {
+                user = authenticationService.callback(response.idToken());
+            } catch (CanvasException e) {
+                String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+                ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
+                return;
+            }
 
-        redirect(ctx);
-    };
+            ctx.cookie (new Cookie(
+                    "token",
+                    generateToken(user.netId()),
+                    "/",
+                    14400,
+                    authenticationService.isSecure(),
+                    0,
+                    true
+            ));
 
-
-
-    public static final Handler loginGet = ctx -> {
-        // check if already logged in
-        if (ctx.cookie("token") != null) {
             redirect(ctx);
-            return;
-        }
-        ctx.redirect(AuthenticationService.getAuthorizationUrl());
-    };
+        };
+    }
+
+
+
+    public Handler loginGet() {
+        return ctx -> {
+            // check if already logged in
+            if (ctx.cookie("token") != null) {
+                redirect(ctx);
+                return;
+            }
+            ctx.redirect(authenticationService.getAuthorizationUrl());
+        };
+    }
 
     /**
      * Redirects students to the class chat invite. At the time we used Slack, and therefore all references use
      * that name
      */
-    private static void redirect(Context ctx) throws DataAccessException {
+    private void redirect(Context ctx) throws DataAccessException {
         String redirectTo;
         if(ctx.sessionAttribute("slack") != null) {
-            redirectTo = ConfigService.getSlackLink();
+            redirectTo = configService.getSlackLink();
             ctx.sessionAttribute("slack", null);
         }
         else redirectTo = ApplicationProperties.frontendUrl();
         ctx.redirect(redirectTo, HttpStatus.FOUND);
     }
 
-    public static final Handler logoutPost = ctx -> {
-        if (ctx.cookie("token") == null) {
-            ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.UNAUTHORIZED);
-            return;
-        }
+    public Handler logoutPost() {
+        return ctx -> {
+            if (ctx.cookie("token") == null) {
+                ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.UNAUTHORIZED);
+                return;
+            }
 
-        // TODO: call logout endpoint with token
-        ctx.removeCookie("token", "/");
-        ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
-    };
+            // TODO: call logout endpoint with token
+            ctx.removeCookie("token", "/");
+            ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
+        };
+    }
 
 }

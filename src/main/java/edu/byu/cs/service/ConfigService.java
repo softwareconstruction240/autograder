@@ -4,7 +4,7 @@ import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegrationImpl;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao.Configuration;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.*;
 import edu.byu.cs.model.request.ConfigPenaltyUpdateRequest;
@@ -39,7 +39,13 @@ import static edu.byu.cs.util.PhaseUtils.isPhaseGraded;
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
-    private static final ConfigurationDao dao = DaoService.getConfigurationDao();
+    private final ConfigurationDao dao;
+    private final RubricConfigDao rubricConfigDao;
+
+    public ConfigService(ConfigurationDao dao, RubricConfigDao rubricConfigDao) {
+        this.dao = dao;
+        this.rubricConfigDao = rubricConfigDao;
+    }
 
     /**
      * Gets the configuration values that can be read by any user. See {@link PublicConfig}
@@ -48,7 +54,7 @@ public class ConfigService {
      * @return a {@link PublicConfig} with the configuration values
      * @throws DataAccessException if an issue arises getting the configuration values in the database
      */
-    public static PublicConfig getPublicConfig() throws DataAccessException {
+    public PublicConfig getPublicConfig() throws DataAccessException {
         String phasesString = dao.getConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class);
 
         List<Phase> phases;
@@ -84,7 +90,7 @@ public class ConfigService {
      * @return a {@link PrivateConfig} with the configuration values
      * @throws DataAccessException if an issue arises getting the configuration values in the database
      */
-    public static PrivateConfig getPrivateConfig() throws DataAccessException {
+    public PrivateConfig getPrivateConfig() throws DataAccessException {
         return new PrivateConfig(
                 generatePenaltyConfig(),
                 dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class),
@@ -96,7 +102,7 @@ public class ConfigService {
     //
     // PUBLIC CONFIG GENERATORS
     //
-    private static PublicConfig.BannerConfig generateBannerConfig() throws DataAccessException {
+    private PublicConfig.BannerConfig generateBannerConfig() throws DataAccessException {
         Instant bannerExpiration = dao.getConfiguration(ConfigurationDao.Configuration.BANNER_EXPIRATION, Instant.class);
         if (bannerExpiration.isBefore(Instant.now())) { //Banner has expired
             clearBannerConfig();
@@ -110,7 +116,7 @@ public class ConfigService {
         );
     }
 
-    private static PublicConfig.ShutdownConfig generateShutdownConfig() throws DataAccessException {
+    private PublicConfig.ShutdownConfig generateShutdownConfig() throws DataAccessException {
         checkForShutdown();
 
         return new PublicConfig.ShutdownConfig(
@@ -122,7 +128,7 @@ public class ConfigService {
     //
     // PRIVATE CONFIG GENERATORS
     //
-    private static PrivateConfig.PenaltyConfig generatePenaltyConfig() throws DataAccessException {
+    private PrivateConfig.PenaltyConfig generatePenaltyConfig() throws DataAccessException {
         String coverageType = dao.getConfiguration(Configuration.COVERAGE_TYPE, String.class);
         return new PrivateConfig.PenaltyConfig(
                 dao.getConfiguration(Configuration.PER_DAY_LATE_PENALTY, Float.class),
@@ -137,20 +143,20 @@ public class ConfigService {
         );
     }
 
-    public static ArrayList<PrivateConfig.AssignmentConfig> generateAssignmentsConfig() throws DataAccessException {
+    public ArrayList<PrivateConfig.AssignmentConfig> generateAssignmentsConfig() throws DataAccessException {
         ArrayList<PrivateConfig.AssignmentConfig> assignments = new ArrayList<>();
         for (Phase phase : Phase.values()) {
             if (!isPhaseGraded(phase)) continue;
 
             int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
-            EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = DaoService.getRubricConfigDao().getRubricConfig(phase).items();
+            EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = rubricConfigDao.getRubricConfig(phase).items();
 
             assignments.add(new PrivateConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
         }
         return assignments;
     }
 
-    public static String[] generateHolidayConfig() throws DataAccessException {
+    public String[] generateHolidayConfig() throws DataAccessException {
         String encodedDates = dao.getConfiguration(Configuration.HOLIDAY_LIST, String.class);
 
         if (Objects.equals(encodedDates, "")) {
@@ -162,7 +168,7 @@ public class ConfigService {
     //
     // CONFIG SETTERS
     //
-    private static void clearBannerConfig() throws DataAccessException {
+    private void clearBannerConfig() throws DataAccessException {
         dao.setConfiguration(Configuration.BANNER_MESSAGE, "", String.class);
         dao.setConfiguration(Configuration.BANNER_LINK, "", String.class);
         dao.setConfiguration(Configuration.BANNER_COLOR, "", String.class);
@@ -178,7 +184,7 @@ public class ConfigService {
      * @param user the user who updated the list of live phases
      * @throws DataAccessException if there was an issue updating the live phases in the database
      */
-    public static void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
+    public void updateLivePhases(ArrayList phasesArray, User user) throws DataAccessException {
         dao.setConfiguration(Configuration.STUDENT_SUBMISSIONS_ENABLED, phasesArray, ArrayList.class);
 
         logConfigChange("set the following phases as live: %s".formatted(phasesArray), user.netId());
@@ -192,7 +198,7 @@ public class ConfigService {
      * @throws DataAccessException if there was an issue setting the shutdown warning duration
      * in the database
      */
-    public static void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
+    public void setShutdownWarningDuration(User user, Integer warningMilliseconds) throws DataAccessException {
         if (warningMilliseconds < 0) {
             throw new IllegalArgumentException("warningMilliseconds must be non-negative");
         }
@@ -210,7 +216,7 @@ public class ConfigService {
      * @throws DataAccessException if an issue arises clearing the shutdown schedule or
      * setting the shutdown date in the database
      */
-    public static void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
+    public void scheduleShutdown(User user, String shutdownTimestampString) throws DataAccessException {
         if (shutdownTimestampString.isEmpty()) {
             clearShutdownSchedule(user);
             return;
@@ -234,7 +240,7 @@ public class ConfigService {
     /**
      * Shuts down the AutoGrader so students aren't able to submit for grades anymore
      */
-    public static void triggerShutdown() {
+    public void triggerShutdown() {
         try {
             ArrayList<Phase> phases = new ArrayList<>();
             for (Phase phase: Phase.values()) {
@@ -250,7 +256,7 @@ public class ConfigService {
         }
     }
 
-    public static void clearShutdownSchedule() throws DataAccessException {
+    public void clearShutdownSchedule() throws DataAccessException {
         clearShutdownSchedule(null);
     }
 
@@ -260,7 +266,7 @@ public class ConfigService {
      * @param user the user who is clearing the shutdown schedule
      * @throws DataAccessException if an error occurs clearing the schedule in the database
      */
-    public static void clearShutdownSchedule(User user) throws DataAccessException {
+    public void clearShutdownSchedule(User user) throws DataAccessException {
         dao.setConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.MAX, Instant.class);
         if (user == null) {
             logAutomaticConfigChange("Grader Shutdown Schedule was cleared");
@@ -279,7 +285,7 @@ public class ConfigService {
      * @param color the color of the background of the banner message
      * @throws DataAccessException if an issue arises updating the banner message in the database
      */
-    public static void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
+    public void updateBannerMessage(User user, String expirationString, String message, String link, String color) throws DataAccessException {
         Instant expirationTimestamp = Instant.MAX;
         if (!expirationString.isEmpty()) {
             try {
@@ -323,7 +329,7 @@ public class ConfigService {
      * information in the database
      * @throws CanvasException if an error occurs retrieving course information from Canvas
      */
-    public static void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
+    public void setCourseId(User user, Integer newCourseId) throws DataAccessException, CanvasException {
         Integer oldCourseJustInCase = dao.getConfiguration(Configuration.COURSE_NUMBER, Integer.class);
         dao.setConfiguration(Configuration.COURSE_NUMBER, newCourseId, Integer.class);
         logConfigChange("changed the Canvas course ID to %d".formatted(newCourseId), user.netId());
@@ -345,7 +351,7 @@ public class ConfigService {
      * @throws CanvasException If an error occurs retrieving course information from Canvas
      * @throws DataAccessException if there is an issue updating course information in the database
      */
-    public static void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
+    public void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
         var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
         retriever.useCourseRelatedInfoFromCanvas();
 
@@ -363,7 +369,7 @@ public class ConfigService {
      * @param request the penalty update request
      * @throws DataAccessException if an error occurs updating the commit penalties in the database
      */
-    public static void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
+    public void processPenaltyUpdates(User user, ConfigPenaltyUpdateRequest request) throws DataAccessException {
         validateValidPercentFloat(request.gitCommitPenalty(), "Git Commit Penalty");
         validateValidPercentFloat(request.perDayLatePenalty(), "Per Day Late Penalty");
         validateNonNegativeInt(request.clockForgivenessMinutes(), "Clock Forgiveness Minutes");
@@ -390,7 +396,7 @@ public class ConfigService {
      * @param holidays the list of holidays
      * @throws DataAccessException if an issue arises updating the list of holidays in the database
      */
-    public static void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
+    public void updateHolidays(User user, List<LocalDate> holidays) throws DataAccessException {
         StringBuilder stringBuilder = new StringBuilder();
 
         holidays.sort(LocalDate::compareTo);
@@ -411,18 +417,18 @@ public class ConfigService {
      * @param slackLink the invitation link to the Slack page
      * @throws DataAccessException if an issue arises updating the invitation link
      */
-    public static void updateSlackLink(User user, String slackLink) throws DataAccessException {
+    public void updateSlackLink(User user, String slackLink) throws DataAccessException {
         setConfigItem(user, Configuration.SLACK_LINK, slackLink, String.class);
     }
 
-    public static String getSlackLink() throws DataAccessException {
+    public String getSlackLink() throws DataAccessException {
         return dao.getConfiguration(Configuration.SLACK_LINK, String.class);
     }
 
     //
     // GENERAL HELPER FUNCTIONS
     //
-    private static String translateInstantForFrontEnd(Instant timestamp) {
+    private String translateInstantForFrontEnd(Instant timestamp) {
         String translatedTime;
         if (timestamp.equals(Instant.MAX)) {
             translatedTime = "never";
@@ -434,7 +440,7 @@ public class ConfigService {
     /**
      * Checks that the date for a scheduled shutdown has passed. If it has, it triggers the shutdown method
      */
-    public static void checkForShutdown() {
+    public void checkForShutdown() {
         try {
             Instant shutdownInstant = dao.getConfiguration(ConfigurationDao.Configuration.GRADER_SHUTDOWN_DATE, Instant.class);
             if (shutdownInstant.isBefore(Instant.now())) {
@@ -444,7 +450,7 @@ public class ConfigService {
             LOGGER.error("Something went wrong while checking for shutdown: " + e.getMessage());
         }
     }
-    private static Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
+    private Instant getInstantFromUnzonedTime(String timestampString) throws DateTimeParseException {
         ZoneId utahZone = ZoneId.of("America/Denver");
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -458,7 +464,7 @@ public class ConfigService {
      * @param percent a float that should be between 0 and 1 (inclusive)
      * @param name the name of the value, only used when throwing the exception
      */
-    private static void validateValidPercentFloat(float percent, String name) {
+    private void validateValidPercentFloat(float percent, String name) {
         if ((percent < 0) || (percent > 1)) {
             throw new IllegalArgumentException(name + " must be 0-1");
         }
@@ -469,19 +475,17 @@ public class ConfigService {
      * @param value number we're checking is >= 0
      * @param name name of the value, used when throwing the exception
      */
-    private static void validateNonNegativeInt(int value, String name) {
+    private void validateNonNegativeInt(int value, String name) {
         if (value < 0) {
             throw new IllegalArgumentException(name + " must be non-negative");
         }
     }
 
-    private static <E extends Enum<E>> void validateEnum(String value, Class<E>enumName){
+    private <E extends Enum<E>> void validateEnum(String value, Class<E>enumName){
         Enum.valueOf(enumName, value);
     }
 
-    private static <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
-
+    private <T> void setConfigItem(User admin, Configuration configKey, T value, Class<T> type) throws DataAccessException {
         T current = dao.getConfiguration(configKey, type);
         if (current.equals(value)) return;
 
@@ -493,11 +497,11 @@ public class ConfigService {
     //
     // LOGGING
     //
-    private static void logConfigChange(String changeMessage, String adminNetId) {
+    private void logConfigChange(String changeMessage, String adminNetId) {
         LOGGER.info("[CONFIG] Admin {} has {}", adminNetId, changeMessage);
     }
 
-    private static void logAutomaticConfigChange(String changeMessage) {
+    private void logAutomaticConfigChange(String changeMessage) {
         LOGGER.info("[CONFIG] Automatic change: {}", changeMessage);
     }
 }
