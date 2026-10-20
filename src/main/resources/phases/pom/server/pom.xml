@@ -101,7 +101,7 @@
             <artifactId>passoff-dependencies</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}/lib/passoff-dependencies.jar</systemPath>
+            <systemPath>${project.basedir}/lib/passoff-dependencies.jar</systemPath>
         </dependency>
     </dependencies>
 
