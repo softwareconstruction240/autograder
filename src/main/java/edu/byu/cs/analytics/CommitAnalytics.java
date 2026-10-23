@@ -3,7 +3,8 @@ package edu.byu.cs.analytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.model.Phase;
@@ -424,10 +425,9 @@ public class CommitAnalytics {
      *
      * @return a serialized version of the data
      */
-    public static String generateCSV(CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
+    public static String generateCSV(CanvasIntegration canvasIntegration, SubmissionDao submissionDao, UserDao userDao) throws CanvasException, DataAccessException {
 
-        Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile(canvasIntegration);
+        Map<String, Map<String, ArrayList<Integer>>> commitInfo = compile(canvasIntegration, userDao);
 
         ArrayList<CommitDatum> csvData = new ArrayList<>();
         ArrayList<Phase> phases = new ArrayList<>();
@@ -471,7 +471,7 @@ public class CommitAnalytics {
      *
      * @return A map section to map of netID to list of timestamp
      */
-    private static Map<String, Map<String, ArrayList<Integer>>> compile(CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
+    private static Map<String, Map<String, ArrayList<Integer>>> compile(CanvasIntegration canvasIntegration, UserDao userDao) throws CanvasException, DataAccessException {
 
         Map<String, Map<String, ArrayList<Integer>>> commitsBySection = new TreeMap<>();
 
@@ -488,7 +488,7 @@ public class CommitAnalytics {
             }
 
             for (String netId : studentNetIds) {
-                User student = DaoService.getUserDao().getUser(netId);
+                User student = userDao.getUser(netId);
                 if (student == null || student.repoUrl() == null) continue;
                 File repoPath = new File("./tmp-" + student.repoUrl().hashCode());
 

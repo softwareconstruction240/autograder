@@ -2,7 +2,7 @@ package edu.byu.cs.autograder.quality;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
@@ -13,9 +13,11 @@ import edu.byu.cs.model.RubricConfig;
  */
 public class QualityGrader {
     private final GradingContext gradingContext;
+    private final RubricConfigDao rubricConfigDao;
 
-    public QualityGrader(GradingContext gradingContext) {
+    public QualityGrader(GradingContext gradingContext, RubricConfigDao rubricConfigDao) {
         this.gradingContext = gradingContext;
+        this.rubricConfigDao = rubricConfigDao;
     }
 
     /**
@@ -24,7 +26,7 @@ public class QualityGrader {
      * @return the results of the quality checks as a CanvasIntegration.RubricItem
      */
     public Rubric.Results runQualityChecks() throws GradingException, DataAccessException {
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(gradingContext.phase());
         RubricConfig.RubricConfigItem qualityItem = rubricConfig.items().get(Rubric.RubricType.QUALITY);
         if(qualityItem == null) return null;
         gradingContext.observer().update("Running code quality...");

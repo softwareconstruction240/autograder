@@ -3,6 +3,8 @@ package edu.byu.cs.analytics;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.util.DateTimeUtils;
 import edu.byu.cs.util.FileUtils;
 
@@ -21,9 +23,9 @@ public class CommitAnalyticsRouter {
      *
      * @return the CSV data
      */
-    public static String update(CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
+    public static String update(CanvasIntegration canvasIntegration, SubmissionDao submissionDao, UserDao userDao) throws CanvasException, DataAccessException {
         long ts = Instant.now().getEpochSecond();
-        String data = CommitAnalytics.generateCSV(canvasIntegration);
+        String data = CommitAnalytics.generateCSV(canvasIntegration, submissionDao, userDao);
 
         FileUtils.removeDirectory(new File(cacheDir));
         FileUtils.createDirectory(cacheDir);

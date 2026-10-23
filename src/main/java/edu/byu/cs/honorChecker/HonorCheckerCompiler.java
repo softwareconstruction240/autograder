@@ -5,8 +5,8 @@ import com.google.gson.JsonElement;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSection;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
 import edu.byu.cs.util.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -31,7 +31,7 @@ public class HonorCheckerCompiler {
      * @param sectionID the section ID
      * @return the path to the .zip file
      */
-    public static String compileSection(int sectionID, CanvasIntegration canvasIntegration) throws CanvasException, DataAccessException {
+    public static String compileSection(int sectionID, CanvasIntegration canvasIntegration, UserDao userDao) throws CanvasException, DataAccessException {
         Optional<CanvasSection> canvasSection = Arrays.stream(canvasIntegration.getAllSections())
                 .filter(cs -> sectionID == cs.id()).findFirst();
         if (canvasSection.isEmpty()) throw new CanvasException("Could not find specified section");
@@ -50,7 +50,7 @@ public class HonorCheckerCompiler {
         try {
             Gson gson = new Gson();
             for (String netId : studentNetIds) {
-                User student = DaoService.getUserDao().getUser(netId);
+                User student = userDao.getUser(netId);
                 if (student == null || student.repoUrl() == null ||
                         (student.firstName().equals("Test") && student.lastName().equals("Student"))) continue;
                 File repoPath = new File(tmpDir, String.join("_", student.firstName().replace(' ', '_'),

@@ -175,7 +175,7 @@ public class AdminService {
      */
     public String getCommitAnalytics(String option) throws CanvasException, DataAccessException {
         return switch (option) {
-            case "update" -> CommitAnalyticsRouter.update(canvasIntegration);
+            case "update" -> CommitAnalyticsRouter.update(canvasIntegration, submissionDao, userDao);
             case "cached" -> CommitAnalyticsRouter.cached();
             case "when" -> CommitAnalyticsRouter.when();
             default -> throw new IllegalStateException("Not found (invalid option: " + option + ")");
@@ -193,7 +193,7 @@ public class AdminService {
      * @throws DataAccessException if there was an issue getting a student in the database
      */
     public void streamHonorCheckerZip(String sectionStr, OutputStream os) throws CanvasException, IOException, DataAccessException {
-        String filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr), canvasIntegration);
+        String filePath = HonorCheckerCompiler.compileSection(Integer.parseInt(sectionStr), canvasIntegration, userDao);
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
 
