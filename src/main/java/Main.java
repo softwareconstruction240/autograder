@@ -51,31 +51,33 @@ public class Main {
         ResourceUtils.copyResourceFiles("phases", new File(""));
         setupProperties(args);
 
+        DaoService daos;
         try {
-            DaoService.initializeSqlDAOs();
+            daos = DaoService.createSqlDAOs();
         } catch (DataAccessException e) {
             LOGGER.error("Error setting up database", e);
             throw new RuntimeException(e);
         }
 
-        CanvasIntegration canvasIntegration = CanvasService.createIntegration();
+        CanvasIntegration canvasIntegration = CanvasService.createIntegration(
+                daos.getConfigurationDao(), daos.getUserDao());
         ConfigService configService = new ConfigService(
-                DaoService.getConfigurationDao(), DaoService.getRubricConfigDao());
+                daos.getConfigurationDao(), daos.getRubricConfigDao(), canvasIntegration);
         AuthenticationService authenticationService = new AuthenticationService(
-                DaoService.getUserDao(), canvasIntegration);
+                daos.getUserDao(), canvasIntegration);
         AdminService adminService = new AdminService(
-                DaoService.getUserDao(), DaoService.getSubmissionDao(), canvasIntegration);
+                daos.getUserDao(), daos.getSubmissionDao(), canvasIntegration);
         SubmissionService submissionService = new SubmissionService(
-                DaoService.getQueueDao(), DaoService.getSubmissionDao(), DaoService.getUserDao(),
-                DaoService.getConfigurationDao(), configService, canvasIntegration);
+                daos.getQueueDao(), daos.getSubmissionDao(), daos.getUserDao(),
+                daos.getConfigurationDao(), configService, canvasIntegration, daos.getRubricConfigDao());
         EndpointProvider endpointProvider = new EndpointProviderImpl(
-                new UserController(new UserService(DaoService.getUserDao(), DaoService.getRepoUpdateDao())),
+                new UserController(new UserService(daos.getUserDao(), daos.getRepoUpdateDao())),
                 new AdminController(adminService, authenticationService),
                 new SubmissionController(submissionService),
                 new ConfigController(configService),
                 new RedirectController(authenticationService, configService),
-                new AuthController());
-        new Server(endpointProvider).start();
+                new AuthController(daos.getUserDao()));
+        new Server(endpointProvider, daos.getQueueDao()).start();
 
         try {
             submissionService.reRunSubmissionsInQueue();

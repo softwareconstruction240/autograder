@@ -15,8 +15,12 @@ import edu.byu.cs.autograder.test.PassoffTestGrader;
 import edu.byu.cs.autograder.test.PreviousPhasePassoffTestGrader;
 import edu.byu.cs.autograder.test.UnitTestGrader;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
@@ -51,6 +55,11 @@ public class Grader implements Runnable {
 
     protected GradingObserver observer;
     private final Scorer scorer;
+    private final ConfigurationDao configurationDao;
+    private final RubricConfigDao rubricConfigDao;
+    private final SubmissionDao submissionDao;
+    private final UserDao userDao;
+    private final QueueDao queueDao;
 
     /**
      * Creates a new grader
@@ -61,7 +70,14 @@ public class Grader implements Runnable {
      * @param phase    the phase to grade
      */
     public Grader(String repoUrl, String netId, GradingObserver observer, Phase phase, boolean admin,
-                  CanvasIntegration canvasIntegration) throws IOException, GradingException {
+                  CanvasIntegration canvasIntegration, ConfigurationDao configurationDao,
+                  RubricConfigDao rubricConfigDao, SubmissionDao submissionDao, UserDao userDao,
+                  QueueDao queueDao) throws IOException, GradingException {
+        this.configurationDao = configurationDao;
+        this.rubricConfigDao = rubricConfigDao;
+        this.submissionDao = submissionDao;
+        this.userDao = userDao;
+        this.queueDao = queueDao;
         // Init files
         if (!admin) {
             repoUrl = RepoUrlValidator.clean(repoUrl);
@@ -73,19 +89,22 @@ public class Grader implements Runnable {
 
         // Init Grading Context
         CommitVerificationConfig cvConfig = PhaseUtils.shouldVerifyCommits(phase) ?
-                PhaseUtils.verificationConfig(phase) : null;
+                PhaseUtils.verificationConfig(phase, configurationDao) : null;
         this.observer = observer;
         this.gradingContext = new GradingContext(
                     netId, phase, phasesPath, stagePath, repoUrl, stageRepo,
                     cvConfig, observer, admin);
 
         // Init helpers
-        LateDayCalculator lateDayCalculator = new LateDayCalculator(canvasIntegration);
+        LateDayCalculator lateDayCalculator = new LateDayCalculator(canvasIntegration,
+                configurationDao, userDao, queueDao);
         this.dbHelper = new DatabaseHelper(salt, gradingContext);
-        this.gitHelper = new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator));
+        this.gitHelper = new GitHelper(gradingContext, new DefaultGitVerificationStrategy(lateDayCalculator),
+                submissionDao, queueDao);
         this.compileHelper = new CompileHelper(gradingContext);
 
-        this.scorer = new Scorer(gradingContext, lateDayCalculator, canvasIntegration);
+        this.scorer = new Scorer(gradingContext, lateDayCalculator, canvasIntegration,
+                configurationDao, rubricConfigDao, submissionDao, userDao, queueDao);
     }
 
     /**
@@ -101,14 +120,14 @@ public class Grader implements Runnable {
             dbHelper.setUp();
             if (RUN_COMPILATION && gradingContext.phase() != Phase.GitHub) {
                 compileHelper.compile();
-                new PreviousPhasePassoffTestGrader(gradingContext).runTests();
+                new PreviousPhasePassoffTestGrader(gradingContext, configurationDao, rubricConfigDao).runTests();
             }
 
-            RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+            RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(gradingContext.phase());
             Rubric rubric = evaluateProject(RUN_COMPILATION ? rubricConfig : null, commitVerificationReport.result());
 
             Submission submission = scorer.score(rubric, commitVerificationReport);
-            DaoService.getSubmissionDao().insertSubmission(submission);
+            submissionDao.insertSubmission(submission);
 
             observer.notifyDone(submission);
         } catch (Exception e) {
@@ -134,11 +153,11 @@ public class Grader implements Runnable {
                 Rubric.Results results = switch (type) {
                     // TODO: How can we fully remove this switch statement and rely on passed-in definitions instead
                     // This code is violating the open-closed principle.
-                    case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext).runTests();
-                    case UNIT_TESTS -> new UnitTestGrader(gradingContext).runTests();
-                    case EXTRA_CREDIT -> new ExtraCreditGrader(gradingContext).runTests();
-                    case QUALITY -> new QualityGrader(gradingContext).runQualityChecks();
-                    case GITHUB_REPO -> new GitHubAssignmentGrader().grade(commitVerificationResult);
+                    case PASSOFF_TESTS -> new PassoffTestGrader(gradingContext, configurationDao, rubricConfigDao).runTests();
+                    case UNIT_TESTS -> new UnitTestGrader(gradingContext, configurationDao, rubricConfigDao).runTests();
+                    case EXTRA_CREDIT -> new ExtraCreditGrader(gradingContext, configurationDao, rubricConfigDao).runTests();
+                    case QUALITY -> new QualityGrader(gradingContext, rubricConfigDao).runQualityChecks();
+                    case GITHUB_REPO -> new GitHubAssignmentGrader(rubricConfigDao).grade(commitVerificationResult);
                     case GIT_COMMITS, GRADING_ISSUE -> null;
                     // TODO: (end) This is the end of what we want to remove.
                 };
@@ -158,7 +177,7 @@ public class Grader implements Runnable {
         }
         try {
             Submission submission = scorer.generateSubmissionObject(ge.asRubric(), cvr, 0, new Rubric.ScorePair(0f, 0f), ge.getMessage());
-            DaoService.getSubmissionDao().insertSubmission(submission);
+            submissionDao.insertSubmission(submission);
             observer.notifyError(ge.getMessage(), submission);
         } catch (Exception ex) {
             observer.notifyError(ex.getMessage() + "\n" + ge.getMessage());
