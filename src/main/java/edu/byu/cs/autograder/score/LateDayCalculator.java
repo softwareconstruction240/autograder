@@ -4,7 +4,8 @@ import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.properties.ApplicationProperties;
@@ -44,14 +45,25 @@ public class LateDayCalculator {
     private Set<LocalDate> publicHolidays;
     private final Map<String, LateDayContext> lateDayContextCache = new HashMap<>();
     private final CanvasIntegration canvasIntegration;
+    private final ConfigurationDao configurationDao;
+    private final UserDao userDao;
+    private final QueueDao queueDao;
 
-    public LateDayCalculator(CanvasIntegration canvasIntegration) {
+    public LateDayCalculator(CanvasIntegration canvasIntegration, ConfigurationDao configurationDao,
+                             UserDao userDao, QueueDao queueDao) {
         this.canvasIntegration = canvasIntegration;
+        this.configurationDao = configurationDao;
+        this.userDao = userDao;
+        this.queueDao = queueDao;
         System.out.println("Initializing standard LateDayCalculator");
         initializePublicHolidays(getEncodedPublicHolidays());
     }
-    protected LateDayCalculator(CanvasIntegration canvasIntegration, @Nullable String encodedHolidays) {
+    protected LateDayCalculator(CanvasIntegration canvasIntegration, @Nullable String encodedHolidays,
+                                ConfigurationDao configurationDao, UserDao userDao, QueueDao queueDao) {
         this.canvasIntegration = canvasIntegration;
+        this.configurationDao = configurationDao;
+        this.userDao = userDao;
+        this.queueDao = queueDao;
         if (encodedHolidays == null) {
             initializePublicHolidays();
         } else {
@@ -126,15 +138,15 @@ public class LateDayCalculator {
     /** Intended to be overridden for testing or otherwise. Actually fetches the information and assembles the results. Slow response. */
     protected LateDayContext doFetchLateDayContext(Phase phase, String netId) throws GradingException, DataAccessException {
         ZonedDateTime dueDate = getPhaseDueDateZoned(phase, netId);
-        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
-        int maxLateDaysToPenalize = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId, queueDao);
+        int maxLateDaysToPenalize = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         return new LateDayContext(dueDate, handInDate, maxLateDaysToPenalize);
     }
 
     /** Intended to be overridden for testing or otherwise. Actually fetches the information and assembles the results. Slow response. */
     protected ZonedDateTime getPhaseDueDateZoned(Phase phase, String netId) throws GradingException, DataAccessException {
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
-        int canvasUserId = DaoService.getUserDao().getUser(netId).canvasUserId();
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase, configurationDao);
+        int canvasUserId = userDao.getUser(netId).canvasUserId();
 
         try {
             return canvasIntegration.getAssignmentDueDateForStudent(canvasUserId, assignmentNum);
@@ -474,8 +486,7 @@ public class LateDayCalculator {
 
     private String getEncodedPublicHolidays() {
         try {
-            return DaoService.getConfigurationDao()
-                    .getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
+            return configurationDao.getConfiguration(ConfigurationDao.Configuration.HOLIDAY_LIST, String.class);
         } catch (DataAccessException e) {
             throw new RuntimeException("Error getting encoded holiday list from configuration", e);
         }

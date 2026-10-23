@@ -6,9 +6,8 @@ import edu.byu.cs.autograder.git.CommitVerificationReport;
 import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.autograder.score.ScorerHelper;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
 
@@ -37,7 +36,8 @@ public interface PenaltyCalculator {
      *              More comments may be added to this string while preparing the Submission.
      */
     public default Submission generateSubmissionObject(Rubric rubric, CommitVerificationReport commitVerificationReport,
-                                                       int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext)
+                                                       int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext,
+                                                       QueueDao queueDao)
             throws GradingException, DataAccessException {
         if (commitVerificationReport == null) {
             return null; // This is allowed.
@@ -55,7 +55,7 @@ public interface PenaltyCalculator {
 
         notes = makePenaltyNotes(numDaysLate, maxLateDays, notes);
 
-        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+        ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId, queueDao);
         Submission.VerifiedStatus verifiedStatus;
         if (commitVerificationResult.verified()) {
             verifiedStatus = commitVerificationResult.isCachedResponse() ?

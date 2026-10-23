@@ -3,7 +3,7 @@ package edu.byu.cs.util;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.CoverageRequirement;
 import edu.byu.cs.model.Phase;
@@ -31,11 +31,11 @@ public class PhaseUtils {
      * @return a boolean indicating if the phase is enabled
      * @throws DataAccessException if an occurred getting the configuration for the phase
      */
-    public static boolean isPhaseEnabled(Phase phase) throws DataAccessException {
+    public static boolean isPhaseEnabled(Phase phase, ConfigurationDao configurationDao) throws DataAccessException {
         boolean phaseEnabled;
 
         try {
-            phaseEnabled = DaoService.getConfigurationDao()
+            phaseEnabled = configurationDao
                     .getConfiguration(ConfigurationDao.Configuration.STUDENT_SUBMISSIONS_ENABLED, String.class)
                     .contains(phase.toString());
         } catch (DataAccessException e) {
@@ -88,11 +88,11 @@ public class PhaseUtils {
      * @param phase the phase in question
      * @return its assignment number in Canvas
      */
-    public static int getPhaseAssignmentNumber(Phase phase) throws DataAccessException {
+    public static int getPhaseAssignmentNumber(Phase phase, ConfigurationDao configurationDao) throws DataAccessException {
         if (!PhaseUtils.isPhaseGraded(phase)) {
             throw new IllegalArgumentException("No phase assignment number for " + phase);
         }
-        return DaoService.getConfigurationDao().getConfiguration(
+        return configurationDao.getConfiguration(
                 PhaseUtils.getConfigurationAssignmentNumber(phase),
                 Integer.class);
     }
@@ -105,11 +105,11 @@ public class PhaseUtils {
      * @return the rubric id for the rubric item
      * @throws DataAccessException if an error occurs getting the configuration for the rubric item
      */
-    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase) throws DataAccessException {
+    public static String getCanvasRubricId(Rubric.RubricType type, Phase phase, RubricConfigDao rubricConfigDao) throws DataAccessException {
         if (!PhaseUtils.isPhaseGraded(phase)) {
             throw new IllegalArgumentException("No canvas rubric for ungraded phase: " + phase);
         }
-        RubricConfig.RubricConfigItem configItem = DaoService.getRubricConfigDao()
+        RubricConfig.RubricConfigItem configItem = rubricConfigDao
                 .getRubricConfig(phase)
                 .items()
                 .get(type);
@@ -310,8 +310,7 @@ public class PhaseUtils {
      * @throws GradingException if there was an error getting the git commit config
      * or there is no commit verification for the given phase
      */
-    public static CommitVerificationConfig verificationConfig(Phase phase) throws GradingException {
-        ConfigurationDao dao = DaoService.getConfigurationDao();
+    public static CommitVerificationConfig verificationConfig(Phase phase, ConfigurationDao dao) throws GradingException {
         int minimumLinesChanged;
         int penaltyPct;
         int forgivenessMinutesHead;

@@ -1,8 +1,8 @@
 package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.QueueItem;
 
 import java.time.Instant;
@@ -21,8 +21,8 @@ public class ScorerHelper {
      * @return The instant the queue entry was added
      * @throws GradingException If no queue item exists for the student
      */
-    public static Instant getHandInDateInstant(String netId) throws GradingException, DataAccessException {
-        QueueItem studentQueueItem = DaoService.getQueueDao().get(netId);
+    public static Instant getHandInDateInstant(String netId, QueueDao queueDao) throws GradingException, DataAccessException {
+        QueueItem studentQueueItem = queueDao.get(netId);
         if (studentQueueItem == null) {
             throw new GradingException("Cannot resolve hand in date without student queue item");
         }
@@ -37,8 +37,8 @@ public class ScorerHelper {
      * @return The {@link ZonedDateTime} representing the hand in date
      * @throws GradingException if no queue item exists for the student
      */
-    public static ZonedDateTime getHandInDateZoned(String netId) throws GradingException, DataAccessException {
+    public static ZonedDateTime getHandInDateZoned(String netId, QueueDao queueDao) throws GradingException, DataAccessException {
         // TODO: Read in this timezone from a dynamic location. See #156.
-        return getHandInDateInstant(netId).atZone(ZoneId.of("America/Denver"));
+        return getHandInDateInstant(netId, queueDao).atZone(ZoneId.of("America/Denver"));
     }
 }

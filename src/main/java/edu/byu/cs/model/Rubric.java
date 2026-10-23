@@ -1,8 +1,8 @@
 package edu.byu.cs.model;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 
 import java.util.EnumMap;
 
@@ -81,14 +81,14 @@ public record Rubric(
      *
      * @return a ScorePair with both the score and rawScore as a percentage value from [0-1].
      */
-    public ScorePair getScores(Phase phase) throws GradingException, DataAccessException{
-        int totalPossiblePoints = DaoService.getRubricConfigDao().getPhaseTotalPossiblePoints(phase);
+    public ScorePair getScores(Phase phase, RubricConfigDao rubricConfigDao) throws GradingException, DataAccessException{
+        int totalPossiblePoints = rubricConfigDao.getPhaseTotalPossiblePoints(phase);
 
         if (totalPossiblePoints == 0) {
             throw new GradingException("Total possible points for phase " + phase + " is 0");
         }
 
-        if (DaoService.getRubricConfigDao().getRubricConfig(phase) instanceof RubricConfig rubricConfig &&
+        if (rubricConfigDao.getRubricConfig(phase) instanceof RubricConfig rubricConfig &&
                 rubricConfig.items().get(Rubric.RubricType.EXTRA_CREDIT) instanceof RubricConfig.RubricConfigItem item) {
             totalPossiblePoints -= item.points();
         }

@@ -2,10 +2,15 @@ package edu.byu.cs.autograder.score.latepenalties;
 
 import edu.byu.cs.canvas.FakeCanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import org.eclipse.jgit.annotations.Nullable;
 
 public class FakeGraceDaysCanvasIntegration extends FakeCanvasIntegration {
     private int graceDays = 0;
+
+    public FakeGraceDaysCanvasIntegration(UserDao userDao) {
+        super(userDao);
+    }
 
     public int getGraceDays(){
         return graceDays;

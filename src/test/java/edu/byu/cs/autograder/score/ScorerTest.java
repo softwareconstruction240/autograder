@@ -38,6 +38,7 @@ class ScorerTest {
     GradingObserver mockObserver = null;
     CanvasIntegration spyCanvasIntegration = null;
     GradingContext gradingContext = null;
+    DaoService daoService;
 
     private static final int PASSOFF_POSSIBLE_POINTS = 10;
     private static final int CODE_QUALITY_POSSIBLE_POINTS = 7;
@@ -62,7 +63,8 @@ class ScorerTest {
 
     @BeforeEach
     void setUp() throws DataAccessException {
-        spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration());
+        daoService = DaoService.createMemoryDAOs();
+        spyCanvasIntegration = Mockito.spy(new FakeCanvasIntegration(daoService.getUserDao()));
 
         try {
             when(spyCanvasIntegration.getAssignmentDueDateForStudent(Mockito.anyInt(), Mockito.anyInt())).thenReturn(
@@ -75,8 +77,6 @@ class ScorerTest {
         } catch (CanvasException e) {
             fail("Unexpected exception thrown: ", e);
         }
-
-        DaoService.initializeMemoryDAOs();
 
         RubricConfig phase0RubricConfig = new RubricConfig(
                 Phase.Phase0,
@@ -92,13 +92,13 @@ class ScorerTest {
                         Rubric.RubricType.UNIT_TESTS, new RubricConfig.RubricConfigItem("testCategory3", "testCriteria3", UNIT_TESTS_POSSIBLE_POINTS, "testRubricId3"),
                         Rubric.RubricType.GIT_COMMITS, new RubricConfig.RubricConfigItem("testCategory4", "testCriteria4", 0, "testRubricId4")
                 )));
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
-        DaoService.getRubricConfigDao().setRubricConfig(Phase.Phase3, phase3RubricConfig);
-        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE0_ASSIGNMENT_NUMBER, 0, Integer.class);
-        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE3_ASSIGNMENT_NUMBER, 0, Integer.class);
+        daoService.getRubricConfigDao().setRubricConfig(Phase.Phase0, phase0RubricConfig);
+        daoService.getRubricConfigDao().setRubricConfig(Phase.Phase3, phase3RubricConfig);
+        daoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE0_ASSIGNMENT_NUMBER, 0, Integer.class);
+        daoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.PHASE3_ASSIGNMENT_NUMBER, 0, Integer.class);
 
-        DaoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
-        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), false));
+        daoService.getUserDao().insertUser(new User("testNetId", 123, "testFirst", "testLast", "testRepoUrl", User.Role.STUDENT));
+        daoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase0, Instant.now(), false));
 
         mockObserver = Mockito.mock(GradingObserver.class);
 
@@ -233,7 +233,9 @@ class ScorerTest {
     // Helper Methods for constructing
 
     private Scorer constructScorer(int daysLate, int maxLateDaysToPenalize) {
-        return new Scorer(gradingContext, new MockLateDayCalculator(daysLate, maxLateDaysToPenalize), spyCanvasIntegration);
+        return new Scorer(gradingContext, new MockLateDayCalculator(daysLate, maxLateDaysToPenalize, daoService),
+                spyCanvasIntegration, daoService.getConfigurationDao(), daoService.getRubricConfigDao(),
+                daoService.getSubmissionDao(), daoService.getUserDao(), daoService.getQueueDao());
     }
     /**
      * Helper method to create a Rubric object with the given expected percent, based on PASSOFF_POSSIBLE_POINTS
@@ -257,14 +259,14 @@ class ScorerTest {
 
     private void setRubricConfig(Phase phase, RubricConfig rubricConfig) {
         try {
-            DaoService.getRubricConfigDao().setRubricConfig(phase, rubricConfig);
+            daoService.getRubricConfigDao().setRubricConfig(phase, rubricConfig);
         } catch (DataAccessException e) {
             fail("Unexpected exception thrown: ", e);
         }
     }
     private void addQueueItem(QueueItem item) {
         try {
-            DaoService.getQueueDao().add(item);
+            daoService.getQueueDao().add(item);
         } catch (DataAccessException e) {
             fail("Unexpected exception thrown: ", e);
         }

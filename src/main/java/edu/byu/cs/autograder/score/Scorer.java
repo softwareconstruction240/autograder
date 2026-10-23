@@ -13,9 +13,12 @@ import edu.byu.cs.canvas.CanvasUtils;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
@@ -36,13 +39,25 @@ public class Scorer {
     private final GradingContext gradingContext;
     private final LateDayCalculator lateDayCalculator;
     private final CanvasIntegration canvasIntegration;
+    private final ConfigurationDao configurationDao;
+    private final RubricConfigDao rubricConfigDao;
+    private final SubmissionDao submissionDao;
+    private final UserDao userDao;
+    private final QueueDao queueDao;
     private PenaltyCalculator latePenaltyCalculator;
 
-    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator, CanvasIntegration canvasIntegration) {
+    public Scorer(GradingContext gradingContext, LateDayCalculator lateDayCalculator, CanvasIntegration canvasIntegration,
+                  ConfigurationDao configurationDao, RubricConfigDao rubricConfigDao,
+                  SubmissionDao submissionDao, UserDao userDao, QueueDao queueDao) {
         this.gradingContext = gradingContext;
         this.lateDayCalculator = lateDayCalculator;
         this.canvasIntegration = canvasIntegration;
-        this.latePenaltyCalculator = new PercentPenaltyCalculator();
+        this.configurationDao = configurationDao;
+        this.rubricConfigDao = rubricConfigDao;
+        this.submissionDao = submissionDao;
+        this.userDao = userDao;
+        this.queueDao = queueDao;
+        this.latePenaltyCalculator = new PercentPenaltyCalculator(configurationDao, submissionDao, rubricConfigDao, queueDao);
     }
 
     /**
@@ -71,12 +86,14 @@ public class Scorer {
                     rubric,
                     commitVerificationReport,
                     0,
-                    rubric.getScores(gradingContext.phase()),
+                    rubric.getScores(gradingContext.phase(), rubricConfigDao),
                     "",
-                    gradingContext
+                    gradingContext,
+                    queueDao
             );
         }
-        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId()), canvasIntegration);
+        this.latePenaltyCalculator = new GraceDayPenaltyCalculator(getCanvasUserId(gradingContext.netId(), userDao),
+                canvasIntegration, configurationDao, submissionDao, rubricConfigDao, queueDao);
 
         int daysAfterDue = lateDayCalculator.calculateDaysAfterDue(gradingContext.phase(), gradingContext.netId());
         Submission submission = latePenaltyCalculator.applyPenalty(rubric, daysAfterDue, gradingContext, commitVerificationReport);
@@ -101,7 +118,7 @@ public class Scorer {
      * @throws DataAccessException When the database cannot be accessed.
      */
     private Rubric transformRubric(Rubric rubric) throws GradingException, DataAccessException {
-        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric);
+        rubric = CanvasUtils.decimalScoreToPoints(gradingContext.phase(), rubric, rubricConfigDao);
         return new Rubric(rubric.items(), passed(rubric), rubric.notes());
     }
 
@@ -143,15 +160,16 @@ public class Scorer {
      * @throws DataAccessException When the database cannot be reached.
      */
     public static void attemptSendToCanvas(Rubric rubric, Phase phase, String netId, int penaltyPct,
-                                           String commitPenaltyMsg, CanvasIntegration canvasIntegration)
+                                           String commitPenaltyMsg, CanvasIntegration canvasIntegration, UserDao userDao,
+                                           ConfigurationDao configurationDao, RubricConfigDao rubricConfigDao)
             throws GradingException, DataAccessException {
-        int canvasUserId = getCanvasUserId(netId);
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase);
+        int canvasUserId = getCanvasUserId(netId, userDao);
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(phase, configurationDao);
 
-        CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric, phase);
+        CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric, phase, rubricConfigDao);
 
         if (PhaseUtils.phaseHasCommitPenalty(phase)) {
-            setCommitVerificationPenalty(newAssessment, phase, penaltyPct, commitPenaltyMsg);
+            setCommitVerificationPenalty(newAssessment, phase, penaltyPct, commitPenaltyMsg, rubricConfigDao);
         }
 
         sendToCanvas(canvasUserId, assignmentNum, newAssessment, rubric.notes(), netId, canvasIntegration);
@@ -169,15 +187,18 @@ public class Scorer {
     private AssessmentSubmittalRemnants attemptSendToCanvas(Rubric rubric, CommitVerificationResult commitVerificationResult)
             throws DataAccessException, GradingException {
 
-        int canvasUserId = getCanvasUserId(gradingContext.netId());
-        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase());
+        int canvasUserId = getCanvasUserId(gradingContext.netId(), userDao);
+        int assignmentNum = PhaseUtils.getPhaseAssignmentNumber(gradingContext.phase(), configurationDao);
 
         CanvasRubricAssessment existingAssessment = getExistingAssessment(canvasUserId, assignmentNum);
-        CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric, gradingContext.phase());
+        CanvasRubricAssessment newAssessment = constructCanvasRubricAssessment(rubric, gradingContext.phase(), rubricConfigDao);
         newAssessment = addExistingPoints(newAssessment, existingAssessment);
 
         if (PhaseUtils.phaseHasCommitPenalty(gradingContext.phase())) {
-            setCommitVerificationPenalty(newAssessment, gradingContext.phase(), commitVerificationResult);
+            if (commitVerificationResult != null) {
+                setCommitVerificationPenalty(newAssessment, gradingContext.phase(), commitVerificationResult.penaltyPct(),
+                        commitVerificationResult.failureMessage(), rubricConfigDao);
+            }
         }
 
         // prevent score from being saved to canvas if it will lower their score
@@ -210,12 +231,6 @@ public class Scorer {
      * @param verification The evaluated CommitVerificationResult. If null, then no effects will take place.
      * @throws GradingException When grading errors occur such as the phase not having a GIT_COMMITS rubric item.
      */
-    private static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, Phase phase,
-                                                    CommitVerificationResult verification) throws GradingException {
-        if (verification == null) return;
-        setCommitVerificationPenalty(assessment, phase, verification.penaltyPct(), verification.failureMessage());
-    }
-
     /**
      * Modifies a received CanvasRubricAssessment by setting the GitCommit rubric item for particular phase to the proper value.
      * <br>
@@ -231,10 +246,10 @@ public class Scorer {
      * @throws GradingException When certain conditions are not met.
      */
     public static void setCommitVerificationPenalty(CanvasRubricAssessment assessment, Phase phase, int penaltyPct,
-                                                    String commitComment) throws GradingException {
+                                                    String commitComment, RubricConfigDao rubricConfigDao) throws GradingException {
         String commitRubricId;
         try {
-            commitRubricId = PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, phase);
+            commitRubricId = PhaseUtils.getCanvasRubricId(Rubric.RubricType.GIT_COMMITS, phase, rubricConfigDao);
         } catch (DataAccessException e) {
             throw new GradingException(e);
         }
@@ -269,16 +284,15 @@ public class Scorer {
         return approvedScore - rawScore;
     }
 
-    private static int getCanvasUserId(String netId) throws DataAccessException {
-        UserDao userDao = DaoService.getUserDao();
+    private static int getCanvasUserId(String netId, UserDao userDao) throws DataAccessException {
         User user = userDao.getUser(netId);
         return user.canvasUserId();
     }
 
-    private static CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, Phase phase)
+    private static CanvasRubricAssessment constructCanvasRubricAssessment(Rubric rubric, Phase phase, RubricConfigDao rubricConfigDao)
             throws DataAccessException, GradingException {
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
-        return CanvasUtils.convertToAssessment(rubric, rubricConfig, phase);
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(phase);
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, phase, rubricConfigDao);
     }
 
     private boolean passed(Rubric rubric) {
@@ -337,7 +351,7 @@ public class Scorer {
                                                int numDaysLate, Rubric.ScorePair scores, String notes)
             throws DataAccessException, GradingException{
         return this.latePenaltyCalculator.generateSubmissionObject(rubric, commitVerificationReport,
-                numDaysLate, scores, notes, gradingContext);
+                numDaysLate, scores, notes, gradingContext, queueDao);
     }
 
     private void sendToCanvas(int userId, int assignmentNum, CanvasRubricAssessment assessment, String notes)

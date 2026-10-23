@@ -3,9 +3,11 @@ package edu.byu.cs.autograder.score.penalties;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitVerificationReport;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
 import org.slf4j.Logger;
@@ -24,11 +26,19 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
      * This is out of 1. So putting 0.1 would be a 10% deduction per day
      */
     private final float PER_DAY_LATE_PENALTY;
+    private final ConfigurationDao configurationDao;
+    private final SubmissionDao submissionDao;
+    private final RubricConfigDao rubricConfigDao;
+    private final QueueDao queueDao;
 
-    public PercentPenaltyCalculator(){
+    public PercentPenaltyCalculator(ConfigurationDao configurationDao, SubmissionDao submissionDao,
+                                    RubricConfigDao rubricConfigDao, QueueDao queueDao){
+        this.configurationDao = configurationDao;
+        this.submissionDao = submissionDao;
+        this.rubricConfigDao = rubricConfigDao;
+        this.queueDao = queueDao;
         try {
-            ConfigurationDao dao = DaoService.getConfigurationDao();
-            PER_DAY_LATE_PENALTY = dao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
+            PER_DAY_LATE_PENALTY = configurationDao.getConfiguration(ConfigurationDao.Configuration.PER_DAY_LATE_PENALTY, Float.class);
         } catch (DataAccessException e) {
             LOGGER.error("Error while getting Per Day Late Penalty for Scorer.");
             throw new RuntimeException(e);
@@ -57,17 +67,17 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
     @Override
     public int getMaxLateDays() throws GradingException {
         try {
-            return DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+            return configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         } catch (DataAccessException e) {
             throw new GradingException(e);
         }
     }
 
     public Submission applyPenalty(Rubric rubric, int daysLate, GradingContext gradingContext, CommitVerificationReport commitReport) throws DataAccessException, GradingException {
-        Collection<Submission> previousSubmissions = DaoService.getSubmissionDao().getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
+        Collection<Submission> previousSubmissions = submissionDao.getSubmissionsForPhase(gradingContext.netId(), gradingContext.phase());
         EnumMap<Rubric.RubricType, Rubric.RubricItem> items = new EnumMap<>(Rubric.RubricType.class);
         float lateScoreMultiplier = 1 - (daysLate * PER_DAY_LATE_PENALTY);
-        Integer maxLateDays = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
+        Integer maxLateDays = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, Integer.class);
         for (Map.Entry<Rubric.RubricType, Rubric.RubricItem> entry : rubric.items().entrySet()) {
             Rubric.RubricType rubricType = entry.getKey();
             Rubric.RubricItem rubricItem = entry.getValue();
@@ -77,7 +87,8 @@ public class PercentPenaltyCalculator implements PenaltyCalculator {
             items.put(rubricType, rubricItem);
         }
         Rubric finalRubric = new Rubric(items, rubric.passed(), rubric.notes());
-        return generateSubmissionObject(finalRubric, commitReport, daysLate, rubric.getScores(gradingContext.phase()), "", gradingContext);
+        return generateSubmissionObject(finalRubric, commitReport, daysLate,
+                rubric.getScores(gradingContext.phase(), rubricConfigDao), "", gradingContext, queueDao);
     }
 
     private Rubric.RubricItem addLateNotesToRubricItem(Rubric.RubricItem rubricItem, int daysLate, int maxLateDays){

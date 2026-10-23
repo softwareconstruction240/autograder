@@ -8,9 +8,11 @@ import edu.byu.cs.autograder.git.CommitVerificationResult;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.Submission;
 import org.slf4j.Logger;
@@ -28,13 +30,23 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     private final Integer graceDaysAssignmentId;
     private final int canvasUserId;
     private final CanvasIntegration canvasIntegration;
+    private final ConfigurationDao configurationDao;
+    private final SubmissionDao submissionDao;
+    private final RubricConfigDao rubricConfigDao;
+    private final QueueDao queueDao;
     private int totalGraceDays;
 
-    public GraceDayPenaltyCalculator(int canvasUserId, CanvasIntegration canvasIntegration) throws GradingException {
+    public GraceDayPenaltyCalculator(int canvasUserId, CanvasIntegration canvasIntegration,
+                                     ConfigurationDao configurationDao, SubmissionDao submissionDao,
+                                     RubricConfigDao rubricConfigDao, QueueDao queueDao) throws GradingException {
         this.canvasUserId = canvasUserId;
         this.canvasIntegration = canvasIntegration;
+        this.configurationDao = configurationDao;
+        this.submissionDao = submissionDao;
+        this.rubricConfigDao = rubricConfigDao;
+        this.queueDao = queueDao;
         try {
-            graceDaysAssignmentId = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, Integer.class);
+            graceDaysAssignmentId = configurationDao.getConfiguration(ConfigurationDao.Configuration.GRACE_DAYS_ASSIGNMENT_NUMBER, Integer.class);
         } catch (DataAccessException e) {
             throw new GradingException(e);
         }
@@ -44,27 +56,27 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
     @Override
     public Submission applyPenalty(Rubric rubric, int daysAfterDue, GradingContext gradingContext,
                                    CommitVerificationReport commitReport) throws DataAccessException, GradingException {
-        Submission bestSubmission = DaoService.getSubmissionDao().getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
+        Submission bestSubmission = submissionDao.getBestSubmissionForPhase(gradingContext.netId(), gradingContext.phase());
         int graceDaysPreviouslyEarned = 0;
 
         if (bestSubmission != null) {
             if (totalRubricScore(rubric) <= totalRubricScore(bestSubmission.rubric())) {
-                return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
-                        "Submission not sent to Canvas due to worse score. Grace days unaffected. ", gradingContext);
+                return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase(), rubricConfigDao),
+                        "Submission not sent to Canvas due to worse score. Grace days unaffected. ", gradingContext, queueDao);
             }
             graceDaysPreviouslyEarned += bestSubmission.graceDaysEarned();
         }
 
         if (!rubric.passed()) {
-            return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
-                    "Score is zero due to failing submission. Grace days unaffected. ", gradingContext);
+            return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase(), rubricConfigDao),
+                    "Score is zero due to failing submission. Grace days unaffected. ", gradingContext, queueDao);
         }
 
         int newGraceDayTotal = totalGraceDays - graceDaysPreviouslyEarned - daysAfterDue;
         if (newGraceDayTotal < 0) {
             Rubric zero = zeroScore(rubric);
-            return generateSubmissionObject(zero, commitReport, daysAfterDue, zero.getScores(gradingContext.phase()),
-                    "Score is zero due to not enough Grace Days available. Grace days unaffected. ", gradingContext);
+            return generateSubmissionObject(zero, commitReport, daysAfterDue, zero.getScores(gradingContext.phase(), rubricConfigDao),
+                    "Score is zero due to not enough Grace Days available. Grace days unaffected. ", gradingContext, queueDao);
         }
         int changeInGraceDays = newGraceDayTotal - totalGraceDays;
         Integer finalGraceDays = sendGraceDaysToCanvas(changeInGraceDays, newGraceDayTotal);
@@ -82,8 +94,8 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
                 rubric.passed(),
                 makePenaltyNotes(effectiveDaysLate, finalGraceDays, rubric.notes(), isRelativeToPrevious)
         );
-        return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase()),
-                "", gradingContext);
+        return generateSubmissionObject(rubric, commitReport, daysAfterDue, rubric.getScores(gradingContext.phase(), rubricConfigDao),
+                "", gradingContext, queueDao);
     }
 
     @Override
@@ -173,16 +185,17 @@ public class GraceDayPenaltyCalculator implements PenaltyCalculator {
 
     @Override
     public Submission generateSubmissionObject(Rubric rubric, CommitVerificationReport commitVerificationReport,
-                                                       int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext)
+                                                       int numDaysLate, Rubric.ScorePair scores, String notes, GradingContext gradingContext,
+                                                       QueueDao queueDao)
             throws GradingException, DataAccessException {
         if (rubric.passed() == true) {
-            return PenaltyCalculator.super.generateSubmissionObject(rubric, commitVerificationReport, numDaysLate, scores, notes, gradingContext);
+            return PenaltyCalculator.super.generateSubmissionObject(rubric, commitVerificationReport, numDaysLate, scores, notes, gradingContext, queueDao);
         }
         else {
 
             String headHash = commitVerificationReport.result().headHash();
             String netId = gradingContext.netId();
-            ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId);
+            ZonedDateTime handInDate = ScorerHelper.getHandInDateZoned(netId, queueDao);
             CommitVerificationResult commitVerificationResult = commitVerificationReport.result();
 
             Submission.VerifiedStatus verifiedStatus;

@@ -1,18 +1,18 @@
 package edu.byu.cs.canvas;
 
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasRubricItem;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.RubricConfig;
 import edu.byu.cs.util.PhaseUtils;
-
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A utility class providing helper methods to convert grading data for Canvas integration
@@ -28,8 +28,8 @@ public class CanvasUtils {
      * @param rubric the rubric to convert
      * @return the rubric with the score converted to points
      */
-    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric) throws GradingException, DataAccessException {
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(phase);
+    public static Rubric decimalScoreToPoints(Phase phase, Rubric rubric, RubricConfigDao rubricConfigDao) throws GradingException, DataAccessException {
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(phase);
         EnumMap<Rubric.RubricType, Rubric.RubricItem> rubricItems = new EnumMap<>(Rubric.RubricType.class);
 
         for(Rubric.RubricType type : Rubric.RubricType.values()) {
@@ -68,12 +68,12 @@ public class CanvasUtils {
      * @return a converted map of {@link CanvasRubricItem} objects
      * @throws GradingException if there was an issue getting the Canvas rubric id
      */
-    public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config, Phase phase)
+    public static CanvasRubricAssessment convertToAssessment(Rubric rubric, RubricConfig config, Phase phase, RubricConfigDao rubricConfigDao)
             throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
 
         for(Rubric.RubricType type : Rubric.RubricType.values()) {
-            items.putAll(convertToCanvasFormat(rubric.items().get(type), phase, config.items().get(type), type).items());
+            items.putAll(convertToCanvasFormat(rubric.items().get(type), phase, config.items().get(type), type, rubricConfigDao).items());
         }
 
         return new CanvasRubricAssessment(items);
@@ -81,14 +81,14 @@ public class CanvasUtils {
 
     private static CanvasRubricAssessment convertToCanvasFormat(
             Rubric.RubricItem rubricItem, Phase phase, RubricConfig.RubricConfigItem rubricConfigItem,
-            Rubric.RubricType rubricType
+            Rubric.RubricType rubricType, RubricConfigDao rubricConfigDao
     ) throws GradingException {
         Map<String, CanvasRubricItem> items = new HashMap<>();
         if (rubricConfigItem != null && rubricItem != null) {
             Rubric.Results results = rubricItem.results();
             String rubricId;
             try {
-                rubricId = PhaseUtils.getCanvasRubricId(rubricType, phase);
+                rubricId = PhaseUtils.getCanvasRubricId(rubricType, phase, rubricConfigDao);
             } catch (DataAccessException e) {
                 throw new GradingException(e);
             }

@@ -28,6 +28,7 @@ import java.util.List;
 public abstract class PenaltyCalculatorTest {
 
     protected PenaltyCalculator penaltyCalculator;
+    static protected DaoService daoService;
     static protected RubricConfigDao rubricConfigDao;
     static protected ArrayList<RubricConfig> rubricConfigs;
     static protected GradingContext gradingContext;
@@ -38,8 +39,8 @@ public abstract class PenaltyCalculatorTest {
 
     protected static void setUp() throws DataAccessException {
         //dao init
-        DaoService.initializeMemoryDAOs();
-        rubricConfigDao = DaoService.getRubricConfigDao();
+        daoService = DaoService.createMemoryDAOs();
+        rubricConfigDao = daoService.getRubricConfigDao();
 
         rubricConfigs = new ArrayList<>();
         for (Phase phase : Phase.values()) {
@@ -81,7 +82,7 @@ public abstract class PenaltyCalculatorTest {
 
 
         //add queue item so that the hand-in date of the submission can be resolved.
-        DaoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase4, Instant.now(), true));
+        daoService.getQueueDao().add(new QueueItem("testNetId", Phase.Phase4, Instant.now(), true));
     }
 
     @ParameterizedTest

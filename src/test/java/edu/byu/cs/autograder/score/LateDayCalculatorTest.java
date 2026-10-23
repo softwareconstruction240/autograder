@@ -1,6 +1,7 @@
 package edu.byu.cs.autograder.score;
 
 import edu.byu.cs.canvas.FakeCanvasIntegration;
+import edu.byu.cs.dataAccess.DaoService;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -372,10 +373,10 @@ class LateDayCalculatorTest {
     @Test
     void detectsPublicHolidayStaleConfiguration() {
         Assertions.assertDoesNotThrow(
-                () -> new LateDayCalculator(new FakeCanvasIntegration(), null).initializePublicHolidays(),
+                () -> newLateDayCalculatorWithNullHolidaySetting().initializePublicHolidays(),
                 "LateDayCalculator should accept an empty list of holidays.");
         Assertions.assertThrows(RuntimeException.class,
-                () -> new LateDayCalculator(new FakeCanvasIntegration(), null).initializePublicHolidays(null),
+                () -> newLateDayCalculatorWithNullHolidaySetting().initializePublicHolidays(null),
                 "LateDayCalculator should throw when holidays are initialized as null. Provide empty collection instead.");
     }
 
@@ -388,6 +389,16 @@ class LateDayCalculatorTest {
             initHolidays(lateDayCalculator, encodedPublicHolidays, multilineFormat);
         }
         return lateDayCalculator;
+    }
+
+    private FakeCanvasIntegration fakeCanvas() {
+        return new FakeCanvasIntegration(DaoService.createMemoryDAOs().getUserDao());
+    }
+
+    private LateDayCalculator newLateDayCalculatorWithNullHolidaySetting() {
+        DaoService daos = DaoService.createMemoryDAOs();
+        return new LateDayCalculator(fakeCanvas(), null, daos.getConfigurationDao(),
+                daos.getUserDao(), daos.getQueueDao());
     }
     private Collection<LocalDate> initHolidays(LateDayCalculator lateDayCalculator, String encodedPublicHolidays, boolean americanFormat) {
         if (americanFormat) {
