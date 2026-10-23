@@ -2,6 +2,8 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestOutput;
 import edu.byu.cs.model.TestNode;
@@ -15,8 +17,9 @@ import java.util.*;
  */
 public class PassoffTestGrader extends TestGrader {
 
-    public PassoffTestGrader(GradingContext gradingContext) {
-        super(gradingContext);
+    public PassoffTestGrader(GradingContext gradingContext, ConfigurationDao configurationDao,
+                             RubricConfigDao rubricConfigDao) {
+        super(gradingContext, configurationDao, rubricConfigDao);
     }
 
     @Override

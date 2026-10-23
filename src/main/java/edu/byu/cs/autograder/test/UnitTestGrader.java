@@ -5,9 +5,9 @@ import java.util.Set;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.CoverageAnalysis;
 import edu.byu.cs.model.Rubric;
@@ -27,13 +27,14 @@ public class UnitTestGrader extends TestGrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnitTestGrader.class);
 
-    public UnitTestGrader(GradingContext gradingContext) {
-        super(gradingContext);
+    public UnitTestGrader(GradingContext gradingContext, ConfigurationDao configurationDao,
+                          RubricConfigDao rubricConfigDao) {
+        super(gradingContext, configurationDao, rubricConfigDao);
         float percent;
         float extraPercent;
         try{
-            percent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, Float.class);
-            extraPercent = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, Float.class);
+            percent = configurationDao.getConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, Float.class);
+            extraPercent = configurationDao.getConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, Float.class);
         }
         catch (DataAccessException e){
             percent = 0.8F;

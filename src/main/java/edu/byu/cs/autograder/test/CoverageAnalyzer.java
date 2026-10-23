@@ -1,7 +1,7 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.ClassCoverageAnalysis;
@@ -28,10 +28,10 @@ public class CoverageAnalyzer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CoverageAnalyzer.class);
 
-    public CoverageAnalyzer(){
+    public CoverageAnalyzer(ConfigurationDao configurationDao){
         String coverageTested = "LINE";
         try{
-            String config = DaoService.getConfigurationDao().getConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, String.class);
+            String config = configurationDao.getConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, String.class);
             if (config.equals("BRANCH")){ //ensure the value is valid
                 coverageTested = config;
             }

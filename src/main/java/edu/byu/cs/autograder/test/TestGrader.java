@@ -2,8 +2,9 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
@@ -43,10 +44,14 @@ public abstract class TestGrader {
 
     protected final GradingContext gradingContext;
 
-    protected final TestHelper testHelper = new TestHelper();
+    protected final TestHelper testHelper;
+    protected final RubricConfigDao rubricConfigDao;
 
-    public TestGrader(GradingContext gradingContext) {
+    public TestGrader(GradingContext gradingContext, ConfigurationDao configurationDao,
+                      RubricConfigDao rubricConfigDao) {
         this.gradingContext = gradingContext;
+        this.rubricConfigDao = rubricConfigDao;
+        this.testHelper = new TestHelper(configurationDao);
         this.stageTestsPath = new File(gradingContext.stagePath() + "/tests");
         this.phaseTests = new File("./phases/phase" + PhaseUtils.getPhaseAsString(gradingContext.phase()));
         this.module = PhaseUtils.getModuleUnderTest(gradingContext.phase());
@@ -69,7 +74,7 @@ public abstract class TestGrader {
             results = new TestOutput(new TestNode(), new CoverageAnalysis(new HashSet<>()), null);
             TestNode.countTests(results.root());
         } else {
-            results = new TestHelper().runJUnitTests(new File(gradingContext.stageRepo(),
+            results = testHelper.runJUnitTests(new File(gradingContext.stageRepo(),
                             "/" + module + "/target/" + module + "-test-dependencies.jar"), stageTestsPath,
                     packagesToTest(), ignoredTests(), modulesToCheckCoverage(),
                     PhaseUtils.unitTestCoverageRequirements(gradingContext.phase()));
@@ -86,7 +91,7 @@ public abstract class TestGrader {
 
         String notes = getNotes(results);
         float score = getScore(results);
-        RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(gradingContext.phase());
+        RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(gradingContext.phase());
         RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(rubricType());
         int possiblePoints = configItem != null ? configItem.points() : 0;
 

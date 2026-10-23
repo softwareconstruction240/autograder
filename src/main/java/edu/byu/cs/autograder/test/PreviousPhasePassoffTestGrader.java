@@ -2,8 +2,9 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.*;
 import edu.byu.cs.util.PhaseUtils;
 
@@ -19,8 +20,9 @@ import java.util.Set;
 public class PreviousPhasePassoffTestGrader extends TestGrader {
     private static final String ERROR_MESSAGE = "Failed previous phases' tests. Cannot pass off until previous tests pass.";
 
-    public PreviousPhasePassoffTestGrader(GradingContext gradingContext) {
-        super(gradingContext);
+    public PreviousPhasePassoffTestGrader(GradingContext gradingContext, ConfigurationDao configurationDao,
+                                          RubricConfigDao rubricConfigDao) {
+        super(gradingContext, configurationDao, rubricConfigDao);
     }
 
     @Override
@@ -52,7 +54,7 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
      * @return A set of {@code T} resulted by running the <code>apply</code> method
      * @param <T> The type the previous phase tests are returned as
      * @throws GradingException if the {@link PhaseFunction} has trouble accessing the tests
-     * for the phase or if {@link DaoService} is unable to get the {@link RubricConfig} for
+     * for the phase or if the DAO is unable to get the {@link RubricConfig} for
      * the previous phase
      */
     private <T> Set<T> allPreviousPhases(PhaseFunction<T> func) throws GradingException {
@@ -60,7 +62,7 @@ public class PreviousPhasePassoffTestGrader extends TestGrader {
             Set<T> set = new HashSet<>();
             Phase previous = gradingContext.phase();
             while ((previous = PhaseUtils.getPreviousPhase(previous)) != null) {
-                RubricConfig rubricConfig = DaoService.getRubricConfigDao().getRubricConfig(previous);
+                RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(previous);
                 if(rubricConfig.items().get(Rubric.RubricType.PASSOFF_TESTS) != null) {
                     set.addAll(func.apply(previous));
                 }

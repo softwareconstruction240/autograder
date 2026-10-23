@@ -1,12 +1,13 @@
 package edu.byu.cs.autograder.test;
 
+import edu.byu.cs.dataAccess.DaoService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestHelperTests {
-    private final TestHelper testHelper = new TestHelper();
+    private final TestHelper testHelper = new TestHelper(DaoService.createMemoryDAOs().getConfigurationDao());
 
     @Test
     @DisplayName("Remove Javalin Lines Test")

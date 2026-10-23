@@ -2,6 +2,8 @@ package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Rubric;
 import edu.byu.cs.model.TestNode;
 import edu.byu.cs.model.TestOutput;
@@ -14,8 +16,9 @@ import java.util.*;
  * Runs and scores the extra credit tests for the phase a submission is graded for
  */
 public class ExtraCreditGrader extends TestGrader {
-    public ExtraCreditGrader(GradingContext gradingContext) {
-        super(gradingContext);
+    public ExtraCreditGrader(GradingContext gradingContext, ConfigurationDao configurationDao,
+                             RubricConfigDao rubricConfigDao) {
+        super(gradingContext, configurationDao, rubricConfigDao);
     }
 
     @Override

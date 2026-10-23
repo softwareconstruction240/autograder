@@ -1,7 +1,7 @@
 package edu.byu.cs.autograder.test;
 
 import edu.byu.cs.autograder.GradingException;
-import edu.byu.cs.dataAccess.DaoService;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.model.ClassCoverageAnalysis;
 import edu.byu.cs.model.CoverageAnalysis;
@@ -43,8 +43,10 @@ public class TestHelper {
      * Constant value for trimming error outputs
      */
     private int MAX_ERROR_OUTPUT_CHARS;
+    private final ConfigurationDao configurationDao;
 
-    public TestHelper() {
+    public TestHelper(ConfigurationDao configurationDao) {
+        this.configurationDao = configurationDao;
         refreshConfigValues();
     }
 
@@ -54,7 +56,6 @@ public class TestHelper {
 
     private void refreshConfigValues() {
         MAX_ERROR_OUTPUT_CHARS = 10000;
-        ConfigurationDao configurationDao = DaoService.getConfigurationDao();
         try {
             Integer maxErrorOutputChars = configurationDao.getConfiguration(ConfigurationDao.Configuration.MAX_ERROR_OUTPUT_CHARS, Integer.class);
             if (maxErrorOutputChars > 0) {
@@ -198,7 +199,7 @@ public class TestHelper {
             File junitXmlOutput = new File(testOutputDirectory, "TEST-junit-jupiter.xml");
             File coverageOutput = new File(testOutputDirectory, "coverage.csv");
 
-            CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer().parse(coverageOutput) : null;
+            CoverageAnalysis coverage = coverageOutput.exists() ? new CoverageAnalyzer(configurationDao).parse(coverageOutput) : null;
             coverage = removeUnmatchedPackages(coverageRequirement, coverage);
             TestNode testAnalysis = testAnalyzer.parse(junitXmlOutput, ignoredTests);
 
