@@ -1,83 +1,69 @@
 package edu.byu.cs.dataAccess;
 
-import edu.byu.cs.dataAccess.daoInterface.*;
-import edu.byu.cs.dataAccess.memory.*;
-import edu.byu.cs.dataAccess.sql.*;
-import edu.byu.cs.model.Phase;
+import java.util.Objects;
+
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
+import edu.byu.cs.dataAccess.daoInterface.RepoUpdateDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
+import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.memory.ConfigurationMemoryDao;
+import edu.byu.cs.dataAccess.memory.QueueMemoryDao;
+import edu.byu.cs.dataAccess.memory.RepoUpdateMemoryDao;
+import edu.byu.cs.dataAccess.memory.RubricConfigMemoryDao;
+import edu.byu.cs.dataAccess.memory.SubmissionMemoryDao;
+import edu.byu.cs.dataAccess.memory.UserMemoryDao;
+import edu.byu.cs.dataAccess.sql.ConfigurationSqlDao;
+import edu.byu.cs.dataAccess.sql.QueueSqlDao;
+import edu.byu.cs.dataAccess.sql.RepoUpdateSqlDao;
+import edu.byu.cs.dataAccess.sql.RubricConfigSqlDao;
+import edu.byu.cs.dataAccess.sql.SqlDb;
+import edu.byu.cs.dataAccess.sql.SubmissionSqlDao;
+import edu.byu.cs.dataAccess.sql.UserSqlDao;
 
 /**
  * Provides centralized access and management for all DAOs.
  * <br>
- * This class maintains static references to each DAO implementation, enabling for retrieval
- * and configuration of DAO instances. The {@code initializeMemoryDAOs()} method configures
- * in-memory DAO instances with default testing values, while {@code initializeSqlDAOs()}
+ * This class stores references to each DAO implementation, enabling for retrieval,
+ * with static methods to enable configuration of DAO instances. The {@code initializeMemoryDAOs()}
+ * method configures in-memory DAO instances with default testing values, while {@code initializeSqlDAOs()}
  * initializes database-backed DAOs for live use.
  */
 public class DaoService {
 
-    private static UserDao userDao = new UserMemoryDao();
-    private static SubmissionDao submissionDao = new SubmissionMemoryDao();
-    private static QueueDao queueDao = new QueueMemoryDao();
-    private static RubricConfigDao rubricConfigDao = new RubricConfigMemoryDao();
-    private static ConfigurationDao configurationDao = new ConfigurationMemoryDao();
-    private static RepoUpdateDao repoUpdateDao = new RepoUpdateMemoryDao();
+    private final UserDao userDao;
+    private final SubmissionDao submissionDao;
+    private final QueueDao queueDao;
+    private final RubricConfigDao rubricConfigDao;
+    private final ConfigurationDao configurationDao;
+    private final RepoUpdateDao repoUpdateDao;
 
-    public static UserDao getUserDao() {
-        return userDao;
+    public DaoService(
+            UserDao userDao,
+            SubmissionDao submissionDao,
+            QueueDao queueDao,
+            RubricConfigDao rubricConfigDao,
+            ConfigurationDao configurationDao,
+            RepoUpdateDao repoUpdateDao) {
+        this.userDao = Objects.requireNonNull(userDao);
+        this.submissionDao = Objects.requireNonNull(submissionDao);
+        this.queueDao = Objects.requireNonNull(queueDao);
+        this.rubricConfigDao = Objects.requireNonNull(rubricConfigDao);
+        this.configurationDao = Objects.requireNonNull(configurationDao);
+        this.repoUpdateDao = Objects.requireNonNull(repoUpdateDao);
     }
 
-    public static SubmissionDao getSubmissionDao() {
-        return submissionDao;
-    }
+    public UserDao getUserDao() { return userDao; }
+    public SubmissionDao getSubmissionDao() { return submissionDao; }
+    public QueueDao getQueueDao() { return queueDao; }
+    public RubricConfigDao getRubricConfigDao() { return rubricConfigDao; }
+    public ConfigurationDao getConfigurationDao() { return configurationDao; }
+    public RepoUpdateDao getRepoUpdateDao() { return repoUpdateDao; }
 
-    public static QueueDao getQueueDao() {
-        return queueDao;
-    }
-
-    public static RubricConfigDao getRubricConfigDao() {
-        return rubricConfigDao;
-    }
-
-    public static ConfigurationDao getConfigurationDao() {
-        return configurationDao;
-    }
-
-    public static void setUserDao(UserDao userDao) {
-        DaoService.userDao = userDao;
-    }
-
-    public static void setSubmissionDao(SubmissionDao submissionDao) {
-        DaoService.submissionDao = submissionDao;
-    }
-
-    public static void setQueueDao(QueueDao queueDao) {
-        DaoService.queueDao = queueDao;
-    }
-
-    public static void setRubricConfigDao(RubricConfigDao rubricConfigDao) {
-        DaoService.rubricConfigDao = rubricConfigDao;
-    }
-
-    public static void setConfigurationDao(ConfigurationDao configurationDao) {
-        DaoService.configurationDao = configurationDao;
-    }
-
-    public static void setRepoUpdateDao(RepoUpdateDao repoUpdateDao) {
-        DaoService.repoUpdateDao = repoUpdateDao;
-    }
-
-    public static RepoUpdateDao getRepoUpdateDao() { return repoUpdateDao; }
-
-    /** Create and set a memory DAO for every DAO. Used for testing purposes. */
-    public static void initializeMemoryDAOs() {
-        DaoService.setRubricConfigDao(new RubricConfigMemoryDao());
-        DaoService.setUserDao(new UserMemoryDao());
-        DaoService.setQueueDao(new QueueMemoryDao());
-        DaoService.setSubmissionDao(new SubmissionMemoryDao());
-        DaoService.setConfigurationDao(new ConfigurationMemoryDao());
-        DaoService.setRepoUpdateDao(new RepoUpdateMemoryDao());
-
-        /* Initialize crucial default values in Config and RubricConfig for testing purposes */
+    /** Creates isolated in-memory DAO implementations for tests and local use. */
+    public static DaoService createMemoryDAOs() {
+        ConfigurationDao configurationDao = new ConfigurationMemoryDao();
         try {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, 0.1f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.MAX_LATE_DAYS_TO_PENALIZE, 5, Integer.class);
@@ -87,20 +73,19 @@ public class DaoService {
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_PERCENT, 0.8f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.EXTRA_COVERAGE_PERCENT, 0.9f, Float.class);
             configurationDao.setConfiguration(ConfigurationDao.Configuration.COVERAGE_TYPE, "LINE", String.class);
-
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
+        return new DaoService(
+                new UserMemoryDao(), new SubmissionMemoryDao(), new QueueMemoryDao(),
+                new RubricConfigMemoryDao(), configurationDao, new RepoUpdateMemoryDao());
     }
 
-    /** Create and set a SQL DAO for every DAO. Used for live application purposes */
-    public static void initializeSqlDAOs() throws DataAccessException {
+    /** Creates database-backed DAOs for the live application. */
+    public static DaoService createSqlDAOs() throws DataAccessException {
         SqlDb.setUpDb();
-        DaoService.setConfigurationDao(new ConfigurationSqlDao());
-        DaoService.setQueueDao(new QueueSqlDao());
-        DaoService.setRubricConfigDao(new RubricConfigSqlDao());
-        DaoService.setSubmissionDao(new SubmissionSqlDao());
-        DaoService.setUserDao(new UserSqlDao());
-        DaoService.setRepoUpdateDao(new RepoUpdateSqlDao());
+        return new DaoService(
+                new UserSqlDao(), new SubmissionSqlDao(), new QueueSqlDao(),
+                new RubricConfigSqlDao(), new ConfigurationSqlDao(), new RepoUpdateSqlDao());
     }
 }
