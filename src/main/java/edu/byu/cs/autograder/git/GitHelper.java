@@ -7,9 +7,9 @@ import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.git.CommitValidation.*;
 import edu.byu.cs.autograder.score.ScorerHelper;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.FileUtils;
 import edu.byu.cs.util.PhaseUtils;
@@ -41,13 +41,18 @@ public class GitHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHelper.class);
     private final GradingContext gradingContext;
     private final CommitVerificationStrategy commitVerificationStrategy;
+    private final SubmissionDao submissionDao;
+    private final QueueDao queueDao;
     private String headHash;
 
     public static final CommitThreshold MIN_COMMIT_THRESHOLD = new CommitThreshold(Instant.MIN, null);
 
-    public GitHelper(GradingContext gradingContext, CommitVerificationStrategy commitVerificationStrategy) {
+    public GitHelper(GradingContext gradingContext, CommitVerificationStrategy commitVerificationStrategy,
+                     SubmissionDao submissionDao, QueueDao queueDao) {
         this.gradingContext = gradingContext;
         this.commitVerificationStrategy = commitVerificationStrategy;
+        this.submissionDao = submissionDao;
+        this.queueDao = queueDao;
     }
 
     // ## Entry Point ##
@@ -376,7 +381,7 @@ public class GitHelper {
      */
     @NonNull
     private CommitThreshold constructCurrentThreshold(Git git) throws IOException, GradingException, DataAccessException {
-        var handInTimestamp = ScorerHelper.getHandInDateInstant(gradingContext.netId());
+        var handInTimestamp = ScorerHelper.getHandInDateInstant(gradingContext.netId(), queueDao);
         var forgivenessMinutesHead = gradingContext.verificationConfig().forgivenessMinutesHead();
         if (handInTimestamp != null) {
             handInTimestamp = handInTimestamp.plusSeconds(forgivenessMinutesHead * 60L);
@@ -398,14 +403,13 @@ public class GitHelper {
     // Helpers
 
     private Collection<Submission> getPassingSubmissions() throws DataAccessException {
-        return DaoService.getSubmissionDao().getAllPassingSubmissions(gradingContext.netId());
+        return submissionDao.getAllPassingSubmissions(gradingContext.netId());
     }
     private Submission getFirstPassingSubmission() throws DataAccessException {
         // CONSIDER: Rather than resolving this as a second database call,
         // read out the data from our `passingSubmissions` data that
         // we've already loaded locally.
         // This would require performing `getPassingSubmissions()` before this method.
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
         return submissionDao.getFirstPassingSubmission(gradingContext.netId(), gradingContext.phase());
     }
     private String getHeadHash(File stageRepo) throws GradingException {

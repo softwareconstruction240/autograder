@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import edu.byu.cs.analytics.CommitThreshold;
 import edu.byu.cs.autograder.GradingContext;
 import edu.byu.cs.autograder.GradingObserver;
+import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationConfig;
 import edu.byu.cs.autograder.git.CommitValidation.CommitVerificationStrategy;
 import edu.byu.cs.autograder.git.CommitValidation.DefaultGitVerificationStrategy;
@@ -47,6 +48,7 @@ public class GitHelperUtils {
     /** This is used as the minThreshold, but it only lasts for a single evaluation. */
     private Instant prevSubmissionTimestamp;
     private int submitDaysEarly = 0;
+    private final DaoService daoService = DaoService.createMemoryDAOs();
 
     public GitHelperUtils() {
         gradingContext = generateGradingContext(10, 3, 10, 1);
@@ -226,9 +228,10 @@ public class GitHelperUtils {
         return evaluateRepo(gradingContext, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GradingContext gradingContext, @Nullable CommitThreshold minThreshold) {
-        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly, 0);
+        LateDayCalculator lateDayCalculator = new MockLateDayCalculator(submitDaysEarly, 0, daoService);
         CommitVerificationStrategy verificationStrategy = new DefaultGitVerificationStrategy(lateDayCalculator);
-        var gitHelper = new GitHelper(gradingContext, verificationStrategy);
+        var gitHelper = new GitHelper(gradingContext, verificationStrategy,
+                daoService.getSubmissionDao(), daoService.getQueueDao());
         return evaluateRepo(gitHelper, minThreshold);
     }
     GitEvaluator<CommitVerificationResult> evaluateRepo(GitHelper gitHelper, @Nullable CommitThreshold minThreshold) {
