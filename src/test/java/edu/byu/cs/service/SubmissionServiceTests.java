@@ -5,6 +5,7 @@ import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,13 +20,18 @@ class SubmissionServiceTests {
     @BeforeEach
     void setUp() {
         queueDao = mock(QueueDao.class);
+        SubmissionDao submissionDao = mock(SubmissionDao.class);
+        UserDao userDao = mock(UserDao.class);
+        ConfigurationDao configurationDao = mock(ConfigurationDao.class);
+        RubricConfigDao rubricConfigDao = mock(RubricConfigDao.class);
         submissionService = new SubmissionService(
                 queueDao,
-                mock(SubmissionDao.class),
-                mock(UserDao.class),
-                mock(ConfigurationDao.class),
+                submissionDao,
+                userDao,
+                configurationDao,
                 mock(ConfigService.class),
-                mock(CanvasIntegration.class));
+                mock(CanvasIntegration.class),
+                rubricConfigDao);
     }
 
     @Test

@@ -3,10 +3,12 @@ package edu.byu.cs.util;
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.autograder.score.Scorer;
 import edu.byu.cs.canvas.CanvasIntegration;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.Submission;
 import org.eclipse.jgit.annotations.NonNull;
@@ -60,7 +62,11 @@ public class SubmissionUtils {
             @NonNull Phase phase,
             @NonNull String approverNetId,
             @NonNull Integer penaltyPct,
-            @NonNull CanvasIntegration canvasIntegration
+            @NonNull CanvasIntegration canvasIntegration,
+            @NonNull SubmissionDao submissionDao,
+            @NonNull UserDao userDao,
+            @NonNull ConfigurationDao configurationDao,
+            @NonNull RubricConfigDao rubricConfigDao
     ) throws DataAccessException, GradingException {
 
         // Validate params
@@ -75,7 +81,6 @@ public class SubmissionUtils {
         }
 
         // Read in data
-        SubmissionDao submissionDao = DaoService.getSubmissionDao();
         assertSubmissionUnapproved(submissionDao, studentNetId, phase);
         Submission withheldSubmission = submissionDao.getBestSubmissionForPhase(studentNetId, phase);
         if (withheldSubmission == null) {
@@ -89,7 +94,7 @@ public class SubmissionUtils {
         float approvedScore = Scorer.prepareModifiedScore(withheldSubmission.score(), penaltyPct);
         String gitCommitsComment = "Submission initially blocked due to low commits. Submission approved by admin " + approverNetId;
         Scorer.attemptSendToCanvas(withheldSubmission.rubric(), withheldSubmission.phase(), withheldSubmission.netId(),
-                penaltyPct, gitCommitsComment, canvasIntegration);
+                penaltyPct, gitCommitsComment, canvasIntegration, userDao, configurationDao, rubricConfigDao);
 
         // Done
         LOGGER.info("Approved submission for %s on phase %s with score %f. Approval by %s. Affected %d submissions."

@@ -15,6 +15,7 @@ import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.dataAccess.daoInterface.SubmissionDao;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.Phase;
 import edu.byu.cs.model.QueueItem;
 import edu.byu.cs.model.Submission;
@@ -54,16 +55,18 @@ public class SubmissionService {
     private final ConfigurationDao configurationDao;
     private final ConfigService configService;
     private final CanvasIntegration canvasIntegration;
+    private final RubricConfigDao rubricConfigDao;
 
     public SubmissionService(QueueDao queueDao, SubmissionDao submissionDao, UserDao userDao,
                              ConfigurationDao configurationDao, ConfigService configService,
-                             CanvasIntegration canvasIntegration) {
+                             CanvasIntegration canvasIntegration, RubricConfigDao rubricConfigDao) {
         this.queueDao = queueDao;
         this.submissionDao = submissionDao;
         this.userDao = userDao;
         this.configurationDao = configurationDao;
         this.configService = configService;
         this.canvasIntegration = canvasIntegration;
+        this.rubricConfigDao = rubricConfigDao;
     }
 
     /**
@@ -79,7 +82,7 @@ public class SubmissionService {
     public void submit(User user, GradeRequest request) throws BadRequestException, DataAccessException, InternalServerException {
         configService.checkForShutdown();
 
-        if (!isPhaseEnabled(request.phase())) {
+        if (!isPhaseEnabled(request.phase(), configurationDao)) {
             throw new BadRequestException("Student submission is disabled for " + request.phase());
         }
 
@@ -292,7 +295,8 @@ public class SubmissionService {
             penalty = Math.round((configurationDao.getConfiguration(ConfigurationDao.Configuration.GIT_COMMIT_PENALTY, Float.class) * 100));
         }
 
-        SubmissionUtils.approveSubmission(request.netId(), request.phase(), adminNetId, penalty, canvasIntegration);
+        SubmissionUtils.approveSubmission(request.netId(), request.phase(), adminNetId, penalty, canvasIntegration,
+                submissionDao, userDao, configurationDao, rubricConfigDao);
     }
 
     /**
@@ -305,8 +309,9 @@ public class SubmissionService {
      * @throws IOException if there is an error creating the grader
      */
     private Grader getGrader(String netId, Phase phase, String repoUrl, boolean adminSubmission) throws IOException, GradingException {
-        GradingObserver observer = new GradingObserverImpl(netId);
-        return new Grader(repoUrl, netId, observer, phase, adminSubmission, canvasIntegration);
+        GradingObserver observer = new GradingObserverImpl(netId, queueDao);
+        return new Grader(repoUrl, netId, observer, phase, adminSubmission, canvasIntegration,
+                configurationDao, rubricConfigDao, submissionDao, userDao, queueDao);
     }
 
     /**
