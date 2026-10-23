@@ -1,5 +1,26 @@
 package integration;
 
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.byu.cs.autograder.GradingException;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasIntegration;
@@ -9,28 +30,27 @@ import edu.byu.cs.canvas.model.CanvasAssignment;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
-import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
-import edu.byu.cs.model.*;
+import edu.byu.cs.model.Phase;
+import edu.byu.cs.model.Rubric;
+import edu.byu.cs.model.RubricConfig;
+import edu.byu.cs.model.TestNode;
+import edu.byu.cs.model.TestOutput;
+import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
-import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.ZonedDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class CanvasIntegrationImplIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CanvasIntegrationImplIT.class);
 
     private CanvasIntegration canvasIntegration;
+    private CanvasIntegrationImpl canvasIntegrationImpl;
     private CanvasIntegrationImpl.CourseInfoRetriever retriever;
+    private DaoService daoService;
 
     @BeforeAll
     public static void setUp() {
@@ -39,16 +59,18 @@ public class CanvasIntegrationImplIT {
 
     @BeforeEach
     public void setUpEach() throws DataAccessException {
-        DaoService.initializeMemoryDAOs();
-        DaoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, 33692, Integer.class);
+        daoService = DaoService.createMemoryDAOs();
+        daoService.getConfigurationDao().setConfiguration(ConfigurationDao.Configuration.COURSE_NUMBER, 33692, Integer.class);
         //TODO: get the course number dynamically, esp. when running on GitHub Actions. Needs to work locally, in GH Actions, and in deployment.
         // possible solutions:
         // 1. query the live autogrder's MySQL Config DAO for the course ID (this would require a lot of workarounds)
         // 2. query the API at cs240.click/api/admin/config (needs OAuth to work)
         // 3. make a new public autograder endpoint to get the course ID specifically (this would be pretty easy, but should we expose the course ID publicly?)
         // 4. keep manually updating it either here or as an environment variable in GH Actions
-        canvasIntegration = new CanvasIntegrationImpl();
-        retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
+        canvasIntegrationImpl = new CanvasIntegrationImpl(daoService.getConfigurationDao());
+        canvasIntegration = canvasIntegrationImpl;
+        retriever = canvasIntegrationImpl.new CourseInfoRetriever(
+                daoService.getRubricConfigDao(), daoService.getConfigurationDao());
     }
 
     @Test
@@ -132,7 +154,7 @@ public class CanvasIntegrationImplIT {
     }
 
     CanvasRubricAssessment spoofRubricAssessment(float expectedScore, Phase phase) throws DataAccessException, GradingException {
-        RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
+        RubricConfigDao rubricConfigDao = daoService.getRubricConfigDao();
         RubricConfig rubricConfig = rubricConfigDao.getRubricConfig(phase);
         RubricConfig.RubricConfigItem configItem = rubricConfig.items().get(Rubric.RubricType.GIT_COMMITS);
 
@@ -149,7 +171,7 @@ public class CanvasIntegrationImplIT {
                 )
         );
         Rubric rubric = new Rubric(rubricItems, true, "test notes");
-        return CanvasUtils.convertToAssessment(rubric, rubricConfig, phase);
+        return CanvasUtils.convertToAssessment(rubric, rubricConfig, phase, daoService.getRubricConfigDao());
     }
 
     @Test
@@ -251,8 +273,8 @@ public class CanvasIntegrationImplIT {
     @DisplayName("Course Related Information From Canvas is Stored in the Database")
     @Order(3)
     public void storeCourseInfoInDb() {
-        ConfigurationDao configurationDao = DaoService.getConfigurationDao();
-        RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
+        ConfigurationDao configurationDao = daoService.getConfigurationDao();
+        RubricConfigDao rubricConfigDao = daoService.getRubricConfigDao();
 
         try {
             retriever.useCourseRelatedInfoFromCanvas();
