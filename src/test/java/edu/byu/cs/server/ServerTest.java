@@ -1,6 +1,7 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.server.endpointprovider.MockEndpointProvider;
+import edu.byu.cs.dataAccess.DaoService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -75,7 +76,7 @@ class ServerTest {
 
     @BeforeAll
     public static void init() {
-        server = new Server(mockedMockProvider);
+        server = new Server(mockedMockProvider, DaoService.createMemoryDAOs().getQueueDao());
         int port = server.start(0);
         System.out.println("Started test HTTP server on " + port);
 

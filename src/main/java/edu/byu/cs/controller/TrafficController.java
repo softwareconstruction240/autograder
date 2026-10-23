@@ -1,8 +1,8 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.autograder.Grader;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.QueueItem;
 import org.eclipse.jetty.websocket.api.Session;
 
@@ -71,10 +71,10 @@ public class TrafficController {
      * Broadcasts the current queue status to all connected clients.
      * Each client will be notified of their specific position in the queue.
      */
-    public static void broadcastQueueStatus() throws DataAccessException {
+    public static void broadcastQueueStatus(QueueDao queueDao) throws DataAccessException {
 
         List<QueueItem> usersWaitingInQueue = new ArrayList<>();
-        for (QueueItem item : DaoService.getQueueDao().getAll())
+        for (QueueItem item : queueDao.getAll())
             if (!item.started())
                 usersWaitingInQueue.add(item);
 

@@ -1,8 +1,8 @@
 package edu.byu.cs.autograder;
 
 import edu.byu.cs.controller.TrafficController;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.model.Submission;
 import edu.byu.cs.util.Serializer;
 import org.slf4j.Logger;
@@ -20,15 +20,17 @@ public class GradingObserverImpl implements GradingObserver {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradingObserverImpl.class);
 
     private final String netId;
+    private final QueueDao queueDao;
 
-    public GradingObserverImpl(String netId) {
+    public GradingObserverImpl(String netId, QueueDao queueDao) {
         this.netId = netId;
+        this.queueDao = queueDao;
     }
 
     @Override
     public void notifyStarted() {
         try {
-            DaoService.getQueueDao().markStarted(netId);
+            queueDao.markStarted(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error marking queue item as started", e);
             return;
@@ -37,7 +39,7 @@ public class GradingObserverImpl implements GradingObserver {
         notifySubscribers(Map.of("type", "started"));
 
         try {
-            TrafficController.broadcastQueueStatus();
+            TrafficController.broadcastQueueStatus(queueDao);
         } catch (Exception e) {
             LOGGER.error("Error broadcasting queue status", e);
         }
@@ -88,7 +90,7 @@ public class GradingObserverImpl implements GradingObserver {
     private void removeFromQueue() {
         TrafficController.clearSessions(netId);
         try {
-            DaoService.getQueueDao().remove(netId);
+            queueDao.remove(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error removing queue item", e);
         }

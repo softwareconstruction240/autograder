@@ -1,7 +1,7 @@
 package edu.byu.cs.controller;
 
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;
 import io.javalin.websocket.WsErrorContext;
@@ -19,6 +19,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
+    private final QueueDao queueDao;
+
+    public WebSocketController(QueueDao queueDao) {
+        this.queueDao = queueDao;
+    }
 
     public static void onError(WsErrorContext ctx) {
         if (!(ctx.error() instanceof IOException)) {
@@ -26,7 +31,7 @@ public class WebSocketController {
         }
     }
 
-    public static void onMessage(WsMessageContext ctx) {
+    public void onMessage(WsMessageContext ctx) {
         Session session = ctx.session;
         String netId;
         ctx.enableAutomaticPings(20, TimeUnit.SECONDS);
@@ -62,9 +67,9 @@ public class WebSocketController {
      * @return A boolean indicating the result.
      * @throws RuntimeException When a {@link DataAccessException} occurs.
      */
-    private static boolean isInQueue(String netId) {
+    private boolean isInQueue(String netId) {
         try {
-            return DaoService.getQueueDao().isAlreadyInQueue(netId);
+            return queueDao.isAlreadyInQueue(netId);
         } catch (DataAccessException e) {
             LOGGER.error("Error accessing queue", e);
             throw new RuntimeException("Error accessing queue", e);
@@ -76,9 +81,9 @@ public class WebSocketController {
      *
      * @throws RuntimeException When a {@link DataAccessException} occurs.
      */
-    private static void updateAllQueueMembers() {
+    private void updateAllQueueMembers() {
         try {
-            TrafficController.broadcastQueueStatus();
+            TrafficController.broadcastQueueStatus(queueDao);
         } catch (DataAccessException e) {
             LOGGER.error("Error broadcasting queue status", e);
             throw new RuntimeException("Error broadcasting queue status", e);

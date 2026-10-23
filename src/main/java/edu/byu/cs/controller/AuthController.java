@@ -4,7 +4,6 @@ import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
 import edu.byu.cs.controller.exception.ResourceForbiddenException;
 import edu.byu.cs.controller.exception.UnauthorizedException;
-import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.UserDao;
 import edu.byu.cs.model.User;
@@ -19,6 +18,11 @@ import static edu.byu.cs.util.JwtUtils.validateToken;
  */
 public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+    private final UserDao userDao;
+
+    public AuthController(UserDao userDao) {
+        this.userDao = userDao;
+    }
 
     /**
      * A handler that verifies that the request has a valid JWT in the Authorization header.
@@ -39,7 +43,6 @@ public class AuthController {
                 throw new UnauthorizedException();
             }
 
-            UserDao userDao = DaoService.getUserDao();
             User user;
             try {
                 user = userDao.getUser(netId);

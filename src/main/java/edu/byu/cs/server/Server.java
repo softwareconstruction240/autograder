@@ -1,6 +1,7 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.dataAccess.daoInterface.QueueDao;
 import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import io.javalin.Javalin;
@@ -21,9 +22,11 @@ public class Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
     private final EndpointProvider provider;
+    private final WebSocketController webSocketController;
 
-    public Server(EndpointProvider endpointProvider) {
+    public Server(EndpointProvider endpointProvider, QueueDao queueDao) {
         this.provider = endpointProvider;
+        this.webSocketController = new WebSocketController(queueDao);
     }
 
     public int start() {
@@ -150,7 +153,7 @@ public class Server {
 
         .ws("/ws", (wsConfig) -> {
             wsConfig.onError(WebSocketController::onError);
-            wsConfig.onMessage(WebSocketController::onMessage);
+            wsConfig.onMessage(webSocketController::onMessage);
         })
 
         .exception(BadRequestException.class, haltWithCode(400))
