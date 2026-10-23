@@ -1,6 +1,8 @@
 package edu.byu.cs.canvas;
 
 import edu.byu.cs.properties.ApplicationProperties;
+import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
+import edu.byu.cs.dataAccess.daoInterface.UserDao;
 
 /**
  * Creates the application's {@link CanvasIntegration} implementation.
@@ -9,10 +11,10 @@ import edu.byu.cs.properties.ApplicationProperties;
 public final class CanvasService {
     private CanvasService() { }
 
-    public static CanvasIntegration createIntegration() {
+    public static CanvasIntegration createIntegration(ConfigurationDao configurationDao, UserDao userDao) {
         if (ApplicationProperties.useCanvas()) {
-            return new CanvasIntegrationImpl();
+            return new CanvasIntegrationImpl(configurationDao);
         }
-        return new FakeCanvasIntegration();
+        return new FakeCanvasIntegration(userDao);
     }
 }

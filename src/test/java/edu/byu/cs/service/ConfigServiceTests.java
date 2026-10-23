@@ -18,7 +18,8 @@ class ConfigServiceTests {
     @BeforeEach
     void setUp() {
         configurationDao = mock(ConfigurationDao.class);
-        configService = new ConfigService(configurationDao, mock(RubricConfigDao.class));
+        configService = new ConfigService(configurationDao, mock(RubricConfigDao.class),
+                mock(edu.byu.cs.canvas.CanvasIntegration.class));
     }
 
     @Test

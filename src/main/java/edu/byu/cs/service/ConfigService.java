@@ -1,7 +1,7 @@
 package edu.byu.cs.service;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.canvas.CanvasIntegrationImpl;
+import edu.byu.cs.canvas.CanvasIntegration;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao.Configuration;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
@@ -12,7 +12,6 @@ import edu.byu.cs.util.PhaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ObjectInputFilter;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -41,10 +40,12 @@ public class ConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private final ConfigurationDao dao;
     private final RubricConfigDao rubricConfigDao;
+    private final CanvasIntegration canvasIntegration;
 
-    public ConfigService(ConfigurationDao dao, RubricConfigDao rubricConfigDao) {
+    public ConfigService(ConfigurationDao dao, RubricConfigDao rubricConfigDao, CanvasIntegration canvasIntegration) {
         this.dao = dao;
         this.rubricConfigDao = rubricConfigDao;
+        this.canvasIntegration = canvasIntegration;
     }
 
     /**
@@ -148,7 +149,7 @@ public class ConfigService {
         for (Phase phase : Phase.values()) {
             if (!isPhaseGraded(phase)) continue;
 
-            int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase);
+            int assignmentId = PhaseUtils.getPhaseAssignmentNumber(phase, dao);
             EnumMap<Rubric.RubricType, RubricConfig.RubricConfigItem> rubricConfigItems = rubricConfigDao.getRubricConfig(phase).items();
 
             assignments.add(new PrivateConfig.AssignmentConfig(phase, assignmentId, rubricConfigItems));
@@ -244,7 +245,7 @@ public class ConfigService {
         try {
             ArrayList<Phase> phases = new ArrayList<>();
             for (Phase phase: Phase.values()) {
-                if (!isPhaseGraded(phase) && isPhaseEnabled(phase)) {
+                if (!isPhaseGraded(phase) && isPhaseEnabled(phase, dao)) {
                     phases.add(phase);
                 }
             }
@@ -352,8 +353,7 @@ public class ConfigService {
      * @throws DataAccessException if there is an issue updating course information in the database
      */
     public void updateCourseIdsUsingCanvas(User user) throws CanvasException, DataAccessException {
-        var retriever = new CanvasIntegrationImpl.CourseInfoRetriever();
-        retriever.useCourseRelatedInfoFromCanvas();
+        canvasIntegration.updateCourseRelatedInfo(rubricConfigDao);
 
         logConfigChange(
                 "updated course info (assignment IDs, rubric IDs, rubric points) " +

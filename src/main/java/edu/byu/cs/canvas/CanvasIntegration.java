@@ -3,6 +3,8 @@ package edu.byu.cs.canvas;
 import edu.byu.cs.canvas.model.CanvasRubricAssessment;
 import edu.byu.cs.canvas.model.CanvasSection;
 import edu.byu.cs.canvas.model.CanvasSubmission;
+import edu.byu.cs.dataAccess.DataAccessException;
+import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
 import edu.byu.cs.model.User;
 import org.eclipse.jgit.annotations.Nullable;
 
@@ -69,5 +71,8 @@ public interface CanvasIntegration {
     ZonedDateTime getAssignmentDueDateForStudent(int userId, int assignmentId) throws CanvasException;
 
     CanvasSection[] getAllSections() throws CanvasException;
+
+    /** Retrieves Canvas course assignment and rubric metadata and saves it to the DAOs. */
+    void updateCourseRelatedInfo(RubricConfigDao rubricConfigDao) throws CanvasException, DataAccessException;
 
 }

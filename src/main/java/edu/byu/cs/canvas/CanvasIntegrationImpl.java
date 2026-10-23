@@ -1,7 +1,34 @@
 package edu.byu.cs.canvas;
 
-import edu.byu.cs.canvas.model.*;
-import edu.byu.cs.dataAccess.DaoService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import org.eclipse.jgit.annotations.Nullable;
+
+import edu.byu.cs.canvas.model.CanvasAssignment;
+import edu.byu.cs.canvas.model.CanvasRubricAssessment;
+import edu.byu.cs.canvas.model.CanvasRubricItem;
+import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.canvas.model.CanvasSubmission;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.daoInterface.ConfigurationDao;
 import edu.byu.cs.dataAccess.daoInterface.RubricConfigDao;
@@ -11,24 +38,17 @@ import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.util.PhaseUtils;
 import edu.byu.cs.util.Serializer;
-import org.eclipse.jgit.annotations.Nullable;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The implementation of the {@link CanvasIntegration} interface allowing communication with Canvas.
  */
 public class CanvasIntegrationImpl implements CanvasIntegration {
+
+    private final ConfigurationDao configurationDao;
+
+    public CanvasIntegrationImpl(ConfigurationDao configurationDao) {
+        this.configurationDao = configurationDao;
+    }
 
     private static final String CANVAS_HOST = "https://byu.instructure.com";
 
@@ -262,7 +282,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The response from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> CanvasResponse<T> makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
+    private <T> CanvasResponse<T> makeCanvasRequest(String method, String path, Class<T> responseClass) throws CanvasException {
         try {
             URL url = new URI(CANVAS_HOST + "/api/v1" + path).toURL();
             HttpsURLConnection https = (HttpsURLConnection) url.openConnection();
@@ -293,7 +313,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The response from canvas
      * @throws IOException If there is an error reading the response from canvas
      */
-    private static <T> T readBody(HttpsURLConnection https, Class<T> responseClass) throws IOException {
+    private <T> T readBody(HttpsURLConnection https, Class<T> responseClass) throws IOException {
         if (https.getContentLength() < 0) {
             try (InputStream respBody = https.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
@@ -314,7 +334,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
      * @return The list containing the responses from canvas
      * @throws CanvasException If there is an error while contacting canvas
      */
-    private static <T> List<T> makePaginatedCanvasRequest(String path, Class<T> responseClass) throws CanvasException {
+    private <T> List<T> makePaginatedCanvasRequest(String path, Class<T> responseClass) throws CanvasException {
         List<T> list = new ArrayList<>();
         while (path != null) {
             @SuppressWarnings("unchecked")
@@ -326,7 +346,7 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return list;
     }
 
-    private static String getNextPath(String wholeLink) {
+    private String getNextPath(String wholeLink) {
         for(String group : wholeLink.split(",")) {
             if (group.contains("rel=\"next\"")) {
                 return group.substring(group.indexOf("/api/v1") + 7, group.indexOf('>'));
@@ -335,9 +355,9 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         return null;
     }
 
-    private static Integer getCourseNumber() throws CanvasException {
+    private Integer getCourseNumber() throws CanvasException {
         try {
-            return DaoService.getConfigurationDao().getConfiguration(
+            return configurationDao.getConfiguration(
                     ConfigurationDao.Configuration.COURSE_NUMBER,
                     Integer.class);
         } catch (DataAccessException e) {
@@ -345,7 +365,20 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
         }
     }
 
-    public static class CourseInfoRetriever {
+    @Override
+    public void updateCourseRelatedInfo(RubricConfigDao rubricConfigDao) throws CanvasException, DataAccessException {
+        new CourseInfoRetriever(rubricConfigDao, configurationDao).useCourseRelatedInfoFromCanvas();
+    }
+
+    public class CourseInfoRetriever {
+
+        private final RubricConfigDao rubricConfigDao;
+        private final ConfigurationDao configurationDao;
+
+        public CourseInfoRetriever(RubricConfigDao rubricConfigDao, ConfigurationDao configurationDao) {
+            this.rubricConfigDao = rubricConfigDao;
+            this.configurationDao = configurationDao;
+        }
 
         private static final String CANVAS_GRACE_DAYS_ASSIGNMENT_NAME = "Grace Days";
 
@@ -513,8 +546,6 @@ public class CanvasIntegrationImpl implements CanvasIntegration {
          * @throws DataAccessException if an error occurs when contacting the database
          */
         private void writeCourseValuesToDb() throws DataAccessException {
-            RubricConfigDao rubricConfigDao = DaoService.getRubricConfigDao();
-            ConfigurationDao configurationDao = DaoService.getConfigurationDao();
             for (Phase phase : rubricInfo.keySet()) {
                 Integer assignmentId = assignmentIds.get(phase);
                 configurationDao.setConfiguration(
